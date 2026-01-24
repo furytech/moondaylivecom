@@ -51,7 +51,7 @@ const Results = () => {
 
   if (!moonSign) {
     return (
-      <div className="min-h-screen gradient-navy-radial flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-gold-light font-display text-xl">
           Consulting the cosmos...
         </div>
@@ -60,7 +60,7 @@ const Results = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-navy-radial flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(30)].map((_, i) => (
@@ -80,11 +80,14 @@ const Results = () => {
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center px-6 py-12 relative z-10">
         {/* Logo */}
-        <div className="animate-float mb-6">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[hsl(var(--navy-dark))] overflow-hidden flex items-center justify-center">
+        <div className="animate-float mb-8">
+          <div 
+            className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+            onClick={() => navigate("/")}
+          >
             <img
               src={moonLogo}
-              alt="Moon Sign Quiz Logo"
+              alt="Moonday"
               className="w-full h-full object-cover drop-shadow-2xl"
             />
           </div>

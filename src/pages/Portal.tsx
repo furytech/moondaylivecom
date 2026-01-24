@@ -90,13 +90,13 @@ const Portal = () => {
           {/* Logo */}
           <div className="flex justify-center mb-10 animate-fade-up">
             <div 
-              className="w-24 h-24 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+              className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
               onClick={() => navigate("/")}
             >
               <img
                 src={moonLogo}
                 alt="Moonday"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover drop-shadow-2xl"
               />
             </div>
           </div>

@@ -31,8 +31,8 @@ const Navigation = () => {
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 elegant-hover">
-            <div className="w-10 h-10 rounded-full overflow-hidden">
+          <Link to="/" className="flex items-center gap-3 hover-scale-subtle">
+            <div className="w-12 h-12 rounded-full overflow-hidden">
               <img
                 src={moonLogo}
                 alt="Moonday"

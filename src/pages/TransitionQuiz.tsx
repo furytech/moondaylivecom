@@ -94,7 +94,7 @@ const TransitionQuiz = () => {
   const progress = ((currentIndex + (isComplete ? 1 : 0)) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen gradient-navy-radial flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(25)].map((_, i) => (
@@ -114,11 +114,14 @@ const TransitionQuiz = () => {
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center px-6 py-8 relative z-10">
         {/* Logo */}
-        <div className="animate-float mb-4">
-          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[hsl(var(--navy-dark))] overflow-hidden flex items-center justify-center">
+        <div className="animate-float mb-6">
+          <div 
+            className="w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+            onClick={() => navigate("/")}
+          >
             <img
               src={moonLogo}
-              alt="Moon Sign Quiz Logo"
+              alt="Moonday"
               className="w-full h-full object-cover drop-shadow-2xl"
             />
           </div>
