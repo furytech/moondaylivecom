@@ -1,6 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  User
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAc51VZTpK5sWKesieNWfN9C5iAc-_rkpU",
@@ -18,6 +26,9 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firestore
 export const db = getFirestore(app);
 
+// Initialize Auth
+export const auth = getAuth(app);
+
 // Initialize Analytics (only in browser)
 export const initAnalytics = async () => {
   if (await isSupported()) {
@@ -25,5 +36,19 @@ export const initAnalytics = async () => {
   }
   return null;
 };
+
+// Auth helper functions
+export const signUp = (email: string, password: string) => 
+  createUserWithEmailAndPassword(auth, email, password);
+
+export const signIn = (email: string, password: string) => 
+  signInWithEmailAndPassword(auth, email, password);
+
+export const signOut = () => firebaseSignOut(auth);
+
+export const onAuthChange = (callback: (user: User | null) => void) => 
+  onAuthStateChanged(auth, callback);
+
+export type { User };
 
 export default app;

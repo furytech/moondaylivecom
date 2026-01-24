@@ -1,0 +1,132 @@
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import moonLogo from "@/assets/moon-logo-new.png";
+import { Menu, X } from "lucide-react";
+import { useState } from "react";
+
+const Navigation = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+    setMobileMenuOpen(false);
+  };
+
+  const navLinks = user
+    ? [
+        { path: "/blueprint", label: "Blueprint" },
+        { path: "/archives", label: "Archives" },
+        { path: "/atelier", label: "Atelier" },
+      ]
+    : [];
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/30">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3 elegant-hover">
+            <div className="w-10 h-10 rounded-full overflow-hidden">
+              <img
+                src={moonLogo}
+                alt="Moonday"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="font-display text-lg tracking-wider text-foreground hidden sm:block">
+              Moonday
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`font-display text-sm tracking-widest uppercase elegant-hover ${
+                  isActive(link.path) 
+                    ? "text-primary" 
+                    : "text-foreground/70"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                className="font-display text-sm tracking-widest uppercase text-foreground/70 elegant-hover"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                to="/portal"
+                className="font-display text-sm tracking-widest uppercase px-5 py-2 art-deco-border brass-glow text-primary"
+              >
+                Portal
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-foreground p-2"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-6 border-t border-border/30 animate-fade-in">
+            <div className="flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`font-display text-sm tracking-widest uppercase py-2 ${
+                    isActive(link.path) 
+                      ? "text-primary" 
+                      : "text-foreground/70"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  className="font-display text-sm tracking-widest uppercase text-foreground/70 py-2 text-left"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  to="/portal"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="font-display text-sm tracking-widest uppercase text-primary py-2"
+                >
+                  Portal
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+};
+
+export default Navigation;
