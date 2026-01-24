@@ -12,19 +12,22 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import moonLogo from "@/assets/moon-logo-new.png";
+import { calculateMoonSign } from "@/lib/moonSign";
+import { saveUserSignup } from "@/lib/userService";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [birthDate, setBirthDate] = useState<Date>();
   const [emailError, setEmailError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError("");
 
@@ -42,16 +45,28 @@ const Signup = () => {
       return;
     }
 
-    // TODO: Store in Firebase when configured
-    console.log("Signup data:", { email, birthDate });
+    setIsSubmitting(true);
 
-    // Navigate to results with data
-    navigate("/results", {
-      state: {
-        birthDate: birthDate.toISOString(),
-        email: email.trim()
-      }
-    });
+    try {
+      // Calculate moon sign
+      const moonSign = calculateMoonSign(birthDate);
+      
+      // Save to Firebase
+      await saveUserSignup(email, birthDate, moonSign);
+
+      // Navigate to results with data
+      navigate("/results", {
+        state: {
+          birthDate: birthDate.toISOString(),
+          email: email.trim()
+        }
+      });
+    } catch (error) {
+      console.error("Error saving signup:", error);
+      setEmailError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = email.trim() && birthDate && validateEmail(email);
@@ -171,18 +186,18 @@ const Signup = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
             className={cn(
               "w-full group relative px-10 py-4 font-display text-base tracking-widest uppercase overflow-hidden art-deco-border transition-all duration-500",
-              isFormValid
+              isFormValid && !isSubmitting
                 ? "bg-gold-medium/10 hover:bg-gold-medium/20 cursor-pointer"
                 : "bg-transparent opacity-50 cursor-not-allowed"
             )}
           >
             <span className="relative z-10 text-gold-light group-hover:text-gold-pale transition-colors">
-              Reveal My Moon Sign
+              {isSubmitting ? "Consulting the cosmos..." : "Reveal My Moon Sign"}
             </span>
-            {isFormValid && (
+            {isFormValid && !isSubmitting && (
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-gold" />
             )}
           </button>
