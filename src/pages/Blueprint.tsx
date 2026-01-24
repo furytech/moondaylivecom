@@ -1,8 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import moonLogo from "@/assets/moon-logo-new.png";
 
 const Blueprint = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   
   // Extract name from email
@@ -31,8 +34,22 @@ const Blueprint = () => {
       {/* Main content */}
       <main className="flex-1 pt-24 pb-12 px-6 relative z-10">
         <div className="max-w-4xl mx-auto">
+          {/* Logo */}
+          <div className="flex justify-center mb-12 animate-fade-up">
+            <div 
+              onClick={() => navigate("/")} 
+              className="cursor-pointer hover-scale-subtle inline-block"
+            >
+              <img 
+                src={moonLogo} 
+                alt="Moonday" 
+                className="w-48 h-auto"
+              />
+            </div>
+          </div>
+
           {/* Welcome Header */}
-          <div className="text-center mb-16 animate-fade-up">
+          <div className="text-center mb-16 animate-fade-up stagger-1">
             <h1 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wider mb-4">
               Your Blueprint
             </h1>
