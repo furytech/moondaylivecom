@@ -51,47 +51,46 @@ const Archives = () => {
       <main className="flex-1 pt-24 pb-12 px-6 relative z-10">
         <div className="max-w-3xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
+          <div className="text-center mb-16 animate-fade-up">
+            <h1 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wider mb-4">
               The Archives
             </h1>
-            <p className="font-serif text-lg text-cream-muted">
+            <p className="font-serif text-xl text-cream-muted">
               Your collection of lunar rituals and reflections
             </p>
           </div>
 
           {/* Ritual Entries */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {rituals.map((ritual, index) => (
               <article 
                 key={ritual.id}
-                className="art-deco-border brass-glow bg-card/40 backdrop-blur-sm p-6 md:p-8 group cursor-pointer"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className={`art-deco-border brass-glow card-lift bg-card/40 backdrop-blur-sm p-8 md:p-10 group cursor-pointer animate-fade-up stagger-${index + 1}`}
               >
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                   <span className="font-display text-xs tracking-widest uppercase text-primary">
                     {ritual.phase}
                   </span>
-                  <span className="font-serif text-sm text-muted-foreground">
+                  <span className="font-serif text-base text-muted-foreground">
                     {ritual.date}
                   </span>
                 </div>
 
                 {/* Title */}
-                <h2 className="font-display text-xl tracking-wider text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
+                <h2 className="font-display text-2xl tracking-wider text-foreground mb-4 group-hover:text-primary transition-colors duration-300">
                   {ritual.title}
                 </h2>
 
                 {/* Description */}
-                <p className="font-serif text-cream-muted leading-relaxed">
+                <p className="font-serif text-lg text-cream-muted leading-relaxed">
                   {ritual.description}
                 </p>
 
                 {/* Decorative line */}
-                <div className="mt-6 flex items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
+                <div className="mt-8 flex items-center gap-3 opacity-30 group-hover:opacity-60 transition-opacity duration-300">
                   <div className="flex-1 h-px bg-gradient-to-r from-primary/50 to-transparent" />
-                  <div className="w-1 h-1 rotate-45 bg-primary/50" />
+                  <div className="w-1.5 h-1.5 rotate-45 bg-primary/50" />
                 </div>
               </article>
             ))}
