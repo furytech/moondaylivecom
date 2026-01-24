@@ -1,4 +1,4 @@
-import moonLogo from "@/assets/moon-logo-clean.png";
+import moonLogo from "@/assets/moon-logo-transparent.png";
 
 const Index = () => {
   return (
@@ -26,7 +26,7 @@ const Index = () => {
           <img
             src={moonLogo}
             alt="Moon Sign Quiz Logo"
-            className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-2xl"
+            className="w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] object-contain drop-shadow-2xl"
           />
         </div>
 
