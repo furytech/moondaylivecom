@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import moonLogo from "@/assets/moon-logo-new.png";
-import { calculateMoonSign } from "@/lib/moonSign";
+import { calculateMoonSign, checkTransitionDay } from "@/lib/moonSign";
 import { saveUserSignup } from "@/lib/userService";
 
 const Signup = () => {
@@ -48,19 +48,34 @@ const Signup = () => {
     setIsSubmitting(true);
 
     try {
-      // Calculate moon sign
-      const moonSign = calculateMoonSign(birthDate);
+      // Check if this is a transition day
+      const transitionCheck = checkTransitionDay(birthDate);
       
-      // Save to Firebase
-      await saveUserSignup(email, birthDate, moonSign);
+      if (transitionCheck.isTransitionDay) {
+        // Navigate to quiz for transition day
+        navigate("/quiz", {
+          state: {
+            signA: transitionCheck.signAtStart,
+            signB: transitionCheck.signAtEnd,
+            birthDate: birthDate.toISOString(),
+            email: email.trim()
+          }
+        });
+      } else {
+        // Calculate moon sign directly
+        const moonSign = calculateMoonSign(birthDate);
+        
+        // Save to Firebase
+        await saveUserSignup(email, birthDate, moonSign);
 
-      // Navigate to results with data
-      navigate("/results", {
-        state: {
-          birthDate: birthDate.toISOString(),
-          email: email.trim()
-        }
-      });
+        // Navigate to results with data
+        navigate("/results", {
+          state: {
+            birthDate: birthDate.toISOString(),
+            email: email.trim()
+          }
+        });
+      }
     } catch (error) {
       console.error("Error saving signup:", error);
       setEmailError("Something went wrong. Please try again.");
