@@ -8,11 +8,11 @@
 
 @layer base {
   :root {
-    /* Cincinnati Hilton - Midnight Navy base palette */
-    --navy-deep: 0 0% 10%;
-    --navy-dark: 0 0% 12%;
-    --navy-medium: 0 0% 16%;
-    --navy-light: 0 0% 22%;
+    /* Cincinnati Hilton - Deep Navy base palette */
+    --navy-deep: 220 45% 8%;
+    --navy-dark: 220 40% 12%;
+    --navy-medium: 218 35% 16%;
+    --navy-light: 215 30% 22%;
     
     /* Champagne Gold accents (#E3C18D) */
     --gold-deep: 38 56% 60%;
