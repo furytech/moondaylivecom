@@ -42,9 +42,16 @@ const Signup = () => {
       return;
     }
 
-    // Store data and navigate to quiz/results
+    // TODO: Store in Firebase when configured
     console.log("Signup data:", { email, birthDate });
-    // TODO: Navigate to quiz or calculate moon sign
+
+    // Navigate to results with data
+    navigate("/results", {
+      state: {
+        birthDate: birthDate.toISOString(),
+        email: email.trim()
+      }
+    });
   };
 
   const isFormValid = email.trim() && birthDate && validateEmail(email);
