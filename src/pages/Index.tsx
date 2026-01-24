@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import moonLogo from "@/assets/moon-logo-new.png";
+import moonLogo from "@/assets/moon-logo-transparent.png";
 
 const Index = () => {
   const navigate = useNavigate();
