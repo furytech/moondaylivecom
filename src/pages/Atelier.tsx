@@ -1,7 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import moonLogo from "@/assets/moon-logo-new.png";
 
 const Atelier = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
@@ -25,8 +29,22 @@ const Atelier = () => {
       {/* Main content */}
       <main className="flex-1 pt-24 pb-12 px-6 relative z-10 flex items-center justify-center">
         <div className="max-w-2xl mx-auto text-center">
+          {/* Logo */}
+          <div className="flex justify-center mb-12 animate-fade-up">
+            <div 
+              onClick={() => navigate("/")} 
+              className="cursor-pointer hover-scale-subtle inline-block"
+            >
+              <img 
+                src={moonLogo} 
+                alt="Moonday" 
+                className="w-48 h-auto"
+              />
+            </div>
+          </div>
+
           {/* Badge */}
-          <div className="inline-block px-5 py-2.5 art-deco-border bg-card/30 mb-10 animate-fade-up">
+          <div className="inline-block px-5 py-2.5 art-deco-border bg-card/30 mb-10 animate-fade-up stagger-1">
             <span className="font-display text-xs tracking-widest uppercase text-primary">
               Coming Soon — Phase 2
             </span>
