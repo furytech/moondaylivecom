@@ -5,7 +5,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen gradient-navy-radial flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
