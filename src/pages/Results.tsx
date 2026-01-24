@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { calculateMoonSign, MoonSignResult } from "@/lib/moonSign";
-import moonLogo from "@/assets/moon-logo-transparent.png";
+import moonLogo from "@/assets/moon-logo-new.png";
 
 const Results = () => {
   const navigate = useNavigate();
@@ -62,14 +62,11 @@ const Results = () => {
       <main className="flex-1 flex flex-col items-center px-6 py-12 relative z-10">
         {/* Logo */}
         <div className="animate-float mb-6">
-          <div 
-            className="relative w-24 h-24 md:w-32 md:h-32 rounded-full shadow-lg shadow-navy-dark/50"
-            style={{ backgroundColor: '#0a1628' }}
-          >
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[hsl(var(--navy-dark))] overflow-hidden flex items-center justify-center">
             <img
               src={moonLogo}
               alt="Moon Sign Quiz Logo"
-              className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
+              className="w-full h-full object-cover drop-shadow-2xl"
             />
           </div>
         </div>

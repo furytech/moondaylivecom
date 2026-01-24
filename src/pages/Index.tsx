@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import moonLogo from "@/assets/moon-logo-transparent.png";
+import moonLogo from "@/assets/moon-logo-new.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -26,14 +26,11 @@ const Index = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         {/* Logo - Centered at top */}
         <div className="animate-float mb-8">
-          <div 
-            className="relative w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full shadow-lg shadow-navy-dark/50"
-            style={{ backgroundColor: '#0a1628' }}
-          >
+          <div className="w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full bg-[hsl(var(--navy-dark))] overflow-hidden flex items-center justify-center">
             <img
               src={moonLogo}
               alt="Moon Sign Quiz Logo"
-              className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
+              className="w-full h-full object-cover drop-shadow-2xl"
             />
           </div>
         </div>
