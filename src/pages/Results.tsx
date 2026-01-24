@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { calculateMoonSign, MoonSignResult } from "@/lib/moonSign";
-import moonLogo from "@/assets/moon-logo-new.png";
+import moonLogo from "@/assets/moon-logo-transparent.png";
 
 const Results = () => {
   const navigate = useNavigate();
