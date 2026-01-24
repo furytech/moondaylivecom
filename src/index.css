@@ -2,95 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Art Deco Moon Sign Quiz Design System
+   Navy gradients + Gold accents - Sophisticated celestial aesthetic
+   All colors in HSL format */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Navy/Deep Blue base palette */
+    --navy-deep: 220 60% 8%;
+    --navy-dark: 220 55% 12%;
+    --navy-medium: 218 50% 18%;
+    --navy-light: 215 45% 25%;
+    
+    /* Teal accents (from logo) */
+    --teal-deep: 195 55% 25%;
+    --teal-medium: 192 50% 35%;
+    --teal-light: 190 45% 45%;
+    
+    /* Gold accents */
+    --gold-deep: 40 65% 35%;
+    --gold-medium: 42 70% 50%;
+    --gold-light: 45 75% 65%;
+    --gold-pale: 48 60% 80%;
+    
+    /* Cream/Ivory for text */
+    --cream: 45 30% 96%;
+    --cream-muted: 40 20% 85%;
+    
+    /* Core semantic tokens - Dark theme by default for Art Deco */
+    --background: var(--navy-deep);
+    --foreground: var(--cream);
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: var(--navy-dark);
+    --card-foreground: var(--cream);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: var(--navy-medium);
+    --popover-foreground: var(--cream);
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: var(--gold-medium);
+    --primary-foreground: var(--navy-deep);
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: var(--teal-deep);
+    --secondary-foreground: var(--cream);
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: var(--navy-medium);
+    --muted-foreground: var(--cream-muted);
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: var(--gold-light);
+    --accent-foreground: var(--navy-deep);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: var(--cream);
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: var(--navy-light);
+    --input: var(--navy-medium);
+    --ring: var(--gold-medium);
 
-    --radius: 0.5rem;
+    --radius: 0.25rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar tokens */
+    --sidebar-background: var(--navy-dark);
+    --sidebar-foreground: var(--cream);
+    --sidebar-primary: var(--gold-medium);
+    --sidebar-primary-foreground: var(--navy-deep);
+    --sidebar-accent: var(--navy-medium);
+    --sidebar-accent-foreground: var(--cream);
+    --sidebar-border: var(--navy-light);
+    --sidebar-ring: var(--gold-medium);
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  /* Light mode variant (optional - keeping dark as primary) */
+  .light {
+    --background: var(--cream);
+    --foreground: var(--navy-deep);
+    --card: 0 0% 100%;
+    --card-foreground: var(--navy-deep);
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--navy-deep);
+    --primary: var(--navy-dark);
+    --primary-foreground: var(--cream);
+    --secondary: var(--teal-medium);
+    --secondary-foreground: var(--cream);
+    --muted: 45 20% 92%;
+    --muted-foreground: var(--navy-light);
+    --accent: var(--gold-medium);
+    --accent-foreground: var(--navy-deep);
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: var(--gold-medium);
   }
 }
 
@@ -100,6 +99,64 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
   }
 }
+
+/* Art Deco utility classes */
+@layer utilities {
+  .gradient-navy {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--navy-deep)) 0%,
+      hsl(var(--navy-dark)) 50%,
+      hsl(var(--navy-medium)) 100%
+    );
+  }
+
+  .gradient-navy-radial {
+    background: radial-gradient(
+      ellipse at center top,
+      hsl(var(--navy-medium)) 0%,
+      hsl(var(--navy-dark)) 40%,
+      hsl(var(--navy-deep)) 100%
+    );
+  }
+
+  .gradient-gold {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gold-deep)) 0%,
+      hsl(var(--gold-medium)) 50%,
+      hsl(var(--gold-light)) 100%
+    );
+  }
+
+  .text-gold-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gold-light)) 0%,
+      hsl(var(--gold-medium)) 50%,
+      hsl(var(--gold-deep)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gold {
+    border-color: hsl(var(--gold-medium));
+  }
+
+  .shadow-gold {
+    box-shadow: 0 0 30px -5px hsl(var(--gold-medium) / 0.3);
+  }
+
+  .art-deco-border {
+    border: 1px solid hsl(var(--gold-medium) / 0.3);
+  }
+}
+
+/* Import elegant serif font for Art Deco feel */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@400;500;600;700&display=swap');
