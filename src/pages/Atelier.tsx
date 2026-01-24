@@ -26,59 +26,59 @@ const Atelier = () => {
       <main className="flex-1 pt-24 pb-12 px-6 relative z-10 flex items-center justify-center">
         <div className="max-w-2xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-block px-4 py-2 art-deco-border bg-card/30 mb-8">
+          <div className="inline-block px-5 py-2.5 art-deco-border bg-card/30 mb-10 animate-fade-up">
             <span className="font-display text-xs tracking-widest uppercase text-primary">
               Coming Soon — Phase 2
             </span>
           </div>
 
           {/* Title */}
-          <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-wider mb-6">
+          <h1 className="font-display text-4xl md:text-6xl text-gold-gradient tracking-wider mb-6 animate-fade-up stagger-1">
             The Atelier
           </h1>
 
           {/* Subtitle */}
-          <p className="font-serif text-xl text-cream-muted mb-12 leading-relaxed">
+          <p className="font-serif text-xl md:text-2xl text-cream-muted mb-16 leading-relaxed animate-fade-up stagger-2">
             Where celestial artistry meets earthly craft
           </p>
 
           {/* Product Preview */}
-          <div className="art-deco-border brass-glow bg-card/40 backdrop-blur-sm p-10 md:p-14 mb-12">
+          <div className="art-deco-border brass-glow card-lift bg-card/40 backdrop-blur-sm p-12 md:p-16 mb-14 animate-fade-up stagger-3">
             {/* Product placeholder */}
-            <div className="w-40 h-40 mx-auto mb-8 rounded-full bg-secondary/20 border border-secondary/30 flex items-center justify-center">
-              <span className="text-6xl">🧘</span>
+            <div className="w-44 h-44 mx-auto mb-10 rounded-full bg-secondary/20 border border-secondary/30 flex items-center justify-center hover-scale-subtle">
+              <span className="text-7xl">🧘</span>
             </div>
 
-            <h2 className="font-display text-2xl tracking-wider text-foreground mb-4">
+            <h2 className="font-display text-2xl md:text-3xl tracking-wider text-foreground mb-5">
               Lunar Cork Mats
             </h2>
 
-            <p className="font-serif text-cream-muted leading-relaxed mb-6">
+            <p className="font-serif text-lg text-cream-muted leading-relaxed mb-8 max-w-lg mx-auto">
               Sustainable cork yoga mats adorned with celestial patterns. 
               Each design is inspired by a lunar phase, connecting your practice 
               to the rhythm of the cosmos.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <span className="px-3 py-1 art-deco-border text-muted-foreground font-serif">
+              <span className="px-4 py-2 art-deco-border text-muted-foreground font-serif brass-glow">
                 Sustainable Cork
               </span>
-              <span className="px-3 py-1 art-deco-border text-muted-foreground font-serif">
+              <span className="px-4 py-2 art-deco-border text-muted-foreground font-serif brass-glow">
                 Non-Toxic
               </span>
-              <span className="px-3 py-1 art-deco-border text-muted-foreground font-serif">
+              <span className="px-4 py-2 art-deco-border text-muted-foreground font-serif brass-glow">
                 Hand-Finished
               </span>
             </div>
           </div>
 
           {/* Waitlist CTA */}
-          <div className="space-y-4">
-            <p className="font-serif text-sm text-muted-foreground">
+          <div className="space-y-5 animate-fade-up stagger-4">
+            <p className="font-serif text-base text-muted-foreground">
               Be the first to know when the collection launches
             </p>
             
-            <button className="font-display text-sm tracking-widest uppercase px-10 py-4 art-deco-border brass-glow text-primary bg-primary/5 hover:bg-primary/10 transition-colors">
+            <button className="font-display text-sm tracking-widest uppercase px-12 py-5 art-deco-border brass-glow text-primary bg-primary/5 hover:bg-primary/10 transition-all duration-300">
               Join the Waitlist
             </button>
           </div>

@@ -88,9 +88,9 @@ const Portal = () => {
       <main className="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-10 animate-fade-up">
             <div 
-              className="w-20 h-20 rounded-full overflow-hidden cursor-pointer elegant-hover"
+              className="w-24 h-24 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
               onClick={() => navigate("/")}
             >
               <img
@@ -102,26 +102,26 @@ const Portal = () => {
           </div>
 
           {/* Auth Card */}
-          <div className="art-deco-border brass-glow bg-card/40 backdrop-blur-sm p-8 md:p-10">
+          <div className="art-deco-border brass-glow bg-card/40 backdrop-blur-sm p-10 md:p-12 animate-fade-up stagger-1">
             {/* Title */}
-            <h1 className="font-display text-2xl md:text-3xl text-gold-gradient text-center mb-2 tracking-wider">
+            <h1 className="font-display text-2xl md:text-4xl text-gold-gradient text-center mb-3 tracking-wider">
               {isLogin ? "Welcome Back" : "Join the Cosmos"}
             </h1>
-            <p className="font-serif text-cream-muted text-center mb-8">
+            <p className="font-serif text-lg text-cream-muted text-center mb-10">
               {isLogin 
                 ? "Enter your celestial credentials" 
                 : "Begin your lunar journey"}
             </p>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Input
                   type="email"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary h-12 font-serif"
+                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary h-14 font-serif text-base"
                 />
               </div>
 
@@ -131,7 +131,7 @@ const Portal = () => {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary h-12 font-serif"
+                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary h-14 font-serif text-base"
                 />
               </div>
 
@@ -142,13 +142,13 @@ const Portal = () => {
                     placeholder="Confirm password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary h-12 font-serif"
+                    className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary h-14 font-serif text-base"
                   />
                 </div>
               )}
 
               {error && (
-                <p className="text-destructive text-sm font-serif text-center">
+                <p className="text-destructive text-base font-serif text-center">
                   {error}
                 </p>
               )}
@@ -156,7 +156,7 @@ const Portal = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 font-display text-sm tracking-widest uppercase bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 brass-glow"
+                className="w-full h-14 font-display text-sm tracking-widest uppercase bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 brass-glow transition-all duration-300"
               >
                 {loading ? (
                   <MoonLoader size="sm" />
@@ -169,14 +169,14 @@ const Portal = () => {
             </form>
 
             {/* Toggle */}
-            <div className="mt-8 text-center">
+            <div className="mt-10 text-center">
               <button
                 type="button"
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError("");
                 }}
-                className="font-serif text-cream-muted elegant-hover"
+                className="font-serif text-base text-cream-muted elegant-hover"
               >
                 {isLogin 
                   ? "New here? Create an account" 
