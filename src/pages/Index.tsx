@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import moonLogo from "@/assets/moon-logo-new.png";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen gradient-navy-radial flex flex-col">
       {/* Decorative stars background */}
@@ -48,7 +51,10 @@ const Index = () => {
         </div>
 
         {/* CTA Button */}
-        <button className="group relative px-10 py-4 font-display text-lg tracking-widest uppercase overflow-hidden art-deco-border bg-transparent hover:bg-gold-medium/10 transition-all duration-500">
+        <button
+          onClick={() => navigate("/signup")}
+          className="group relative px-10 py-4 font-display text-lg tracking-widest uppercase overflow-hidden art-deco-border bg-transparent hover:bg-gold-medium/10 transition-all duration-500"
+        >
           <span className="relative z-10 text-gold-light group-hover:text-gold-pale transition-colors">
             Begin Your Journey
           </span>
