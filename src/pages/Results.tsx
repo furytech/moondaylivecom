@@ -65,7 +65,7 @@ const Results = () => {
           <img
             src={moonLogo}
             alt="Moon Sign Quiz Logo"
-            className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-2xl"
+            className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-2xl rounded-full"
           />
         </div>
 
