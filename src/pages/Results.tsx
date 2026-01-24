@@ -62,7 +62,7 @@ const Results = () => {
       <main className="flex-1 flex flex-col items-center px-6 py-12 relative z-10">
         {/* Logo */}
         <div className="animate-float mb-6">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[hsl(var(--navy-dark))] overflow-hidden flex items-center justify-center">
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-navy-medium overflow-hidden flex items-center justify-center shadow-lg shadow-navy-dark/50">
             <img
               src={moonLogo}
               alt="Moon Sign Quiz Logo"
