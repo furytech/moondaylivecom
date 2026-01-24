@@ -8,26 +8,21 @@
 
 @layer base {
   :root {
-    /* Navy/Deep Blue base palette */
-    --navy-deep: 220 60% 8%;
-    --navy-dark: 220 55% 12%;
-    --navy-medium: 218 50% 18%;
-    --navy-light: 215 45% 25%;
+    /* Cincinnati Hilton - Midnight Navy base palette */
+    --navy-deep: 0 0% 10%;
+    --navy-dark: 0 0% 12%;
+    --navy-medium: 0 0% 16%;
+    --navy-light: 0 0% 22%;
     
-    /* Teal accents (from logo) */
-    --teal-deep: 195 55% 25%;
-    --teal-medium: 192 50% 35%;
-    --teal-light: 190 45% 45%;
-    
-    /* Gold accents */
-    --gold-deep: 40 65% 35%;
-    --gold-medium: 42 70% 50%;
-    --gold-light: 45 75% 65%;
-    --gold-pale: 48 60% 80%;
+    /* Champagne Gold accents (#E3C18D) */
+    --gold-deep: 38 56% 60%;
+    --gold-medium: 38 56% 72%;
+    --gold-light: 38 56% 78%;
+    --gold-pale: 38 45% 88%;
     
     /* Cream/Ivory for text */
-    --cream: 45 30% 96%;
-    --cream-muted: 40 20% 85%;
+    --cream: 40 30% 96%;
+    --cream-muted: 38 20% 80%;
     
     /* Core semantic tokens - Dark theme by default for Art Deco */
     --background: var(--navy-deep);
@@ -42,7 +37,7 @@
     --primary: var(--gold-medium);
     --primary-foreground: var(--navy-deep);
 
-    --secondary: var(--teal-deep);
+    --secondary: var(--navy-light);
     --secondary-foreground: var(--cream);
 
     --muted: var(--navy-medium);
@@ -70,27 +65,6 @@
     --sidebar-border: var(--navy-light);
     --sidebar-ring: var(--gold-medium);
   }
-
-  /* Light mode variant (optional - keeping dark as primary) */
-  .light {
-    --background: var(--cream);
-    --foreground: var(--navy-deep);
-    --card: 0 0% 100%;
-    --card-foreground: var(--navy-deep);
-    --popover: 0 0% 100%;
-    --popover-foreground: var(--navy-deep);
-    --primary: var(--navy-dark);
-    --primary-foreground: var(--cream);
-    --secondary: var(--teal-medium);
-    --secondary-foreground: var(--cream);
-    --muted: 45 20% 92%;
-    --muted-foreground: var(--navy-light);
-    --accent: var(--gold-medium);
-    --accent-foreground: var(--navy-deep);
-    --border: 40 20% 88%;
-    --input: 40 20% 88%;
-    --ring: var(--gold-medium);
-  }
 }
 
 @layer base {
@@ -101,6 +75,12 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Cormorant Garamond', 'Georgia', serif;
+    line-height: 1.6;
+  }
+
+  /* Architectural spacing for sections */
+  section {
+    @apply py-12 md:py-16 lg:py-20;
   }
 }
 
@@ -155,6 +135,72 @@
 
   .art-deco-border {
     border: 1px solid hsl(var(--gold-medium) / 0.3);
+  }
+
+  /* Luxury hover effect - brass glow */
+  .brass-glow {
+    transition: all 0.4s ease;
+  }
+
+  .brass-glow:hover {
+    box-shadow: 0 0 20px -5px hsl(var(--gold-medium) / 0.5),
+                0 0 40px -10px hsl(var(--gold-medium) / 0.3);
+    border-color: hsl(var(--gold-medium) / 0.6);
+  }
+
+  /* Elegant fade hover for links/buttons */
+  .elegant-hover {
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .elegant-hover:hover {
+    color: hsl(var(--gold-medium));
+    text-shadow: 0 0 15px hsl(var(--gold-medium) / 0.3);
+  }
+}
+
+/* Moon loading animation */
+@keyframes moon-fill {
+  0% {
+    background: linear-gradient(
+      to top,
+      hsl(var(--gold-medium)) 0%,
+      transparent 0%
+    );
+  }
+  100% {
+    background: linear-gradient(
+      to top,
+      hsl(var(--gold-medium)) 100%,
+      transparent 100%
+    );
+  }
+}
+
+.moon-loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--gold-medium) / 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.moon-loader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: hsl(var(--gold-medium));
+  animation: moon-fill-inner 1.5s ease-in-out infinite;
+}
+
+@keyframes moon-fill-inner {
+  0%, 100% {
+    clip-path: inset(100% 0 0 0);
+  }
+  50% {
+    clip-path: inset(0 0 0 0);
   }
 }
 
