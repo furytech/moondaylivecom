@@ -1,4 +1,4 @@
-import moonLogo from "@/assets/moon-logo.png";
+import moonLogo from "@/assets/moon-logo-clean.png";
 
 const Index = () => {
   return (
