@@ -87,7 +87,7 @@ const Signup = () => {
   const isFormValid = email.trim() && birthDate && validateEmail(email);
 
   return (
-    <div className="min-h-screen gradient-navy-radial flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -107,12 +107,17 @@ const Signup = () => {
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         {/* Logo */}
-        <div className="animate-float mb-6">
-          <img
-            src={moonLogo}
-            alt="Moon Sign Quiz Logo"
-            className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-2xl"
-          />
+        <div className="animate-float mb-8">
+          <div 
+            className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src={moonLogo}
+              alt="Moonday"
+              className="w-full h-full object-cover drop-shadow-2xl"
+            />
+          </div>
         </div>
 
         {/* Title */}
