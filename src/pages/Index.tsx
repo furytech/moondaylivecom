@@ -29,7 +29,7 @@ const Index = () => {
           <img
             src={moonLogo}
             alt="Moon Sign Quiz Logo"
-            className="w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] object-contain drop-shadow-2xl"
+            className="w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] object-contain drop-shadow-2xl rounded-full"
           />
         </div>
 
