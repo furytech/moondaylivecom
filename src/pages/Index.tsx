@@ -27,13 +27,13 @@ const Index = () => {
         {/* Logo - Centered at top */}
         <div className="animate-float mb-8">
           <div 
-            className="w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full overflow-hidden flex items-center justify-center shadow-lg shadow-navy-dark/50"
+            className="relative w-72 h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full shadow-lg shadow-navy-dark/50"
             style={{ backgroundColor: '#0a1628' }}
           >
             <img
               src={moonLogo}
               alt="Moon Sign Quiz Logo"
-              className="w-full h-full object-cover drop-shadow-2xl"
+              className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
             />
           </div>
         </div>
