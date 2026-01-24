@@ -98,6 +98,42 @@ const moonSignData: Record<string, Omit<MoonSignResult, 'sign'>> = {
   }
 };
 
+export interface TransitionCheck {
+  isTransitionDay: boolean;
+  signAtStart: string;
+  signAtEnd: string;
+}
+
+// Check if a date is a transition day (moon changes signs during the day)
+export function checkTransitionDay(birthDate: Date): TransitionCheck {
+  const startSign = calculateMoonSignForTime(birthDate, 0); // Start of day
+  const endSign = calculateMoonSignForTime(birthDate, 23); // End of day
+  
+  return {
+    isTransitionDay: startSign !== endSign,
+    signAtStart: startSign,
+    signAtEnd: endSign
+  };
+}
+
+// Calculate moon sign for a specific hour of the day
+function calculateMoonSignForTime(birthDate: Date, hour: number): string {
+  const day = birthDate.getDate();
+  const month = birthDate.getMonth();
+  const year = birthDate.getFullYear();
+  
+  // Create a hash based on date and hour
+  // Moon moves ~0.5 degrees per hour, changes sign every ~2.5 days
+  const dateValue = (year * 365) + (month * 30) + day;
+  const hourOffset = hour / 24;
+  
+  const moonCyclePosition = ((dateValue + hourOffset) % 354) / 354;
+  const signIndex = Math.floor(moonCyclePosition * 12);
+  
+  const signs = Object.keys(moonSignData);
+  return signs[signIndex];
+}
+
 // Simplified Moon sign calculation based on birth date
 // This is an approximation - accurate calculation requires birth time and ephemeris data
 export function calculateMoonSign(birthDate: Date): MoonSignResult {

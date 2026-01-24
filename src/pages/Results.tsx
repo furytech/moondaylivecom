@@ -1,27 +1,46 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { calculateMoonSign, MoonSignResult } from "@/lib/moonSign";
+import { calculateMoonSign, getMoonSignByName, MoonSignResult } from "@/lib/moonSign";
+import { QuizResult } from "@/lib/transitionQuiz";
 import moonLogo from "@/assets/moon-logo-new.png";
+
+interface LocationState {
+  birthDate?: string;
+  email?: string;
+  quizResult?: QuizResult;
+  isTransitionDay?: boolean;
+}
 
 const Results = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [moonSign, setMoonSign] = useState<MoonSignResult | null>(null);
   const [userName, setUserName] = useState<string>("");
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+  const [isTransitionDay, setIsTransitionDay] = useState(false);
 
   useEffect(() => {
-    // Get data from navigation state
-    const state = location.state as { birthDate?: string; email?: string } | null;
+    const state = location.state as LocationState | null;
     
     if (!state?.birthDate) {
-      // Redirect to signup if no birth date
       navigate("/signup");
       return;
     }
 
     const birthDate = new Date(state.birthDate);
-    const result = calculateMoonSign(birthDate);
-    setMoonSign(result);
+    
+    // Check if this came from the transition quiz
+    if (state.isTransitionDay && state.quizResult) {
+      setIsTransitionDay(true);
+      setQuizResult(state.quizResult);
+      const signData = getMoonSignByName(state.quizResult.primarySign);
+      if (signData) {
+        setMoonSign(signData);
+      }
+    } else {
+      const result = calculateMoonSign(birthDate);
+      setMoonSign(result);
+    }
     
     // Extract name from email for personalization
     if (state.email) {
@@ -92,6 +111,47 @@ const Results = () => {
             {moonSign.element} Element
           </span>
         </div>
+
+        {/* Confidence section (for transition day results) */}
+        {isTransitionDay && quizResult && (
+          <div className="max-w-md w-full mb-8">
+            <div className="art-deco-border bg-navy-dark/40 p-6">
+              <h3 className="font-display text-sm tracking-widest uppercase text-gold-light mb-4 text-center">
+                Cosmic Confidence
+              </h3>
+              
+              {/* Confidence meter */}
+              <div className="mb-4">
+                <div className="flex justify-between text-xs font-serif text-cream-muted mb-2">
+                  <span>Match Strength</span>
+                  <span className="text-gold-light">{quizResult.confidence}%</span>
+                </div>
+                <div className="h-2 bg-navy-dark/50 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-gold-medium to-gold-light transition-all duration-1000"
+                    style={{ width: `${quizResult.confidence}%` }}
+                  />
+                </div>
+              </div>
+              
+              {/* Primary and Secondary */}
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-xs font-display tracking-widest uppercase text-cream-muted/60 mb-1">
+                    Primary Match
+                  </p>
+                  <p className="font-serif text-gold-light">{quizResult.primarySign}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-display tracking-widest uppercase text-cream-muted/60 mb-1">
+                    Secondary Resonance
+                  </p>
+                  <p className="font-serif text-cream-muted">{quizResult.secondarySign}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Art Deco divider */}
         <div className="flex items-center gap-4 mb-8">
