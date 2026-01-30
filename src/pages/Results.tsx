@@ -212,19 +212,38 @@ const Results = () => {
           <div className="w-8 h-px bg-gold-medium/30" />
         </div>
 
+        {/* Daily Insight Teaser */}
+        <div className="max-w-md w-full art-deco-border bg-gradient-to-b from-navy-medium/40 to-navy-dark/60 p-6 mb-8">
+          <div className="text-center space-y-4">
+            <div className="inline-block px-3 py-1 border border-gold-medium/40 mb-2">
+              <span className="font-display text-xs tracking-widest uppercase text-gold-light">
+                Today's Cosmic Influence
+              </span>
+            </div>
+            <p className="font-serif text-cream-muted/60 text-sm leading-relaxed blur-[2px] select-none">
+              The moon's current transit creates a powerful resonance with your {moonSign.sign} Moon, 
+              awakening hidden aspects of your emotional landscape...
+            </p>
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-gold-medium/30 to-transparent" />
+            <p className="font-serif text-cream text-sm">
+              Unlock daily rituals tailored to your lunar blueprint
+            </p>
+          </div>
+        </div>
+
         {/* CTA section */}
-        <div className="text-center space-y-4">
-          <p className="font-serif text-cream-muted/80 max-w-md">
-            Want to explore more about your celestial blueprint?
-          </p>
+        <div className="text-center space-y-6">
           <button
-            onClick={() => navigate("/")}
-            className="group relative px-8 py-3 font-display text-sm tracking-widest uppercase overflow-hidden art-deco-border bg-transparent hover:bg-gold-medium/10 transition-all duration-500"
+            onClick={() => navigate("/pricing")}
+            className="group relative px-10 py-4 font-display text-sm tracking-widest uppercase overflow-hidden bg-gradient-to-r from-gold-medium to-gold-light hover:from-gold-light hover:to-gold-pale transition-all duration-500 shadow-lg shadow-gold-medium/20"
           >
-            <span className="relative z-10 text-gold-light group-hover:text-gold-pale transition-colors">
-              Start Over
+            <span className="relative z-10 text-navy-dark font-semibold">
+              Begin Your Daily Ritual
             </span>
           </button>
+          <p className="font-serif text-cream-muted/50 text-xs">
+            Starting at $2.88/month
+          </p>
         </div>
       </main>
 
