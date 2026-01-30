@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import moonLogo from "@/assets/moon-logo-new.png";
-import { Check, Sparkles, Star } from "lucide-react";
+import { Check } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import CrescentMoon from "@/components/CrescentMoon";
 
 // Stripe Price IDs
 const PRICES = {
@@ -77,144 +77,138 @@ const Pricing = () => {
     <div className="min-h-screen flex flex-col relative">
       <CelestialBackground />
 
+      {/* Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
+        <nav className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/")}
+            className="font-serif text-sm text-cream-muted/60 hover:text-primary transition-colors"
+          >
+            ← Back
+          </button>
+        </nav>
+      </header>
+
       {/* Main content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
-        <div className="w-full max-w-xl">
-          {/* Logo */}
-          <div className="flex justify-center mb-12 animate-fade-up">
-            <div
-              className="cursor-pointer hover-scale-subtle"
-              onClick={() => navigate("/")}
-            >
-              <img
-                src={moonLogo}
-                alt="Moonday Live"
-                className="w-44 h-auto drop-shadow-2xl"
-              />
-            </div>
-          </div>
+      <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
+        {/* Crescent Moon */}
+        <div className="mb-8 animate-fade-up cursor-pointer" onClick={() => navigate("/")}>
+          <CrescentMoon size="sm" />
+        </div>
 
-          {/* Canceled Message */}
-          {canceled && (
-            <GlassmorphismCard className="mb-8 text-center animate-fade-up" size="sm">
-              <p className="font-serif text-lg text-cream-muted">
-                No worries — take your time. Your lunar journey awaits when you're ready.
-              </p>
-            </GlassmorphismCard>
-          )}
-
-          {/* Pricing Card */}
-          <GlassmorphismCard className="animate-fade-up stagger-1 shadow-glow">
-            {/* Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 px-5 py-2 glass-card rounded-full mb-6">
-                <Star className="w-4 h-4 text-primary fill-primary" />
-                <span className="font-display text-sm text-primary uppercase tracking-widest">Pro Membership</span>
-              </div>
-              <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-wider mb-4">
-                Unlock Your Moon
-              </h1>
-              <p className="font-serif text-xl text-cream-muted">
-                Full access to your personalized lunar sanctuary
-              </p>
-            </div>
-
-            {/* Billing Toggle */}
-            <div className="flex justify-center mb-10">
-              <div className="inline-flex items-center p-1.5 glass-card rounded-2xl">
-                <button
-                  onClick={() => setBillingInterval("monthly")}
-                  className={`px-8 py-3 font-display text-sm tracking-widest transition-all duration-400 rounded-xl ${
-                    billingInterval === "monthly"
-                      ? "bg-primary/20 text-primary shadow-glow"
-                      : "text-cream-muted hover:text-primary"
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setBillingInterval("yearly")}
-                  className={`px-8 py-3 font-display text-sm tracking-widest transition-all duration-400 rounded-xl relative ${
-                    billingInterval === "yearly"
-                      ? "bg-primary/20 text-primary shadow-glow"
-                      : "text-cream-muted hover:text-primary"
-                  }`}
-                >
-                  Yearly
-                  <span className="absolute -top-3 -right-3 px-2.5 py-1 bg-primary text-primary-foreground text-xs font-display rounded-full tracking-wider">
-                    Best Value
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Price Display */}
-            <div className="text-center mb-10">
-              <div className="flex items-baseline justify-center gap-2">
-                <span className="font-display text-6xl md:text-7xl text-gold-gradient">
-                  {PRICES[billingInterval].amount}
-                </span>
-                <span className="font-serif text-2xl text-cream-muted">
-                  /{PRICES[billingInterval].interval}
-                </span>
-              </div>
-              {billingInterval === "yearly" && (
-                <p className="font-serif text-lg text-primary mt-3">
-                  {PRICES.yearly.savings} compared to monthly
-                </p>
-              )}
-            </div>
-
-            {/* Features */}
-            <ul className="space-y-5 mb-12">
-              {features.map((feature, i) => (
-                <li key={i} className="flex items-center gap-4">
-                  <div className="w-6 h-6 rounded-full glass-card flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3.5 h-3.5 text-primary" />
-                  </div>
-                  <span className="font-serif text-lg text-cream-muted">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Error Message */}
-            {error && (
-              <p className="text-destructive text-lg font-serif text-center mb-6">
-                {error}
-              </p>
-            )}
-
-            {/* CTA Button */}
-            <button
-              onClick={handleCheckout}
-              disabled={loading}
-              className="w-full h-16 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold transition-all duration-500 flex items-center justify-center gap-3 rounded-xl text-primary"
-            >
-              {loading ? (
-                <MoonLoader size="sm" />
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Start Your Journey
-                </>
-              )}
-            </button>
-
-            {/* Security Note */}
-            <p className="font-serif text-base text-cream-muted/50 text-center mt-8">
-              Secure payment powered by Stripe. Cancel anytime.
+        {/* Canceled Message */}
+        {canceled && (
+          <GlassmorphismCard className="mb-8 text-center max-w-md animate-fade-up" size="sm">
+            <p className="font-serif text-base text-cream-muted/80">
+              No worries — take your time. Your lunar journey awaits when you're ready.
             </p>
           </GlassmorphismCard>
+        )}
 
-          {/* Back to Home */}
-          <div className="flex justify-center mt-10">
-            <button
-              onClick={() => navigate("/")}
-              className="font-serif text-lg text-cream-muted elegant-hover"
-            >
-              ← Back to the cosmos
-            </button>
+        {/* Pricing Card */}
+        <GlassmorphismCard className="max-w-lg w-full animate-fade-up stagger-1">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-4">
+              Pro Membership
+            </p>
+            <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-[0.06em] mb-3">
+              Unlock Your Moon
+            </h1>
+            <p className="font-serif text-lg text-cream-muted/70">
+              Full access to your personalized lunar sanctuary
+            </p>
           </div>
+
+          {/* Billing Toggle */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex items-center p-1 border border-primary/20 rounded-full">
+              <button
+                onClick={() => setBillingInterval("monthly")}
+                className={`px-6 py-2.5 font-display text-xs tracking-[0.15em] uppercase transition-all duration-400 rounded-full ${
+                  billingInterval === "monthly"
+                    ? "bg-primary/20 text-primary"
+                    : "text-cream-muted/60 hover:text-primary"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingInterval("yearly")}
+                className={`px-6 py-2.5 font-display text-xs tracking-[0.15em] uppercase transition-all duration-400 rounded-full relative ${
+                  billingInterval === "yearly"
+                    ? "bg-primary/20 text-primary"
+                    : "text-cream-muted/60 hover:text-primary"
+                }`}
+              >
+                Yearly
+                <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-display rounded-full tracking-wider">
+                  Best
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Price Display */}
+          <div className="text-center mb-10">
+            <div className="flex items-baseline justify-center gap-2">
+              <span className="font-display text-5xl md:text-6xl text-gold-gradient">
+                {PRICES[billingInterval].amount}
+              </span>
+              <span className="font-serif text-xl text-cream-muted/60">
+                /{PRICES[billingInterval].interval}
+              </span>
+            </div>
+            {billingInterval === "yearly" && (
+              <p className="font-serif text-base text-primary/80 mt-3">
+                {PRICES.yearly.savings} compared to monthly
+              </p>
+            )}
+          </div>
+
+          {/* Features */}
+          <ul className="space-y-4 mb-10">
+            {features.map((feature, i) => (
+              <li key={i} className="flex items-center gap-4">
+                <div className="w-5 h-5 rounded-full border border-primary/30 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3 h-3 text-primary/70" strokeWidth={2} />
+                </div>
+                <span className="font-serif text-base text-cream-muted/80">{feature}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Error Message */}
+          {error && (
+            <p className="text-destructive text-base font-serif text-center mb-6">
+              {error}
+            </p>
+          )}
+
+          {/* CTA Button */}
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 transition-all duration-500 flex items-center justify-center gap-3"
+          >
+            {loading ? (
+              <MoonLoader size="sm" />
+            ) : (
+              "Start Your Journey"
+            )}
+          </button>
+
+          {/* Security Note */}
+          <p className="font-serif text-sm text-cream-muted/40 text-center mt-8">
+            Secure payment powered by Stripe. Cancel anytime.
+          </p>
+        </GlassmorphismCard>
+
+        {/* Decorative element */}
+        <div className="mt-12 flex items-center gap-4">
+          <div className="w-16 h-px bg-gradient-to-r from-transparent to-primary/30" />
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+          <div className="w-16 h-px bg-gradient-to-l from-transparent to-primary/30" />
         </div>
       </main>
     </div>

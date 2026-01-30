@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import moonLogo from "@/assets/moon-logo-new.png";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MoonLoader from "@/components/MoonLoader";
 import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import CrescentMoon from "@/components/CrescentMoon";
 
 const Portal = () => {
   const navigate = useNavigate();
@@ -77,29 +77,26 @@ const Portal = () => {
       <div className="min-h-screen flex flex-col relative">
         <CelestialBackground />
 
-        <main className="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
-          <div className="w-full max-w-md text-center">
-            <div className="flex justify-center mb-12 animate-fade-up">
-              <img
-                src={moonLogo}
-                alt="Moonday"
-                className="w-44 h-auto cursor-pointer hover-scale-subtle drop-shadow-2xl"
-                onClick={() => navigate("/")}
-              />
-            </div>
+        <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
+          {/* Crescent Moon */}
+          <div className="mb-10 animate-fade-up">
+            <CrescentMoon size="md" />
+          </div>
 
-            <GlassmorphismCard className="animate-fade-up stagger-1">
-              <div className="w-24 h-24 rounded-full glass-card flex items-center justify-center mx-auto mb-8 shadow-glow">
-                <span className="text-5xl">✨</span>
+          <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-8 rounded-full border border-primary/30 flex items-center justify-center">
+                <span className="text-3xl">✨</span>
               </div>
-              <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-4">
+              <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-4">
                 Check Your Email
               </h1>
-              <p className="font-serif text-xl text-cream-muted mb-6">
-                We've sent a confirmation link to <strong className="text-primary">{email}</strong>
+              <p className="font-serif text-lg text-cream-muted/80 mb-4">
+                We've sent a confirmation link to
               </p>
-              <p className="font-serif text-lg text-cream-muted/70">
-                Click the link in your email to activate your account, then return here to begin your lunar journey.
+              <p className="font-serif text-lg text-primary mb-6">{email}</p>
+              <p className="font-serif text-base text-cream-muted/60">
+                Click the link to activate your account, then return to begin your lunar journey.
               </p>
 
               <button
@@ -107,12 +104,12 @@ const Portal = () => {
                   setSignupSuccess(false);
                   setIsLogin(true);
                 }}
-                className="mt-10 font-serif text-lg text-cream-muted elegant-hover"
+                className="mt-10 font-serif text-base text-cream-muted/70 hover:text-primary transition-colors"
               >
                 ← Back to sign in
               </button>
-            </GlassmorphismCard>
-          </div>
+            </div>
+          </GlassmorphismCard>
         </main>
       </div>
     );
@@ -122,120 +119,113 @@ const Portal = () => {
     <div className="min-h-screen flex flex-col relative">
       <CelestialBackground />
 
+      {/* Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
+        <nav className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/")}
+            className="font-serif text-sm text-cream-muted/60 hover:text-primary transition-colors"
+          >
+            ← Back
+          </button>
+        </nav>
+      </header>
+
       {/* Main content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
-        <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="flex justify-center mb-12 animate-fade-up">
-            <div 
-              className="cursor-pointer hover-scale-subtle"
-              onClick={() => navigate("/")}
-            >
-              <img
-                src={moonLogo}
-                alt="Moonday"
-                className="w-44 h-auto drop-shadow-2xl"
+      <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
+        {/* Crescent Moon */}
+        <div className="mb-10 animate-fade-up cursor-pointer" onClick={() => navigate("/")}>
+          <CrescentMoon size="md" />
+        </div>
+
+        {/* Auth Card */}
+        <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
+          {/* Title */}
+          <div className="text-center mb-10">
+            <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-4">
+              The Ritual Invitation
+            </p>
+            <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-3">
+              {isLogin ? "Welcome Back" : "Join the Cosmos"}
+            </h1>
+            <p className="font-serif text-lg text-cream-muted/70">
+              {isLogin 
+                ? "Enter your celestial credentials" 
+                : "Begin your lunar journey"}
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
+            />
+
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
+            />
+
+            {!isLogin && (
+              <Input
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
               />
-            </div>
-          </div>
+            )}
 
-          {/* Ritual Invitation Card */}
-          <GlassmorphismCard className="animate-fade-up stagger-1">
-            {/* Title */}
-            <div className="text-center mb-10">
-              <p className="font-serif text-sm text-primary/70 uppercase tracking-widest mb-3">
-                The Ritual Invitation
+            {error && (
+              <p className="text-destructive text-base font-serif text-center py-2">
+                {error}
               </p>
-              <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
-                {isLogin ? "Welcome Back" : "Join the Cosmos"}
-              </h1>
-              <p className="font-serif text-xl text-cream-muted">
-                {isLogin 
-                  ? "Enter your celestial credentials" 
-                  : "Begin your lunar journey"}
-              </p>
-            </div>
+            )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Input
-                  type="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-lg rounded-xl"
-                />
-              </div>
-
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-lg rounded-xl"
-                />
-              </div>
-
-              {!isLogin && (
-                <div>
-                  <Input
-                    type="password"
-                    placeholder="Confirm password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-lg rounded-xl"
-                  />
-                </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
+            >
+              {loading ? (
+                <MoonLoader size="sm" />
+              ) : isLogin ? (
+                "Enter the Portal"
+              ) : (
+                "Accept the Invitation"
               )}
+            </Button>
+          </form>
 
-              {error && (
-                <p className="text-destructive text-lg font-serif text-center py-2">
-                  {error}
-                </p>
-              )}
-
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full h-14 font-display text-base tracking-widest uppercase glass-card hover:shadow-glow text-primary border-0 transition-all duration-500 rounded-xl"
-              >
-                {loading ? (
-                  <MoonLoader size="sm" />
-                ) : isLogin ? (
-                  "Enter the Portal"
-                ) : (
-                  "Accept the Invitation"
-                )}
-              </Button>
-            </form>
-
-            {/* Toggle */}
-            <div className="mt-10 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError("");
-                }}
-                className="font-serif text-lg text-cream-muted elegant-hover"
-              >
-                {isLogin 
-                  ? "New here? Accept the invitation" 
-                  : "Already initiated? Sign in"}
-              </button>
-            </div>
-          </GlassmorphismCard>
-
-          {/* Decorative element */}
-          <div className="flex justify-center mt-10">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-              <div className="w-2 h-2 rotate-45 border border-primary/30" />
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-            </div>
+          {/* Toggle */}
+          <div className="mt-10 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+              }}
+              className="font-serif text-base text-cream-muted/70 hover:text-primary transition-colors"
+            >
+              {isLogin 
+                ? "New here? Accept the invitation" 
+                : "Already initiated? Sign in"}
+            </button>
           </div>
+        </GlassmorphismCard>
+
+        {/* Decorative element */}
+        <div className="mt-12 flex items-center gap-4">
+          <div className="w-16 h-px bg-gradient-to-r from-transparent to-primary/30" />
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+          <div className="w-16 h-px bg-gradient-to-l from-transparent to-primary/30" />
         </div>
       </main>
     </div>
