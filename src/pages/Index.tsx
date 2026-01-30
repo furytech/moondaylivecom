@@ -15,20 +15,24 @@ const Index = () => {
       {/* Animated Celestial Background */}
       <CelestialBackground />
 
+      {/* Logo - Fixed at Top Center */}
+      <header className="absolute top-6 left-0 right-0 z-20 flex justify-center animate-fade-up">
+        <img
+          src={moonLogo}
+          alt="Moonday Live"
+          className="w-40 md:w-48 lg:w-56 h-auto cursor-pointer hover-scale-subtle drop-shadow-2xl"
+          style={{ 
+            backgroundColor: 'hsl(220, 45%, 6%)',
+            mixBlendMode: 'multiply'
+          }}
+          onClick={() => navigate("/")}
+        />
+      </header>
+
       {/* Hero Section - Full Screen Cinematic Moon */}
       <main className="flex-1 flex flex-col relative z-10">
         {/* Cinematic Moon Display - Takes most of viewport */}
-        <section className="min-h-[85vh] lg:min-h-screen flex flex-col items-center justify-center px-6 py-12">
-          {/* Logo - Top */}
-          <div className="animate-fade-up mb-8 lg:mb-12">
-            <img
-              src={moonLogo}
-              alt="Moonday Live"
-              className="w-64 md:w-[19rem] lg:w-[22.5rem] h-auto cursor-pointer hover-scale-subtle drop-shadow-2xl"
-              style={{ backgroundColor: 'hsl(220, 45%, 6%)' }}
-              onClick={() => navigate("/")}
-            />
-          </div>
+        <section className="min-h-[85vh] lg:min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-12">
 
           {/* Current Moon Sign - Glassmorphism Card */}
           <GlassmorphismCard 
