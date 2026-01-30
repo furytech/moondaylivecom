@@ -15,18 +15,9 @@ const Index = () => {
       {/* Animated Celestial Background - Full Screen */}
       <CelestialBackground />
 
-      {/* Navigation Bar - Logo Top Left */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 animate-fade-up">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo - Small branding icon */}
-          <img
-            src={moonLogo}
-            alt="Moonday Live"
-            className="w-12 md:w-14 h-auto cursor-pointer hover-scale-subtle drop-shadow-xl"
-            style={{ mixBlendMode: 'screen' }}
-            onClick={() => navigate("/")}
-          />
-          
+      {/* Navigation Bar - Clean, no logo */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <nav className="max-w-7xl mx-auto flex items-center justify-end">
           {/* Portal Link */}
           <button
             onClick={() => navigate("/portal")}
@@ -41,6 +32,16 @@ const Index = () => {
       <main className="flex-1 flex flex-col relative z-10">
         {/* Cinematic Moon Display - Centered for Desktop */}
         <section className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
+          
+          {/* Main Logo - Centered Above Card */}
+          <div className="mb-10 lg:mb-14 animate-fade-up">
+            <img
+              src={moonLogo}
+              alt="Moonday Live"
+              className="w-48 md:w-56 lg:w-64 h-auto drop-shadow-2xl mx-auto"
+              style={{ mixBlendMode: 'screen' }}
+            />
+          </div>
 
           {/* Current Moon Sign - Glassmorphism Card */}
           <GlassmorphismCard 
