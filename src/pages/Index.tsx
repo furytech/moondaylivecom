@@ -3,31 +3,7 @@ import { getCurrentMoon, getMoonMessage } from "@/lib/currentMoon";
 import { Lock } from "lucide-react";
 import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-
-// CSS-only Crescent Moon Component
-const CrescentMoon = () => (
-  <div className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48">
-    {/* Outer glow */}
-    <div 
-      className="absolute inset-0 rounded-full opacity-40 blur-2xl"
-      style={{
-        background: 'radial-gradient(circle, hsl(38, 56%, 72%) 0%, transparent 70%)',
-      }}
-    />
-    {/* Crescent shape using box-shadow technique */}
-    <div 
-      className="absolute inset-0 rounded-full"
-      style={{
-        background: 'linear-gradient(135deg, hsl(38, 56%, 72%) 0%, hsl(38, 45%, 55%) 50%, hsl(38, 40%, 45%) 100%)',
-        boxShadow: `
-          inset -20px -8px 0 0 hsl(220, 45%, 8%),
-          0 0 40px 0 hsl(38, 56%, 72%, 0.3),
-          0 0 80px 0 hsl(38, 56%, 72%, 0.15)
-        `,
-      }}
-    />
-  </div>
-);
+import CrescentMoon from "@/components/CrescentMoon";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -57,7 +33,7 @@ const Index = () => {
           
           {/* CSS Crescent Moon - Golden Anchor */}
           <div className="mb-10 lg:mb-12 animate-fade-up">
-            <CrescentMoon />
+            <CrescentMoon size="lg" />
           </div>
 
           {/* Moon Sign Card - Text First Design */}
