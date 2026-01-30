@@ -1,9 +1,33 @@
 import { useNavigate } from "react-router-dom";
-import moonLogo from "@/assets/moon-logo-transparent.png";
 import { getCurrentMoon, getMoonMessage } from "@/lib/currentMoon";
 import { Lock } from "lucide-react";
 import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+
+// CSS-only Crescent Moon Component
+const CrescentMoon = () => (
+  <div className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48">
+    {/* Outer glow */}
+    <div 
+      className="absolute inset-0 rounded-full opacity-40 blur-2xl"
+      style={{
+        background: 'radial-gradient(circle, hsl(38, 56%, 72%) 0%, transparent 70%)',
+      }}
+    />
+    {/* Crescent shape using box-shadow technique */}
+    <div 
+      className="absolute inset-0 rounded-full"
+      style={{
+        background: 'linear-gradient(135deg, hsl(38, 56%, 72%) 0%, hsl(38, 45%, 55%) 50%, hsl(38, 40%, 45%) 100%)',
+        boxShadow: `
+          inset -20px -8px 0 0 hsl(220, 45%, 8%),
+          0 0 40px 0 hsl(38, 56%, 72%, 0.3),
+          0 0 80px 0 hsl(38, 56%, 72%, 0.15)
+        `,
+      }}
+    />
+  </div>
+);
 
 const Index = () => {
   const navigate = useNavigate();
@@ -15,148 +39,106 @@ const Index = () => {
       {/* Animated Celestial Background - Full Screen */}
       <CelestialBackground />
 
-      {/* Navigation Bar - Clean, no logo */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+      {/* Navigation Bar - Clean, minimal */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
         <nav className="max-w-7xl mx-auto flex items-center justify-end">
-          {/* Portal Link */}
           <button
             onClick={() => navigate("/portal")}
-            className="font-display text-sm tracking-widest uppercase text-primary/80 hover:text-primary transition-colors duration-300"
+            className="font-display text-sm tracking-[0.2em] uppercase text-primary/70 hover:text-primary transition-colors duration-500"
           >
             Enter Portal
           </button>
         </nav>
       </header>
 
-      {/* Hero Section - Full Screen Cinematic Moon */}
+      {/* Hero Section - Full Screen */}
       <main className="flex-1 flex flex-col relative z-10">
-        {/* Cinematic Moon Display - Centered for Desktop */}
         <section className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
           
-          {/* Main Logo - Centered Above Card */}
-          <div className="mb-10 lg:mb-14 animate-fade-up">
-            <img
-              src={moonLogo}
-              alt="Moonday Live"
-              className="w-48 md:w-56 lg:w-64 h-auto drop-shadow-2xl mx-auto"
-              style={{ mixBlendMode: 'screen' }}
-            />
+          {/* CSS Crescent Moon - Golden Anchor */}
+          <div className="mb-12 lg:mb-16 animate-fade-up">
+            <CrescentMoon />
           </div>
 
-          {/* Current Moon Sign - Glassmorphism Card */}
+          {/* Moon Sign Card - Text First Design */}
           <GlassmorphismCard 
             size="lg" 
-            className="max-w-3xl w-full mx-auto animate-fade-up stagger-1"
+            className="max-w-2xl w-full mx-auto animate-fade-up stagger-1"
           >
             <div className="text-center">
-              {/* Moon Phase Emoji - Large */}
-              <div className="mb-6 lg:mb-8">
-                <span className="text-7xl md:text-8xl lg:text-9xl filter drop-shadow-2xl">
-                  {moonData.phaseEmoji}
-                </span>
-              </div>
-
-              {/* Zodiac Symbol */}
-              <div className="mb-4 lg:mb-6">
-                <span className="text-4xl md:text-5xl lg:text-6xl text-primary font-display">
+              {/* Subtle Zodiac Symbol */}
+              <div className="mb-6">
+                <span className="text-3xl md:text-4xl text-primary/60 font-light">
                   {moonData.symbol}
                 </span>
               </div>
 
-              {/* Moon Sign Name */}
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-gold-gradient tracking-wider mb-6">
+              {/* Hero Text - Large Luxury Typography */}
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-gold-gradient tracking-[0.08em] mb-8">
                 Moon in {moonData.sign}
               </h1>
 
-              {/* Element Badge */}
-              <div className="inline-flex items-center gap-3 px-6 py-3 glass-card rounded-full mb-8">
-                <span className="font-serif text-lg md:text-xl text-cream-muted">
-                  {moonData.element} Sign
+              {/* Element & Phase - Minimal Line */}
+              <div className="flex items-center justify-center gap-6 mb-10">
+                <span className="font-serif text-lg text-cream-muted/70 tracking-wide">
+                  {moonData.element}
                 </span>
-                <span className="text-primary/60">•</span>
-                <span className="font-serif text-lg md:text-xl text-cream-muted">
+                <span className="w-1 h-1 rounded-full bg-primary/40" />
+                <span className="font-serif text-lg text-cream-muted/70 tracking-wide">
                   {moonData.phase}
                 </span>
-                <span className="text-primary/60">•</span>
-                <span className="font-serif text-lg md:text-xl text-cream-muted">
-                  {moonData.illumination}% Illumination
+                <span className="w-1 h-1 rounded-full bg-primary/40" />
+                <span className="font-serif text-lg text-cream-muted/70 tracking-wide">
+                  {moonData.illumination}%
                 </span>
               </div>
 
-              {/* Moon Message */}
-              <p className="sanctuary-text text-cream-muted max-w-2xl mx-auto leading-relaxed">
+              {/* Moon Message - Refined */}
+              <p className="font-serif text-xl text-cream-muted/80 max-w-xl mx-auto leading-relaxed tracking-wide">
                 {moonMessage}
               </p>
             </div>
           </GlassmorphismCard>
 
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-px h-10 bg-gradient-to-b from-primary/50 to-transparent" />
-              <span className="font-serif text-sm text-cream-muted/50 tracking-widest uppercase">
-                Discover Your Ritual
-              </span>
+          {/* Scroll Indicator - Minimal */}
+          <div className="mt-16 animate-fade-up stagger-2">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-px h-12 bg-gradient-to-b from-primary/40 to-transparent" />
             </div>
           </div>
         </section>
 
-        {/* The Tease - Locked Daily Ritual Section */}
-        <section className="min-h-[60vh] flex flex-col items-center justify-center px-6 py-20 relative">
+        {/* The Tease - Elegant Locked Section */}
+        <section className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-20 relative">
           {/* Decorative separator */}
-          <div className="flex items-center gap-4 mb-16 animate-fade-up">
-            <div className="w-32 md:w-40 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-            <div className="w-3 h-3 rotate-45 border border-primary/50" />
-            <div className="w-32 md:w-40 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+          <div className="flex items-center gap-6 mb-14 animate-fade-up">
+            <div className="w-24 h-px bg-gradient-to-r from-transparent to-primary/30" />
+            <div className="w-2 h-2 rounded-full bg-primary/40" />
+            <div className="w-24 h-px bg-gradient-to-l from-transparent to-primary/30" />
           </div>
 
-          {/* Locked Content Card */}
-          <div className="relative max-w-2xl w-full animate-fade-up stagger-1">
-            {/* Blur Overlay */}
-            <GlassmorphismCard className="absolute inset-0 z-10 flex flex-col items-center justify-center">
-              <div className="w-20 h-20 rounded-full glass-card flex items-center justify-center mb-8 shadow-glow">
-                <Lock className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="font-display text-3xl md:text-4xl text-gold-gradient mb-4 text-center">
-                Your Daily Ritual Awaits
-              </h3>
-              <p className="font-serif text-xl text-cream-muted mb-10 text-center px-6 max-w-md">
-                Unlock personalized lunar rituals, crystal guidance, and sacred practices
-              </p>
-              
-              {/* Glowing CTA Button */}
-              <button
-                onClick={() => navigate("/portal")}
-                className="group relative px-14 py-5 font-display text-lg tracking-widest uppercase overflow-hidden rounded-xl glass-card shadow-glow hover:shadow-gold transition-all duration-500"
-              >
-                <span className="relative z-10 text-primary group-hover:text-gold-pale transition-colors">
-                  Begin Your Journey
-                </span>
-                {/* Animated glow effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-primary/10 to-transparent animate-pulse" />
-              </button>
-            </GlassmorphismCard>
-
-            {/* Blurred Background Content (teaser) */}
-            <div className="p-12 md:p-14 opacity-30 blur-md pointer-events-none select-none">
-              <h2 className="font-display text-xl tracking-wider text-foreground mb-6 text-center">
-                Today's Ritual: The {moonData.sign} Awakening
-              </h2>
-              <div className="space-y-4">
-                <p className="font-serif text-cream-muted leading-relaxed">
-                  ✨ Morning Affirmation: "I embrace the energy of {moonData.sign}..."
-                </p>
-                <p className="font-serif text-cream-muted leading-relaxed">
-                  🌙 Sacred Practice: Light a candle during the golden hour...
-                </p>
-                <p className="font-serif text-cream-muted leading-relaxed">
-                  💎 Crystal Companion: Hold your moonstone close...
-                </p>
-                <p className="font-serif text-cream-muted leading-relaxed">
-                  ⏱️ Best Timing: Perform at moonrise for maximum power...
-                </p>
-              </div>
+          {/* Elegant CTA Card */}
+          <div className="text-center max-w-lg animate-fade-up stagger-1">
+            {/* Lock Icon - Thin Line Style */}
+            <div className="w-16 h-16 mx-auto mb-8 rounded-full border border-primary/30 flex items-center justify-center">
+              <Lock className="w-6 h-6 text-primary/70" strokeWidth={1.5} />
             </div>
+            
+            <h3 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-5">
+              Your Ritual Awaits
+            </h3>
+            
+            <p className="font-serif text-lg text-cream-muted/60 mb-10 leading-relaxed">
+              Personalized lunar guidance, crystal wisdom, and sacred practices
+            </p>
+            
+            {/* Premium CTA Button */}
+            <button
+              onClick={() => navigate("/portal")}
+              className="group px-12 py-4 font-display text-sm tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 hover:border-primary/60 transition-all duration-500"
+            >
+              Begin Your Journey
+            </button>
           </div>
 
           {/* Bottom decorative element */}
