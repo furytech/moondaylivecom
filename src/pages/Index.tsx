@@ -108,7 +108,7 @@ const Index = () => {
             
             {/* Premium CTA Button */}
             <button
-              onClick={() => navigate("/portal")}
+              onClick={() => navigate("/signup")}
               className="group px-12 py-4 font-display text-sm tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 hover:border-primary/60 transition-all duration-500"
             >
               Begin Your Journey
