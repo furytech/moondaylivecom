@@ -25,6 +25,7 @@ const Index = () => {
               src={moonLogo}
               alt="Moonday Live"
               className="w-64 md:w-[19rem] lg:w-[22.5rem] h-auto cursor-pointer hover-scale-subtle drop-shadow-2xl"
+              style={{ backgroundColor: 'hsl(220, 45%, 6%)' }}
               onClick={() => navigate("/")}
             />
           </div>
