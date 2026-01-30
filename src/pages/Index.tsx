@@ -11,28 +11,36 @@ const Index = () => {
   const moonMessage = getMoonMessage(moonData);
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      {/* Animated Celestial Background */}
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden">
+      {/* Animated Celestial Background - Full Screen */}
       <CelestialBackground />
 
-      {/* Logo - Fixed at Top Center */}
-      <header className="absolute top-6 left-0 right-0 z-20 flex justify-center animate-fade-up">
-        <img
-          src={moonLogo}
-          alt="Moonday Live"
-          className="w-40 md:w-48 lg:w-56 h-auto cursor-pointer hover-scale-subtle drop-shadow-2xl"
-          style={{ 
-            backgroundColor: 'hsl(220, 45%, 6%)',
-            mixBlendMode: 'multiply'
-          }}
-          onClick={() => navigate("/")}
-        />
+      {/* Navigation Bar - Logo Top Left */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 animate-fade-up">
+        <nav className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo - Small branding icon */}
+          <img
+            src={moonLogo}
+            alt="Moonday Live"
+            className="w-12 md:w-14 h-auto cursor-pointer hover-scale-subtle drop-shadow-xl"
+            style={{ mixBlendMode: 'screen' }}
+            onClick={() => navigate("/")}
+          />
+          
+          {/* Portal Link */}
+          <button
+            onClick={() => navigate("/portal")}
+            className="font-display text-sm tracking-widest uppercase text-primary/80 hover:text-primary transition-colors duration-300"
+          >
+            Enter Portal
+          </button>
+        </nav>
       </header>
 
       {/* Hero Section - Full Screen Cinematic Moon */}
       <main className="flex-1 flex flex-col relative z-10">
-        {/* Cinematic Moon Display - Takes most of viewport */}
-        <section className="min-h-[85vh] lg:min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-12">
+        {/* Cinematic Moon Display - Centered for Desktop */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
 
           {/* Current Moon Sign - Glassmorphism Card */}
           <GlassmorphismCard 
