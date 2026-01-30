@@ -3,8 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import moonLogo from "@/assets/moon-logo-new.png";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Star } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
+import CelestialBackground from "@/components/CelestialBackground";
+import GlassmorphismCard from "@/components/GlassmorphismCard";
 
 // Stripe Price IDs
 const PRICES = {
@@ -34,7 +36,7 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, session } = useAuth();
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -72,28 +74,14 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Decorative stars background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-gold-pale rounded-full animate-twinkle"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.4 + 0.2,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen flex flex-col relative">
+      <CelestialBackground />
 
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-xl">
           {/* Logo */}
-          <div className="flex justify-center mb-10 animate-fade-up">
+          <div className="flex justify-center mb-12 animate-fade-up">
             <div
               className="cursor-pointer hover-scale-subtle"
               onClick={() => navigate("/")}
@@ -101,44 +89,44 @@ const Pricing = () => {
               <img
                 src={moonLogo}
                 alt="Moonday Live"
-                className="w-40 h-auto"
+                className="w-44 h-auto drop-shadow-2xl"
               />
             </div>
           </div>
 
           {/* Canceled Message */}
           {canceled && (
-            <div className="mb-8 p-4 art-deco-border bg-card/40 text-center animate-fade-up">
-              <p className="font-serif text-cream-muted">
+            <GlassmorphismCard className="mb-8 text-center animate-fade-up" size="sm">
+              <p className="font-serif text-lg text-cream-muted">
                 No worries — take your time. Your lunar journey awaits when you're ready.
               </p>
-            </div>
+            </GlassmorphismCard>
           )}
 
           {/* Pricing Card */}
-          <div className="art-deco-border brass-glow bg-card/40 backdrop-blur-sm p-10 md:p-12 animate-fade-up stagger-1">
+          <GlassmorphismCard className="animate-fade-up stagger-1 shadow-glow">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-1 bg-primary/10 border border-primary/30 rounded-full mb-4">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="font-serif text-sm text-primary">Pro Membership</span>
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-5 py-2 glass-card rounded-full mb-6">
+                <Star className="w-4 h-4 text-primary fill-primary" />
+                <span className="font-display text-sm text-primary uppercase tracking-widest">Pro Membership</span>
               </div>
-              <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
+              <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-wider mb-4">
                 Unlock Your Moon
               </h1>
-              <p className="font-serif text-lg text-cream-muted">
-                Full access to your personalized lunar journey
+              <p className="font-serif text-xl text-cream-muted">
+                Full access to your personalized lunar sanctuary
               </p>
             </div>
 
             {/* Billing Toggle */}
-            <div className="flex justify-center mb-8">
-              <div className="inline-flex items-center p-1 bg-card/60 border border-border/50 rounded-lg">
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex items-center p-1.5 glass-card rounded-2xl">
                 <button
                   onClick={() => setBillingInterval("monthly")}
-                  className={`px-6 py-2 font-display text-sm tracking-wider transition-all duration-300 rounded-md ${
+                  className={`px-8 py-3 font-display text-sm tracking-widest transition-all duration-400 rounded-xl ${
                     billingInterval === "monthly"
-                      ? "bg-primary/20 text-primary border border-primary/30"
+                      ? "bg-primary/20 text-primary shadow-glow"
                       : "text-cream-muted hover:text-primary"
                   }`}
                 >
@@ -146,54 +134,52 @@ const Pricing = () => {
                 </button>
                 <button
                   onClick={() => setBillingInterval("yearly")}
-                  className={`px-6 py-2 font-display text-sm tracking-wider transition-all duration-300 rounded-md relative ${
+                  className={`px-8 py-3 font-display text-sm tracking-widest transition-all duration-400 rounded-xl relative ${
                     billingInterval === "yearly"
-                      ? "bg-primary/20 text-primary border border-primary/30"
+                      ? "bg-primary/20 text-primary shadow-glow"
                       : "text-cream-muted hover:text-primary"
                   }`}
                 >
                   Yearly
-                  {billingInterval !== "yearly" && (
-                    <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-display rounded-full">
-                      -42%
-                    </span>
-                  )}
+                  <span className="absolute -top-3 -right-3 px-2.5 py-1 bg-primary text-primary-foreground text-xs font-display rounded-full tracking-wider">
+                    Best Value
+                  </span>
                 </button>
               </div>
             </div>
 
             {/* Price Display */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-10">
               <div className="flex items-baseline justify-center gap-2">
-                <span className="font-display text-5xl md:text-6xl text-gold-gradient">
+                <span className="font-display text-6xl md:text-7xl text-gold-gradient">
                   {PRICES[billingInterval].amount}
                 </span>
-                <span className="font-serif text-xl text-cream-muted">
+                <span className="font-serif text-2xl text-cream-muted">
                   /{PRICES[billingInterval].interval}
                 </span>
               </div>
               {billingInterval === "yearly" && (
-                <p className="font-serif text-sm text-primary mt-2">
+                <p className="font-serif text-lg text-primary mt-3">
                   {PRICES.yearly.savings} compared to monthly
                 </p>
               )}
             </div>
 
             {/* Features */}
-            <ul className="space-y-4 mb-10">
+            <ul className="space-y-5 mb-12">
               {features.map((feature, i) => (
-                <li key={i} className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3 h-3 text-primary" />
+                <li key={i} className="flex items-center gap-4">
+                  <div className="w-6 h-6 rounded-full glass-card flex items-center justify-center flex-shrink-0">
+                    <Check className="w-3.5 h-3.5 text-primary" />
                   </div>
-                  <span className="font-serif text-base text-cream-muted">{feature}</span>
+                  <span className="font-serif text-lg text-cream-muted">{feature}</span>
                 </li>
               ))}
             </ul>
 
             {/* Error Message */}
             {error && (
-              <p className="text-destructive text-base font-serif text-center mb-4">
+              <p className="text-destructive text-lg font-serif text-center mb-6">
                 {error}
               </p>
             )}
@@ -202,29 +188,29 @@ const Pricing = () => {
             <button
               onClick={handleCheckout}
               disabled={loading}
-              className="w-full h-14 font-display text-sm tracking-widest uppercase bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 brass-glow transition-all duration-300 flex items-center justify-center gap-3"
+              className="w-full h-16 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold transition-all duration-500 flex items-center justify-center gap-3 rounded-xl text-primary"
             >
               {loading ? (
                 <MoonLoader size="sm" />
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-5 h-5" />
                   Start Your Journey
                 </>
               )}
             </button>
 
             {/* Security Note */}
-            <p className="font-serif text-sm text-cream-muted/60 text-center mt-6">
+            <p className="font-serif text-base text-cream-muted/50 text-center mt-8">
               Secure payment powered by Stripe. Cancel anytime.
             </p>
-          </div>
+          </GlassmorphismCard>
 
           {/* Back to Home */}
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-10">
             <button
               onClick={() => navigate("/")}
-              className="font-serif text-base text-cream-muted elegant-hover"
+              className="font-serif text-lg text-cream-muted elegant-hover"
             >
               ← Back to the cosmos
             </button>

@@ -2,29 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Art Deco Moon Sign Quiz Design System
-   Navy gradients + Gold accents - Sophisticated celestial aesthetic
+/* Celestial Moon Sign Portal Design System
+   Deep midnight-charcoal gradient + Champagne Gold accents
+   Glassmorphism + Nebula animations - High-end celestial sanctuary
    All colors in HSL format */
 
 @layer base {
   :root {
-    /* Cincinnati Hilton - Deep Navy base palette */
-    --navy-deep: 220 45% 8%;
-    --navy-dark: 220 40% 12%;
-    --navy-medium: 218 35% 16%;
-    --navy-light: 215 30% 22%;
+    /* Midnight Cosmos - Deep space base palette */
+    --navy-deep: 220 45% 5%;
+    --navy-dark: 220 42% 8%;
+    --navy-medium: 218 38% 12%;
+    --navy-light: 215 32% 18%;
+    --charcoal: 220 20% 15%;
     
     /* Champagne Gold accents (#E3C18D) */
-    --gold-deep: 38 56% 60%;
+    --gold-deep: 38 56% 55%;
     --gold-medium: 38 56% 72%;
-    --gold-light: 38 56% 78%;
-    --gold-pale: 38 45% 88%;
+    --gold-light: 38 56% 80%;
+    --gold-pale: 38 45% 90%;
     
-    /* Cream/Ivory for text */
-    --cream: 40 30% 96%;
-    --cream-muted: 38 20% 80%;
+    /* Cream/Ivory for text - Enhanced contrast */
+    --cream: 40 35% 97%;
+    --cream-muted: 38 22% 78%;
     
-    /* Core semantic tokens - Dark theme by default for Art Deco */
+    /* Glassmorphism tokens */
+    --glass-bg: 220 40% 10% / 0.6;
+    --glass-border: 38 56% 72% / 0.2;
+    --glass-glow: 38 56% 72% / 0.15;
+    
+    /* Core semantic tokens - Dark celestial theme */
     --background: var(--navy-deep);
     --foreground: var(--cream);
 
@@ -53,7 +60,7 @@
     --input: var(--navy-medium);
     --ring: var(--gold-medium);
 
-    --radius: 0.25rem;
+    --radius: 0.75rem;
 
     /* Sidebar tokens */
     --sidebar-background: var(--navy-dark);
@@ -75,49 +82,72 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    line-height: 1.6;
+    line-height: 1.7;
+    letter-spacing: 0.01em;
+  }
+
+  /* Large display text - sanctuary feel */
+  h1, h2, h3, .font-display {
+    letter-spacing: 0.05em;
   }
 
   /* Architectural spacing for sections */
   section {
-    @apply py-12 md:py-16 lg:py-20;
+    @apply py-16 md:py-20 lg:py-28;
   }
 }
 
-/* Art Deco utility classes */
+/* Celestial utility classes */
 @layer utilities {
-  .gradient-navy {
-    background: linear-gradient(
-      180deg,
-      hsl(var(--navy-deep)) 0%,
-      hsl(var(--navy-dark)) 50%,
-      hsl(var(--navy-medium)) 100%
-    );
-  }
-
-  .gradient-navy-radial {
-    background: radial-gradient(
-      ellipse at center top,
-      hsl(var(--navy-medium)) 0%,
-      hsl(var(--navy-dark)) 40%,
-      hsl(var(--navy-deep)) 100%
-    );
-  }
-
-  .gradient-gold {
+  /* Glassmorphism effect */
+  .glass {
     background: linear-gradient(
       135deg,
-      hsl(var(--gold-deep)) 0%,
-      hsl(var(--gold-medium)) 50%,
-      hsl(var(--gold-light)) 100%
+      hsl(var(--navy-dark) / 0.7) 0%,
+      hsl(var(--navy-medium) / 0.4) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--gold-medium) / 0.15);
+  }
+
+  .glass-card {
+    background: linear-gradient(
+      145deg,
+      hsl(220 40% 12% / 0.8) 0%,
+      hsl(220 35% 8% / 0.6) 100%
+    );
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid hsl(var(--gold-medium) / 0.2);
+    box-shadow: 
+      0 8px 32px -8px hsl(var(--gold-medium) / 0.1),
+      inset 0 1px 0 0 hsl(var(--gold-pale) / 0.05);
+  }
+
+  .gradient-celestial {
+    background: linear-gradient(
+      180deg,
+      hsl(220, 45%, 5%) 0%,
+      hsl(220, 42%, 8%) 30%,
+      hsl(220, 35%, 12%) 100%
+    );
+  }
+
+  .gradient-midnight {
+    background: radial-gradient(
+      ellipse at center top,
+      hsl(220, 38%, 14%) 0%,
+      hsl(220, 42%, 8%) 50%,
+      hsl(220, 45%, 5%) 100%
     );
   }
 
   .text-gold-gradient {
     background: linear-gradient(
       135deg,
-      hsl(var(--gold-light)) 0%,
-      hsl(var(--gold-medium)) 50%,
+      hsl(var(--gold-pale)) 0%,
+      hsl(var(--gold-medium)) 40%,
       hsl(var(--gold-deep)) 100%
     );
     -webkit-background-clip: text;
@@ -125,37 +155,66 @@
     background-clip: text;
   }
 
-  .border-gold {
-    border-color: hsl(var(--gold-medium));
+  .shadow-gold {
+    box-shadow: 
+      0 0 40px -10px hsl(var(--gold-medium) / 0.35),
+      0 0 80px -20px hsl(var(--gold-medium) / 0.2);
   }
 
-  .shadow-gold {
-    box-shadow: 0 0 30px -5px hsl(var(--gold-medium) / 0.3);
+  .shadow-glow {
+    box-shadow: 
+      0 0 60px -15px hsl(var(--gold-medium) / 0.3),
+      0 0 100px -30px hsl(var(--gold-medium) / 0.15),
+      inset 0 1px 0 0 hsl(var(--gold-pale) / 0.1);
   }
 
   .art-deco-border {
-    border: 1px solid hsl(var(--gold-medium) / 0.3);
+    border: 1px solid hsl(var(--gold-medium) / 0.25);
+    border-radius: var(--radius);
   }
 
-  /* Luxury hover effect - brass glow */
+  /* Celestial glow hover effect */
   .brass-glow {
-    transition: all 0.4s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .brass-glow:hover {
-    box-shadow: 0 0 20px -5px hsl(var(--gold-medium) / 0.5),
-                0 0 40px -10px hsl(var(--gold-medium) / 0.3);
-    border-color: hsl(var(--gold-medium) / 0.6);
+    box-shadow: 
+      0 0 30px -5px hsl(var(--gold-medium) / 0.4),
+      0 0 60px -15px hsl(var(--gold-medium) / 0.25),
+      inset 0 1px 0 0 hsl(var(--gold-pale) / 0.15);
+    border-color: hsl(var(--gold-medium) / 0.5);
   }
 
   /* Elegant fade hover for links/buttons */
   .elegant-hover {
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .elegant-hover:hover {
-    color: hsl(var(--gold-medium));
-    text-shadow: 0 0 15px hsl(var(--gold-medium) / 0.3);
+    color: hsl(var(--gold-light));
+    text-shadow: 0 0 20px hsl(var(--gold-medium) / 0.4);
+  }
+
+  /* Sanctuary text - large serif for ritual content */
+  .sanctuary-text {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.5rem;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+    font-weight: 400;
+  }
+
+  @media (min-width: 768px) {
+    .sanctuary-text {
+      font-size: 1.75rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .sanctuary-text {
+      font-size: 2rem;
+    }
   }
 }
 
