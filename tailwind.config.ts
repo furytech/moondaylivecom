@@ -64,6 +64,7 @@ export default {
           medium: "hsl(var(--navy-medium))",
           light: "hsl(var(--navy-light))",
         },
+        charcoal: "hsl(var(--charcoal))",
         teal: {
           deep: "hsl(var(--teal-deep))",
           medium: "hsl(var(--teal-medium))",
@@ -110,6 +111,16 @@ export default {
           "0%, 100%": { opacity: "0.3", transform: "scale(1)" },
           "50%": { opacity: "1", transform: "scale(1.2)" },
         },
+        "nebula-drift": {
+          "0%": { transform: "translate(0, 0) scale(1)" },
+          "33%": { transform: "translate(10px, -10px) scale(1.02)" },
+          "66%": { transform: "translate(-5px, 5px) scale(0.98)" },
+          "100%": { transform: "translate(0, 0) scale(1)" },
+        },
+        "star-pulse": {
+          "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.3)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -117,6 +128,8 @@ export default {
         "float": "float 6s ease-in-out infinite",
         "glow": "glow 3s ease-in-out infinite",
         "twinkle": "twinkle 2s ease-in-out infinite",
+        "nebula-drift": "nebula-drift 20s ease-in-out infinite",
+        "star-pulse": "star-pulse 3s ease-in-out infinite",
       },
     },
   },
