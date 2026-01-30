@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import moonLogo from "@/assets/moon-logo-new.png";
@@ -8,7 +8,7 @@ import MoonLoader from "@/components/MoonLoader";
 
 const Portal = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -16,12 +16,14 @@ const Portal = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   // Redirect if already logged in
-  if (user) {
-    navigate("/blueprint");
-    return null;
-  }
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/pricing");
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,24 +49,85 @@ const Portal = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
+        navigate("/pricing");
       } else {
         await signUp(email, password);
+        setSignupSuccess(true);
       }
-      navigate("/blueprint");
-    } catch (err: any) {
-      if (err.code === "auth/email-already-in-use") {
-        setError("This email is already registered");
-      } else if (err.code === "auth/invalid-email") {
-        setError("Invalid email address");
-      } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string };
+      if (error.message?.includes("User already registered")) {
+        setError("This email is already registered. Please sign in.");
+      } else if (error.message?.includes("Invalid login credentials")) {
         setError("Invalid email or password");
+      } else if (error.message?.includes("Email not confirmed")) {
+        setError("Please check your email to confirm your account");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(error.message || "Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
+
+  if (signupSuccess) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-gold-pale rounded-full animate-twinkle"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                opacity: Math.random() * 0.4 + 0.2,
+              }}
+            />
+          ))}
+        </div>
+
+        <main className="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
+          <div className="w-full max-w-md text-center">
+            <div className="flex justify-center mb-10 animate-fade-up">
+              <img
+                src={moonLogo}
+                alt="Moonday"
+                className="w-40 h-auto cursor-pointer hover-scale-subtle"
+                onClick={() => navigate("/")}
+              />
+            </div>
+
+            <div className="art-deco-border brass-glow bg-card/40 backdrop-blur-sm p-10 md:p-12 animate-fade-up stagger-1">
+              <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-6">
+                <span className="text-4xl">✨</span>
+              </div>
+              <h1 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider mb-4">
+                Check Your Email
+              </h1>
+              <p className="font-serif text-lg text-cream-muted mb-6">
+                We've sent a confirmation link to <strong className="text-primary">{email}</strong>
+              </p>
+              <p className="font-serif text-base text-cream-muted/80">
+                Click the link in your email to activate your account, then return here to begin your lunar journey.
+              </p>
+
+              <button
+                onClick={() => {
+                  setSignupSuccess(false);
+                  setIsLogin(true);
+                }}
+                className="mt-8 font-serif text-base text-cream-muted elegant-hover"
+              >
+                ← Back to sign in
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -90,13 +153,13 @@ const Portal = () => {
           {/* Logo */}
           <div className="flex justify-center mb-10 animate-fade-up">
             <div 
-              className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+              className="cursor-pointer hover-scale-subtle"
               onClick={() => navigate("/")}
             >
               <img
                 src={moonLogo}
                 alt="Moonday"
-                className="w-full h-full object-cover drop-shadow-2xl"
+                className="w-40 h-auto"
               />
             </div>
           </div>
