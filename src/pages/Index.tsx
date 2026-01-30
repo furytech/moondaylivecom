@@ -101,20 +101,18 @@ const Index = () => {
           </GlassmorphismCard>
 
           {/* Scroll Indicator - Minimal */}
-          <div className="mt-16 animate-fade-up stagger-2">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-px h-12 bg-gradient-to-b from-primary/40 to-transparent" />
-            </div>
+          <div className="mt-10 animate-fade-up stagger-2">
+            <div className="w-px h-8 mx-auto bg-gradient-to-b from-primary/40 to-transparent" />
           </div>
         </section>
 
         {/* The Tease - Elegant Locked Section */}
-        <section className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-20 relative">
+        <section className="flex flex-col items-center justify-center px-6 py-12 relative">
           {/* Decorative separator */}
-          <div className="flex items-center gap-6 mb-14 animate-fade-up">
-            <div className="w-24 h-px bg-gradient-to-r from-transparent to-primary/30" />
-            <div className="w-2 h-2 rounded-full bg-primary/40" />
-            <div className="w-24 h-px bg-gradient-to-l from-transparent to-primary/30" />
+          <div className="flex items-center gap-6 mb-10 animate-fade-up">
+            <div className="w-20 h-px bg-gradient-to-r from-transparent to-primary/30" />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+            <div className="w-20 h-px bg-gradient-to-l from-transparent to-primary/30" />
           </div>
 
           {/* Elegant CTA Card */}
