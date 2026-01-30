@@ -11,6 +11,7 @@ import TransitionQuiz from "./pages/TransitionQuiz";
 import Results from "./pages/Results";
 import DevTest from "./pages/DevTest";
 import Portal from "./pages/Portal";
+import Pricing from "./pages/Pricing";
 import Blueprint from "./pages/Blueprint";
 import Archives from "./pages/Archives";
 import Atelier from "./pages/Atelier";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/quiz" element={<TransitionQuiz />} />
             <Route path="/results" element={<Results />} />
             <Route path="/portal" element={<Portal />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/blueprint" element={
               <ProtectedRoute>
                 <Blueprint />
