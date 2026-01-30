@@ -1,12 +1,10 @@
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "./firebase";
+import { supabase } from "@/integrations/supabase/client";
 import type { MoonSignResult } from "./moonSign";
 
 export interface UserSignup {
   email: string;
   birthDate: string;
   moonSign: MoonSignResult;
-  createdAt: ReturnType<typeof serverTimestamp>;
 }
 
 export async function saveUserSignup(
@@ -14,16 +12,22 @@ export async function saveUserSignup(
   birthDate: Date,
   moonSign: MoonSignResult
 ): Promise<string> {
-  const docRef = await addDoc(collection(db, "signups"), {
-    email: email.trim().toLowerCase(),
-    birthDate: birthDate.toISOString(),
-    moonSign: {
-      sign: moonSign.sign,
-      symbol: moonSign.symbol,
-      element: moonSign.element,
-    },
-    createdAt: serverTimestamp(),
-  });
-  
-  return docRef.id;
+  const { data, error } = await supabase
+    .from("signups")
+    .insert({
+      email: email.trim().toLowerCase(),
+      birth_date: birthDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      moon_sign: moonSign.sign,
+      moon_element: moonSign.element,
+      moon_symbol: moonSign.symbol,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error("Error saving signup:", error);
+    throw error;
+  }
+
+  return data.id;
 }
