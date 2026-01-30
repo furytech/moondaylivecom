@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { calculateMoonSign, getMoonSignByName, MoonSignResult } from "@/lib/moonSign";
+import { calculateMoonSignAsync, getMoonSignByName, MoonSignResult } from "@/lib/moonSign";
 import { QuizResult } from "@/lib/transitionQuiz";
 import moonLogo from "@/assets/moon-logo-new.png";
 
@@ -18,38 +18,46 @@ const Results = () => {
   const [userName, setUserName] = useState<string>("");
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [isTransitionDay, setIsTransitionDay] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const state = location.state as LocationState | null;
-    
-    if (!state?.birthDate) {
-      navigate("/signup");
-      return;
-    }
-
-    const birthDate = new Date(state.birthDate);
-    
-    // Check if this came from the transition quiz
-    if (state.isTransitionDay && state.quizResult) {
-      setIsTransitionDay(true);
-      setQuizResult(state.quizResult);
-      const signData = getMoonSignByName(state.quizResult.primarySign);
-      if (signData) {
-        setMoonSign(signData);
+    const loadMoonSign = async () => {
+      const state = location.state as LocationState | null;
+      
+      if (!state?.birthDate) {
+        navigate("/signup");
+        return;
       }
-    } else {
-      const result = calculateMoonSign(birthDate);
-      setMoonSign(result);
-    }
-    
-    // Extract name from email for personalization
-    if (state.email) {
-      const namePart = state.email.split("@")[0];
-      setUserName(namePart.charAt(0).toUpperCase() + namePart.slice(1));
-    }
+
+      const birthDate = new Date(state.birthDate);
+      
+      // Check if this came from the transition quiz
+      if (state.isTransitionDay && state.quizResult) {
+        setIsTransitionDay(true);
+        setQuizResult(state.quizResult);
+        const signData = getMoonSignByName(state.quizResult.primarySign);
+        if (signData) {
+          setMoonSign(signData);
+        }
+      } else {
+        // Use async accurate calculation
+        const result = await calculateMoonSignAsync(birthDate);
+        setMoonSign(result);
+      }
+      
+      // Extract name from email for personalization
+      if (state.email) {
+        const namePart = state.email.split("@")[0];
+        setUserName(namePart.charAt(0).toUpperCase() + namePart.slice(1));
+      }
+      
+      setIsLoading(false);
+    };
+
+    loadMoonSign();
   }, [location.state, navigate]);
 
-  if (!moonSign) {
+  if (isLoading || !moonSign) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-gold-light font-display text-xl">

@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import moonLogo from "@/assets/moon-logo-new.png";
-import { calculateMoonSign, checkTransitionDay } from "@/lib/moonSign";
+import { calculateMoonSignAsync, checkTransitionDay } from "@/lib/moonSign";
 import { saveUserSignup } from "@/lib/userService";
 
 const Signup = () => {
@@ -48,8 +48,8 @@ const Signup = () => {
     setIsSubmitting(true);
 
     try {
-      // Check if this is a transition day
-      const transitionCheck = checkTransitionDay(birthDate);
+      // Check if this is a transition day (async for accurate calculation)
+      const transitionCheck = await checkTransitionDay(birthDate);
       
       if (transitionCheck.isTransitionDay) {
         // Navigate to quiz for transition day
@@ -62,10 +62,10 @@ const Signup = () => {
           }
         });
       } else {
-        // Calculate moon sign directly
-        const moonSign = calculateMoonSign(birthDate);
+        // Calculate moon sign directly using accurate ephemeris
+        const moonSign = await calculateMoonSignAsync(birthDate);
         
-        // Save to Firebase
+        // Save to database
         await saveUserSignup(email, birthDate, moonSign);
 
         // Navigate to results with data
