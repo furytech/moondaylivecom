@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import moonLogo from "@/assets/moon-logo-new.png";
+import moonLogo from "@/assets/moon-logo-transparent.png";
 import { getCurrentMoon, getMoonMessage } from "@/lib/currentMoon";
 import { Lock } from "lucide-react";
 import CelestialBackground from "@/components/CelestialBackground";
@@ -24,7 +24,7 @@ const Index = () => {
             <img
               src={moonLogo}
               alt="Moonday Live"
-              className="w-52 md:w-60 lg:w-72 h-auto cursor-pointer hover-scale-subtle drop-shadow-2xl"
+              className="w-64 md:w-[19rem] lg:w-[22.5rem] h-auto cursor-pointer hover-scale-subtle drop-shadow-2xl"
               onClick={() => navigate("/")}
             />
           </div>
