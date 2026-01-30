@@ -11,8 +11,8 @@ export async function saveUserSignup(
   email: string,
   birthDate: Date,
   moonSign: MoonSignResult
-): Promise<string> {
-  const { data, error } = await supabase
+): Promise<void> {
+  const { error } = await supabase
     .from("signups")
     .insert({
       email: email.trim().toLowerCase(),
@@ -20,14 +20,10 @@ export async function saveUserSignup(
       moon_sign: moonSign.sign,
       moon_element: moonSign.element,
       moon_symbol: moonSign.symbol,
-    })
-    .select('id')
-    .single();
+    });
 
   if (error) {
     console.error("Error saving signup:", error);
     throw error;
   }
-
-  return data.id;
 }
