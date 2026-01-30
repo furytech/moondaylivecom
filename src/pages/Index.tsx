@@ -29,7 +29,7 @@ const Index = () => {
 
       {/* Hero Section - Full Screen */}
       <main className="flex-1 flex flex-col relative z-10">
-        <section className="min-h-screen flex flex-col items-center justify-start px-6 pt-8 lg:pt-12 pb-8">
+        <section className="min-h-screen flex flex-col items-center justify-start px-6 pt-4 lg:pt-6 pb-8">
           
           {/* CSS Crescent Moon - Golden Anchor */}
           <div className="mb-10 lg:mb-12 animate-fade-up">
