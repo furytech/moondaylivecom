@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import moonLogo from "@/assets/moon-logo-transparent.png";
+import moonLogo from "@/assets/moon-logo-clean.png";
 import { getCurrentMoon, getMoonMessage } from "@/lib/currentMoon";
 import { Lock } from "lucide-react";
 import CelestialBackground from "@/components/CelestialBackground";
