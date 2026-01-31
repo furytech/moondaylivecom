@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import CrescentMoon from "@/components/CrescentMoon";
+import moonLogo from "@/assets/moon-logo-new.png";
 
 // Stripe Price IDs
 const PRICES = {
@@ -91,9 +91,18 @@ const Pricing = () => {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
-        {/* Crescent Moon */}
-        <div className="mb-8 animate-fade-up cursor-pointer" onClick={() => navigate("/")}>
-          <CrescentMoon size="sm" />
+        {/* Moon Logo */}
+        <div className="animate-float mb-8 animate-fade-up">
+          <div 
+            className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src={moonLogo}
+              alt="Moonday"
+              className="w-full h-full object-cover drop-shadow-2xl"
+            />
+          </div>
         </div>
 
         {/* Canceled Message */}
