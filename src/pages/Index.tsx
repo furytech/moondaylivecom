@@ -50,12 +50,12 @@ const Index = () => {
         </nav>
       </header>
 
-      {/* Hero Section - Full Screen */}
+      {/* Hero Section - Compact */}
       <main className="flex-1 flex flex-col relative z-10">
-        <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12">
+        <section className="pt-20 md:pt-24 pb-6 flex flex-col items-center px-6 md:px-8 lg:px-12">
           
           {/* Moon Logo - Refined proportions */}
-          <div className="animate-float mb-6 md:mb-10">
+          <div className="animate-float mb-4 md:mb-6">
             <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden hover-scale-subtle bg-background shadow-gold">
               <img
                 src={moonLogo}
@@ -72,19 +72,19 @@ const Index = () => {
           >
             <div className="text-center px-2 md:px-4">
               {/* Subtle Zodiac Symbol */}
-              <div className="mb-4 md:mb-5">
+              <div className="mb-3 md:mb-4">
                 <span className="text-2xl md:text-3xl text-primary/50 font-light">
                   {moonData.symbol}
                 </span>
               </div>
 
               {/* Hero Text - Balanced Typography */}
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-gold-gradient tracking-[0.06em] mb-5 md:mb-6">
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-gold-gradient tracking-[0.06em] mb-4 md:mb-5">
                 Moon in {moonData.sign}
               </h1>
 
               {/* Element & Phase - Refined spacing */}
-              <div className="flex items-center justify-center gap-4 md:gap-5 mb-6 md:mb-8">
+              <div className="flex items-center justify-center gap-4 md:gap-5 mb-4 md:mb-5">
                 <span className="font-serif text-sm md:text-base text-cream-muted/60 tracking-wide">
                   {moonData.element}
                 </span>
@@ -106,15 +106,15 @@ const Index = () => {
           </GlassmorphismCard>
 
           {/* Scroll Indicator - Subtle */}
-          <div className="mt-8 md:mt-12 animate-fade-up stagger-2">
-            <div className="w-px h-6 mx-auto bg-gradient-to-b from-primary/30 to-transparent" />
+          <div className="mt-5 md:mt-6 animate-fade-up stagger-2">
+            <div className="w-px h-5 mx-auto bg-gradient-to-b from-primary/30 to-transparent" />
           </div>
         </section>
 
         {/* The Tease - Elegant Locked Section */}
-        <section className="flex flex-col items-center justify-center px-6 md:px-8 py-16 md:py-20 relative">
+        <section className="flex flex-col items-center justify-center px-6 md:px-8 py-8 md:py-10 relative">
           {/* Decorative separator */}
-          <div className="flex items-center gap-4 mb-8 animate-fade-up">
+          <div className="flex items-center gap-4 mb-5 animate-fade-up">
             <div className="w-12 md:w-16 h-px bg-gradient-to-r from-transparent to-primary/25" />
             <div className="w-1 h-1 rounded-full bg-primary/30" />
             <div className="w-12 md:w-16 h-px bg-gradient-to-l from-transparent to-primary/25" />
@@ -123,29 +123,29 @@ const Index = () => {
           {/* Elegant CTA Card */}
           <div className="text-center max-w-md animate-fade-up stagger-1">
             {/* Lock Icon - Refined size */}
-            <div className="w-12 h-12 md:w-14 md:h-14 mx-auto mb-6 rounded-full border border-primary/25 flex items-center justify-center">
-              <Lock className="w-5 h-5 md:w-6 md:h-6 text-primary/60" strokeWidth={1.5} />
+            <div className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-4 rounded-full border border-primary/25 flex items-center justify-center">
+              <Lock className="w-4 h-4 md:w-5 md:h-5 text-primary/60" strokeWidth={1.5} />
             </div>
             
-            <h3 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-[0.05em] mb-4">
+            <h3 className="font-display text-xl md:text-2xl text-gold-gradient tracking-[0.05em] mb-3">
               Your Ritual Awaits
             </h3>
             
-            <p className="font-serif text-sm md:text-base text-cream-muted/50 mb-8 leading-relaxed">
+            <p className="font-serif text-sm md:text-base text-cream-muted/50 mb-5 leading-relaxed">
               Personalized lunar guidance, crystal wisdom, and sacred practices
             </p>
             
             {/* Premium CTA Button - Refined */}
             <button
               onClick={() => navigate("/signup")}
-              className="group px-8 md:px-10 py-3 md:py-3.5 font-display text-xs md:text-sm tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500"
+              className="group px-8 md:px-10 py-2.5 md:py-3 font-display text-xs md:text-sm tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500"
             >
               Begin Your Journey
             </button>
           </div>
 
           {/* Bottom decorative element */}
-          <div className="mt-16 flex flex-col items-center gap-3 animate-fade-up stagger-2">
+          <div className="mt-10 flex flex-col items-center gap-2 animate-fade-up stagger-2">
             <div className="flex items-center gap-2">
               <div className="w-10 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <div className="w-1.5 h-1.5 rotate-45 border border-primary/20" />
@@ -159,11 +159,11 @@ const Index = () => {
       </main>
 
       {/* Celestial footer accent */}
-      <footer className="py-8 border-t border-primary/10 relative z-10">
-        <div className="flex justify-center items-center gap-4">
-          <div className="w-12 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <div className="w-2 h-2 rotate-45 bg-primary/30" />
-          <div className="w-12 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      <footer className="py-5 border-t border-primary/10 relative z-10">
+        <div className="flex justify-center items-center gap-3">
+          <div className="w-10 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="w-1.5 h-1.5 rotate-45 bg-primary/30" />
+          <div className="w-10 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         </div>
       </footer>
     </div>
