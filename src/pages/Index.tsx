@@ -41,10 +41,10 @@ const Index = () => {
 
       {/* Hero Section - Full Screen */}
       <main className="flex-1 flex flex-col relative z-10">
-        <section className="min-h-screen flex flex-col items-center justify-start px-6 pt-4 lg:pt-6 pb-8">
+        <section className="min-h-screen flex flex-col items-center justify-center px-6 pb-8">
           
           {/* Moon Logo */}
-          <div className="animate-float mb-10 lg:mb-12 animate-fade-up">
+          <div className="animate-float mb-8">
             <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle">
               <img
                 src={moonLogo}
