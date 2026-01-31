@@ -17,23 +17,12 @@ const CrescentMoon = ({ size = "md" }: CrescentMoonProps) => {
 
   return (
     <div className={`relative ${sizeClasses[size]}`}>
-      {/* Outer glow */}
-      <div 
-        className="absolute inset-0 rounded-full opacity-40 blur-2xl"
-        style={{
-          background: 'radial-gradient(circle, hsl(38, 56%, 72%) 0%, transparent 70%)',
-        }}
-      />
-      {/* Crescent shape using box-shadow technique */}
+      {/* Crescent shape - no outer glow, blends with background */}
       <div 
         className="absolute inset-0 rounded-full"
         style={{
           background: 'linear-gradient(135deg, hsl(38, 56%, 72%) 0%, hsl(38, 45%, 55%) 50%, hsl(38, 40%, 45%) 100%)',
-          boxShadow: `
-            ${shadowSizes[size]} hsl(220, 45%, 8%),
-            0 0 40px 0 hsl(38, 56%, 72%, 0.3),
-            0 0 80px 0 hsl(38, 56%, 72%, 0.15)
-          `,
+          boxShadow: `${shadowSizes[size]} hsl(220, 45%, 6%)`,
         }}
       />
     </div>
