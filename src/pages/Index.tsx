@@ -27,12 +27,23 @@ const Index = () => {
         ))}
       </div>
 
-      {/* Navigation Bar - Clean, minimal */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
-        <nav className="max-w-7xl mx-auto flex items-center justify-end">
+      {/* Navigation Bar - Refined spacing */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-8 py-6 md:px-12 md:py-8">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between">
+          {/* Logo mark in header */}
+          <div 
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden cursor-pointer opacity-60 hover:opacity-100 transition-opacity duration-300"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src={moonLogo}
+              alt="Moonday"
+              className="w-full h-full object-cover"
+            />
+          </div>
           <button
             onClick={() => navigate("/portal")}
-            className="font-display text-sm tracking-[0.2em] uppercase text-primary/70 hover:text-primary transition-colors duration-500"
+            className="font-display text-xs md:text-sm tracking-[0.25em] uppercase text-primary/60 hover:text-primary transition-colors duration-500"
           >
             Enter Portal
           </button>
@@ -41,15 +52,15 @@ const Index = () => {
 
       {/* Hero Section - Full Screen */}
       <main className="flex-1 flex flex-col relative z-10">
-        <section className="min-h-screen flex flex-col items-center justify-center px-6 pb-8">
+        <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-8 lg:px-12">
           
-          {/* Moon Logo */}
-          <div className="animate-float mb-8">
-            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle bg-background">
+          {/* Moon Logo - Refined proportions */}
+          <div className="animate-float mb-6 md:mb-10">
+            <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden hover-scale-subtle bg-background shadow-gold">
               <img
                 src={moonLogo}
                 alt="Moonday"
-                className="w-full h-full object-cover drop-shadow-2xl"
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
@@ -57,90 +68,90 @@ const Index = () => {
           {/* Moon Sign Card - Text First Design */}
           <GlassmorphismCard 
             size="lg" 
-            className="max-w-2xl w-full mx-auto animate-fade-up stagger-1"
+            className="max-w-xl md:max-w-2xl w-full mx-auto animate-fade-up stagger-1"
           >
-            <div className="text-center">
+            <div className="text-center px-2 md:px-4">
               {/* Subtle Zodiac Symbol */}
-              <div className="mb-6">
-                <span className="text-3xl md:text-4xl text-primary/60 font-light">
+              <div className="mb-4 md:mb-5">
+                <span className="text-2xl md:text-3xl text-primary/50 font-light">
                   {moonData.symbol}
                 </span>
               </div>
 
-              {/* Hero Text - Large Luxury Typography */}
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-gold-gradient tracking-[0.08em] mb-8">
+              {/* Hero Text - Balanced Typography */}
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-gold-gradient tracking-[0.06em] mb-5 md:mb-6">
                 Moon in {moonData.sign}
               </h1>
 
-              {/* Element & Phase - Minimal Line */}
-              <div className="flex items-center justify-center gap-6 mb-10">
-                <span className="font-serif text-lg text-cream-muted/70 tracking-wide">
+              {/* Element & Phase - Refined spacing */}
+              <div className="flex items-center justify-center gap-4 md:gap-5 mb-6 md:mb-8">
+                <span className="font-serif text-sm md:text-base text-cream-muted/60 tracking-wide">
                   {moonData.element}
                 </span>
-                <span className="w-1 h-1 rounded-full bg-primary/40" />
-                <span className="font-serif text-lg text-cream-muted/70 tracking-wide">
+                <span className="w-0.5 h-0.5 rounded-full bg-primary/30" />
+                <span className="font-serif text-sm md:text-base text-cream-muted/60 tracking-wide">
                   {moonData.phase}
                 </span>
-                <span className="w-1 h-1 rounded-full bg-primary/40" />
-                <span className="font-serif text-lg text-cream-muted/70 tracking-wide">
+                <span className="w-0.5 h-0.5 rounded-full bg-primary/30" />
+                <span className="font-serif text-sm md:text-base text-cream-muted/60 tracking-wide">
                   {moonData.illumination}%
                 </span>
               </div>
 
               {/* Moon Message - Refined */}
-              <p className="font-serif text-xl text-cream-muted/80 max-w-xl mx-auto leading-relaxed tracking-wide">
+              <p className="font-serif text-base md:text-lg text-cream-muted/70 max-w-md mx-auto leading-relaxed">
                 {moonMessage}
               </p>
             </div>
           </GlassmorphismCard>
 
-          {/* Scroll Indicator - Minimal */}
-          <div className="mt-10 animate-fade-up stagger-2">
-            <div className="w-px h-8 mx-auto bg-gradient-to-b from-primary/40 to-transparent" />
+          {/* Scroll Indicator - Subtle */}
+          <div className="mt-8 md:mt-12 animate-fade-up stagger-2">
+            <div className="w-px h-6 mx-auto bg-gradient-to-b from-primary/30 to-transparent" />
           </div>
         </section>
 
         {/* The Tease - Elegant Locked Section */}
-        <section className="flex flex-col items-center justify-center px-6 py-12 relative">
+        <section className="flex flex-col items-center justify-center px-6 md:px-8 py-16 md:py-20 relative">
           {/* Decorative separator */}
-          <div className="flex items-center gap-6 mb-10 animate-fade-up">
-            <div className="w-20 h-px bg-gradient-to-r from-transparent to-primary/30" />
-            <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-            <div className="w-20 h-px bg-gradient-to-l from-transparent to-primary/30" />
+          <div className="flex items-center gap-4 mb-8 animate-fade-up">
+            <div className="w-12 md:w-16 h-px bg-gradient-to-r from-transparent to-primary/25" />
+            <div className="w-1 h-1 rounded-full bg-primary/30" />
+            <div className="w-12 md:w-16 h-px bg-gradient-to-l from-transparent to-primary/25" />
           </div>
 
           {/* Elegant CTA Card */}
-          <div className="text-center max-w-lg animate-fade-up stagger-1">
-            {/* Lock Icon - Thin Line Style */}
-            <div className="w-16 h-16 mx-auto mb-8 rounded-full border border-primary/30 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-primary/70" strokeWidth={1.5} />
+          <div className="text-center max-w-md animate-fade-up stagger-1">
+            {/* Lock Icon - Refined size */}
+            <div className="w-12 h-12 md:w-14 md:h-14 mx-auto mb-6 rounded-full border border-primary/25 flex items-center justify-center">
+              <Lock className="w-5 h-5 md:w-6 md:h-6 text-primary/60" strokeWidth={1.5} />
             </div>
             
-            <h3 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-5">
+            <h3 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-[0.05em] mb-4">
               Your Ritual Awaits
             </h3>
             
-            <p className="font-serif text-lg text-cream-muted/60 mb-10 leading-relaxed">
+            <p className="font-serif text-sm md:text-base text-cream-muted/50 mb-8 leading-relaxed">
               Personalized lunar guidance, crystal wisdom, and sacred practices
             </p>
             
-            {/* Premium CTA Button */}
+            {/* Premium CTA Button - Refined */}
             <button
               onClick={() => navigate("/signup")}
-              className="group px-12 py-4 font-display text-sm tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 hover:border-primary/60 transition-all duration-500"
+              className="group px-8 md:px-10 py-3 md:py-3.5 font-display text-xs md:text-sm tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500"
             >
               Begin Your Journey
             </button>
           </div>
 
           {/* Bottom decorative element */}
-          <div className="mt-20 flex flex-col items-center gap-4 animate-fade-up stagger-2">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-              <div className="w-2 h-2 rotate-45 border border-primary/30" />
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="mt-16 flex flex-col items-center gap-3 animate-fade-up stagger-2">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+              <div className="w-1.5 h-1.5 rotate-45 border border-primary/20" />
+              <div className="w-10 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             </div>
-            <span className="font-serif text-base text-cream-muted/50 tracking-wider">
+            <span className="font-serif text-xs md:text-sm text-cream-muted/40 tracking-wider">
               Join thousands embracing their lunar path
             </span>
           </div>
