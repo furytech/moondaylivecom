@@ -93,7 +93,7 @@ const Portal = () => {
         <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
           {/* Moon Logo */}
           <div className="animate-float mb-8">
-            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle">
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle bg-background">
               <img
                 src={moonLogo}
                 alt="Moonday"
@@ -169,7 +169,7 @@ const Portal = () => {
         {/* Moon Logo */}
         <div className="animate-float mb-8">
           <div 
-            className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+            className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle bg-background"
             onClick={() => navigate("/")}
           >
             <img
