@@ -145,10 +145,22 @@ This document captures the standardized design patterns for the Moonday app.
 2. ✅ `/signup` - Signup (Reference page)
 3. ✅ `/portal` - Portal (Auth)
 4. ✅ `/pricing` - Pricing
+5. ✅ `/results` - Results
+6. ✅ `/quiz` - Transition Quiz
+7. ✅ `/archives` - Archives
+8. ✅ `/atelier` - Atelier
+9. ✅ `/blueprint` - Blueprint (Dashboard)
 
 ---
 
 ## Change Log
+
+### January 31, 2026 - Update 2
+- Standardized ALL pages to use consistent layout
+- Fixed Results, TransitionQuiz, Archives, Atelier, Blueprint
+- Removed CelestialBackground from Blueprint (using decorative stars now)
+- All logos now: `w-40 h-40 md:w-48 md:h-48`
+- All main containers: `justify-center` (no more `pt-24` or `py-12`)
 
 ### January 31, 2026
 - Standardized all pages to match Signup page layout
