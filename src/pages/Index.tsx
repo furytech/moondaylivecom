@@ -45,7 +45,7 @@ const Index = () => {
           
           {/* Moon Logo */}
           <div className="animate-float mb-8">
-            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle">
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle bg-background">
               <img
                 src={moonLogo}
                 alt="Moonday"
