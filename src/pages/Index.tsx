@@ -52,7 +52,7 @@ const Index = () => {
 
       {/* Hero Section - Compact */}
       <main className="flex-1 flex flex-col relative z-10">
-        <section className="pt-20 md:pt-24 pb-6 flex flex-col items-center px-6 md:px-8 lg:px-12">
+        <section className="pt-16 md:pt-20 pb-6 flex flex-col items-center px-6 md:px-8 lg:px-12">
           
           {/* Moon Logo - Refined proportions */}
           <div className="animate-float mb-4 md:mb-6">
