@@ -90,7 +90,7 @@ const Portal = () => {
           ))}
         </div>
 
-        <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
+        <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
           {/* Moon Logo */}
           <div className="animate-float mb-10 animate-fade-up">
             <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle">
@@ -165,7 +165,7 @@ const Portal = () => {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         {/* Moon Logo */}
         <div className="animate-float mb-10 animate-fade-up">
           <div 
