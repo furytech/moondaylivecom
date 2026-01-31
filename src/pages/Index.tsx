@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { getCurrentMoon, getMoonMessage } from "@/lib/currentMoon";
 import { Lock } from "lucide-react";
-import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import moonLogo from "@/assets/moon-logo-new.png";
 
@@ -11,9 +10,22 @@ const Index = () => {
   const moonMessage = getMoonMessage(moonData);
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-x-hidden">
-      {/* Animated Celestial Background - Full Screen */}
-      <CelestialBackground />
+    <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
+      {/* Decorative stars background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-gold-pale rounded-full animate-twinkle"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              opacity: Math.random() * 0.5 + 0.3,
+            }}
+          />
+        ))}
+      </div>
 
       {/* Navigation Bar - Clean, minimal */}
       <header className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
