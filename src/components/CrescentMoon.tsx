@@ -22,7 +22,7 @@ const CrescentMoon = ({ size = "md" }: CrescentMoonProps) => {
         className="absolute inset-0 rounded-full"
         style={{
           background: 'linear-gradient(135deg, hsl(38, 56%, 72%) 0%, hsl(38, 45%, 55%) 50%, hsl(38, 40%, 45%) 100%)',
-          boxShadow: `${shadowSizes[size]} hsl(220, 45%, 6%)`,
+          boxShadow: `${shadowSizes[size]} hsl(220, 45%, 5%)`,
         }}
       />
     </div>
