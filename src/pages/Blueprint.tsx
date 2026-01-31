@@ -9,7 +9,6 @@ import { getDailyRitual, getNextTransitionTime } from "@/lib/dailyRitual";
 import { Lock, Sparkles, Crown, Clock, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
-import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 
 const Blueprint = () => {
@@ -75,24 +74,40 @@ const Blueprint = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      <CelestialBackground />
+    <div className="min-h-screen bg-background flex flex-col relative">
+      {/* Decorative stars background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-gold-pale rounded-full animate-twinkle"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              opacity: Math.random() * 0.5 + 0.3,
+            }}
+          />
+        ))}
+      </div>
       <Navigation />
       
       {/* Main content */}
-      <main className="flex-1 pt-24 pb-16 px-6 relative z-10">
-        <div className="max-w-5xl mx-auto">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+        <div className="max-w-5xl mx-auto w-full">
           {/* Logo */}
-          <div className="flex justify-center mb-12 animate-fade-up">
-            <div 
-              onClick={() => navigate("/")} 
-              className="cursor-pointer hover-scale-subtle inline-block"
-            >
-              <img 
-                src={moonLogo} 
-                alt="Moonday" 
-                className="w-48 h-auto drop-shadow-2xl"
-              />
+          <div className="flex justify-center mb-8">
+            <div className="animate-float">
+              <div 
+                onClick={() => navigate("/")} 
+                className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+              >
+                <img 
+                  src={moonLogo} 
+                  alt="Moonday" 
+                  className="w-full h-full object-cover drop-shadow-2xl"
+                />
+              </div>
             </div>
           </div>
 

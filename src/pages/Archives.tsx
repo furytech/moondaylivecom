@@ -51,19 +51,21 @@ const Archives = () => {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 pt-24 pb-12 px-6 relative z-10">
-        <div className="max-w-3xl mx-auto">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+        <div className="max-w-3xl mx-auto w-full">
           {/* Logo */}
-          <div className="flex justify-center mb-12 animate-fade-up">
-            <div 
-              onClick={() => navigate("/")} 
-              className="cursor-pointer hover-scale-subtle inline-block"
-            >
-              <img 
-                src={moonLogo} 
-                alt="Moonday" 
-                className="w-48 h-auto"
-              />
+          <div className="flex justify-center mb-8">
+            <div className="animate-float">
+              <div 
+                onClick={() => navigate("/")} 
+                className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+              >
+                <img 
+                  src={moonLogo} 
+                  alt="Moonday" 
+                  className="w-full h-full object-cover drop-shadow-2xl"
+                />
+              </div>
             </div>
           </div>
 
