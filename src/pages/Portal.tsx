@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import MoonLoader from "@/components/MoonLoader";
 import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import CrescentMoon from "@/components/CrescentMoon";
+import moonLogo from "@/assets/moon-logo-new.png";
 
 const Portal = () => {
   const navigate = useNavigate();
@@ -78,9 +78,15 @@ const Portal = () => {
         <CelestialBackground />
 
         <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
-          {/* Crescent Moon */}
-          <div className="mb-10 animate-fade-up">
-            <CrescentMoon size="md" />
+          {/* Moon Logo */}
+          <div className="animate-float mb-10 animate-fade-up">
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle">
+              <img
+                src={moonLogo}
+                alt="Moonday"
+                className="w-full h-full object-cover drop-shadow-2xl"
+              />
+            </div>
           </div>
 
           <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
@@ -133,9 +139,18 @@ const Portal = () => {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-start px-6 pt-20 pb-12 relative z-10">
-        {/* Crescent Moon */}
-        <div className="mb-10 animate-fade-up cursor-pointer" onClick={() => navigate("/")}>
-          <CrescentMoon size="md" />
+        {/* Moon Logo */}
+        <div className="animate-float mb-10 animate-fade-up">
+          <div 
+            className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src={moonLogo}
+              alt="Moonday"
+              className="w-full h-full object-cover drop-shadow-2xl"
+            />
+          </div>
         </div>
 
         {/* Auth Card */}

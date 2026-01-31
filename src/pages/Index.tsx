@@ -3,7 +3,7 @@ import { getCurrentMoon, getMoonMessage } from "@/lib/currentMoon";
 import { Lock } from "lucide-react";
 import CelestialBackground from "@/components/CelestialBackground";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import CrescentMoon from "@/components/CrescentMoon";
+import moonLogo from "@/assets/moon-logo-new.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -31,9 +31,15 @@ const Index = () => {
       <main className="flex-1 flex flex-col relative z-10">
         <section className="min-h-screen flex flex-col items-center justify-start px-6 pt-4 lg:pt-6 pb-8">
           
-          {/* CSS Crescent Moon - Golden Anchor */}
-          <div className="mb-10 lg:mb-12 animate-fade-up">
-            <CrescentMoon size="lg" />
+          {/* Moon Logo */}
+          <div className="animate-float mb-10 lg:mb-12 animate-fade-up">
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden hover-scale-subtle">
+              <img
+                src={moonLogo}
+                alt="Moonday"
+                className="w-full h-full object-cover drop-shadow-2xl"
+              />
+            </div>
           </div>
 
           {/* Moon Sign Card - Text First Design */}
