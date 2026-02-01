@@ -1,6 +1,6 @@
 # Moonday Design System
 
-## Last Updated: January 31, 2026
+## Last Updated: February 1, 2026
 
 This document captures the standardized design patterns for the Moonday app.
 
@@ -12,7 +12,7 @@ This document captures the standardized design patterns for the Moonday app.
 ```tsx
 <div className="min-h-screen bg-background flex flex-col relative">
   {/* Decorative stars background */}
-  {/* Header (if needed) */}
+  {/* Navigation (if needed) */}
   {/* Main content */}
   {/* Footer (if needed) */}
 </div>
@@ -37,27 +37,27 @@ This document captures the standardized design patterns for the Moonday app.
 
 ## Logo Standards
 
-### Size
-- Mobile: `w-40 h-40` (160px × 160px)
-- Desktop: `md:w-48 md:h-48` (192px × 192px)
+### Size (Standardized across ALL pages)
+- Mobile: `w-24 h-24` (96px × 96px)
+- Desktop: `md:w-32 md:h-32` (128px × 128px)
 
 ### Spacing
-- Bottom margin: `mb-8` (32px)
+- Bottom margin: `mb-6` (24px)
 
 ### Animation
 - Float effect: `animate-float`
 
 ### Container Structure
 ```tsx
-<div className="animate-float mb-8">
+<div className="animate-float mb-6">
   <div 
-    className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden cursor-pointer hover-scale-subtle"
+    className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer hover-scale-subtle bg-background"
     onClick={() => navigate("/")}
   >
     <img
       src={moonLogo}
       alt="Moonday"
-      className="w-full h-full object-cover drop-shadow-2xl"
+      className="w-full h-full object-cover"
     />
   </div>
 </div>
@@ -70,6 +70,11 @@ This document captures the standardized design patterns for the Moonday app.
 ---
 
 ## Background Standards
+
+### Base Background Color
+- Hex: `#011124`
+- HSL: `hsl(213, 95%, 7%)`
+- CSS variable: `bg-background` → `var(--navy-deep)`
 
 ### Decorative Stars
 ```tsx
@@ -89,20 +94,15 @@ This document captures the standardized design patterns for the Moonday app.
 </div>
 ```
 
-### Base Background Color
-- CSS variable: `bg-background`
-- HSL value: `hsl(220, 45%, 5%)`
-- Hex: `#070A0F`
-
 ---
 
 ## Color Tokens (from index.css)
 
-### Navy Palette (Backgrounds)
-- `--navy-deep`: `220 45% 5%` - Base background
-- `--navy-dark`: `220 42% 8%` - Cards
-- `--navy-medium`: `218 38% 12%` - Inputs, popovers
-- `--navy-light`: `215 32% 18%` - Borders
+### Navy Palette (Backgrounds) - Based on #011124
+- `--navy-deep`: `213 95% 7%` - Base background (#011124)
+- `--navy-dark`: `213 80% 10%` - Cards
+- `--navy-medium`: `213 60% 14%` - Inputs, popovers
+- `--navy-light`: `213 45% 20%` - Borders
 
 ### Gold Palette (Accents)
 - `--gold-deep`: `38 56% 55%` - Deep accent
@@ -154,6 +154,15 @@ This document captures the standardized design patterns for the Moonday app.
 ---
 
 ## Change Log
+
+### February 1, 2026
+- Updated base background color to #011124 (hsl(213, 95%, 7%))
+- Standardized logo sizing: `w-24 h-24 md:w-32 md:h-32` across ALL pages
+- Reduced logo margin: `mb-6` (was `mb-8`)
+- Added `bg-background` to logo containers for seamless blending
+- Removed `drop-shadow-2xl` from logo images for cleaner look
+- Updated Navigation logo to match new sizing
+- Updated NotFound, Privacy, Terms pages to match standard layout
 
 ### January 31, 2026 - Update 2
 - Standardized ALL pages to use consistent layout
