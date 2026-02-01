@@ -56,7 +56,7 @@ const Index = () => {
           
           {/* Moon Logo - Refined proportions */}
           <div className="animate-float mb-4 md:mb-6">
-            <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden hover-scale-subtle bg-background shadow-gold">
+            <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden hover-scale-subtle bg-background logo-halo">
               <img
                 src={moonLogo}
                 alt="Moonday"

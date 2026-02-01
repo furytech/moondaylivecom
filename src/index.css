@@ -169,6 +169,14 @@
       inset 0 1px 0 0 hsl(var(--gold-pale) / 0.1);
   }
 
+  /* Logo halo effect - soft ambient glow */
+  .logo-halo {
+    box-shadow: 
+      0 0 60px 20px hsl(var(--gold-medium) / 0.15),
+      0 0 100px 40px hsl(var(--gold-medium) / 0.08),
+      0 0 140px 60px hsl(var(--gold-pale) / 0.04);
+  }
+
   .art-deco-border {
     border: 1px solid hsl(var(--gold-medium) / 0.25);
     border-radius: var(--radius);

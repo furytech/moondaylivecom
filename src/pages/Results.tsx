@@ -90,7 +90,7 @@ const Results = () => {
         {/* Logo */}
         <div className="animate-float mb-6">
           <div 
-            className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer hover-scale-subtle bg-background"
+            className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer hover-scale-subtle bg-background logo-halo"
             onClick={() => navigate("/")}
           >
             <img
