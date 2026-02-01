@@ -51,7 +51,7 @@ const Archives = () => {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-10">
         <div className="max-w-3xl mx-auto w-full">
           {/* Logo */}
           <div className="flex justify-center mb-6">
