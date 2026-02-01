@@ -10,11 +10,12 @@
 @layer base {
   :root {
     /* Midnight Cosmos - Deep space base palette */
-    --navy-deep: 220 45% 5%;
-    --navy-dark: 220 42% 8%;
-    --navy-medium: 218 38% 12%;
-    --navy-light: 215 32% 18%;
-    --charcoal: 220 20% 15%;
+    /* Base: #011124 = hsl(213, 95%, 7%) */
+    --navy-deep: 213 95% 7%;
+    --navy-dark: 213 80% 10%;
+    --navy-medium: 213 60% 14%;
+    --navy-light: 213 45% 20%;
+    --charcoal: 213 30% 16%;
     
     /* Champagne Gold accents (#E3C18D) */
     --gold-deep: 38 56% 55%;
