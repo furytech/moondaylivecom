@@ -32,7 +32,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 hover-scale-subtle">
-            <div className="w-12 h-12 rounded-full overflow-hidden">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden bg-background">
               <img
                 src={moonLogo}
                 alt="Moonday"
