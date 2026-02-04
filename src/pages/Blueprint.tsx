@@ -16,6 +16,7 @@ const Blueprint = () => {
   const [searchParams] = useSearchParams();
   const { user, session, subscription, checkSubscription } = useAuth();
   const [portalLoading, setPortalLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
   
   const moonData = getCurrentMoon();
