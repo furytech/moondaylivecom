@@ -16,6 +16,7 @@ const Blueprint = () => {
   const [searchParams] = useSearchParams();
   const { user, session, subscription, checkSubscription } = useAuth();
   const [portalLoading, setPortalLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
   
   const moonData = getCurrentMoon();
@@ -70,6 +71,32 @@ const Blueprint = () => {
       console.error("Portal error:", err);
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const handleUpgrade = async () => {
+    if (!session) {
+      navigate("/portal");
+      return;
+    }
+    
+    setCheckoutLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: "price_1SvGpyBzaednmcCFzS90Mzht" }, // Yearly $19.88
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
@@ -268,11 +295,18 @@ const Blueprint = () => {
                     Get personalized lunar rituals, crystal guidance, and sacred practices with Pro
                   </p>
                   <button
-                    onClick={() => navigate("/pricing")}
-                    className="inline-flex items-center gap-3 px-10 py-4 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl"
+                    onClick={handleUpgrade}
+                    disabled={checkoutLoading}
+                    className="inline-flex items-center gap-3 px-10 py-4 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl disabled:opacity-50"
                   >
-                    <Sparkles className="w-5 h-5" />
-                    Upgrade to Pro
+                    {checkoutLoading ? (
+                      <MoonLoader size="sm" />
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Upgrade to Pro
+                      </>
+                    )}
                   </button>
                 </GlassmorphismCard>
 
