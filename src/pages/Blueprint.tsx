@@ -516,6 +516,12 @@ const Blueprint = () => {
         onSelectPlan={handleSelectPlan}
         loading={checkoutLoading}
       />
+
+      <MoonSignModal
+        isOpen={moonSignModalOpen}
+        onClose={() => setMoonSignModalOpen(false)}
+        moonSign={userProfile?.moon_sign || null}
+      />
     </div>
   );
 };
