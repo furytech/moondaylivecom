@@ -30,11 +30,12 @@ serve(async (req) => {
       throw new Error(`Failed to list users: ${listError.message}`);
     }
 
+    const allEmails = users.users.map(u => u.email);
     const targetUser = users.users.find(u => u.email === "mindglimmer@gmail.com");
     
     if (!targetUser) {
       return new Response(
-        JSON.stringify({ error: "User not found" }),
+        JSON.stringify({ error: "User not found", available_emails: allEmails }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
