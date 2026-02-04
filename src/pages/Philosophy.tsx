@@ -1,6 +1,31 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 
+// Art Deco Divider Component
+const ArtDecoDivider = () => (
+  <div className="py-16 flex items-center justify-center">
+    <div className="relative w-[60%] flex items-center justify-center">
+      {/* Left line */}
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-[#D4AF37]" />
+      
+      {/* Center ornament - geometric diamond with crescent */}
+      <div className="mx-4 flex items-center justify-center">
+        <div className="relative">
+          {/* Diamond shape */}
+          <div className="w-3 h-3 rotate-45 border border-[#D4AF37] bg-transparent" />
+          {/* Inner dot */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-1 h-1 bg-[#D4AF37] rounded-full" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Right line */}
+      <div className="flex-1 h-px bg-gradient-to-l from-transparent via-[#D4AF37]/60 to-[#D4AF37]" />
+    </div>
+  </div>
+);
+
 const Philosophy = () => {
   return (
     <PageLayout>
@@ -20,16 +45,24 @@ const Philosophy = () => {
           </div>
         </div>
 
-        {/* Main Content - Typography-focused single column */}
+        {/* Main Content */}
         <GlassmorphismCard size="lg" className="mb-12 stagger-1">
-          <article className="space-y-8">
-            <p className="font-serif text-xl text-cream-muted leading-relaxed tracking-wide font-normal">
+          <article>
+            {/* Opening statement - refined typography */}
+            <p 
+              className="font-serif font-normal text-cream-muted leading-relaxed"
+              style={{ fontSize: '1.25rem', letterSpacing: '0.05em' }}
+            >
               We believe that the moon is more than a celestial body — it is a mirror for the soul, 
               a guide through the darkness, and a keeper of ancient rhythms that have shaped 
               humanity since the dawn of time.
             </p>
 
-            <div className="border-t border-primary/10 pt-8">
+            {/* Art Deco Divider */}
+            <ArtDecoDivider />
+
+            {/* The Lunar Path */}
+            <div>
               <h2 className="font-display text-2xl text-primary tracking-wider mb-6">
                 The Lunar Path
               </h2>
@@ -44,7 +77,11 @@ const Philosophy = () => {
               </p>
             </div>
 
-            <div className="border-t border-primary/10 pt-8">
+            {/* Art Deco Divider */}
+            <ArtDecoDivider />
+
+            {/* Our Craft */}
+            <div>
               <h2 className="font-display text-2xl text-primary tracking-wider mb-6">
                 Our Craft
               </h2>
@@ -60,7 +97,11 @@ const Philosophy = () => {
               </p>
             </div>
 
-            <div className="border-t border-primary/10 pt-8">
+            {/* Art Deco Divider */}
+            <ArtDecoDivider />
+
+            {/* Join the Cosmos */}
+            <div>
               <h2 className="font-display text-2xl text-primary tracking-wider mb-6">
                 Join the Cosmos
               </h2>
