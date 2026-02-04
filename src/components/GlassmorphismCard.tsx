@@ -30,8 +30,8 @@ const GlassmorphismCard = ({
     <div
       className={cn(
         "relative rounded-2xl border backdrop-blur-xl transition-all duration-500",
-        "bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent",
-        "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/[0.1] before:to-transparent before:opacity-0 before:transition-opacity before:duration-500 hover:before:opacity-100",
+        "bg-background/95",
+        "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/[0.08] before:via-white/[0.04] before:to-transparent before:opacity-100 before:transition-opacity before:duration-500 hover:before:opacity-100",
         glowStyles[glowColor],
         sizeStyles[size],
         className

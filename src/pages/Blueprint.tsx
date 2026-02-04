@@ -173,8 +173,8 @@ const Blueprint = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Decorative stars background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Decorative stars background - lowest z-index */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
