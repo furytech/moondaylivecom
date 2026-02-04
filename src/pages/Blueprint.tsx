@@ -303,18 +303,11 @@ const Blueprint = () => {
                     Get personalized lunar rituals, crystal guidance, and sacred practices with Pro
                   </p>
                   <button
-                    onClick={handleUpgrade}
-                    disabled={checkoutLoading}
-                    className="inline-flex items-center gap-3 px-10 py-4 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl disabled:opacity-50"
+                    onClick={handleOpenPricing}
+                    className="inline-flex items-center gap-3 px-10 py-4 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl"
                   >
-                    {checkoutLoading ? (
-                      <MoonLoader size="sm" />
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5" />
-                        Upgrade to Pro
-                      </>
-                    )}
+                    <Sparkles className="w-5 h-5" />
+                    Upgrade to Pro
                   </button>
                 </GlassmorphismCard>
 
