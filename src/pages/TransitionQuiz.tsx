@@ -34,6 +34,8 @@ const TransitionQuiz = () => {
       signB?: string; 
       birthDate?: string;
       email?: string;
+      redirectTo?: string;
+      isProfileSetup?: boolean;
     } | null;
     
     if (!state?.signA || !state?.signB || !state?.birthDate) {
@@ -45,6 +47,8 @@ const TransitionQuiz = () => {
     setSignB(state.signB);
     setBirthDate(new Date(state.birthDate));
     setEmail(state.email || "");
+    setRedirectTo(state.redirectTo || "/results");
+    setIsProfileSetup(state.isProfileSetup || false);
     
     const selectedQuestions = selectQuestionsForSigns(state.signA, state.signB, 5);
     setQuestions(selectedQuestions);
