@@ -52,7 +52,7 @@ const Footer = () => {
             Moonday
           </p>
           <p className="font-serif text-xs text-muted-foreground/60">
-            © {currentYear} Crafted under the celestial light.
+            © {currentYear} Moonday Portal. All rights reserved.
           </p>
         </div>
       </div>
