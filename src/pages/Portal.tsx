@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import { useToast } from "@/hooks/use-toast";
 import moonLogo from "@/assets/moon-logo-new.png";
 
 const Portal = () => {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   
