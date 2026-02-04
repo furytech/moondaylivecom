@@ -249,8 +249,39 @@ const Portal = () => {
             </Button>
           </form>
 
+          {/* Forgot Password Link */}
+          {isLogin && (
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email) {
+                    setError("Please enter your email address first");
+                    return;
+                  }
+                  try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/portal`,
+                    });
+                    if (error) throw error;
+                    toast({
+                      title: "Reset Link Sent",
+                      description: "Check your email for a password reset link.",
+                    });
+                  } catch (err: unknown) {
+                    const error = err as { message?: string };
+                    setError(error.message || "Failed to send reset email");
+                  }
+                }}
+                className="font-serif text-sm text-primary/70 hover:text-primary transition-colors underline-offset-4 hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
+
           {/* Toggle */}
-          <div className="mt-10 text-center">
+          <div className="mt-6 text-center">
             <button
               type="button"
               onClick={() => {
