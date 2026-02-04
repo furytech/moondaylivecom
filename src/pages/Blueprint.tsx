@@ -10,6 +10,7 @@ import { Lock, Sparkles, Crown, Clock, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import PricingModal from "@/components/PricingModal";
 
 const Blueprint = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Blueprint = () => {
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
+  const [pricingModalOpen, setPricingModalOpen] = useState(false);
   
   const moonData = getCurrentMoon();
   const dailyRitual = getDailyRitual(moonData.sign);
@@ -74,16 +76,21 @@ const Blueprint = () => {
     }
   };
 
-  const handleUpgrade = async () => {
+  const handleOpenPricing = () => {
     if (!session) {
       navigate("/portal");
       return;
     }
+    setPricingModalOpen(true);
+  };
+
+  const handleSelectPlan = async (priceId: string) => {
+    if (!session) return;
     
     setCheckoutLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { priceId: "price_1SvGpyBzaednmcCFzS90Mzht" }, // Yearly $19.88
+        body: { priceId },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -92,6 +99,7 @@ const Blueprint = () => {
       if (error) throw error;
       if (data?.url) {
         window.open(data.url, "_blank");
+        setPricingModalOpen(false);
       }
     } catch (err) {
       console.error("Checkout error:", err);
@@ -295,18 +303,11 @@ const Blueprint = () => {
                     Get personalized lunar rituals, crystal guidance, and sacred practices with Pro
                   </p>
                   <button
-                    onClick={handleUpgrade}
-                    disabled={checkoutLoading}
-                    className="inline-flex items-center gap-3 px-10 py-4 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl disabled:opacity-50"
+                    onClick={handleOpenPricing}
+                    className="inline-flex items-center gap-3 px-10 py-4 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl"
                   >
-                    {checkoutLoading ? (
-                      <MoonLoader size="sm" />
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5" />
-                        Upgrade to Pro
-                      </>
-                    )}
+                    <Sparkles className="w-5 h-5" />
+                    Upgrade to Pro
                   </button>
                 </GlassmorphismCard>
 
@@ -348,6 +349,13 @@ const Blueprint = () => {
       </main>
 
       <Footer />
+
+      <PricingModal
+        open={pricingModalOpen}
+        onOpenChange={setPricingModalOpen}
+        onSelectPlan={handleSelectPlan}
+        loading={checkoutLoading}
+      />
     </div>
   );
 };
