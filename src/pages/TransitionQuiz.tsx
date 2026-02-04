@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const TransitionQuiz = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -24,6 +25,8 @@ const TransitionQuiz = () => {
   const [signB, setSignB] = useState<string>("");
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [email, setEmail] = useState<string>("");
+  const [redirectTo, setRedirectTo] = useState<string>("/results");
+  const [isProfileSetup, setIsProfileSetup] = useState(false);
 
   useEffect(() => {
     const state = location.state as { 
