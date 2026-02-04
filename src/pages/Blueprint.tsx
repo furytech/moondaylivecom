@@ -349,6 +349,13 @@ const Blueprint = () => {
       </main>
 
       <Footer />
+
+      <PricingModal
+        open={pricingModalOpen}
+        onOpenChange={setPricingModalOpen}
+        onSelectPlan={handleSelectPlan}
+        loading={checkoutLoading}
+      />
     </div>
   );
 };
