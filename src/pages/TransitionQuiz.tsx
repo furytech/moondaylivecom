@@ -125,8 +125,8 @@ const TransitionQuiz = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Decorative stars background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Decorative stars background - lowest z-index */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(25)].map((_, i) => (
           <div
             key={i}
@@ -141,8 +141,8 @@ const TransitionQuiz = () => {
         ))}
       </div>
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-10">
+      {/* Main content - above stars */}
+      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-20">
         {/* Logo */}
         <div className="animate-float mb-6">
           <div 

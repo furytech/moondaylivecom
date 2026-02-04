@@ -31,8 +31,8 @@ const PageLayout = ({
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Decorative stars background - stable positions */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Decorative stars background - lowest z-index */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {stars.map((star) => (
           <div
             key={star.id}
@@ -47,8 +47,8 @@ const PageLayout = ({
         ))}
       </div>
 
-      {/* Main content - minimal top padding */}
-      <main className={`flex-1 flex flex-col items-center pt-4 pb-6 px-6 relative z-10 ${className}`}>
+      {/* Main content - above stars */}
+      <main className={`flex-1 flex flex-col items-center pt-4 pb-6 px-6 relative z-20 ${className}`}>
         {/* Logo header - constrained to max 80px height */}
         {showLogo && (
           <div className="max-h-[80px] flex items-start justify-center mb-4">
