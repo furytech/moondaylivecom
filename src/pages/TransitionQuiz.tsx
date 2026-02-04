@@ -244,12 +244,12 @@ const TransitionQuiz = () => {
               if (currentIndex > 0) {
                 setCurrentIndex(currentIndex - 1);
               } else {
-                navigate("/signup");
+                navigate(isProfileSetup ? "/profile-setup" : "/signup");
               }
             }}
             className="mt-8 font-serif text-sm text-cream-muted/60 hover:text-gold-light transition-colors"
           >
-            ← {currentIndex > 0 ? "Previous question" : "Back to signup"}
+            ← {currentIndex > 0 ? "Previous question" : (isProfileSetup ? "Back to profile setup" : "Back to signup")}
           </button>
         )}
       </main>
