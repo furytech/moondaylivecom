@@ -44,7 +44,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   });
 
   const checkSubscription = async () => {
-    if (!session?.access_token) {
+    // Always fetch the latest session to avoid stale token issues
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentSession = sessionData?.session;
+    
+    if (!currentSession?.access_token) {
       setSubscription({ subscribed: false, productId: null, subscriptionEnd: null });
       return;
     }
@@ -52,11 +56,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${currentSession.access_token}`,
         },
       });
 
       if (error) {
+        // Silently handle auth errors (token might have just expired)
+        if (error.message?.includes('expired') || error.message?.includes('JWT')) {
+          console.log("Token expired during subscription check, will retry on next refresh");
+          return;
+        }
         console.error("Error checking subscription:", error);
         return;
       }
