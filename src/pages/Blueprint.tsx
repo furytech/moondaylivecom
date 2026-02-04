@@ -10,6 +10,7 @@ import { Lock, Sparkles, Crown, Clock, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import PricingModal from "@/components/PricingModal";
 
 const Blueprint = () => {
   const navigate = useNavigate();
