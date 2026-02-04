@@ -19,6 +19,7 @@ const Blueprint = () => {
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
+  const [pricingModalOpen, setPricingModalOpen] = useState(false);
   
   const moonData = getCurrentMoon();
   const dailyRitual = getDailyRitual(moonData.sign);
