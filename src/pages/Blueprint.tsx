@@ -4,13 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import moonLogo from "@/assets/moon-logo-new.png";
-import { getCurrentMoon } from "@/lib/currentMoon";
+import { getCurrentMoon, CurrentMoonData } from "@/lib/currentMoon";
 import { getDailyRitual, getNextTransitionTime } from "@/lib/dailyRitual";
-import { Lock, Sparkles, Crown, Clock, ExternalLink } from "lucide-react";
+import { generateDailyForecast, getSignSymbol } from "@/lib/forecastEngine";
+import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PricingModal from "@/components/PricingModal";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface UserProfile {
+  moon_sign: string | null;
+  birthday: string | null;
+}
 
 const Blueprint = () => {
   const navigate = useNavigate();
