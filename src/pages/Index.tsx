@@ -1,13 +1,33 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentMoon, getMoonMessage } from "@/lib/currentMoon";
 import { Lock } from "lucide-react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import MoonLoader from "@/components/MoonLoader";
 import moonLogo from "@/assets/moon-logo-new.png";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const moonData = getCurrentMoon();
   const moonMessage = getMoonMessage(moonData);
+
+  // Redirect logged-in users to Blueprint
+  useEffect(() => {
+    if (user && !loading) {
+      navigate("/blueprint", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loader while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <MoonLoader size="lg" text="Aligning the stars..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
