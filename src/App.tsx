@@ -18,6 +18,7 @@ import Atelier from "./pages/Atelier";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import About from "./pages/About";
+import Philosophy from "./pages/Philosophy";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/about" element={<About />} />
+            <Route path="/philosophy" element={<Philosophy />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/dev" element={<DevTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
