@@ -1,14 +1,40 @@
 # Moonday Design System
 
-## Last Updated: February 1, 2026
+## Last Updated: February 4, 2026
 
 This document captures the standardized design patterns for the Moonday app.
 
 ---
 
+## Global Layout System
+
+### PageLayout Component
+All pages should use the `PageLayout` component for consistency:
+```tsx
+import PageLayout from "@/components/PageLayout";
+
+const MyPage = () => (
+  <PageLayout showFooter={true} showLogo={true}>
+    {/* Page content */}
+  </PageLayout>
+);
+```
+
+**Props:**
+- `showFooter` (default: true) - Show/hide the footer
+- `showLogo` (default: true) - Show/hide the logo
+- `className` - Additional classes for main content area
+
+**Key Features:**
+- Fixed top padding: `pt-8` (2rem = 32px)
+- Stable star background positions (no flicker on navigation)
+- Logo always in exact same position across all pages
+
+---
+
 ## Page Layout Standards
 
-### Container Structure
+### Container Structure (Legacy - use PageLayout instead)
 ```tsx
 <div className="min-h-screen bg-background flex flex-col relative">
   {/* Decorative stars background */}
@@ -20,33 +46,18 @@ This document captures the standardized design patterns for the Moonday app.
 
 ### Main Content Area
 ```tsx
-<main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+<main className="flex-1 flex flex-col items-center pt-8 pb-6 px-6 relative z-10">
   {/* Logo */}
   {/* Page content */}
 </main>
 ```
 
 **Key classes:**
+- `pt-8` - Fixed 2rem (32px) top padding - logo sits at top
 - `flex-1` - Fills available space
-- `justify-center` - Vertically centers content
 - `items-center` - Horizontally centers content
 - `px-6` - Horizontal padding
 - `relative z-10` - Ensures content is above background
-
----
-
-## Logo Standards
-
-### Size (Standardized across ALL pages)
-- Mobile: `w-24 h-24` (96px × 96px)
-- Desktop: `md:w-32 md:h-32` (128px × 128px)
-
-### Spacing
-- Bottom margin: `mb-6` (24px)
-
-### Animation
-- Float effect: `animate-float`
-
 ### Container Structure
 ```tsx
 <div className="animate-float mb-6">
