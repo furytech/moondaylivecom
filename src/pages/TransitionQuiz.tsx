@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { format } from "date-fns";
 import moonLogo from "@/assets/moon-logo-new.png";
 import { 
   selectQuestionsForSigns, 
@@ -8,6 +9,8 @@ import {
 } from "@/lib/transitionQuiz";
 import { getMoonSignByName } from "@/lib/moonSign";
 import { saveUserSignup } from "@/lib/userService";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TransitionQuiz = () => {
   const navigate = useNavigate();
