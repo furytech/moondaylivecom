@@ -7,11 +7,12 @@ import moonLogo from "@/assets/moon-logo-new.png";
 import { getCurrentMoon, CurrentMoonData } from "@/lib/currentMoon";
 import { getDailyRitual, getNextTransitionTime } from "@/lib/dailyRitual";
 import { generateDailyForecast, getSignSymbol } from "@/lib/forecastEngine";
-import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star } from "lucide-react";
+import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PricingModal from "@/components/PricingModal";
+import MoonSignModal from "@/components/MoonSignModal";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserProfile {
