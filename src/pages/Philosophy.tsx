@@ -23,7 +23,7 @@ const Philosophy = () => {
         {/* Main Content - Typography-focused single column */}
         <GlassmorphismCard size="lg" className="mb-12 stagger-1">
           <article className="space-y-8">
-            <p className="sanctuary-text text-cream-muted leading-relaxed">
+            <p className="font-serif text-xl text-cream-muted leading-relaxed tracking-wide font-normal">
               We believe that the moon is more than a celestial body — it is a mirror for the soul, 
               a guide through the darkness, and a keeper of ancient rhythms that have shaped 
               humanity since the dawn of time.
