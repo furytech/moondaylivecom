@@ -70,7 +70,27 @@ const TransitionQuiz = () => {
     const result = calculateQuizResult(signA, signB, answers);
     const moonSignData = getMoonSignByName(result.primarySign);
     
-    // Save to Firebase with quiz result
+    // If this is a profile setup flow, update user_profiles instead
+    if (isProfileSetup && user && birthDate && moonSignData) {
+      try {
+        await supabase
+          .from("user_profiles")
+          .update({
+            birthday: format(birthDate, "yyyy-MM-dd"),
+            moon_sign: moonSignData.sign,
+            updated_at: new Date().toISOString()
+          })
+          .eq("user_id", user.id);
+        
+        // Navigate back to blueprint
+        navigate("/blueprint");
+        return;
+      } catch (error) {
+        console.error("Error updating profile:", error);
+      }
+    }
+    
+    // Standard signup flow - save to signups table
     if (birthDate && email && moonSignData) {
       try {
         await saveUserSignup(email, birthDate, moonSignData);
