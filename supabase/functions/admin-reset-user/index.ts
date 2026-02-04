@@ -23,43 +23,24 @@ serve(async (req) => {
       },
     });
 
-    // Get user by email
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (listError) {
-      throw new Error(`Failed to list users: ${listError.message}`);
-    }
+    // Create the new user
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: "mindglimmer@gmail.com",
+      password: "Moonday2026!",
+      email_confirm: true,
+    });
 
-    const allEmails = users.users.map(u => u.email);
-    const targetUser = users.users.find(u => u.email === "mindglimmer@gmail.com");
-    
-    if (!targetUser) {
-      return new Response(
-        JSON.stringify({ error: "User not found", available_emails: allEmails }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Update user password and confirm email
-    const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      targetUser.id,
-      {
-        password: "Moonday2026!",
-        email_confirm: true,
-      }
-    );
-
-    if (updateError) {
-      throw new Error(`Failed to update user: ${updateError.message}`);
+    if (createError) {
+      throw new Error(`Failed to create user: ${createError.message}`);
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Password reset and email confirmed",
-        user_id: updatedUser.user.id,
-        email: updatedUser.user.email,
-        email_confirmed_at: updatedUser.user.email_confirmed_at,
+        message: "User created with confirmed email",
+        user_id: newUser.user.id,
+        email: newUser.user.email,
+        email_confirmed_at: newUser.user.email_confirmed_at,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
