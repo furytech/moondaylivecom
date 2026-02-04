@@ -74,6 +74,32 @@ const Blueprint = () => {
     }
   };
 
+  const handleUpgrade = async () => {
+    if (!session) {
+      navigate("/portal");
+      return;
+    }
+    
+    setCheckoutLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: "price_1SvGpyBzaednmcCFzS90Mzht" }, // Yearly $19.88
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
       {/* Decorative stars background */}
