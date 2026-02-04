@@ -13,6 +13,7 @@ import DevTest from "./pages/DevTest";
 import Portal from "./pages/Portal";
 import Pricing from "./pages/Pricing";
 import Blueprint from "./pages/Blueprint";
+import ProfileSetup from "./pages/ProfileSetup";
 import Archives from "./pages/Archives";
 import Atelier from "./pages/Atelier";
 import Privacy from "./pages/Privacy";
@@ -41,6 +42,11 @@ const App = () => (
             <Route path="/blueprint" element={
               <ProtectedRoute>
                 <Blueprint />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile-setup" element={
+              <ProtectedRoute>
+                <ProfileSetup />
               </ProtectedRoute>
             } />
             <Route path="/archives" element={

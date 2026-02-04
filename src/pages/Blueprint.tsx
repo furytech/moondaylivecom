@@ -276,7 +276,7 @@ const Blueprint = () => {
                     Complete your profile to discover your birth moon sign
                   </p>
                   <button
-                    onClick={() => navigate("/portal")}
+                    onClick={() => isPro ? navigate("/profile-setup") : navigate("/pricing")}
                     className="mt-6 font-display text-sm tracking-widest uppercase text-primary elegant-hover"
                   >
                     Set Up Profile

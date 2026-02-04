@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { format } from "date-fns";
 import moonLogo from "@/assets/moon-logo-new.png";
 import { 
   selectQuestionsForSigns, 
@@ -8,10 +9,13 @@ import {
 } from "@/lib/transitionQuiz";
 import { getMoonSignByName } from "@/lib/moonSign";
 import { saveUserSignup } from "@/lib/userService";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TransitionQuiz = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,6 +25,8 @@ const TransitionQuiz = () => {
   const [signB, setSignB] = useState<string>("");
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [email, setEmail] = useState<string>("");
+  const [redirectTo, setRedirectTo] = useState<string>("/results");
+  const [isProfileSetup, setIsProfileSetup] = useState(false);
 
   useEffect(() => {
     const state = location.state as { 
@@ -28,6 +34,8 @@ const TransitionQuiz = () => {
       signB?: string; 
       birthDate?: string;
       email?: string;
+      redirectTo?: string;
+      isProfileSetup?: boolean;
     } | null;
     
     if (!state?.signA || !state?.signB || !state?.birthDate) {
@@ -39,6 +47,8 @@ const TransitionQuiz = () => {
     setSignB(state.signB);
     setBirthDate(new Date(state.birthDate));
     setEmail(state.email || "");
+    setRedirectTo(state.redirectTo || "/results");
+    setIsProfileSetup(state.isProfileSetup || false);
     
     const selectedQuestions = selectQuestionsForSigns(state.signA, state.signB, 5);
     setQuestions(selectedQuestions);
@@ -60,7 +70,27 @@ const TransitionQuiz = () => {
     const result = calculateQuizResult(signA, signB, answers);
     const moonSignData = getMoonSignByName(result.primarySign);
     
-    // Save to Firebase with quiz result
+    // If this is a profile setup flow, update user_profiles instead
+    if (isProfileSetup && user && birthDate && moonSignData) {
+      try {
+        await supabase
+          .from("user_profiles")
+          .update({
+            birthday: format(birthDate, "yyyy-MM-dd"),
+            moon_sign: moonSignData.sign,
+            updated_at: new Date().toISOString()
+          })
+          .eq("user_id", user.id);
+        
+        // Navigate back to blueprint
+        navigate("/blueprint");
+        return;
+      } catch (error) {
+        console.error("Error updating profile:", error);
+      }
+    }
+    
+    // Standard signup flow - save to signups table
     if (birthDate && email && moonSignData) {
       try {
         await saveUserSignup(email, birthDate, moonSignData);
@@ -214,12 +244,12 @@ const TransitionQuiz = () => {
               if (currentIndex > 0) {
                 setCurrentIndex(currentIndex - 1);
               } else {
-                navigate("/signup");
+                navigate(isProfileSetup ? "/profile-setup" : "/signup");
               }
             }}
             className="mt-8 font-serif text-sm text-cream-muted/60 hover:text-gold-light transition-colors"
           >
-            ← {currentIndex > 0 ? "Previous question" : "Back to signup"}
+            ← {currentIndex > 0 ? "Previous question" : (isProfileSetup ? "Back to profile setup" : "Back to signup")}
           </button>
         )}
       </main>
