@@ -38,6 +38,60 @@ const Blueprint = () => {
   // Extract name from email
   const userName = user?.email?.split("@")[0] || "Cosmic Traveler";
 
+  // Fetch user profile with birth moon sign
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("moon_sign, birthday")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Error fetching profile:", error);
+        } else {
+          setUserProfile(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  // Update moon data at midnight or on mount
+  useEffect(() => {
+    const updateMoonData = () => {
+      setMoonData(getCurrentMoon());
+    };
+
+    // Calculate time until next midnight
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const msUntilMidnight = tomorrow.getTime() - now.getTime();
+
+    // Update at midnight
+    const midnightTimer = setTimeout(() => {
+      updateMoonData();
+      // Then update every 24 hours
+      const dailyInterval = setInterval(updateMoonData, 24 * 60 * 60 * 1000);
+      return () => clearInterval(dailyInterval);
+    }, msUntilMidnight);
+
+    return () => clearTimeout(midnightTimer);
+  }, []);
+
   // Refresh subscription on success
   useEffect(() => {
     if (success) {
