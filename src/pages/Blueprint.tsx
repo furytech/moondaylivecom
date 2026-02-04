@@ -91,7 +91,7 @@ const Blueprint = () => {
 
       if (error) throw error;
       if (data?.url) {
-        window.location.href = data.url;
+        window.open(data.url, "_blank");
       }
     } catch (err) {
       console.error("Checkout error:", err);
