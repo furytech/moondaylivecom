@@ -7,11 +7,12 @@ import moonLogo from "@/assets/moon-logo-new.png";
 import { getCurrentMoon, CurrentMoonData } from "@/lib/currentMoon";
 import { getDailyRitual, getNextTransitionTime } from "@/lib/dailyRitual";
 import { generateDailyForecast, getSignSymbol } from "@/lib/forecastEngine";
-import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star } from "lucide-react";
+import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PricingModal from "@/components/PricingModal";
+import MoonSignModal from "@/components/MoonSignModal";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserProfile {
@@ -27,6 +28,7 @@ const Blueprint = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
+  const [moonSignModalOpen, setMoonSignModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [moonData, setMoonData] = useState<CurrentMoonData>(getCurrentMoon());
@@ -285,12 +287,19 @@ const Blueprint = () => {
               )}
 
               <div className="border-t border-primary/10 pt-6 mt-4">
-                <p className="font-serif text-lg text-cream-muted text-center leading-relaxed">
-                  {userProfile?.moon_sign 
-                    ? "Your emotional blueprint, set at birth"
-                    : "The moon you were born under shapes your inner world"
-                  }
-                </p>
+                {userProfile?.moon_sign ? (
+                  <button
+                    onClick={() => setMoonSignModalOpen(true)}
+                    className="w-full group flex items-center justify-center gap-2 font-serif text-lg text-cream-muted hover:text-primary transition-colors"
+                  >
+                    <span>Your emotional blueprint, set at birth</span>
+                    <Info className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ) : (
+                  <p className="font-serif text-lg text-cream-muted text-center leading-relaxed">
+                    The moon you were born under shapes your inner world
+                  </p>
+                )}
               </div>
             </GlassmorphismCard>
 
@@ -506,6 +515,12 @@ const Blueprint = () => {
         onOpenChange={setPricingModalOpen}
         onSelectPlan={handleSelectPlan}
         loading={checkoutLoading}
+      />
+
+      <MoonSignModal
+        isOpen={moonSignModalOpen}
+        onClose={() => setMoonSignModalOpen(false)}
+        moonSign={userProfile?.moon_sign || null}
       />
     </div>
   );

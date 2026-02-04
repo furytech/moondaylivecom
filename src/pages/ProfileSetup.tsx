@@ -1,15 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, Sparkles } from "lucide-react";
+import { CalendarIcon, Sparkles, Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import PageLayout from "@/components/PageLayout";
 import { calculateMoonSignAsync, checkTransitionDay } from "@/lib/moonSign";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,8 +28,16 @@ const ProfileSetup = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [birthDate, setBirthDate] = useState<Date>();
+  const [birthHour, setBirthHour] = useState<string>("");
+  const [birthMinute, setBirthMinute] = useState<string>("");
+  const [birthCity, setBirthCity] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Generate hour options (00-23)
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
+  // Generate minute options (00, 15, 30, 45)
+  const minutes = ["00", "15", "30", "45"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,12 +77,17 @@ const ProfileSetup = () => {
       // Calculate moon sign directly using accurate ephemeris
       const moonSign = await calculateMoonSignAsync(birthDate);
 
+      // Build birth time string if provided
+      const birthTime = birthHour && birthMinute ? `${birthHour}:${birthMinute}:00` : null;
+
       // Update user profile in database
       const { error: updateError } = await supabase
         .from("user_profiles")
         .update({
           birthday: format(birthDate, "yyyy-MM-dd"),
           moon_sign: moonSign.sign,
+          birth_time: birthTime,
+          birth_city: birthCity.trim() || null,
           updated_at: new Date().toISOString()
         })
         .eq("user_id", user.id);
@@ -103,14 +124,15 @@ const ProfileSetup = () => {
 
       {/* Subtitle */}
       <p className="font-serif text-base md:text-lg text-cream-muted text-center max-w-md mb-10 leading-relaxed animate-fade-up stagger-2">
-        Enter your birth date to unlock your personalized Daily Forecast and discover how today's moon interacts with your natal moon
+        Enter your birth details to unlock your personalized Daily Forecast and discover how today's moon interacts with your natal moon
       </p>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6 animate-fade-up stagger-3">
         {/* Birthday Picker */}
         <div className="space-y-2">
-          <label className="font-display text-sm tracking-widest uppercase text-gold-light">
+          <label className="font-display text-sm tracking-widest uppercase text-gold-light flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4" />
             Date of Birth
           </label>
           <Popover>
@@ -131,7 +153,7 @@ const ProfileSetup = () => {
               </Button>
             </PopoverTrigger>
             <PopoverContent 
-              className="w-auto p-0 bg-navy-dark border-gold-medium/30" 
+              className="w-auto p-0 bg-navy-dark border-gold-medium/30 z-[100]" 
               align="center"
             >
               <Calendar
@@ -146,6 +168,62 @@ const ProfileSetup = () => {
               />
             </PopoverContent>
           </Popover>
+        </div>
+
+        {/* Birth Time (Optional) */}
+        <div className="space-y-2">
+          <label className="font-display text-sm tracking-widest uppercase text-gold-light flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Time of Birth
+            <span className="text-cream-muted/50 font-serif text-xs normal-case tracking-normal">(optional)</span>
+          </label>
+          <div className="flex gap-3">
+            <Select value={birthHour} onValueChange={setBirthHour}>
+              <SelectTrigger className="flex-1 h-12 bg-navy-dark/50 border-gold-medium/30 hover:bg-navy-medium/50 hover:border-gold-medium/50 font-serif">
+                <SelectValue placeholder="Hour" />
+              </SelectTrigger>
+              <SelectContent className="bg-navy-dark border-gold-medium/30 max-h-[200px] z-[100]">
+                {hours.map((hour) => (
+                  <SelectItem key={hour} value={hour} className="font-serif text-cream hover:bg-gold-medium/20">
+                    {hour}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="flex items-center text-gold-medium text-xl">:</span>
+            <Select value={birthMinute} onValueChange={setBirthMinute}>
+              <SelectTrigger className="flex-1 h-12 bg-navy-dark/50 border-gold-medium/30 hover:bg-navy-medium/50 hover:border-gold-medium/50 font-serif">
+                <SelectValue placeholder="Min" />
+              </SelectTrigger>
+              <SelectContent className="bg-navy-dark border-gold-medium/30 z-[100]">
+                {minutes.map((min) => (
+                  <SelectItem key={min} value={min} className="font-serif text-cream hover:bg-gold-medium/20">
+                    {min}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs text-cream-muted/50 font-serif">
+            If unknown, we'll use noon as the default
+          </p>
+        </div>
+
+        {/* Birth City (Optional) */}
+        <div className="space-y-2">
+          <label className="font-display text-sm tracking-widest uppercase text-gold-light flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
+            Birth City
+            <span className="text-cream-muted/50 font-serif text-xs normal-case tracking-normal">(optional)</span>
+          </label>
+          <Input
+            type="text"
+            value={birthCity}
+            onChange={(e) => setBirthCity(e.target.value)}
+            placeholder="e.g., New York, London"
+            className="h-12 bg-navy-dark/50 border-gold-medium/30 hover:bg-navy-medium/50 hover:border-gold-medium/50 font-serif text-cream placeholder:text-cream-muted/50"
+            maxLength={100}
+          />
         </div>
 
         {error && (
