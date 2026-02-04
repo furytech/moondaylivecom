@@ -287,12 +287,19 @@ const Blueprint = () => {
               )}
 
               <div className="border-t border-primary/10 pt-6 mt-4">
-                <p className="font-serif text-lg text-cream-muted text-center leading-relaxed">
-                  {userProfile?.moon_sign 
-                    ? "Your emotional blueprint, set at birth"
-                    : "The moon you were born under shapes your inner world"
-                  }
-                </p>
+                {userProfile?.moon_sign ? (
+                  <button
+                    onClick={() => setMoonSignModalOpen(true)}
+                    className="w-full group flex items-center justify-center gap-2 font-serif text-lg text-cream-muted hover:text-primary transition-colors"
+                  >
+                    <span>Your emotional blueprint, set at birth</span>
+                    <Info className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ) : (
+                  <p className="font-serif text-lg text-cream-muted text-center leading-relaxed">
+                    The moon you were born under shapes your inner world
+                  </p>
+                )}
               </div>
             </GlassmorphismCard>
 
