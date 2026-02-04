@@ -190,8 +190,8 @@ const Blueprint = () => {
       </div>
       <Navigation />
       
-      {/* Main content */}
-      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-10">
+      {/* Main content - above stars */}
+      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-20">
         <div className="max-w-5xl mx-auto w-full">
           {/* Logo */}
           <div className="flex justify-center mb-6">
