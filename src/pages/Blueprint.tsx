@@ -27,8 +27,10 @@ const Blueprint = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [moonData, setMoonData] = useState<CurrentMoonData>(getCurrentMoon());
   
-  const moonData = getCurrentMoon();
   const dailyRitual = getDailyRitual(moonData.sign);
   const isPro = subscription.subscribed;
   const success = searchParams.get("success") === "true";
