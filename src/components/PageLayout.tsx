@@ -31,8 +31,8 @@ const PageLayout = ({
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Decorative stars background - stable positions */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Decorative stars background - lowest z-index */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {stars.map((star) => (
           <div
             key={star.id}
