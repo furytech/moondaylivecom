@@ -22,7 +22,7 @@ const PLANS = [
   },
   {
     id: "monthly",
-    priceId: "price_1Sv1zyBzaednmccFe8sl5ad9",
+    priceId: "price_1Sv1zyBzaednmcCFe8sl5ad9",
     name: "Monthly",
     price: "$2.88",
     period: "/month",
