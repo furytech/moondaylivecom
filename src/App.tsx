@@ -44,6 +44,11 @@ const App = () => (
                 <Blueprint />
               </ProtectedRoute>
             } />
+            <Route path="/profile-setup" element={
+              <ProtectedRoute>
+                <ProfileSetup />
+              </ProtectedRoute>
+            } />
             <Route path="/archives" element={
               <ProtectedRoute>
                 <Archives />
