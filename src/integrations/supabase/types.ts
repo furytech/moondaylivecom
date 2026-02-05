@@ -71,6 +71,48 @@ export type Database = {
         }
         Relationships: []
       }
+      moon_sign_library: {
+        Row: {
+          created_at: string
+          element: string
+          elemental_affinity: Json
+          essence: Json
+          id: string
+          ritual: Json
+          ruling_planet: string
+          shadow: Json
+          sign_name: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          element: string
+          elemental_affinity?: Json
+          essence?: Json
+          id?: string
+          ritual?: Json
+          ruling_planet: string
+          shadow?: Json
+          sign_name: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          element?: string
+          elemental_affinity?: Json
+          essence?: Json
+          id?: string
+          ritual?: Json
+          ruling_planet?: string
+          shadow?: Json
+          sign_name?: string
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       signups: {
         Row: {
           birth_date: string
