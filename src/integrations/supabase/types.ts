@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_forecasts: {
+        Row: {
+          birth_moon_sign: string
+          created_at: string
+          current_moon_sign: string
+          energy: string
+          forecast_text: string
+          headline: string
+          id: string
+          lucky_focus: string
+          updated_at: string
+        }
+        Insert: {
+          birth_moon_sign: string
+          created_at?: string
+          current_moon_sign: string
+          energy: string
+          forecast_text: string
+          headline: string
+          id?: string
+          lucky_focus: string
+          updated_at?: string
+        }
+        Update: {
+          birth_moon_sign?: string
+          created_at?: string
+          current_moon_sign?: string
+          energy?: string
+          forecast_text?: string
+          headline?: string
+          id?: string
+          lucky_focus?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      moon_phase_texts: {
+        Row: {
+          created_at: string
+          id: string
+          modifier_text: string
+          phase_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          modifier_text: string
+          phase_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          modifier_text?: string
+          phase_name?: string
+        }
+        Relationships: []
+      }
       signups: {
         Row: {
           birth_date: string
