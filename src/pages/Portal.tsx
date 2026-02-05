@@ -25,7 +25,7 @@ const Portal = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading) {
-      navigate("/pricing");
+      navigate("/blueprint", { replace: true });
     }
   }, [user, authLoading, navigate]);
 
