@@ -111,14 +111,14 @@ const Portal = () => {
                 <span className="text-3xl">✨</span>
               </div>
               <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-4">
-                Check Your Email
+                Verify Your Email
               </h1>
-              <p className="font-serif text-lg text-cream-muted/80 mb-4">
-                We've sent a confirmation link to
+              <p className="font-serif text-lg text-cream-muted/80 mb-6 leading-relaxed">
+                A celestial confirmation link has been sent to your inbox. Please verify your email to unlock your moon sign.
               </p>
-              <p className="font-serif text-lg text-primary mb-6">{email}</p>
-              <p className="font-serif text-base text-cream-muted/60">
-                Click the link to activate your account, then return to begin your lunar journey.
+              <p className="font-serif text-base text-primary mb-6">{email}</p>
+              <p className="font-serif text-sm text-cream-muted/50">
+                Check your spam folder if you don't see it within a few minutes.
               </p>
 
               <button
