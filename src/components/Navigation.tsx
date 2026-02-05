@@ -65,14 +65,14 @@ const Navigation = () => {
                 onClick={handleSignOut}
                 className="font-display text-sm tracking-widest uppercase text-foreground/70 elegant-hover"
               >
-                Sign Out
+                Logout
               </button>
             ) : (
               <Link
                 to="/portal"
                 className="font-display text-sm tracking-widest uppercase px-5 py-2 art-deco-border brass-glow text-primary"
               >
-                Portal
+                Login
               </Link>
             )}
           </div>
@@ -110,7 +110,7 @@ const Navigation = () => {
                   onClick={handleSignOut}
                   className="font-display text-sm tracking-widest uppercase text-foreground/70 py-2 text-left"
                 >
-                  Sign Out
+                  Logout
                 </button>
               ) : (
                 <Link
@@ -118,7 +118,7 @@ const Navigation = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="font-display text-sm tracking-widest uppercase text-primary py-2"
                 >
-                  Portal
+                  Login
                 </Link>
               )}
             </div>

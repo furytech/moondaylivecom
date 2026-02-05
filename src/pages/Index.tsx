@@ -65,7 +65,7 @@ const Index = () => {
             onClick={() => navigate("/portal")}
             className="font-display text-xs md:text-sm tracking-[0.25em] uppercase text-primary/60 hover:text-primary transition-colors duration-500"
           >
-            Enter Portal
+            Login
           </button>
         </nav>
       </header>
@@ -160,7 +160,7 @@ const Index = () => {
               onClick={() => navigate("/signup")}
               className="group px-8 md:px-10 py-2.5 md:py-3 font-display text-xs md:text-sm tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500"
             >
-              Begin Your Journey
+              Sign Up
             </button>
           </div>
 
