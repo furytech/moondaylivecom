@@ -6,21 +6,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import Signup from "./pages/Signup";
-import TransitionQuiz from "./pages/TransitionQuiz";
-import Results from "./pages/Results";
-import DevTest from "./pages/DevTest";
 import Portal from "./pages/Portal";
 import Pricing from "./pages/Pricing";
 import Blueprint from "./pages/Blueprint";
-import ProfileSetup from "./pages/ProfileSetup";
-import Archives from "./pages/Archives";
-import Atelier from "./pages/Atelier";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
-import About from "./pages/About";
-import Philosophy from "./pages/Philosophy";
-import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,9 +24,6 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/quiz" element={<TransitionQuiz />} />
-            <Route path="/results" element={<Results />} />
             <Route path="/portal" element={<Portal />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/blueprint" element={
@@ -44,27 +31,8 @@ const App = () => (
                 <Blueprint />
               </ProtectedRoute>
             } />
-            <Route path="/profile-setup" element={
-              <ProtectedRoute>
-                <ProfileSetup />
-              </ProtectedRoute>
-            } />
-            <Route path="/archives" element={
-              <ProtectedRoute>
-                <Archives />
-              </ProtectedRoute>
-            } />
-            <Route path="/atelier" element={
-              <ProtectedRoute>
-                <Atelier />
-              </ProtectedRoute>
-            } />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/philosophy" element={<Philosophy />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/dev" element={<DevTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
