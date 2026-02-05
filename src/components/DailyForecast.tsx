@@ -84,10 +84,15 @@ const DailyForecast = ({ birthMoonSign, currentMoon, isPro, onUpgradeClick }: Da
             </h3>
           </div>
 
-          {/* Forecast Body */}
+          {/* Forecast Body with Phase Modifier */}
           <div className="mb-8">
             <p className="font-serif text-lg text-cream-muted leading-relaxed text-center max-w-3xl mx-auto">
               {forecast.forecast}
+              {forecast.phaseModifier && (
+                <span className="block mt-4 text-primary/80 italic">
+                  {forecast.phaseModifier}
+                </span>
+              )}
             </p>
           </div>
 
