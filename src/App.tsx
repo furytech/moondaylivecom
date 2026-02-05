@@ -32,6 +32,7 @@ const App = () => (
                 <Blueprint />
               </ProtectedRoute>
             } />
+            <Route path="/library" element={<Library />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
