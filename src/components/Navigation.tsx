@@ -21,9 +21,11 @@ const Navigation = () => {
   const navLinks = user
     ? [
         { path: "/blueprint", label: "Blueprint" },
+        { path: "/library", label: "Library" },
         { path: "/pricing", label: "Pricing" },
       ]
     : [
+        { path: "/library", label: "Library" },
         { path: "/pricing", label: "Pricing" },
       ];
 
