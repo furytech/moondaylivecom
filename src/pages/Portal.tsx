@@ -53,7 +53,7 @@ const Portal = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
-        navigate("/pricing");
+        navigate("/blueprint", { replace: true });
       } else {
         await signUp(email, password);
         setSignupSuccess(true);
