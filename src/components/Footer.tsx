@@ -15,39 +15,8 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-8">
-          <Link 
-            to="/about" 
-            className="font-display text-sm uppercase tracking-widest text-muted-foreground elegant-hover"
-          >
-            About
-          </Link>
-          <span className="hidden sm:block text-primary/20">•</span>
-          <Link 
-            to="/contact" 
-            className="font-display text-sm uppercase tracking-widest text-muted-foreground elegant-hover"
-          >
-            Contact
-          </Link>
-          <span className="hidden sm:block text-primary/20">•</span>
-          <Link 
-            to="/privacy" 
-            className="font-display text-sm uppercase tracking-widest text-muted-foreground elegant-hover"
-          >
-            Privacy
-          </Link>
-          <span className="hidden sm:block text-primary/20">•</span>
-          <Link 
-            to="/terms" 
-            className="font-display text-sm uppercase tracking-widest text-muted-foreground elegant-hover"
-          >
-            Terms
-          </Link>
-        </nav>
-
         {/* Brand & Copyright */}
-        <div className="text-center">
+        <div className="text-center mb-6">
           <p className="font-display text-sm text-primary/60 tracking-[0.2em] uppercase mb-2">
             Moonday
           </p>
@@ -55,6 +24,23 @@ const Footer = () => {
             © {currentYear} Moonday Portal. All rights reserved.
           </p>
         </div>
+
+        {/* Legal Links */}
+        <nav className="flex items-center justify-center gap-6">
+          <Link 
+            to="/privacy" 
+            className="font-serif text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          >
+            Privacy Policy
+          </Link>
+          <span className="text-muted-foreground/30">•</span>
+          <Link 
+            to="/terms" 
+            className="font-serif text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          >
+            Terms of Service
+          </Link>
+        </nav>
       </div>
     </footer>
   );
