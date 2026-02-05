@@ -216,7 +216,7 @@ const Pricing = () => {
             {loading ? (
               <MoonLoader size="sm" />
             ) : (
-              "Start Your Journey"
+              "Get Pro"
             )}
           </button>
 
