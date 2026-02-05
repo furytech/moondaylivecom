@@ -65,7 +65,7 @@ const Index = () => {
             onClick={() => navigate("/portal")}
             className="font-display text-xs md:text-sm tracking-[0.25em] uppercase text-primary/60 hover:text-primary transition-colors duration-500"
           >
-            Enter Portal
+            Login
           </button>
         </nav>
       </header>
