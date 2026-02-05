@@ -25,7 +25,7 @@ const Portal = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading) {
-      navigate("/pricing");
+      navigate("/blueprint", { replace: true });
     }
   }, [user, authLoading, navigate]);
 
@@ -53,7 +53,7 @@ const Portal = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
-        navigate("/pricing");
+        navigate("/blueprint", { replace: true });
       } else {
         await signUp(email, password);
         setSignupSuccess(true);
