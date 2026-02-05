@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Portal from "./pages/Portal";
 import Pricing from "./pages/Pricing";
 import Blueprint from "./pages/Blueprint";
+import Library from "./pages/Library";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
