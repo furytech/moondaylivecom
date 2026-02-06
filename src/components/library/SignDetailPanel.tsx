@@ -30,18 +30,18 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
         <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-primary/50" />
         <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-primary/50" />
 
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 text-muted-foreground hover:text-primary transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
         <ScrollArea className="h-[90vh]">
-          <div className="p-6 md:p-10 pt-12 flex flex-col gap-6">
+          <div className="p-6 md:p-10 flex flex-col gap-6 relative">
+            {/* Close button - inside scroll area, top right of content */}
+            <button
+              onClick={onClose}
+              className="absolute top-0 right-0 z-10 p-2 text-muted-foreground hover:text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
             {/* Header - isolated block */}
-            <header className="text-center flex flex-col items-center gap-4">
+            <header className="text-center flex flex-col items-center gap-4 pt-6">
               <span className="text-5xl md:text-7xl text-primary/80 font-display">
                 {content.symbol}
               </span>
