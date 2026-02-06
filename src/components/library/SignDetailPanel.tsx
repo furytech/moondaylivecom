@@ -39,33 +39,33 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
         </button>
 
         <ScrollArea className="h-[90vh]">
-          <div className="p-6 md:p-10 flex flex-col">
-            {/* Header */}
-            <div className="text-center mb-5">
-              <span className="text-5xl md:text-7xl text-primary/80 font-display block mb-5">
+          <div className="p-6 md:p-10 pt-12 flex flex-col gap-6">
+            {/* Header - isolated block */}
+            <header className="text-center flex flex-col items-center gap-4">
+              <span className="text-5xl md:text-7xl text-primary/80 font-display">
                 {content.symbol}
               </span>
-              <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-[0.15em] uppercase mb-5">
+              <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-[0.15em] uppercase">
                 {content.sign}
               </h2>
-              <div className="flex items-center justify-center gap-4 text-muted-foreground mb-5">
+              <div className="flex items-center justify-center gap-4 text-muted-foreground">
                 <span className="font-serif tracking-widest uppercase text-sm">{content.element}</span>
                 <span className="w-1 h-1 rounded-full bg-primary/50" />
                 <span className="font-serif tracking-widest uppercase text-sm">Ruled by {content.ruling}</span>
               </div>
               
               {/* Art Deco divider */}
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-2 mt-2">
                 <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent to-primary/50" />
                 <div className="w-2 h-2 rotate-45 border border-primary/50" />
                 <div className="w-16 md:w-24 h-px bg-gradient-to-l from-transparent to-primary/50" />
               </div>
-            </div>
+            </header>
 
-            {/* Tabbed Content */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col">
-              {/* Tabs - Vertical stack on mobile, horizontal on desktop */}
-              <TabsList className="w-full flex flex-col md:flex-row md:flex-wrap justify-center items-center gap-3 bg-transparent mb-5 px-4">
+            {/* Tabbed Content - separate block */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">
+              {/* Tabs navigation - stacked on mobile */}
+              <TabsList className="w-full h-auto flex flex-col md:flex-row md:flex-wrap justify-center items-stretch md:items-center gap-3 bg-transparent p-0">
                 {[
                   { value: "essence", label: "The Essence" },
                   { value: "shadow", label: "The Shadow" },
@@ -76,11 +76,11 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
                     key={tab.value}
                     value={tab.value}
                     className={cn(
-                      "w-full md:w-auto px-6 py-3 font-display text-xs md:text-sm tracking-[0.15em] uppercase",
-                      "border border-primary/20 bg-transparent",
+                      "w-full md:w-auto px-6 py-4 font-display text-xs md:text-sm tracking-[0.15em] uppercase",
+                      "border border-primary/20 bg-background/50",
                       "data-[state=active]:bg-primary/10 data-[state=active]:border-primary/50 data-[state=active]:text-primary",
                       "hover:border-primary/40 transition-all duration-300",
-                      "min-h-[44px]" // Mobile tap target
+                      "min-h-[48px]"
                     )}
                   >
                     {tab.label}
