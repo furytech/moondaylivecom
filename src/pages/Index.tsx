@@ -99,8 +99,8 @@ const Index = () => {
               </div>
 
               {/* Hero Text - Balanced Typography */}
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-gold-gradient tracking-[0.06em] mb-4 md:mb-5">
-                Moon in {moonData.sign}
+              <h1 className="font-display text-2xl md:text-3xl lg:text-4xl text-gold-gradient tracking-[0.06em] mb-4 md:mb-5">
+                A Moon Sign Navigator for the Changing World.
               </h1>
 
               {/* Element & Phase - Refined spacing */}
@@ -118,9 +118,9 @@ const Index = () => {
                 </span>
               </div>
 
-              {/* Moon Message - Refined */}
-              <p className="font-serif text-base md:text-lg text-cream-muted/70 max-w-md mx-auto leading-relaxed">
-                {moonMessage}
+              {/* Sub-headline - Mission Statement */}
+              <p className="font-serif text-base md:text-lg text-cream-muted/70 max-w-lg mx-auto leading-relaxed">
+                Knowing your moon sign is a way to better understand your own emotional portrait. Our goal is to let you know how you might feel on any given day as the moon changes signs every 2.5 days.
               </p>
             </div>
           </GlassmorphismCard>
@@ -148,11 +148,15 @@ const Index = () => {
             </div>
             
             <h3 className="font-display text-xl md:text-2xl text-gold-gradient tracking-[0.05em] mb-3">
-              Your Ritual Awaits
+              The Sovereign Tier
             </h3>
             
-            <p className="font-serif text-sm md:text-base text-cream-muted/50 mb-5 leading-relaxed">
-              Personalized lunar guidance, crystal wisdom, and sacred practices
+            <p className="font-serif text-sm md:text-base text-cream-muted/50 mb-4 leading-relaxed max-w-sm mx-auto">
+              We provide an emotional heads-up for the day ahead. Understand the current lunar frequency so you can stabilize your own energy first—because the best way to help the world is to help yourself by knowing yourself.
+            </p>
+
+            <p className="font-serif text-xs md:text-sm text-cream-muted/40 mb-5 leading-relaxed max-w-sm mx-auto">
+              Access the full Lunar Library and proprietary rituals for $2.88/month. High-level spiritual tools, consciously priced to support your personal growth without the premium barrier.
             </p>
             
             {/* Premium CTA Button - Refined */}
