@@ -9,12 +9,16 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { useToast } from "@/hooks/use-toast";
 import moonLogo from "@/assets/moon-logo-new.png";
 
-const Portal = () => {
+interface PortalProps {
+  defaultMode?: "login" | "signup";
+}
+
+const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(defaultMode === "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
