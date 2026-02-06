@@ -26,6 +26,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/portal" element={<Portal />} />
+            <Route path="/signup" element={<Portal defaultMode="signup" />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/blueprint" element={
               <ProtectedRoute>
