@@ -205,12 +205,12 @@ export function ZodiacPortal({ content, onClick, index }: ZodiacPortalProps) {
         </h3>
 
         {/* Element */}
-        <p className="font-serif text-xs md:text-sm text-muted-foreground tracking-widest uppercase mt-2">
+        <p className="font-serif text-xs md:text-sm text-muted-foreground tracking-widest uppercase mt-2 mb-6 md:mb-4">
           {content.element}
         </p>
 
-        {/* Subtle glyph */}
-        <span className="absolute bottom-4 text-2xl text-primary/20 group-hover:text-primary/40 transition-colors duration-300 font-display">
+        {/* Subtle glyph - positioned further down on mobile */}
+        <span className="absolute bottom-3 md:bottom-4 text-xl md:text-2xl text-primary/20 group-hover:text-primary/40 transition-colors duration-300 font-display">
           {content.symbol}
         </span>
       </div>
