@@ -67,9 +67,9 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
       if (error.message?.includes("User already registered")) {
         setError("This email is already registered. Please sign in.");
       } else if (error.message?.includes("Invalid login credentials")) {
-        setError("Invalid email or password");
+        setError("Invalid email or password. If you recently signed up, please verify your email first.");
       } else if (error.message?.includes("Email not confirmed")) {
-        setError("Please check your email to confirm your account");
+        setError("Please check your email to confirm your account before signing in.");
       } else {
         setError(error.message || "Something went wrong. Please try again.");
       }
