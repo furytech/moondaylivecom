@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import moonLogo from "@/assets/moon-logo-new.png";
-import { getCurrentMoon, CurrentMoonData } from "@/lib/currentMoon";
-import { getDailyRitual, getNextTransitionTime } from "@/lib/dailyRitual";
+import { getLunarIntelligence, getTimeUntilNextSign } from "@/lib/lunarEngine";
 import { getSignSymbol } from "@/lib/forecastEngine";
 import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -15,6 +14,9 @@ import PricingModal from "@/components/PricingModal";
 import MoonSignModal from "@/components/MoonSignModal";
 import MoonSignLookup from "@/components/MoonSignLookup";
 import DailyForecast from "@/components/DailyForecast";
+import GreatCycleSection from "@/components/GreatCycleSection";
+import LunarSignatureSection from "@/components/LunarSignatureSection";
+import VoidIntervalSection from "@/components/VoidIntervalSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MoonSignResult } from "@/lib/moonSign";
 
@@ -34,12 +36,13 @@ const Blueprint = () => {
   const [moonSignModalOpen, setMoonSignModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [moonData, setMoonData] = useState<CurrentMoonData>(getCurrentMoon());
+  
+  // Unified lunar intelligence
+  const [lunar, setLunar] = useState(() => getLunarIntelligence());
   
   // Temporary moon sign for users who use the lookup form but don't have a saved profile
   const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
   
-  const dailyRitual = getDailyRitual(moonData.sign);
   const isPro = subscription.subscribed;
   const success = searchParams.get("success") === "true";
 
@@ -79,28 +82,22 @@ const Blueprint = () => {
     fetchUserProfile();
   }, [user]);
 
-  // Update moon data at midnight or on mount
+  // Update lunar data periodically
   useEffect(() => {
-    const updateMoonData = () => {
-      setMoonData(getCurrentMoon());
+    const update = () => setLunar(getLunarIntelligence());
+    const interval = setInterval(update, 60000); // every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update transition timer
+  useEffect(() => {
+    const updateTimer = () => {
+      const { hours, minutes } = getTimeUntilNextSign();
+      setTimeUntilTransition(`${hours}h ${minutes}m`);
     };
-
-    // Calculate time until next midnight
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    const msUntilMidnight = tomorrow.getTime() - now.getTime();
-
-    // Update at midnight
-    const midnightTimer = setTimeout(() => {
-      updateMoonData();
-      // Then update every 24 hours
-      const dailyInterval = setInterval(updateMoonData, 24 * 60 * 60 * 1000);
-      return () => clearInterval(dailyInterval);
-    }, msUntilMidnight);
-
-    return () => clearTimeout(midnightTimer);
+    updateTimer();
+    const interval = setInterval(updateTimer, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   // Refresh subscription on success
@@ -109,24 +106,6 @@ const Blueprint = () => {
       checkSubscription();
     }
   }, [success, checkSubscription]);
-
-  // Calculate time until next moon transition
-  useEffect(() => {
-    const updateTimer = () => {
-      const nextTransition = getNextTransitionTime();
-      const now = new Date();
-      const diff = nextTransition.getTime() - now.getTime();
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      setTimeUntilTransition(`${hours}h ${minutes}m`);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleManageSubscription = async () => {
     if (!session) return;
@@ -183,10 +162,8 @@ const Blueprint = () => {
   };
 
   const handleMoonSignCalculated = async (result: MoonSignResult & { birthDate: Date; birthTime?: string; birthCity?: string }) => {
-    // For all users, show the moon sign immediately
     setTempMoonSign(result.sign);
 
-    // For Pro users with full data, also save to profile
     if (isPro && result.birthTime && result.birthCity && user) {
       try {
         const { error } = await supabase
@@ -202,7 +179,6 @@ const Blueprint = () => {
         if (error) {
           console.error("Error saving profile:", error);
         } else {
-          // Refresh the profile
           setUserProfile({
             moon_sign: result.sign,
             birthday: result.birthDate.toISOString().split('T')[0],
@@ -214,9 +190,19 @@ const Blueprint = () => {
     }
   };
 
+  // Map lunar engine data to CurrentMoonData format for DailyForecast compatibility
+  const moonDataCompat = {
+    sign: lunar.sign.name,
+    symbol: lunar.sign.symbol,
+    element: lunar.sign.element,
+    phase: lunar.phase.name,
+    illumination: lunar.phase.illumination,
+    phaseEmoji: lunar.phase.emoji as string,
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Decorative stars background - lowest z-index */}
+      {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(20)].map((_, i) => (
           <div
@@ -233,7 +219,6 @@ const Blueprint = () => {
       </div>
       <Navigation />
       
-      {/* Main content - above stars */}
       <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-20">
         <div className="max-w-5xl mx-auto w-full">
           {/* Logo */}
@@ -283,9 +268,9 @@ const Blueprint = () => {
             </p>
           </div>
 
-          {/* Dashboard Grid */}
+          {/* Dashboard Grid - Birth Moon & Today's Moon */}
           <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
-            {/* Birth Moon Sign - Left Card */}
+            {/* Birth Moon Sign */}
             <GlassmorphismCard className="animate-fade-up stagger-1">
               <div className="flex items-center justify-center gap-2 mb-6">
                 <Moon className="w-5 h-5 text-primary" />
@@ -313,7 +298,6 @@ const Blueprint = () => {
                   </p>
                 </div>
               ) : (
-                /* Moon Sign Lookup Form */
                 <div className="py-4">
                   <p className="font-serif text-base text-cream-muted text-center mb-6">
                     Enter your birth details to discover your moon sign
@@ -339,7 +323,7 @@ const Blueprint = () => {
               )}
             </GlassmorphismCard>
 
-            {/* Current Moon Sign - Right Card */}
+            {/* Today's Moon */}
             <GlassmorphismCard className="animate-fade-up stagger-2">
               <div className="flex items-center justify-center gap-2 mb-6">
                 <Star className="w-5 h-5 text-primary" />
@@ -349,12 +333,12 @@ const Blueprint = () => {
               </div>
               
               <div className="flex flex-col items-center py-8">
-                <span className="text-6xl text-primary font-display mb-6">{moonData.symbol}</span>
+                <span className="text-6xl text-primary font-display mb-6">{lunar.sign.symbol}</span>
                 <p className="font-display text-3xl text-primary mb-3">
-                  {moonData.sign}
+                  {lunar.sign.name}
                 </p>
                 <p className="font-serif text-lg text-muted-foreground">
-                  {moonData.phase} • {moonData.illumination}%
+                  {lunar.phase.name} • {lunar.phase.illumination}%
                 </p>
               </div>
 
@@ -369,110 +353,41 @@ const Blueprint = () => {
             </GlassmorphismCard>
           </div>
 
-          {/* Daily Forecast Section - Show for everyone who has a moon sign */}
+          {/* Daily Forecast */}
           {displayedMoonSign && (
             <div className="mt-12 animate-fade-up stagger-3">
               <DailyForecast
                 birthMoonSign={displayedMoonSign}
-                currentMoon={moonData}
+                currentMoon={moonDataCompat}
                 isPro={isPro}
                 onUpgradeClick={handleOpenPricing}
               />
             </div>
           )}
 
-          {/* Daily Ritual Section - Premium Content */}
-          <div className="mt-12 relative animate-fade-up stagger-3">
-            {isPro ? (
-              /* UNLOCKED - Full Daily Ritual */
-              <GlassmorphismCard size="lg" className="shadow-glow">
-                <div className="flex items-center justify-center gap-3 mb-10">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                  <h2 className="font-display text-2xl tracking-widest text-foreground uppercase">
-                    {dailyRitual.title}
-                  </h2>
-                  <Sparkles className="w-6 h-6 text-primary" />
-                </div>
+          {/* === LUNAR INTELLIGENCE SECTIONS === */}
 
-                {/* Affirmation - Large Serif */}
-                <div className="mb-12 text-center">
-                  <p className="font-display text-sm text-primary/60 uppercase tracking-widest mb-4">
-                    Today's Affirmation
-                  </p>
-                  <blockquote className="sanctuary-text text-gold-gradient italic leading-relaxed">
-                    "{dailyRitual.affirmation}"
-                  </blockquote>
-                </div>
+          {/* 1. The Great Cycle (Phases) - Visible to ALL */}
+          <div className="mt-12">
+            <GreatCycleSection lunar={lunar} />
+          </div>
 
-                {/* Practice - Large Serif */}
-                <div className="mb-12">
-                  <p className="font-display text-sm text-primary/60 uppercase tracking-widest mb-4 text-center">
-                    Sacred Practice
-                  </p>
-                  <p className="sanctuary-text text-cream-muted leading-relaxed text-center max-w-3xl mx-auto">
-                    {dailyRitual.practice}
-                  </p>
-                </div>
+          {/* 2. The Lunar Signature (Signs) - GATED */}
+          <div className="mt-12">
+            <LunarSignatureSection
+              lunar={lunar}
+              isPro={isPro}
+              onUpgradeClick={handleOpenPricing}
+            />
+          </div>
 
-                {/* Details Grid */}
-                <div className="grid md:grid-cols-3 gap-8 pt-8 border-t border-primary/10">
-                  <div className="text-center">
-                    <p className="font-display text-sm text-primary/60 uppercase tracking-widest mb-3">
-                      Element
-                    </p>
-                    <p className="font-display text-2xl text-primary">{dailyRitual.element}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="font-display text-sm text-primary/60 uppercase tracking-widest mb-3">
-                      Crystals
-                    </p>
-                    <p className="font-serif text-lg text-cream-muted">
-                      {dailyRitual.crystals.join(", ")}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="font-display text-sm text-primary/60 uppercase tracking-widest mb-3">
-                      Best Timing
-                    </p>
-                    <p className="font-serif text-lg text-cream-muted">{dailyRitual.timing}</p>
-                  </div>
-                </div>
-              </GlassmorphismCard>
-            ) : (
-              /* LOCKED - Upgrade Prompt */
-              <div className="relative">
-                <GlassmorphismCard className="absolute inset-0 z-10 flex flex-col items-center justify-center">
-                  <div className="w-20 h-20 rounded-full glass-card flex items-center justify-center mb-8 shadow-glow">
-                    <Lock className="w-10 h-10 text-primary" />
-                  </div>
-                  <h3 className="font-display text-3xl text-gold-gradient mb-4">
-                    Unlock Daily Rituals
-                  </h3>
-                  <p className="font-serif text-xl text-cream-muted mb-10 text-center max-w-md">
-                    Get personalized lunar rituals, crystal guidance, and sacred practices with Pro
-                  </p>
-                  <button
-                    onClick={handleOpenPricing}
-                    className="inline-flex items-center gap-3 px-10 py-4 font-display text-base tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    Upgrade to Pro
-                  </button>
-                </GlassmorphismCard>
-
-                {/* Blurred background */}
-                <div className="glass-card p-12 md:p-16 opacity-30 blur-md pointer-events-none rounded-2xl">
-                  <h2 className="font-display text-xl tracking-wider text-foreground mb-6 text-center">
-                    Today's Ritual: The {moonData.sign} Awakening
-                  </h2>
-                  <div className="space-y-4">
-                    <p className="font-serif text-cream-muted">✨ Morning Affirmation...</p>
-                    <p className="font-serif text-cream-muted">🌙 Sacred Practice...</p>
-                    <p className="font-serif text-cream-muted">💎 Crystal Companion...</p>
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* 3. The Void Interval (VoC) - GATED */}
+          <div className="mt-12">
+            <VoidIntervalSection
+              lunar={lunar}
+              isPro={isPro}
+              onUpgradeClick={handleOpenPricing}
+            />
           </div>
 
           {/* Manage Subscription (Pro only) */}
