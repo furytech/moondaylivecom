@@ -55,7 +55,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
         {/* Blurred background */}
         <GlassmorphismCard size="lg" className="opacity-30 blur-md pointer-events-none">
           <div className="text-center mb-8">
-            <p className="font-display text-sm uppercase tracking-[0.2em] mb-3">The Void Interval</p>
+            <p className="font-display text-sm uppercase tracking-[0.2em] mb-3">Between Phases</p>
             <h2 className="font-display text-2xl">Status: Connected</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -75,7 +75,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
     <GlassmorphismCard size="lg" className="animate-fade-up stagger-4 shadow-glow">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
-          The Void Interval
+          Between Phases
         </p>
         <div className="flex items-center justify-center gap-3 mb-2">
           <StatusIcon className={`w-6 h-6 ${statusColor}`} />
