@@ -8,9 +8,9 @@ interface GreatCycleSectionProps {
 }
 
 const PILLAR_ICONS = [
-  { icon: Brain, label: "The Mind", key: "psychological" as const },
-  { icon: Sparkles, label: "The Essence", key: "spiritual" as const },
-  { icon: Globe, label: "The World", key: "material" as const },
+  { icon: Brain, label: "Mind", key: "psychological" as const },
+  { icon: Sparkles, label: "Soul", key: "spiritual" as const },
+  { icon: Globe, label: "Body", key: "material" as const },
 ];
 
 const GreatCycleSection = ({ lunar }: GreatCycleSectionProps) => {
