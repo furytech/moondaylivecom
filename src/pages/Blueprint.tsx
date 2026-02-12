@@ -381,11 +381,11 @@ const Blueprint = () => {
             />
           </div>
 
-          {/* 3. The Void Interval (VoC) - GATED */}
+          {/* 3. The Void Interval (VoC) - FREE for all users */}
           <div className="mt-12">
             <VoidIntervalSection
               lunar={lunar}
-              isPro={isPro}
+              isPro={true}
               onUpgradeClick={handleOpenPricing}
             />
           </div>

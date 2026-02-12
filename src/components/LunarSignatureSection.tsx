@@ -27,7 +27,7 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
             <Lock className="w-8 h-8 text-primary" />
           </div>
           <h3 className="font-display text-xl md:text-2xl text-gold-gradient mb-3 text-center px-6">
-            Unlock the Integration Triad
+            Sovereign Tier
           </h3>
           <p className="font-serif text-base text-cream-muted text-center max-w-md mb-6 px-6">
             Align your Psychological, Spiritual, and Material worlds with the Moon's frequency.
@@ -37,7 +37,7 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
             className="inline-flex items-center gap-3 px-8 py-3 font-display text-sm tracking-widest uppercase glass-card shadow-glow hover:shadow-gold text-primary transition-all duration-500 rounded-xl"
           >
             <Sparkles className="w-4 h-4" />
-            Enter the Inner Circle
+            Unlock Sovereign Insights
           </button>
         </div>
 
