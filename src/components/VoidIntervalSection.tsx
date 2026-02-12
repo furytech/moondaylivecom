@@ -2,6 +2,7 @@ import { Brain, Sparkles, Globe, Lock, Zap, Pause } from "lucide-react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { VOC_CONNECTED, VOC_UNPLUGGED } from "@/lib/innerCircleDictionary";
 import type { LunarIntelligence } from "@/lib/lunarEngine";
+import { getVocTimingWindow } from "@/lib/lunarEngine";
 
 interface VoidIntervalSectionProps {
   lunar: LunarIntelligence;
@@ -10,9 +11,9 @@ interface VoidIntervalSectionProps {
 }
 
 const PILLAR_ICONS = [
-  { icon: Brain, label: "The Mind", key: "psychological" as const },
-  { icon: Sparkles, label: "The Essence", key: "spiritual" as const },
-  { icon: Globe, label: "The World", key: "material" as const },
+  { icon: Brain, label: "Mind", key: "psychological" as const },
+  { icon: Sparkles, label: "Soul", key: "spiritual" as const },
+  { icon: Globe, label: "Body", key: "material" as const },
 ];
 
 const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSectionProps) => {
@@ -21,6 +22,12 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
   const StatusIcon = isVoid ? Pause : Zap;
   const statusLabel = isVoid ? "Unplugged" : "Connected";
   const statusColor = isVoid ? "text-muted-foreground" : "text-primary";
+  const vocTiming = getVocTimingWindow();
+
+  const formatTime = (d: Date) =>
+    d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  const formatDate = (d: Date) =>
+    d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   if (!isPro) {
     return (
@@ -80,6 +87,26 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
           {isVoid
             ? "The Moon is between signs. Routine tasks only."
             : "The Moon's signal is clear. Act with confidence."}
+        </p>
+      </div>
+
+      {/* Phase Timing Window */}
+      <div className="glass-card rounded-xl p-6 mb-10 text-center">
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-1">Start Time</p>
+            <p className="font-display text-lg text-primary">{formatTime(vocTiming.startTime)}</p>
+          </div>
+          <div>
+            <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-1">End Time</p>
+            <p className="font-display text-lg text-primary">{formatTime(vocTiming.endTime)}</p>
+          </div>
+        </div>
+        <p className="font-serif text-base text-cream-muted mb-3">
+          This period peaks at <span className="text-primary font-display">{formatTime(vocTiming.peakTime)}</span> on <span className="text-primary font-display">{formatDate(vocTiming.peakTime)}</span>.
+        </p>
+        <p className="font-serif text-sm text-muted-foreground italic">
+          Note: These transitions are gradual rather than black and white; you may feel the shift slightly before or after these times.
         </p>
       </div>
 

@@ -104,3 +104,31 @@ export function getTimeUntilNextSign(date: Date = new Date()): { hours: number; 
     minutes: totalMinutes % 60,
   };
 }
+
+/**
+ * Get the VoC (Between Phases) timing window.
+ * Returns start time, end time (next sign entry), and peak time.
+ */
+export function getVocTimingWindow(date: Date = new Date()): {
+  startTime: Date;
+  endTime: Date;
+  peakTime: Date;
+} {
+  const diffMs = date.getTime() - REFERENCE_DATE.getTime();
+  const daysSinceRef = diffMs / (1000 * 60 * 60 * 24);
+  const positionInSign = daysSinceRef % MOON_SIGN_DAYS;
+  const vocThreshold = MOON_SIGN_DAYS - 0.125; // ~3 hours before sign change
+
+  // End time = when the Moon enters the next sign
+  const daysUntilEnd = MOON_SIGN_DAYS - positionInSign;
+  const endTime = new Date(date.getTime() + daysUntilEnd * 24 * 60 * 60 * 1000);
+
+  // Start time = vocThreshold into the current sign period
+  const daysUntilStart = vocThreshold - positionInSign;
+  const startTime = new Date(date.getTime() + daysUntilStart * 24 * 60 * 60 * 1000);
+
+  // Peak = midpoint between start and end
+  const peakTime = new Date(startTime.getTime() + (endTime.getTime() - startTime.getTime()) / 2);
+
+  return { startTime, endTime, peakTime };
+}
