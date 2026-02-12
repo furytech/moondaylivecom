@@ -152,6 +152,7 @@ export type Database = {
           email: string | null
           id: string
           moon_sign: string | null
+          subscription_status: string
           updated_at: string
           user_id: string
         }
@@ -163,6 +164,7 @@ export type Database = {
           email?: string | null
           id?: string
           moon_sign?: string | null
+          subscription_status?: string
           updated_at?: string
           user_id: string
         }
@@ -174,6 +176,7 @@ export type Database = {
           email?: string | null
           id?: string
           moon_sign?: string | null
+          subscription_status?: string
           updated_at?: string
           user_id?: string
         }

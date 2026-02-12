@@ -1,0 +1,1 @@
+ALTER TABLE public.user_profiles ADD COLUMN subscription_status text NOT NULL DEFAULT 'free';
