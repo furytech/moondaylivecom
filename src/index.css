@@ -87,9 +87,9 @@
     letter-spacing: 0.01em;
   }
 
-  /* Justified body/paragraph text site-wide */
+  /* Body/paragraph text site-wide */
   p, .font-serif {
-    text-align: justify;
+    text-align: left;
   }
 
   /* Large display text - sanctuary feel */
