@@ -84,19 +84,6 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
-    // Sync subscription_status in user_profiles
-    const newStatus = hasActiveSub ? "sovereign" : "free";
-    const { error: updateError } = await supabaseClient
-      .from("user_profiles")
-      .update({ subscription_status: newStatus })
-      .eq("user_id", user.id);
-    
-    if (updateError) {
-      logStep("Error updating subscription_status", { error: updateError.message });
-    } else {
-      logStep("Updated subscription_status", { status: newStatus });
-    }
-
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       product_id: productId,
