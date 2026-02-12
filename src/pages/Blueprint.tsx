@@ -101,12 +101,20 @@ const Blueprint = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Refresh subscription on success
+  // Refresh subscription and profile on success
   useEffect(() => {
-    if (success) {
-      checkSubscription();
+    if (success && user) {
+      checkSubscription().then(async () => {
+        // Re-fetch profile to get updated subscription_status
+        const { data } = await supabase
+          .from("user_profiles")
+          .select("moon_sign, birthday, subscription_status")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (data) setUserProfile(data);
+      });
     }
-  }, [success, checkSubscription]);
+  }, [success, checkSubscription, user]);
 
   const handleManageSubscription = async () => {
     if (!session) return;
