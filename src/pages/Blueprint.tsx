@@ -23,6 +23,7 @@ import { MoonSignResult } from "@/lib/moonSign";
 interface UserProfile {
   moon_sign: string | null;
   birthday: string | null;
+  subscription_status: string | null;
 }
 
 const Blueprint = () => {
@@ -43,7 +44,7 @@ const Blueprint = () => {
   // Temporary moon sign for users who use the lookup form but don't have a saved profile
   const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
   
-  const isPro = subscription.subscribed;
+  const isPro = subscription.subscribed || userProfile?.subscription_status === 'sovereign';
   const success = searchParams.get("success") === "true";
 
   // The displayed moon sign - either from profile or temp lookup
@@ -63,7 +64,7 @@ const Blueprint = () => {
       try {
         const { data, error } = await supabase
           .from("user_profiles")
-          .select("moon_sign, birthday")
+          .select("moon_sign, birthday, subscription_status")
           .eq("user_id", user.id)
           .maybeSingle();
         
@@ -179,10 +180,12 @@ const Blueprint = () => {
         if (error) {
           console.error("Error saving profile:", error);
         } else {
-          setUserProfile({
+          setUserProfile(prev => ({
+            ...prev,
             moon_sign: result.sign,
             birthday: result.birthDate.toISOString().split('T')[0],
-          });
+            subscription_status: prev?.subscription_status ?? 'free',
+          }));
         }
       } catch (err) {
         console.error("Failed to save profile:", err);
