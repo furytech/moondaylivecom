@@ -102,10 +102,10 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
             <p className="font-display text-lg text-primary">{formatTime(vocTiming.endTime)}</p>
           </div>
         </div>
-        <p className="font-serif text-base text-cream-muted mb-3">
+        <p className="font-serif text-base text-cream-muted mb-3 text-left">
           This period peaks at <span className="text-primary font-display">{formatTime(vocTiming.peakTime)}</span> on <span className="text-primary font-display">{formatDate(vocTiming.peakTime)}</span>.
         </p>
-        <p className="font-serif text-sm text-muted-foreground italic">
+        <p className="font-serif text-sm text-muted-foreground italic text-left">
           Note: These transitions are gradual rather than black and white; you may feel the shift slightly before or after these times.
         </p>
       </div>
@@ -120,7 +120,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
             <p className="font-display text-xs text-primary/60 uppercase tracking-[0.15em] mb-3">
               {label}
             </p>
-            <p className="font-serif text-base text-cream-muted leading-relaxed">
+            <p className="font-serif text-base text-cream-muted leading-relaxed text-left">
               {guidance[key]}
             </p>
           </div>

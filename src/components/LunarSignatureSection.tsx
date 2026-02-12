@@ -84,7 +84,7 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
             <p className="font-display text-xs text-primary/60 uppercase tracking-[0.15em] mb-3">
               {label}
             </p>
-            <p className="font-serif text-base text-cream-muted leading-relaxed">
+            <p className="font-serif text-base text-cream-muted leading-relaxed text-left">
               {signature[key]}
             </p>
           </div>
