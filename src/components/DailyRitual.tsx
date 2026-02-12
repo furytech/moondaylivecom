@@ -56,9 +56,9 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
       </div>
 
       {/* Practice */}
-      <div className="mb-8">
+      <div className="mb-8 max-w-3xl mx-auto">
         <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-3 text-center">Practice</p>
-        <p className="font-serif text-lg text-cream-muted leading-relaxed text-center max-w-3xl mx-auto">
+        <p className="font-serif text-lg text-cream-muted leading-relaxed text-left">
           {ritual.practice}
         </p>
       </div>
@@ -90,7 +90,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
               Why This Matters to You
             </p>
           </div>
-          <p className="font-serif text-lg text-cream-muted leading-relaxed text-center max-w-3xl mx-auto">
+          <p className="font-serif text-lg text-cream-muted leading-relaxed text-left max-w-3xl mx-auto">
             {getSovereignInsight(birthMoonSign, moonPhase, currentMoonSign)}
           </p>
         </div>
