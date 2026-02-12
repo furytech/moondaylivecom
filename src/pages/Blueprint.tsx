@@ -14,6 +14,7 @@ import PricingModal from "@/components/PricingModal";
 import MoonSignModal from "@/components/MoonSignModal";
 import MoonSignLookup from "@/components/MoonSignLookup";
 import DailyForecast from "@/components/DailyForecast";
+import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
 import VoidIntervalSection from "@/components/VoidIntervalSection";
@@ -375,6 +376,17 @@ const Blueprint = () => {
               />
             </div>
           )}
+
+          {/* Daily Ritual */}
+          <div className="mt-12 animate-fade-up stagger-3">
+            <DailyRitual
+              currentMoonSign={lunar.sign.name}
+              birthMoonSign={displayedMoonSign || null}
+              moonPhase={lunar.phase.name}
+              isPro={isPro}
+              onUpgradeClick={handleOpenPricing}
+            />
+          </div>
 
           {/* === LUNAR INTELLIGENCE SECTIONS === */}
 
