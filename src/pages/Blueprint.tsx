@@ -44,7 +44,7 @@ const Blueprint = () => {
   // Temporary moon sign for users who use the lookup form but don't have a saved profile
   const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
   
-  const isPro = subscription.subscribed || userProfile?.subscription_status === 'sovereign';
+  const isPro = userProfile?.subscription_status === 'sovereign';
   const success = searchParams.get("success") === "true";
 
   // The displayed moon sign - either from profile or temp lookup
