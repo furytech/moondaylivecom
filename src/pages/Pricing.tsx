@@ -10,7 +10,7 @@ import moonLogo from "@/assets/moon-logo-new.png";
 // Stripe Price IDs
 const PRICES = {
   monthly: {
-    id: "price_1Sv1zyBzaednmccFe8sl5ad9",
+    id: "price_1Sv1zyBzaednmcCFe8sl5ad9",
     amount: "$2.88",
     interval: "month",
   },
