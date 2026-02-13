@@ -25,6 +25,7 @@ interface UserProfile {
   moon_sign: string | null;
   birthday: string | null;
   subscription_status: string | null;
+  is_subscriber: boolean;
 }
 
 const Blueprint = () => {
@@ -65,7 +66,7 @@ const Blueprint = () => {
       try {
         const { data, error } = await supabase
           .from("user_profiles")
-          .select("moon_sign, birthday, subscription_status")
+          .select("moon_sign, birthday, subscription_status, is_subscriber")
           .eq("user_id", user.id)
           .maybeSingle();
         
@@ -109,7 +110,7 @@ const Blueprint = () => {
         // Re-fetch profile to get updated subscription_status
         const { data } = await supabase
           .from("user_profiles")
-          .select("moon_sign, birthday, subscription_status")
+          .select("moon_sign, birthday, subscription_status, is_subscriber")
           .eq("user_id", user.id)
           .maybeSingle();
         if (data) setUserProfile(data);
@@ -390,25 +391,25 @@ const Blueprint = () => {
 
           {/* === LUNAR INTELLIGENCE SECTIONS === */}
 
-          {/* 1. The Great Cycle (Phases) - Visible to ALL */}
+          {/* 1. The Great Cycle (Phases) */}
           <div className="mt-12">
-            <GreatCycleSection lunar={lunar} />
+            <GreatCycleSection lunar={lunar} isSubscriber={userProfile?.is_subscriber ?? false} onUpgradeClick={handleOpenPricing} />
           </div>
 
-          {/* 2. The Lunar Signature (Signs) - GATED */}
+          {/* 2. The Lunar Signature (Signs) */}
           <div className="mt-12">
             <LunarSignatureSection
               lunar={lunar}
-              isPro={isPro}
+              isPro={userProfile?.is_subscriber ?? false}
               onUpgradeClick={handleOpenPricing}
             />
           </div>
 
-          {/* 3. The Void Interval (VoC) - FREE for all users */}
+          {/* 3. Between Phases (VoC) */}
           <div className="mt-12">
             <VoidIntervalSection
               lunar={lunar}
-              isPro={true}
+              isPro={userProfile?.is_subscriber ?? false}
               onUpgradeClick={handleOpenPricing}
             />
           </div>
