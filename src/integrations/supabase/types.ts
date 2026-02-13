@@ -151,6 +151,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          is_subscriber: boolean
           moon_sign: string | null
           subscription_status: string
           updated_at: string
@@ -163,6 +164,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_subscriber?: boolean
           moon_sign?: string | null
           subscription_status?: string
           updated_at?: string
@@ -175,6 +177,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_subscriber?: boolean
           moon_sign?: string | null
           subscription_status?: string
           updated_at?: string
