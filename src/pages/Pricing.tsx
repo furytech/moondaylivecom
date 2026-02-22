@@ -23,12 +23,12 @@ const PRICES = {
 };
 
 const features = [
-  "Personalized Daily Rituals",
+  "Mind, Soul & Body Lunar Pillars",
+  "Personalized Birth Moon × Current Moon Forecast",
+  "Daily Sovereign Insight",
   "Crystal & Element Guidance",
-  "Lunar Phase Tracking",
-  "Sacred Practice Library",
   "Moon Transition Alerts",
-  "Exclusive Cosmic Insights",
+  "Sacred Practice Library",
 ];
 
 const Pricing = () => {
@@ -62,7 +62,7 @@ const Pricing = () => {
 
       if (fnError) throw fnError;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        window.location.href = data.url;
       }
     } catch (err: unknown) {
       console.error("Checkout error:", err);
@@ -132,7 +132,7 @@ const Pricing = () => {
           {/* Header */}
           <div className="text-center mb-10">
             <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-4">
-              Pro Membership
+              The Sovereign Tier
             </p>
             <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-[0.06em] mb-3">
               Unlock Your Moon
@@ -216,7 +216,7 @@ const Pricing = () => {
             {loading ? (
               <MoonLoader size="sm" />
             ) : (
-              "Get Pro"
+              "Start Your Path"
             )}
           </button>
 

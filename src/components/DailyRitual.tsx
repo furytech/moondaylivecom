@@ -94,8 +94,23 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
             {getSovereignInsight(birthMoonSign, moonPhase, currentMoonSign)}
           </p>
         </div>
+      ) : isPro && !birthMoonSign ? (
+        /* Subscriber without birth moon sign - prompt to enter details */
+        <div className="border-t border-primary/20 pt-8">
+          <div className="glass-card rounded-xl p-8 text-center">
+            <div className="w-12 h-12 rounded-full glass-card flex items-center justify-center mx-auto mb-5 shadow-glow">
+              <Moon className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="font-display text-lg text-gold-gradient mb-4 tracking-widest uppercase">
+              Complete Your Profile
+            </h3>
+            <p className="font-serif text-base text-cream-muted mb-6 max-w-md mx-auto">
+              Enter your birth details above to unlock your personalized Sovereign Insight — a deep reading of how today's moon interacts with your natal lunar imprint.
+            </p>
+          </div>
+        </div>
       ) : (
-        /* Locked Sovereign Features */
+        /* Locked Sovereign Features - non-subscriber */
         <div className="border-t border-primary/20 pt-8">
           <div className="glass-card rounded-xl p-8 text-center">
             <div className="w-12 h-12 rounded-full glass-card flex items-center justify-center mx-auto mb-5 shadow-glow">
