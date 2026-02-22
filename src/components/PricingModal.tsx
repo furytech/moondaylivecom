@@ -18,7 +18,7 @@ const PLANS = [
     price: "$19.88",
     period: "/year",
     savings: "Save 42%",
-    features: ["Daily lunar rituals", "Crystal guidance", "Sacred practices", "Priority support"],
+    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Sovereign Insight", "Priority support"],
   },
   {
     id: "monthly",
@@ -27,7 +27,7 @@ const PLANS = [
     price: "$2.88",
     period: "/month",
     savings: null,
-    features: ["Daily lunar rituals", "Crystal guidance", "Sacred practices"],
+    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Sovereign Insight"],
   },
 ];
 
@@ -47,7 +47,7 @@ const PricingModal = ({ open, onOpenChange, onSelectPlan, loading }: PricingModa
           <div className="flex items-center justify-center gap-2 mb-2">
             <Crown className="w-6 h-6 text-primary" />
             <DialogTitle className="font-display text-2xl text-gold-gradient tracking-wider">
-              Unlock Pro
+              The Sovereign Tier
             </DialogTitle>
           </div>
           <p className="font-serif text-cream-muted">

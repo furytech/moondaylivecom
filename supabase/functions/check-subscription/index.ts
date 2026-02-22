@@ -84,6 +84,22 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
+    // Sync Stripe status to user_profiles to prevent drift
+    const newStatus = hasActiveSub ? "sovereign" : "free";
+    const { error: syncError } = await supabaseClient
+      .from("user_profiles")
+      .update({
+        is_subscriber: hasActiveSub,
+        subscription_status: newStatus,
+      })
+      .eq("email", user.email);
+
+    if (syncError) {
+      logStep("WARNING: Failed to sync profile", { error: syncError.message });
+    } else {
+      logStep("Profile synced", { status: newStatus });
+    }
+
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       product_id: productId,

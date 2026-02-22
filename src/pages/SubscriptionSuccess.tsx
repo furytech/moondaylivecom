@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import moonLogo from "@/assets/moon-logo-new.png";
@@ -13,29 +12,25 @@ const SubscriptionSuccess = () => {
   const { user, checkSubscription } = useAuth();
   const [updating, setUpdating] = useState(true);
 
-  // Update is_subscriber and refresh subscription state
+  // Confirm subscription status from server (webhook handles activation)
   useEffect(() => {
-    const activate = async () => {
+    const confirmStatus = async () => {
       if (!user) {
         setUpdating(false);
         return;
       }
 
       try {
-        await supabase
-          .from("user_profiles")
-          .update({ is_subscriber: true, subscription_status: "sovereign" })
-          .eq("user_id", user.id);
-
+        // Re-check subscription from Stripe (which also syncs to DB)
         await checkSubscription();
       } catch (err) {
-        console.error("Failed to activate subscription:", err);
+        console.error("Failed to confirm subscription:", err);
       } finally {
         setUpdating(false);
       }
     };
 
-    activate();
+    confirmStatus();
   }, [user, checkSubscription]);
 
   return (

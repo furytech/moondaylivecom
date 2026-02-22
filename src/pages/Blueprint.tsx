@@ -162,8 +162,7 @@ const Blueprint = () => {
 
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
-        setPricingModalOpen(false);
+        window.location.href = data.url;
       }
     } catch (err) {
       console.error("Checkout error:", err);
@@ -255,7 +254,7 @@ const Blueprint = () => {
             <GlassmorphismCard className="mb-10 text-center animate-fade-up" size="sm">
               <div className="flex items-center justify-center gap-3 mb-2">
                 <Crown className="w-6 h-6 text-primary" />
-                <span className="font-display text-xl text-primary tracking-wider">Welcome to Pro!</span>
+                <span className="font-display text-xl text-primary tracking-wider">Welcome, Sovereign!</span>
               </div>
               <p className="font-serif text-lg text-cream-muted">
                 Your lunar journey has begun. All premium features are now unlocked.
@@ -269,7 +268,7 @@ const Blueprint = () => {
               {isPro && (
                 <span className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
                   <Crown className="w-4 h-4 text-primary" />
-                  <span className="font-display text-sm text-primary uppercase tracking-widest">Pro Member</span>
+                  <span className="font-display text-sm text-primary uppercase tracking-widest">Sovereign Member</span>
                 </span>
               )}
             </div>
@@ -372,8 +371,6 @@ const Blueprint = () => {
               <DailyForecast
                 birthMoonSign={displayedMoonSign}
                 currentMoon={moonDataCompat}
-                isPro={isPro}
-                onUpgradeClick={handleOpenPricing}
               />
             </div>
           )}
