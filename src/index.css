@@ -9,13 +9,19 @@
 
 @layer base {
   :root {
-    /* Midnight Cosmos - Deep space base palette */
-    /* Base: #011124 = hsl(213, 95%, 7%) */
-    --navy-deep: 213 95% 7%;
-    --navy-dark: 213 80% 10%;
-    --navy-medium: 213 60% 14%;
-    --navy-light: 213 45% 20%;
-    --charcoal: 213 30% 16%;
+    /* Slate Cosmos - Blueish-slate base palette */
+    /* Slate-950: hsl(222.2, 84%, 4.9%) */
+    --navy-deep: 222.2 84% 4.9%;
+    /* Slate-900: hsl(217.2, 32.6%, 17.5%) */
+    --navy-dark: 217.2 32.6% 17.5%;
+    --navy-medium: 215 25% 22%;
+    --navy-light: 215 20% 28%;
+    --charcoal: 215 18% 20%;
+    
+    /* Dark Lilac accent (#6B4E71 ≈ hsl(293, 18%, 37%)) */
+    --lilac: 293 18% 37%;
+    --lilac-light: 293 18% 50%;
+    --lilac-muted: 293 12% 28%;
     
     /* Champagne Gold accents (#E3C18D) */
     --gold-deep: 38 56% 55%;

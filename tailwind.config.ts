@@ -65,6 +65,11 @@ export default {
           light: "hsl(var(--navy-light))",
         },
         charcoal: "hsl(var(--charcoal))",
+        lilac: {
+          DEFAULT: "hsl(var(--lilac))",
+          light: "hsl(var(--lilac-light))",
+          muted: "hsl(var(--lilac-muted))",
+        },
         teal: {
           deep: "hsl(var(--teal-deep))",
           medium: "hsl(var(--teal-medium))",
