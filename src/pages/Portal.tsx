@@ -64,14 +64,23 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
       }
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
-      if (error.message?.includes("User already registered")) {
+      const rawMessage = error.message || "Unknown error";
+      
+      // Show raw error in toast for debugging
+      toast({
+        title: isLogin ? "Login Failed" : "Signup Failed",
+        description: rawMessage,
+        variant: "destructive",
+      });
+
+      if (rawMessage.includes("User already registered")) {
         setError("This email is already registered. Please sign in.");
-      } else if (error.message?.includes("Invalid login credentials")) {
+      } else if (rawMessage.includes("Invalid login credentials")) {
         setError("Invalid email or password. If you recently signed up, please verify your email first.");
-      } else if (error.message?.includes("Email not confirmed")) {
+      } else if (rawMessage.includes("Email not confirmed")) {
         setError("Please check your email to confirm your account before signing in.");
       } else {
-        setError(error.message || "Something went wrong. Please try again.");
+        setError(rawMessage);
       }
     } finally {
       setLoading(false);
