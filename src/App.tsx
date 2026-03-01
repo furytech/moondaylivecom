@@ -14,6 +14,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/library" element={<Library />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/welcome-sovereign" element={
               <ProtectedRoute>
                 <SubscriptionSuccess />

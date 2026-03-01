@@ -274,7 +274,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                   }
                   try {
                     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: `${window.location.origin}/portal`,
+                      redirectTo: `${window.location.origin}/auth/reset-password`,
                     });
                     if (error) throw error;
                     toast({
