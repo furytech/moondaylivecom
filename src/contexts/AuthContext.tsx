@@ -94,8 +94,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        // Only set loading false if it wasn't already set by getSession
         setLoading(false);
+
+        // Redirect to reset page on PASSWORD_RECOVERY event
+        if (event === "PASSWORD_RECOVERY") {
+          window.location.href = "/auth/reset-password";
+        }
       }
     );
 
