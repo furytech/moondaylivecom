@@ -28,6 +28,9 @@ const getStrengthInfo = (password: string) => {
   return levels[Math.min(score, 4)];
 };
 
+const hasNumber = (pw: string) => /[0-9]/.test(pw);
+const hasSymbol = (pw: string) => /[^A-Za-z0-9]/.test(pw);
+
 const ResetPassword = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -39,6 +42,7 @@ const ResetPassword = () => {
   const [checking, setChecking] = useState(true);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileLoaded, setTurnstileLoaded] = useState(false);
+  const [verifyingTurnstile, setVerifyingTurnstile] = useState(false);
 
   // Listen for PASSWORD_RECOVERY event
   useEffect(() => {
@@ -51,24 +55,18 @@ const ResetPassword = () => {
       }
     );
 
-    // Also check if we already have a session from the recovery link
+    // Check if we already have a session from the recovery link
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // If there's a recovery hash in the URL, wait for the event
       const hash = window.location.hash;
       if (hash.includes("type=recovery")) {
         // The onAuthStateChange will fire PASSWORD_RECOVERY
         return;
       }
       // No recovery context — deny access
-      if (!session) {
-        setChecking(false);
-      } else {
-        // Session exists but no recovery event — might be stale
-        setChecking(false);
-      }
+      setChecking(false);
     });
 
-    // Timeout safety — don't keep users waiting forever
+    // Timeout safety
     const timeout = setTimeout(() => setChecking(false), 5000);
 
     return () => {
@@ -100,7 +98,6 @@ const ResetPassword = () => {
   const turnstileRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (!node || !turnstileLoaded || !TURNSTILE_SITE_KEY) return;
-      // Prevent re-render
       if (node.childElementCount > 0) return;
 
       (window as any).turnstile.render(node, {
@@ -117,29 +114,65 @@ const ResetPassword = () => {
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
   const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
   const turnstileRequired = !!TURNSTILE_SITE_KEY;
+  const meetsRequirements =
+    password.length >= 8 && hasNumber(password) && hasSymbol(password);
   const canSubmit =
-    password.length >= 6 &&
+    meetsRequirements &&
     passwordsMatch &&
     !loading &&
     (!turnstileRequired || !!turnstileToken);
 
+  const verifyTurnstile = async (token: string): Promise<boolean> => {
+    setVerifyingTurnstile(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-turnstile", {
+        body: { token },
+      });
+      if (error) {
+        console.error("Turnstile verification error:", error);
+        return false;
+      }
+      return data?.success === true;
+    } catch (err) {
+      console.error("Turnstile verification failed:", err);
+      return false;
+    } finally {
+      setVerifyingTurnstile(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!canSubmit) return;
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      // Verify Turnstile token server-side if required
+      if (turnstileRequired && turnstileToken) {
+        const verified = await verifyTurnstile(turnstileToken);
+        if (!verified) {
+          toast({
+            title: "Verification Failed",
+            description: "Humanity check failed. Please try again.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
 
+      const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
 
+      // Sign out so user must re-authenticate with new password
+      await supabase.auth.signOut();
+
       toast({
-        title: "Password Updated",
-        description: "Your new credentials are now active. Redirecting…",
+        title: "Password Secured ✓",
+        description: "Your new credentials are active. Please sign in.",
       });
 
-      setTimeout(() => navigate("/blueprint", { replace: true }), 1500);
+      setTimeout(() => navigate("/portal", { replace: true }), 2000);
     } catch (err: unknown) {
       const error = err as { message?: string };
       toast({
@@ -247,20 +280,32 @@ const ResetPassword = () => {
             <div className="space-y-2">
               <Input
                 type="password"
-                placeholder="New password"
+                placeholder="New password (8+ chars, number & symbol)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
               />
               {/* Strength Meter */}
               {password.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${strength.color} ${strength.width}`}
                     />
                   </div>
                   <p className="font-serif text-xs text-cream-muted/60">{strength.label}</p>
+                  {/* Requirements checklist */}
+                  <div className="space-y-0.5 font-serif text-xs">
+                    <p className={password.length >= 8 ? "text-emerald-400" : "text-cream-muted/40"}>
+                      {password.length >= 8 ? "✓" : "○"} 8+ characters
+                    </p>
+                    <p className={hasNumber(password) ? "text-emerald-400" : "text-cream-muted/40"}>
+                      {hasNumber(password) ? "✓" : "○"} Contains a number
+                    </p>
+                    <p className={hasSymbol(password) ? "text-emerald-400" : "text-cream-muted/40"}>
+                      {hasSymbol(password) ? "✓" : "○"} Contains a symbol
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -291,10 +336,10 @@ const ResetPassword = () => {
 
             <Button
               type="submit"
-              disabled={!canSubmit}
+              disabled={!canSubmit || verifyingTurnstile}
               className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500 disabled:opacity-40"
             >
-              {loading ? <MoonLoader size="sm" /> : "Update Password"}
+              {loading || verifyingTurnstile ? <MoonLoader size="sm" /> : "Update Password"}
             </Button>
           </form>
         </GlassmorphismCard>

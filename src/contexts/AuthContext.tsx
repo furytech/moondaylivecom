@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
@@ -93,8 +94,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        // Only set loading false if it wasn't already set by getSession
         setLoading(false);
+
+        // Redirect to reset page on PASSWORD_RECOVERY event
+        if (event === "PASSWORD_RECOVERY") {
+          window.location.href = "/auth/reset-password";
+        }
       }
     );
 
