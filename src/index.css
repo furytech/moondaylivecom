@@ -121,21 +121,21 @@
     );
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--gold-medium) / 0.15);
+    border: 1px solid hsl(var(--lilac) / 0.12);
   }
 
   .glass-card {
     background: linear-gradient(
       145deg,
-      hsl(220 40% 12% / 0.8) 0%,
-      hsl(220 35% 8% / 0.6) 100%
+      hsl(232 50% 14% / 0.8) 0%,
+      hsl(232 45% 8% / 0.6) 100%
     );
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(var(--gold-medium) / 0.2);
+    border: 1px solid hsl(var(--lilac) / 0.15);
     box-shadow: 
-      0 8px 32px -8px hsl(var(--gold-medium) / 0.1),
-      inset 0 1px 0 0 hsl(var(--gold-pale) / 0.05);
+      0 8px 32px -8px hsl(var(--lilac) / 0.1),
+      inset 0 1px 0 0 hsl(var(--lilac-light) / 0.05);
   }
 
   .gradient-celestial {
@@ -190,7 +190,7 @@
   }
 
   .art-deco-border {
-    border: 1px solid hsl(var(--gold-medium) / 0.25);
+    border: 1px solid hsl(var(--lilac) / 0.25);
     border-radius: var(--radius);
   }
 
@@ -311,14 +311,14 @@
   0% {
     background: linear-gradient(
       to top,
-      hsl(var(--gold-medium)) 0%,
+      hsl(var(--lilac)) 0%,
       transparent 0%
     );
   }
   100% {
     background: linear-gradient(
       to top,
-      hsl(var(--gold-medium)) 100%,
+      hsl(var(--lilac)) 100%,
       transparent 100%
     );
   }
@@ -328,7 +328,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 2px solid hsl(var(--gold-medium) / 0.3);
+  border: 2px solid hsl(var(--lilac) / 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -338,7 +338,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: hsl(var(--gold-medium));
+  background: hsl(var(--lilac));
   animation: moon-fill-inner 1.5s ease-in-out infinite;
 }
 

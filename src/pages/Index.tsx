@@ -77,7 +77,7 @@ const Index = () => {
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[700px] md:h-[700px] rounded-full pointer-events-none"
             style={{
               background:
-                "radial-gradient(circle, hsl(293 18% 37% / 0.15) 0%, hsl(293 18% 37% / 0.05) 40%, transparent 70%)",
+                "radial-gradient(circle, hsl(239 84% 67% / 0.15) 0%, hsl(239 84% 67% / 0.05) 40%, transparent 70%)",
             }}
           />
 
