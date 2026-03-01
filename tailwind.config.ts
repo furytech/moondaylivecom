@@ -88,7 +88,8 @@ export default {
       },
       fontFamily: {
         display: ["Cinzel", "Georgia", "serif"],
-        serif: ["Cormorant Garamond", "Georgia", "serif"],
+        serif: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

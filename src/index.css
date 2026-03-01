@@ -2,43 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Celestial Moon Sign Portal Design System
-   Deep midnight-charcoal gradient + Champagne Gold accents
-   Glassmorphism + Nebula animations - High-end celestial sanctuary
+/* Stellar-inspired Design System
+   Deep indigo/purple gradients + purple glow accents
+   Glassmorphism + particle effects
    All colors in HSL format */
 
 @layer base {
   :root {
-    /* Slate Cosmos - Blueish-slate base palette */
-    /* Slate-950: hsl(222.2, 84%, 4.9%) */
-    --navy-deep: 222.2 84% 4.9%;
-    /* Slate-900: hsl(217.2, 32.6%, 17.5%) */
-    --navy-dark: 217.2 32.6% 17.5%;
-    --navy-medium: 215 25% 22%;
-    --navy-light: 215 20% 28%;
-    --charcoal: 215 18% 20%;
-    
-    /* Dark Lilac accent (#6B4E71 ≈ hsl(293, 18%, 37%)) */
-    --lilac: 293 18% 37%;
-    --lilac-light: 293 18% 50%;
-    --lilac-muted: 293 12% 28%;
-    
-    /* Champagne Gold accents (#E3C18D) */
-    --gold-deep: 38 56% 55%;
-    --gold-medium: 38 56% 72%;
-    --gold-light: 38 56% 80%;
-    --gold-pale: 38 45% 90%;
-    
-    /* Cream/Ivory for text - Enhanced contrast */
-    --cream: 40 35% 97%;
-    --cream-muted: 38 22% 78%;
-    
+    /* Stellar Deep Space — indigo/purple base */
+    --navy-deep: 229 84% 5%;
+    --navy-dark: 232 47% 12%;
+    --navy-medium: 233 38% 18%;
+    --navy-light: 234 25% 26%;
+    --charcoal: 233 30% 15%;
+
+    /* Indigo/Purple accent — Stellar signature */
+    --lilac: 239 84% 67%;
+    --lilac-light: 239 84% 74%;
+    --lilac-muted: 239 40% 45%;
+
+    /* Keep gold tokens for backward compat — mapped to indigo tints */
+    --gold-deep: 239 70% 58%;
+    --gold-medium: 239 84% 67%;
+    --gold-light: 239 84% 74%;
+    --gold-pale: 239 60% 85%;
+
+    /* Body text — zinc-100 (#f4f4f5) for max readability */
+    --cream: 240 5% 96%;
+    --cream-muted: 240 4% 66%;
+
     /* Glassmorphism tokens */
-    --glass-bg: 220 40% 10% / 0.6;
-    --glass-border: 38 56% 72% / 0.2;
-    --glass-glow: 38 56% 72% / 0.15;
-    
-    /* Core semantic tokens - Dark celestial theme */
+    --glass-bg: 232 50% 10% / 0.6;
+    --glass-border: 239 84% 67% / 0.15;
+    --glass-glow: 239 84% 67% / 0.12;
+
+    /* Core semantic tokens */
     --background: var(--navy-deep);
     --foreground: var(--cream);
 
@@ -48,8 +46,8 @@
     --popover: var(--navy-medium);
     --popover-foreground: var(--cream);
 
-    --primary: var(--gold-medium);
-    --primary-foreground: var(--navy-deep);
+    --primary: var(--lilac);
+    --primary-foreground: 0 0% 100%;
 
     --secondary: var(--navy-light);
     --secondary-foreground: var(--cream);
@@ -57,27 +55,27 @@
     --muted: var(--navy-medium);
     --muted-foreground: var(--cream-muted);
 
-    --accent: var(--gold-light);
-    --accent-foreground: var(--navy-deep);
+    --accent: var(--lilac-light);
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: var(--cream);
 
     --border: var(--navy-light);
     --input: var(--navy-medium);
-    --ring: var(--gold-medium);
+    --ring: var(--lilac);
 
     --radius: 0.75rem;
 
     /* Sidebar tokens */
     --sidebar-background: var(--navy-dark);
     --sidebar-foreground: var(--cream);
-    --sidebar-primary: var(--gold-medium);
-    --sidebar-primary-foreground: var(--navy-deep);
+    --sidebar-primary: var(--lilac);
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: var(--navy-medium);
     --sidebar-accent-foreground: var(--cream);
     --sidebar-border: var(--navy-light);
-    --sidebar-ring: var(--gold-medium);
+    --sidebar-ring: var(--lilac);
   }
 }
 
@@ -88,9 +86,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 18px;
     line-height: 1.7;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.01em;
+    color: hsl(var(--cream));
   }
 
   /* Body/paragraph text site-wide */
@@ -98,9 +98,10 @@
     text-align: center;
   }
 
-  /* Large display text - sanctuary feel */
+  /* Headings — clean, tight tracking */
   h1, h2, h3, .font-display {
-    letter-spacing: 0.05em;
+    letter-spacing: -0.02em;
+    font-weight: 700;
   }
 
   /* Architectural spacing for sections */
@@ -140,27 +141,27 @@
   .gradient-celestial {
     background: linear-gradient(
       180deg,
-      hsl(220, 45%, 5%) 0%,
-      hsl(220, 42%, 8%) 30%,
-      hsl(220, 35%, 12%) 100%
+      hsl(229, 84%, 5%) 0%,
+      hsl(232, 50%, 10%) 30%,
+      hsl(250, 40%, 14%) 100%
     );
   }
 
   .gradient-midnight {
     background: radial-gradient(
       ellipse at center top,
-      hsl(220, 38%, 14%) 0%,
-      hsl(220, 42%, 8%) 50%,
-      hsl(220, 45%, 5%) 100%
+      hsl(250, 40%, 16%) 0%,
+      hsl(232, 50%, 10%) 50%,
+      hsl(229, 84%, 5%) 100%
     );
   }
 
   .text-gold-gradient {
     background: linear-gradient(
       135deg,
-      hsl(var(--gold-pale)) 0%,
-      hsl(var(--gold-medium)) 40%,
-      hsl(var(--gold-deep)) 100%
+      hsl(var(--lilac-light)) 0%,
+      hsl(var(--lilac)) 50%,
+      hsl(280 80% 65%) 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -169,23 +170,23 @@
 
   .shadow-gold {
     box-shadow: 
-      0 0 40px -10px hsl(var(--gold-medium) / 0.35),
-      0 0 80px -20px hsl(var(--gold-medium) / 0.2);
+      0 0 40px -10px hsl(var(--lilac) / 0.35),
+      0 0 80px -20px hsl(var(--lilac) / 0.2);
   }
 
   .shadow-glow {
     box-shadow: 
-      0 0 60px -15px hsl(var(--gold-medium) / 0.3),
-      0 0 100px -30px hsl(var(--gold-medium) / 0.15),
-      inset 0 1px 0 0 hsl(var(--gold-pale) / 0.1);
+      0 0 60px -15px hsl(var(--lilac) / 0.3),
+      0 0 100px -30px hsl(var(--lilac) / 0.15),
+      inset 0 1px 0 0 hsl(var(--lilac-light) / 0.1);
   }
 
-  /* Logo halo effect - soft ambient glow */
+  /* Logo halo effect — purple ambient glow */
   .logo-halo {
     box-shadow: 
-      0 0 60px 20px hsl(var(--gold-medium) / 0.15),
-      0 0 100px 40px hsl(var(--gold-medium) / 0.08),
-      0 0 140px 60px hsl(var(--gold-pale) / 0.04);
+      0 0 60px 20px hsl(var(--lilac) / 0.15),
+      0 0 100px 40px hsl(var(--lilac) / 0.08),
+      0 0 140px 60px hsl(var(--lilac-light) / 0.04);
   }
 
   .art-deco-border {
@@ -200,10 +201,10 @@
 
   .brass-glow:hover {
     box-shadow: 
-      0 0 30px -5px hsl(var(--gold-medium) / 0.4),
-      0 0 60px -15px hsl(var(--gold-medium) / 0.25),
-      inset 0 1px 0 0 hsl(var(--gold-pale) / 0.15);
-    border-color: hsl(var(--gold-medium) / 0.5);
+      0 0 30px -5px hsl(var(--lilac) / 0.4),
+      0 0 60px -15px hsl(var(--lilac) / 0.25),
+      inset 0 1px 0 0 hsl(var(--lilac-light) / 0.15);
+    border-color: hsl(var(--lilac) / 0.5);
   }
 
   /* Elegant fade hover for links/buttons */
@@ -212,28 +213,28 @@
   }
 
   .elegant-hover:hover {
-    color: hsl(var(--gold-light));
-    text-shadow: 0 0 20px hsl(var(--gold-medium) / 0.4);
+    color: hsl(var(--lilac-light));
+    text-shadow: 0 0 20px hsl(var(--lilac) / 0.4);
   }
 
-  /* Sanctuary text - large serif for ritual content */
+  /* Sanctuary text — clean sans for ritual content */
   .sanctuary-text {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1.5rem;
-    line-height: 1.8;
-    letter-spacing: 0.02em;
-    font-weight: 400;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 1.35rem;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
+    font-weight: 500;
   }
 
   @media (min-width: 768px) {
     .sanctuary-text {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .sanctuary-text {
-      font-size: 2rem;
+      font-size: 1.75rem;
     }
   }
 }
@@ -350,5 +351,5 @@
   }
 }
 
-/* Import elegant serif font for Art Deco feel */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@400;500;600;700&display=swap');
+/* Import fonts — Inter for body, Cinzel kept for display accents */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700&display=swap');
