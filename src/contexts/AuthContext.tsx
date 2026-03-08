@@ -98,7 +98,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // Redirect to reset page on PASSWORD_RECOVERY event
         if (event === "PASSWORD_RECOVERY") {
-          window.location.href = "/auth/reset-password";
+          // Only redirect if not already on the reset page to avoid stripping the hash fragment
+          if (!window.location.pathname.startsWith("/auth/reset-password")) {
+            window.location.href = "/auth/reset-password" + window.location.hash;
+          }
         }
       }
     );
