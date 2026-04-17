@@ -93,7 +93,10 @@ export default function ClimateGauge({ illumination, sign }: Props) {
       {data && !loading && (
         <div className="flex flex-col items-center py-4">
           {/* Calm dark gauge */}
-          <svg viewBox="0 0 200 140" className="w-64 h-44">
+          <svg
+            viewBox="0 0 200 140"
+            className={`w-64 h-44 rounded-full ${data.breakdown.volatility_alert ? "animate-amber-pulse" : ""}`}
+          >
             <defs>
               <linearGradient id="climateGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="hsl(var(--primary) / 0.4)" />
