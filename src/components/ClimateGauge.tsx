@@ -147,13 +147,13 @@ export default function ClimateGauge({ illumination, sign }: Props) {
             <span
               className={`inline-block w-1.5 h-1.5 rounded-full ${
                 data.breakdown.volatility_alert
-                  ? "bg-amber-400 animate-pulse shadow-[0_0_8px_hsl(38_92%_60%/0.6)]"
+                  ? "bg-amber-signal animate-pulse shadow-[0_0_8px_hsl(var(--amber-signal)/0.6)]"
                   : "bg-primary/70"
               }`}
             />
             <span className="font-display text-xs tracking-[0.25em] uppercase text-cream-muted">
               Status: {data.breakdown.volatility_alert ? (
-                <span className="text-amber-300">Transitioning</span>
+                <span className="text-amber-signal-soft">Transitioning</span>
               ) : (
                 <span className="text-foreground">Stable</span>
               )}
@@ -161,8 +161,8 @@ export default function ClimateGauge({ illumination, sign }: Props) {
           </div>
 
           {data.breakdown.volatility_alert && (
-            <div className="flex items-center gap-2 px-4 py-2 mt-3 rounded-full border border-amber-400/30 bg-amber-400/5">
-              <AlertTriangle className="w-4 h-4 text-amber-300" />
+            <div className="flex items-center gap-2 px-4 py-2 mt-3 rounded-full border border-amber-signal/30 bg-amber-signal/5">
+              <AlertTriangle className="w-4 h-4 text-amber-signal-soft" />
               <span className="font-serif text-sm text-cream-muted">
                 Volatility window — sign transition within 2h (+15)
               </span>
