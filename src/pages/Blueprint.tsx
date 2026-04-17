@@ -18,6 +18,7 @@ import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
 import VoidIntervalSection from "@/components/VoidIntervalSection";
+import ClimateGauge from "@/components/ClimateGauge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MoonSignResult } from "@/lib/moonSign";
 
@@ -384,6 +385,11 @@ const Blueprint = () => {
               isPro={isPro}
               onUpgradeClick={handleOpenPricing}
             />
+          </div>
+
+          {/* Emotional Climate Gauge */}
+          <div className="mt-12">
+            <ClimateGauge illumination={lunar.phase.illumination} sign={lunar.sign.name} />
           </div>
 
           {/* === LUNAR INTELLIGENCE SECTIONS === */}
