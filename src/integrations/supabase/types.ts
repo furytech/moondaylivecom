@@ -50,6 +50,30 @@ export type Database = {
         }
         Relationships: []
       }
+      moon_history: {
+        Row: {
+          climate_score: number
+          created_at: string
+          id: string
+          volatility_alert: boolean
+          zodiac_sign: string
+        }
+        Insert: {
+          climate_score: number
+          created_at?: string
+          id?: string
+          volatility_alert?: boolean
+          zodiac_sign: string
+        }
+        Update: {
+          climate_score?: number
+          created_at?: string
+          id?: string
+          volatility_alert?: boolean
+          zodiac_sign?: string
+        }
+        Relationships: []
+      }
       moon_phase_texts: {
         Row: {
           created_at: string
