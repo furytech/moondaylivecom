@@ -85,6 +85,10 @@ export default {
           DEFAULT: "hsl(var(--cream))",
           muted: "hsl(var(--cream-muted))",
         },
+        amber: {
+          signal: "hsl(var(--amber-signal))",
+          "signal-soft": "hsl(var(--amber-signal-soft))",
+        },
       },
       fontFamily: {
         display: ["Cinzel", "Georgia", "serif"],
@@ -127,6 +131,10 @@ export default {
           "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
           "50%": { opacity: "1", transform: "scale(1.3)" },
         },
+        "amber-pulse": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--amber-signal) / 0)" },
+          "50%": { boxShadow: "0 0 28px 4px hsl(var(--amber-signal) / 0.25)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -136,6 +144,7 @@ export default {
         "twinkle": "twinkle 2s ease-in-out infinite",
         "nebula-drift": "nebula-drift 20s ease-in-out infinite",
         "star-pulse": "star-pulse 3s ease-in-out infinite",
+        "amber-pulse": "amber-pulse 2.8s ease-in-out infinite",
       },
     },
   },

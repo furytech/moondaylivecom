@@ -93,7 +93,10 @@ export default function ClimateGauge({ illumination, sign }: Props) {
       {data && !loading && (
         <div className="flex flex-col items-center py-4">
           {/* Calm dark gauge */}
-          <svg viewBox="0 0 200 140" className="w-64 h-44">
+          <svg
+            viewBox="0 0 200 140"
+            className={`w-64 h-44 rounded-full ${data.breakdown.volatility_alert ? "animate-amber-pulse" : ""}`}
+          >
             <defs>
               <linearGradient id="climateGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="hsl(var(--primary) / 0.4)" />
@@ -139,9 +142,27 @@ export default function ClimateGauge({ illumination, sign }: Props) {
             </text>
           </svg>
 
+          {/* Status indicator */}
+          <div className="flex items-center gap-2 mt-3">
+            <span
+              className={`inline-block w-1.5 h-1.5 rounded-full ${
+                data.breakdown.volatility_alert
+                  ? "bg-amber-signal animate-pulse shadow-[0_0_8px_hsl(var(--amber-signal)/0.6)]"
+                  : "bg-primary/70"
+              }`}
+            />
+            <span className="font-display text-xs tracking-[0.25em] uppercase text-cream-muted">
+              Status: {data.breakdown.volatility_alert ? (
+                <span className="text-amber-signal-soft">Transitioning</span>
+              ) : (
+                <span className="text-foreground">Stable</span>
+              )}
+            </span>
+          </div>
+
           {data.breakdown.volatility_alert && (
-            <div className="flex items-center gap-2 px-4 py-2 mt-2 rounded-full border border-primary/30 bg-primary/5">
-              <AlertTriangle className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 px-4 py-2 mt-3 rounded-full border border-amber-signal/30 bg-amber-signal/5">
+              <AlertTriangle className="w-4 h-4 text-amber-signal-soft" />
               <span className="font-serif text-sm text-cream-muted">
                 Volatility window — sign transition within 2h (+15)
               </span>
