@@ -85,6 +85,10 @@ export default {
           DEFAULT: "hsl(var(--cream))",
           muted: "hsl(var(--cream-muted))",
         },
+        amber: {
+          signal: "hsl(var(--amber-signal))",
+          "signal-soft": "hsl(var(--amber-signal-soft))",
+        },
       },
       fontFamily: {
         display: ["Cinzel", "Georgia", "serif"],
