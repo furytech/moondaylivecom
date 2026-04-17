@@ -36,6 +36,10 @@
     --glass-border: 239 84% 67% / 0.15;
     --glass-glow: 239 84% 67% / 0.12;
 
+    /* Volatility / transition signal — calm amber */
+    --amber-signal: 38 92% 60%;
+    --amber-signal-soft: 38 80% 70%;
+
     /* Core semantic tokens */
     --background: var(--navy-deep);
     --foreground: var(--cream);
