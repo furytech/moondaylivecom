@@ -3,7 +3,7 @@
 //   EC = (I * W_phase) + (Z * W_sign) + V
 // Authoritative timing source: astronomy-engine (server-side)
 
-import { Body, Equator, Ecliptic, AstroTime } from "https://esm.sh/astronomy-engine@2.1.19";
+import { EclipticGeoMoon, AstroTime } from "https://esm.sh/astronomy-engine@2.1.19";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,12 +37,11 @@ const ELEMENT_OF: Record<Sign, "Water" | "Fire" | "Earth" | "Air"> = {
 // Manual specifies score 0-100; we use I (0-1) * 50 so a Full Moon contributes up to +50.
 const PHASE_WEIGHT = 50;
 
-/** Get Moon's ecliptic longitude (0-360 degrees) at a given Date. */
+/** Get Moon's geocentric ecliptic longitude (0-360 degrees) at a given Date. */
 function moonLongitude(date: Date): number {
   const time = new AstroTime(date);
-  const equ = Equator(Body.Moon, time, null as any, true, true);
-  const ecl = Ecliptic(equ.vec);
-  return ((ecl.elon % 360) + 360) % 360;
+  const ecl = EclipticGeoMoon(time);
+  return ((ecl.lon % 360) + 360) % 360;
 }
 
 function signFromLongitude(lon: number): Sign {
