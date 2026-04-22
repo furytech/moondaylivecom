@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { useToast } from "@/hooks/use-toast";
-import moonLogo from "@/assets/moon-logo-new.png";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 

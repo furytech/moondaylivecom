@@ -99,8 +99,3 @@ const Library = () => {
 };
 
 export default Library;
-
-  );
-};
-
-export default Library;

@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import moonLogo from "@/assets/moon-logo-new.png";
 
 const NotFound = () => {
   const location = useLocation();
