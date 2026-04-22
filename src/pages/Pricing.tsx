@@ -175,7 +175,7 @@ const Pricing = () => {
 
             <button
               onClick={() => navigate(user ? "/blueprint" : "/portal")}
-              className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/20 rounded-full text-cream-muted/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-500"
+              className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3"
             >
               {user ? "Continue Free" : "Start Free"}
             </button>
