@@ -142,12 +142,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (error) throw error;
 
     // Persist birthday + moon sign immediately so it's saved even before email verification.
-    // The handle_new_user trigger creates the profile row; we update it here.
+    // Upsert in case the handle_new_user trigger hasn't created the row yet.
     if (data.user && birthday) {
       await supabase
         .from("user_profiles")
-        .update({ birthday, moon_sign: moonSign ?? null })
-        .eq("user_id", data.user.id);
+        .upsert(
+          { user_id: data.user.id, email, birthday, moon_sign: moonSign ?? null },
+          { onConflict: "user_id" }
+        );
     }
   };
 
