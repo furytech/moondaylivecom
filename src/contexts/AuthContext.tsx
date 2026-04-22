@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
   subscription: SubscriptionStatus;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, birthday?: string, moonSign?: string) => Promise<void>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
 }
@@ -130,15 +130,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (error) throw error;
   };
 
-  const handleSignUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const handleSignUp = async (email: string, password: string, birthday?: string, moonSign?: string) => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
+        data: birthday ? { birthday, moon_sign: moonSign } : undefined,
       },
     });
     if (error) throw error;
+
+    // Persist birthday + moon sign immediately so it's saved even before email verification.
+    // The handle_new_user trigger creates the profile row; we update it here.
+    if (data.user && birthday) {
+      await supabase
+        .from("user_profiles")
+        .update({ birthday, moon_sign: moonSign ?? null })
+        .eq("user_id", data.user.id);
+    }
   };
 
   const handleSignOut = async () => {
