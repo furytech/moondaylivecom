@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import moonLogo from "@/assets/moon-logo-new.png";
+
 import { getLunarIntelligence, getTimeUntilNextSign } from "@/lib/lunarEngine";
 import { getSignSymbol } from "@/lib/forecastEngine";
 import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info } from "lucide-react";
