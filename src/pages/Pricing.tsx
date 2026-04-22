@@ -180,8 +180,8 @@ const Pricing = () => {
           </GlassmorphismCard>
 
           {/* SOVEREIGN */}
-          <GlassmorphismCard className="animate-fade-up stagger-2 flex flex-col relative border-primary/40 mt-4 md:mt-0 pt-16 md:pt-16">
-            <span className="absolute -top-5 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground font-display text-[10px] tracking-[0.15em] uppercase rounded-full whitespace-nowrap z-20 shadow-lg">
+          <GlassmorphismCard className="animate-fade-up stagger-2 flex flex-col relative border-primary/40">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-full px-4 py-1.5 bg-primary text-primary-foreground font-display text-[10px] tracking-[0.15em] uppercase rounded-full whitespace-nowrap z-20 shadow-lg">
               Most Popular
             </span>
 
