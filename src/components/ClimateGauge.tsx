@@ -20,6 +20,8 @@ interface ClimateResponse {
   breakdown: ClimateBreakdown;
   formula: string;
   computed_at: string;
+  source?: "live" | "fallback";
+  notice?: string;
 }
 
 interface Props {
