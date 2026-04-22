@@ -188,18 +188,27 @@ export default function ClimateGauge({ illumination, sign }: Props) {
               <dt>Volatility (V)</dt>
               <dd className="text-right text-foreground">+{data.breakdown.volatility_offset}</dd>
             </dl>
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <span
-                className={`inline-block w-1 h-1 rounded-full ${
-                  data.source === "live"
-                    ? "bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.7)]"
-                    : "bg-amber-signal-soft"
-                }`}
-              />
-              <span className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
-                Source: {data.source === "fallback" ? "Cached" : "Live"}
-              </span>
-            </div>
+            {data.source === "fallback" ? (
+              <button
+                onClick={fetchClimate}
+                title="This reading is cached. Click to refresh with live data."
+                className="mt-4 group flex items-center justify-center gap-2 px-3 py-1.5 rounded-full border border-amber-signal/30 bg-amber-signal/5 hover:bg-amber-signal/10 transition-colors cursor-pointer"
+                aria-label="Refresh with live data"
+              >
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-signal-soft animate-pulse" />
+                <span className="font-display text-[10px] tracking-[0.3em] uppercase text-amber-signal-soft">
+                  Source: Cached · Tap to refresh
+                </span>
+                <Loader2 className="w-3 h-3 text-amber-signal-soft opacity-0 group-hover:opacity-60 transition-opacity" />
+              </button>
+            ) : (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <span className="inline-block w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.7)]" />
+                <span className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+                  Source: Live
+                </span>
+              </div>
+            )}
             <p className="mt-2 font-serif text-xs text-muted-foreground text-center italic">
               {data.formula}
             </p>
