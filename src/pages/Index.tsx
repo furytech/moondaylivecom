@@ -70,8 +70,8 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col relative z-10">
-        <section className="min-h-[70vh] flex flex-col items-center justify-center px-6 md:px-8 relative">
+      <main className="flex-1 flex flex-col relative z-10 pt-20">
+        <section className="flex flex-col items-center justify-center px-6 md:px-8 pt-8 pb-16 relative">
           {/* Soft lilac glow */}
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] md:w-[700px] md:h-[700px] rounded-full pointer-events-none"
