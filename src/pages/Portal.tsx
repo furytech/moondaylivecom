@@ -8,6 +8,7 @@ import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PageLayout from "@/components/PageLayout";
 import { useToast } from "@/hooks/use-toast";
+import { calculateMoonSign } from "@/lib/moonSign";
 
 interface PortalProps {
   defaultMode?: "login" | "signup";
@@ -22,6 +23,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
@@ -40,6 +42,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
       setError("Please fill in all fields");
       return;
     }
+    if (!isLogin && !birthday) {
+      setError("Please enter your birthday — it's needed to chart your moon sign.");
+      return;
+    }
     if (!isLogin && password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -55,7 +61,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         await signIn(email, password);
         navigate("/blueprint", { replace: true });
       } else {
-        await signUp(email, password);
+        // Calculate moon sign from birthday so we can save it on signup
+        const birthDate = new Date(`${birthday}T12:00:00`);
+        const moonSign = calculateMoonSign(birthDate);
+        await signUp(email, password, birthday, moonSign.sign);
         setSignupSuccess(true);
       }
     } catch (err: unknown) {
@@ -161,6 +170,25 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
             />
+          )}
+          {!isLogin && (
+            <div className="space-y-2">
+              <label htmlFor="birthday" className="block font-serif text-xs text-primary/70 uppercase tracking-[0.2em] pl-1">
+                Birthday
+              </label>
+              <Input
+                id="birthday"
+                type="date"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+                min="1900-01-01"
+                className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl [color-scheme:dark]"
+              />
+              <p className="font-serif text-xs text-cream-muted/50 pl-1">
+                Used to chart your moon sign — saved to your profile.
+              </p>
+            </div>
           )}
           {error && (
             <p className="text-destructive text-base font-serif text-center py-2">{error}</p>
