@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import moonLogo from "@/assets/moon-logo-new.png";
 import { zodiacDeepContent, ZodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { ZodiacPortal } from "@/components/library/ZodiacPortal";
 import { SignDetailPanel } from "@/components/library/SignDetailPanel";
@@ -14,7 +12,6 @@ const zodiacSigns = [
 ];
 
 const Library = () => {
-  const navigate = useNavigate();
   const [selectedSign, setSelectedSign] = useState<ZodiacDeepContent | null>(null);
 
   const handleSignClick = (sign: string) => {
@@ -43,26 +40,10 @@ const Library = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-20 pb-12 px-4 md:px-8 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-16 md:pt-[4.5rem] pb-12 px-4 md:px-8 relative z-20">
         <div className="max-w-6xl mx-auto w-full">
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <div className="animate-float">
-              <div
-                onClick={() => navigate("/")}
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden cursor-pointer hover-scale-subtle bg-background logo-halo"
-              >
-                <img
-                  src={moonLogo}
-                  alt="Moonday"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Header */}
-          <div className="text-center mb-16 animate-fade-up">
+          <div className="text-center mb-14 animate-fade-up">
             <p className="font-display text-xs md:text-sm text-primary/60 tracking-[0.3em] uppercase mb-4">
               The Archives of
             </p>
@@ -73,7 +54,6 @@ const Library = () => {
               Twelve portals to the soul's emotional architecture
             </p>
 
-            {/* Art Deco divider */}
             <div className="flex items-center justify-center gap-3 mt-8">
               <div className="w-20 md:w-32 h-px bg-gradient-to-r from-transparent to-primary/40" />
               <div className="w-3 h-3 rotate-45 border border-primary/50" />
@@ -81,7 +61,6 @@ const Library = () => {
             </div>
           </div>
 
-          {/* Zodiac Portal Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {zodiacSigns.map((sign, index) => {
               const content = zodiacDeepContent[sign];
@@ -97,7 +76,6 @@ const Library = () => {
             })}
           </div>
 
-          {/* Footer flourish */}
           <div className="flex items-center justify-center gap-3 mt-16">
             <div className="w-16 h-px bg-gradient-to-r from-transparent to-primary/30" />
             <span className="text-primary/30 text-xs tracking-[0.3em] uppercase font-display">
@@ -110,7 +88,6 @@ const Library = () => {
 
       <Footer />
 
-      {/* Sign Detail Panel */}
       {selectedSign && (
         <SignDetailPanel
           content={selectedSign}

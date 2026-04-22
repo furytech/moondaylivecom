@@ -74,8 +74,8 @@ const Pricing = () => {
 
   return (
     <PageLayout showLogo={false}>
-      <div className="w-full max-w-5xl mx-auto">
-        <div className="mb-6">
+      <div className="w-full max-w-5xl mx-auto pt-2 md:pt-0">
+        <div className="mb-4">
           <button
             onClick={() => navigate("/")}
             className="font-serif text-sm text-cream-muted/60 hover:text-primary transition-colors"
@@ -85,8 +85,8 @@ const Pricing = () => {
         </div>
 
         {/* Header */}
-        <div className="text-center mb-10 animate-fade-up">
-          <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
+        <div className="text-center mb-8 animate-fade-up">
+          <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-2">
             Choose Your Path
           </p>
           <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-[0.06em] mb-3">

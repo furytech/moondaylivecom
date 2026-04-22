@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import moonLogo from "@/assets/moon-logo-new.png";
 
 const NotFound = () => {
   const location = useLocation();
@@ -28,20 +27,7 @@ const NotFound = () => {
         ))}
       </div>
 
-      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-10">
-        {/* Logo */}
-        <div className="animate-float mb-6">
-          <div 
-            className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer hover-scale-subtle bg-background logo-halo"
-            onClick={() => navigate("/")}
-          >
-            <img
-              src={moonLogo}
-              alt="Moonday"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
+      <main className="flex-1 flex flex-col items-center justify-center pt-8 md:pt-10 pb-6 px-6 relative z-10">
 
         <h1 className="font-display text-6xl md:text-7xl text-gold-gradient tracking-wider mb-4">
           404

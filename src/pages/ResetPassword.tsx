@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { useToast } from "@/hooks/use-toast";
-import moonLogo from "@/assets/moon-logo-new.png";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 
@@ -253,14 +252,7 @@ const ResetPassword = () => {
         ))}
       </div>
 
-      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-10">
-        {/* Logo */}
-        <div className="animate-float mb-6">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-background logo-halo">
-            <img src={moonLogo} alt="Moonday" className="w-full h-full object-cover" />
-          </div>
-        </div>
-
+      <main className="flex-1 flex flex-col items-center pt-8 md:pt-10 pb-6 px-6 relative z-10">
         <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
           {/* Header */}
           <div className="text-center mb-10">

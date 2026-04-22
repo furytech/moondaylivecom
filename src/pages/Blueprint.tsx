@@ -237,11 +237,11 @@ const Blueprint = () => {
       </div>
       <Navigation />
       
-      <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-16 md:pt-[4.5rem] pb-6 px-6 relative z-20">
         <div className="max-w-5xl mx-auto w-full">
           {/* Success Message */}
           {success && (
-            <GlassmorphismCard className="mb-10 text-center animate-fade-up" size="sm">
+            <GlassmorphismCard className="mb-8 text-center animate-fade-up" size="sm">
               <div className="flex items-center justify-center gap-3 mb-2">
                 <Crown className="w-6 h-6 text-primary" />
                 <span className="font-display text-xl text-primary tracking-wider">Welcome, Sovereign!</span>
@@ -253,7 +253,7 @@ const Blueprint = () => {
           )}
 
           {/* Welcome Header */}
-          <div className="text-center mb-16 animate-fade-up stagger-1">
+          <div className="text-center mb-12 animate-fade-up stagger-1">
             <div className="flex items-center justify-center gap-3 mb-6">
               {isPro && (
                 <span className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
