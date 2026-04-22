@@ -171,6 +171,25 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
               className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
             />
           )}
+          {!isLogin && (
+            <div className="space-y-2">
+              <label htmlFor="birthday" className="block font-serif text-xs text-primary/70 uppercase tracking-[0.2em] pl-1">
+                Birthday
+              </label>
+              <Input
+                id="birthday"
+                type="date"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+                min="1900-01-01"
+                className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl [color-scheme:dark]"
+              />
+              <p className="font-serif text-xs text-cream-muted/50 pl-1">
+                Used to chart your moon sign — saved to your profile.
+              </p>
+            </div>
+          )}
           {error && (
             <p className="text-destructive text-base font-serif text-center py-2">{error}</p>
           )}
