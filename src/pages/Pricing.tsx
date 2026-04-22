@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Check, X, Crown, Moon } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import PageLayout from "@/components/PageLayout";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 // Stripe Price IDs
 const PRICES = {
@@ -73,21 +74,30 @@ const Pricing = () => {
   };
 
   return (
-    <PageLayout showLogo={false}>
-      <div className="w-full max-w-5xl mx-auto pt-2 md:pt-0">
-        <div className="mb-4">
-          <button
-            onClick={() => navigate("/")}
-            className="font-serif text-sm text-cream-muted/60 hover:text-primary transition-colors"
-          >
-            ← Back
-          </button>
-        </div>
+    <div className="min-h-screen bg-background flex flex-col relative">
+      {/* Decorative stars background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-0.5 h-0.5 bg-primary/30 rounded-full animate-twinkle"
+            style={{
+              top: `${(i * 17 + 23) % 100}%`,
+              left: `${(i * 31 + 7) % 100}%`,
+              animationDelay: `${(i * 0.2) % 3}s`,
+            }}
+          />
+        ))}
+      </div>
 
-        {/* Header */}
-        <div className="text-center mb-8 animate-fade-up">
-          <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-2">
-            Choose Your Path
+      <Navigation />
+
+      <main className="flex-1 flex flex-col items-center pt-16 md:pt-[4.5rem] pb-6 px-6 relative z-20">
+        <div className="w-full max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8 animate-fade-up pt-6">
+            <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-2">
+              Choose Your Path
           </p>
           <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-[0.06em] mb-3">
             Pick a plan to unlock your moon
@@ -234,8 +244,10 @@ const Pricing = () => {
         <p className="font-serif text-sm text-cream-muted/40 text-center mb-6">
           Secure payment powered by Stripe. Cancel anytime.
         </p>
-      </div>
-    </PageLayout>
+        </div>
+      </main>
+      <Footer />
+    </div>
   );
 };
 
