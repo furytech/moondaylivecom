@@ -175,31 +175,36 @@ const Blueprint = () => {
   const handleMoonSignCalculated = async (result: MoonSignResult & { birthDate: Date; birthTime?: string; birthCity?: string }) => {
     setTempMoonSign(result.sign);
 
-    if (isPro && result.birthTime && result.birthCity && user) {
-      try {
-        const { error } = await supabase
-          .from("user_profiles")
-          .update({
-            moon_sign: result.sign,
-            birthday: result.birthDate.toISOString().split('T')[0],
-            birth_time: result.birthTime,
-            birth_city: result.birthCity,
-          })
-          .eq("user_id", user.id);
+    if (!user) return;
 
-        if (error) {
-          console.error("Error saving profile:", error);
-        } else {
-          setUserProfile(prev => ({
-            ...prev,
-            moon_sign: result.sign,
-            birthday: result.birthDate.toISOString().split('T')[0],
-            subscription_status: prev?.subscription_status ?? 'free',
-          }));
-        }
-      } catch (err) {
-        console.error("Failed to save profile:", err);
+    // Save birthday + moon sign for EVERY logged-in user (free or Sovereign).
+    // Birth time and city stay Sovereign-only since they require precision calc.
+    const updatePayload: Record<string, string> = {
+      moon_sign: result.sign,
+      birthday: result.birthDate.toISOString().split("T")[0],
+    };
+    if (isPro && result.birthTime) updatePayload.birth_time = result.birthTime;
+    if (isPro && result.birthCity) updatePayload.birth_city = result.birthCity;
+
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .update(updatePayload)
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error saving profile:", error);
+      } else {
+        setUserProfile((prev) => ({
+          ...prev,
+          moon_sign: result.sign,
+          birthday: updatePayload.birthday,
+          subscription_status: prev?.subscription_status ?? "free",
+          is_subscriber: prev?.is_subscriber ?? false,
+        }));
       }
+    } catch (err) {
+      console.error("Failed to save profile:", err);
     }
   };
 
@@ -234,22 +239,6 @@ const Blueprint = () => {
       
       <main className="flex-1 flex flex-col items-center pt-20 pb-6 px-6 relative z-20">
         <div className="max-w-5xl mx-auto w-full">
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <div className="animate-float">
-              <div 
-                onClick={() => navigate("/")} 
-                className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer hover-scale-subtle bg-background logo-halo"
-              >
-                <img 
-                  src={moonLogo} 
-                  alt="Moonday" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Success Message */}
           {success && (
             <GlassmorphismCard className="mb-10 text-center animate-fade-up" size="sm">
