@@ -109,12 +109,12 @@ const Index = () => {
         </div>
       </nav>
 
-      <main className="relative z-10 pt-20 md:pt-24">
+      <main className="relative z-10 pt-16 md:pt-20">
         {/* Hero */}
-        <header className="pt-14 pb-20 md:pt-20 md:pb-28 px-6 text-center">
+        <header className="pt-4 pb-20 md:pt-6 md:pb-28 px-6 text-center">
           <div className="max-w-4xl mx-auto">
             {/* Moon orb */}
-            <div className="relative inline-block mb-10 animate-fade-up">
+            <div className="relative inline-block mb-8 animate-fade-up">
               <div
                 className="w-32 h-32 md:w-40 md:h-40 rounded-full border border-lilac/30"
                 style={{
@@ -129,7 +129,7 @@ const Index = () => {
               </div>
             </div>
 
-            <p className="text-lilac text-xs md:text-sm tracking-[0.3em] uppercase mb-6 animate-fade-up stagger-1">
+            <p className="text-lilac text-base md:text-lg tracking-[0.3em] uppercase mb-6 animate-fade-up stagger-1">
               {moonData.symbol} Moon in {moonData.sign} · Tonight
             </p>
 
