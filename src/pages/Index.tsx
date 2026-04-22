@@ -109,12 +109,12 @@ const Index = () => {
         </div>
       </nav>
 
-      <main className="relative z-10 pt-16 md:pt-20">
+      <main className="relative z-10 pt-14 md:pt-16">
         {/* Hero */}
-        <header className="pt-4 pb-20 md:pt-6 md:pb-28 px-6 text-center">
+        <header className="pt-0 pb-16 md:pt-0 md:pb-24 px-6 text-center">
           <div className="max-w-4xl mx-auto">
             {/* Moon orb */}
-            <div className="relative inline-block mb-8 animate-fade-up">
+            <div className="relative inline-block mb-6 animate-fade-up">
               <div
                 className="w-32 h-32 md:w-40 md:h-40 rounded-full border border-lilac/30"
                 style={{
