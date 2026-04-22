@@ -188,12 +188,26 @@ export default function ClimateGauge({ illumination, sign }: Props) {
               <dt>Volatility (V)</dt>
               <dd className="text-right text-foreground">+{data.breakdown.volatility_offset}</dd>
             </dl>
-            <p className="mt-4 font-serif text-xs text-muted-foreground text-center italic">
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <span
+                className={`inline-block w-1 h-1 rounded-full ${
+                  data.source === "live"
+                    ? "bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.7)]"
+                    : "bg-amber-signal-soft"
+                }`}
+              />
+              <span className="font-display text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
+                Source: {data.source === "fallback" ? "Cached" : "Live"}
+              </span>
+            </div>
+            <p className="mt-2 font-serif text-xs text-muted-foreground text-center italic">
               {data.formula}
             </p>
-          </div>
-        </div>
-      )}
+            {data.notice && (
+              <p className="mt-2 font-serif text-xs text-amber-signal-soft text-center">
+                {data.notice}
+              </p>
+            )}
     </GlassmorphismCard>
   );
 }
