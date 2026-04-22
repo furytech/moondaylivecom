@@ -8,6 +8,7 @@ import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PageLayout from "@/components/PageLayout";
 import { useToast } from "@/hooks/use-toast";
+import { calculateMoonSign } from "@/lib/moonSign";
 
 interface PortalProps {
   defaultMode?: "login" | "signup";
@@ -22,6 +23,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
@@ -40,6 +42,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
       setError("Please fill in all fields");
       return;
     }
+    if (!isLogin && !birthday) {
+      setError("Please enter your birthday — it's needed to chart your moon sign.");
+      return;
+    }
     if (!isLogin && password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -55,7 +61,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         await signIn(email, password);
         navigate("/blueprint", { replace: true });
       } else {
-        await signUp(email, password);
+        // Calculate moon sign from birthday so we can save it on signup
+        const birthDate = new Date(`${birthday}T12:00:00`);
+        const moonSign = calculateMoonSign(birthDate);
+        await signUp(email, password, birthday, moonSign.sign);
         setSignupSuccess(true);
       }
     } catch (err: unknown) {
