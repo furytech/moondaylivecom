@@ -208,6 +208,9 @@ export default function ClimateGauge({ illumination, sign }: Props) {
                 {data.notice}
               </p>
             )}
+          </div>
+        </div>
+      )}
     </GlassmorphismCard>
   );
 }
