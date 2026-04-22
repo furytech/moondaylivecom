@@ -147,6 +147,8 @@ const Pricing = () => {
                 <span className="font-display text-4xl text-cream-muted">$0</span>
                 <span className="font-serif text-base text-cream-muted/60">/forever</span>
               </div>
+              {/* Spacer to match Sovereign's "Save X%" line so checklists align */}
+              <p className="font-serif text-sm mt-2 invisible" aria-hidden="true">placeholder</p>
               <p className="font-serif text-sm text-cream-muted/60 mt-3">
                 For curious souls beginning their lunar journey
               </p>
