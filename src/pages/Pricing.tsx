@@ -135,7 +135,7 @@ const Pricing = () => {
         </div>
 
         {/* Side-by-side plan cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-10">
+        <div className="grid md:grid-cols-2 gap-6 mb-10 pt-8">
           {/* FREE */}
           <GlassmorphismCard className="animate-fade-up stagger-1 flex flex-col">
             <div className="text-center mb-6">
