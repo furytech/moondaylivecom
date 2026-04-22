@@ -84,7 +84,7 @@ const Index = () => {
       />
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 px-6 py-4 md:px-12 border-b border-lilac/10 bg-background/70 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 md:px-12 border-b border-lilac/10 bg-background/78 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
             onClick={() => navigate("/")}
@@ -109,9 +109,9 @@ const Index = () => {
         </div>
       </nav>
 
-      <main className="relative z-10">
+      <main className="relative z-10 pt-20 md:pt-24">
         {/* Hero */}
-        <header className="py-20 md:py-28 px-6 text-center">
+        <header className="pt-14 pb-20 md:pt-20 md:pb-28 px-6 text-center">
           <div className="max-w-4xl mx-auto">
             {/* Moon orb */}
             <div className="relative inline-block mb-10 animate-fade-up">
