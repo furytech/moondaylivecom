@@ -64,7 +64,7 @@ const Pricing = () => {
       });
 
       if (fnError) throw fnError;
-      if (data?.url) window.location.href = data.url;
+      if (data?.url) window.open(data.url, "_blank");
     } catch (err: unknown) {
       console.error("Checkout error:", err);
       setError("Unable to start checkout. Please try again.");
