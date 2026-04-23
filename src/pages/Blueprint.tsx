@@ -305,7 +305,7 @@ const Blueprint = () => {
                     Your birth moon sign isn't on file yet.
                   </p>
                   <button
-                    onClick={() => navigate("/signup")}
+                    onClick={() => navigate("/account")}
                     className="inline-flex items-center gap-2 px-6 py-3 font-display text-xs tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500"
                   >
                     Complete Your Profile
