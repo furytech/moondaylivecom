@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Not logged in - redirect to portal
   if (!user) {
-    return <Navigate to="/portal" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // User exists but email not verified

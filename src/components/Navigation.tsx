@@ -72,7 +72,7 @@ const Navigation = () => {
               </button>
             ) : (
               <Link
-                to="/portal"
+                to="/login"
                 className="font-display text-sm tracking-widest uppercase px-5 py-2 art-deco-border brass-glow text-primary"
               >
                 Login
@@ -117,7 +117,7 @@ const Navigation = () => {
                 </button>
               ) : (
                 <Link
-                  to="/portal"
+                  to="/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="font-display text-sm tracking-widest uppercase text-primary py-2"
                 >

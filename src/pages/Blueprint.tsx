@@ -143,7 +143,7 @@ const Blueprint = () => {
 
   const handleOpenPricing = () => {
     if (!session) {
-      navigate("/portal");
+      navigate("/login");
       return;
     }
     setPricingModalOpen(true);
