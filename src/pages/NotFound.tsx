@@ -1,5 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 const NotFound = () => {
   const location = useLocation();
@@ -27,8 +29,9 @@ const NotFound = () => {
         ))}
       </div>
 
-      <main className="flex-1 flex flex-col items-center justify-center pt-8 md:pt-10 pb-6 px-6 relative z-10">
+      <Navigation />
 
+      <main className="flex-1 flex flex-col items-center justify-center pt-20 md:pt-24 pb-6 px-6 relative z-20">
         <h1 className="font-display text-6xl md:text-7xl text-gold-gradient tracking-wider mb-4">
           404
         </h1>
@@ -43,14 +46,7 @@ const NotFound = () => {
         </button>
       </main>
 
-      {/* Footer accent */}
-      <footer className="py-5 border-t border-primary/10">
-        <div className="flex justify-center items-center gap-3">
-          <div className="w-10 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <div className="w-1.5 h-1.5 rotate-45 bg-primary/30" />
-          <div className="w-10 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

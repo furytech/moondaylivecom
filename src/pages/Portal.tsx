@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Moon, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
+import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
 

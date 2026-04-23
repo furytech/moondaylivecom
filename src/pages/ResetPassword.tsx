@@ -252,7 +252,9 @@ const ResetPassword = () => {
         ))}
       </div>
 
-      <main className="flex-1 flex flex-col items-center pt-8 md:pt-10 pb-6 px-6 relative z-10">
+      <Navigation />
+
+      <main className="flex-1 flex flex-col items-center pt-20 md:pt-24 pb-6 px-6 relative z-20">
         <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
           {/* Header */}
           <div className="text-center mb-10">
