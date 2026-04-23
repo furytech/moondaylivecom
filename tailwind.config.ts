@@ -141,7 +141,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "float": "float 6s ease-in-out infinite",
         "glow": "glow 3s ease-in-out infinite",
-        "twinkle": "twinkle 14s ease-in-out infinite",
+        "twinkle": "twinkle 3s ease-in-out infinite",
         "nebula-drift": "nebula-drift 20s ease-in-out infinite",
         "star-pulse": "star-pulse 3s ease-in-out infinite",
         "amber-pulse": "amber-pulse 2.8s ease-in-out infinite",
