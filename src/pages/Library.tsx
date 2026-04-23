@@ -40,7 +40,7 @@ const Library = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-16 md:pt-[4.5rem] pb-12 px-4 md:px-8 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-20 md:pt-24 pb-12 px-4 md:px-8 relative z-20">
         <div className="max-w-6xl mx-auto w-full">
           {/* Header */}
           <div className="text-center mb-14 animate-fade-up">
