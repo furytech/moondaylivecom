@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import moonLogo from "@/assets/moon-logo-new.png";
 import { Crown, Sparkles, Brain, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
@@ -55,22 +54,6 @@ const SubscriptionSuccess = () => {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-20">
         <div className="max-w-2xl mx-auto w-full text-center">
-          {/* Animated logo */}
-          <div className="mb-10 animate-fade-up">
-            <div className="relative inline-block">
-              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden mx-auto logo-halo animate-float">
-                <img
-                  src={moonLogo}
-                  alt="Moonday"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Radiating glow ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse scale-125" />
-              <div className="absolute inset-0 rounded-full border border-primary/10 animate-pulse scale-150" style={{ animationDelay: "0.5s" }} />
-            </div>
-          </div>
-
           {/* Crown badge */}
           <div className="flex justify-center mb-6 animate-fade-up stagger-1">
             <span className="inline-flex items-center gap-2 px-5 py-2.5 glass-card rounded-full shadow-glow">
@@ -82,7 +65,7 @@ const SubscriptionSuccess = () => {
           </div>
 
           {/* Main heading */}
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl text-gold-gradient tracking-wider mb-6 animate-fade-up stagger-2">
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl text-gold-gradient tracking-wider mb-6 animate-fade-up stagger-2 leading-[1.2] pb-2">
             Welcome, Sovereign.
           </h1>
 
