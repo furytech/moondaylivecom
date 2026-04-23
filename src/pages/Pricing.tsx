@@ -210,8 +210,14 @@ const Pricing = () => {
                   /{PRICES[billingInterval].interval}
                 </span>
               </div>
-              {billingInterval === "yearly" && (
-                <p className="font-serif text-sm text-primary/80 mt-2">{PRICES.yearly.savings}</p>
+              {billingInterval === "yearly" ? (
+                <p className="font-serif text-sm text-primary/80 mt-2">
+                  Just $1.66/mo · billed yearly
+                </p>
+              ) : (
+                <p className="font-serif text-sm text-cream-muted/60 mt-2">
+                  Billed monthly · cancel anytime
+                </p>
               )}
               <p className="font-serif text-sm text-cream-muted/70 mt-3">
                 Your fully personalized lunar sanctuary
