@@ -12,7 +12,7 @@ import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PricingModal from "@/components/PricingModal";
 import MoonSignModal from "@/components/MoonSignModal";
-import MoonSignLookup from "@/components/MoonSignLookup";
+
 import DailyForecast from "@/components/DailyForecast";
 import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
@@ -300,15 +300,16 @@ const Blueprint = () => {
                   </p>
                 </div>
               ) : (
-                <div className="py-4">
-                  <p className="font-serif text-base text-cream-muted text-center mb-6">
-                    Enter your birth details to discover your moon sign
+                <div className="py-8 text-center">
+                  <p className="font-serif text-base text-cream-muted mb-6">
+                    Your birth moon sign isn't on file yet.
                   </p>
-                  <MoonSignLookup
-                    onMoonSignCalculated={handleMoonSignCalculated}
-                    isPro={isPro}
-                    onUpgradeClick={handleOpenPricing}
-                  />
+                  <button
+                    onClick={() => navigate("/signup")}
+                    className="inline-flex items-center gap-2 px-6 py-3 font-display text-xs tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500"
+                  >
+                    Complete Your Profile
+                  </button>
                 </div>
               )}
 

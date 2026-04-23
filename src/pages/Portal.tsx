@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Moon, Sparkles } from "lucide-react";
@@ -16,7 +16,12 @@ interface PortalProps {
 const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
+
+  // Where to send the user after successful auth (defaults to /blueprint)
+  const fromParam = searchParams.get("from");
+  const redirectTo = fromParam && fromParam.startsWith("/") ? fromParam : "/blueprint";
 
   const [isLogin, setIsLogin] = useState(defaultMode === "login");
   const [email, setEmail] = useState("");
@@ -34,9 +39,9 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
   useEffect(() => {
     if (user && !authLoading) {
-      navigate("/blueprint", { replace: true });
+      navigate(redirectTo, { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, redirectTo]);
 
   // Stable starfield (matches landing)
   const stars = useMemo(
@@ -77,7 +82,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     try {
       if (isLogin) {
         await signIn(email, password);
-        navigate("/blueprint", { replace: true });
+        navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
         const moonSign = calculateMoonSign(birthDate);
