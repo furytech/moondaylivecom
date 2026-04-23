@@ -1,12 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Moon, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
-import GlassmorphismCard from "@/components/GlassmorphismCard";
-import PageLayout from "@/components/PageLayout";
+import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
 
@@ -28,11 +26,30 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
 
+  // Sync mode if route prop changes (e.g. /signup -> /login)
+  useEffect(() => {
+    setIsLogin(defaultMode === "login");
+  }, [defaultMode]);
+
   useEffect(() => {
     if (user && !authLoading) {
       navigate("/blueprint", { replace: true });
     }
   }, [user, authLoading, navigate]);
+
+  // Stable starfield (matches landing)
+  const stars = useMemo(
+    () =>
+      [...Array(40)].map((_, i) => ({
+        id: i,
+        top: `${(i * 13 + 7) % 100}%`,
+        left: `${(i * 29 + 11) % 100}%`,
+        delay: `${(i * 0.11) % 4}s`,
+        size: i % 7 === 0 ? 2 : 1,
+        opacity: 0.25 + ((i * 0.09) % 0.5),
+      })),
+    []
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +78,6 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         await signIn(email, password);
         navigate("/blueprint", { replace: true });
       } else {
-        // Calculate moon sign from birthday so we can save it on signup
         const birthDate = new Date(`${birthday}T12:00:00`);
         const moonSign = calculateMoonSign(birthDate);
         await signUp(email, password, birthday, moonSign.sign);
@@ -89,163 +105,272 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     }
   };
 
+  const Starfield = () => (
+    <>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {stars.map((s) => (
+          <div
+            key={s.id}
+            className="absolute rounded-full bg-gold-pale animate-twinkle"
+            style={{
+              top: s.top,
+              left: s.left,
+              width: `${s.size}px`,
+              height: `${s.size}px`,
+              opacity: s.opacity,
+              animationDelay: s.delay,
+            }}
+          />
+        ))}
+      </div>
+      <div
+        className="fixed top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full pointer-events-none z-0"
+        style={{
+          background:
+            "radial-gradient(circle, hsl(var(--lilac) / 0.18) 0%, hsl(var(--lilac) / 0.06) 35%, transparent 70%)",
+        }}
+      />
+    </>
+  );
+
   if (signupSuccess) {
     return (
-      <PageLayout showLogo={false}>
-        <GlassmorphismCard className="max-w-md w-full mt-4 animate-fade-up stagger-1">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full border border-primary/30 flex items-center justify-center">
-              <span className="text-3xl">✨</span>
+      <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
+        <Starfield />
+        <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-16">
+          <div className="max-w-lg w-full text-center animate-fade-up">
+            <div className="relative inline-block mb-8">
+              <div
+                className="w-24 h-24 md:w-28 md:h-28 rounded-full border border-lilac/30"
+                style={{
+                  background:
+                    "radial-gradient(circle at 35% 30%, hsl(var(--cream) / 0.85), hsl(var(--lilac) / 0.4) 45%, hsl(var(--navy-dark)) 80%)",
+                  boxShadow:
+                    "0 0 60px -10px hsl(var(--lilac) / 0.6), inset -10px -15px 40px hsl(var(--navy-deep) / 0.8)",
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-9 h-9 text-cream/80" strokeWidth={1.2} />
+              </div>
             </div>
-            <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-4">
-              Verify Your Email
-            </h1>
-            <p className="font-serif text-lg text-cream-muted/80 mb-6 leading-relaxed">
-              A celestial confirmation link has been sent to your inbox. Please verify your email to unlock your moon sign.
+            <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-4">
+              Check Your Inbox
             </p>
-            <p className="font-serif text-base text-primary mb-6">{email}</p>
-            <p className="font-serif text-sm text-cream-muted/50">
-              Check your spam folder if you don't see it within a few minutes.
+            <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-6">
+              Verify your email
+            </h1>
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed mb-2">
+              A celestial confirmation link has been sent to
+            </p>
+            <p className="text-lilac font-medium mb-8">{email}</p>
+            <p className="text-sm text-muted-foreground/70 mb-10">
+              Check your spam folder if it doesn't arrive within a few minutes.
             </p>
             <button
               onClick={() => {
                 setSignupSuccess(false);
                 setIsLogin(true);
+                navigate("/login");
               }}
-              className="mt-8 font-serif text-base text-cream-muted/70 hover:text-primary transition-colors"
+              className="text-sm tracking-[0.2em] uppercase text-foreground/70 hover:text-lilac transition-colors duration-300"
             >
               ← Back to sign in
             </button>
           </div>
-        </GlassmorphismCard>
-      </PageLayout>
+        </main>
+        <Footer />
+      </div>
     );
   }
 
   return (
-    <PageLayout showLogo={false}>
-      {/* Back link, in-flow (no fixed header) */}
-      <div className="w-full max-w-md mb-4 self-center">
-        <button
-          onClick={() => navigate("/")}
-          className="font-serif text-sm text-cream-muted/60 hover:text-primary transition-colors"
-        >
-          ← Back
-        </button>
-      </div>
+    <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
+      <Starfield />
 
-      <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
-        <div className="text-center mb-8">
-          <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
-            The Ritual Invitation
-          </p>
-          <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-2">
-            {isLogin ? "Welcome Back" : "Join the Cosmos"}
-          </h1>
-          <p className="font-serif text-base text-cream-muted/70">
-            {isLogin ? "Enter your celestial credentials" : "Begin your lunar journey"}
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
-          />
-          {!isLogin && (
-            <Input
-              type="password"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
-            />
-          )}
-          {!isLogin && (
-            <div className="space-y-2">
-              <label htmlFor="birthday" className="block font-serif text-xs text-primary/70 uppercase tracking-[0.2em] pl-1">
-                Birthday
-              </label>
-              <Input
-                id="birthday"
-                type="date"
-                value={birthday}
-                onChange={(e) => setBirthday(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
-                min="1900-01-01"
-                className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl [color-scheme:dark]"
-              />
-              <p className="font-serif text-xs text-cream-muted/50 pl-1">
-                Used to chart your moon sign — saved to your profile.
-              </p>
-            </div>
-          )}
-          {error && (
-            <p className="text-destructive text-base font-serif text-center py-2">{error}</p>
-          )}
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
-          >
-            {loading ? <MoonLoader size="sm" /> : isLogin ? "Enter the Portal" : "Accept the Invitation"}
-          </Button>
-        </form>
-
-        {isLogin && (
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={async () => {
-                if (!email) {
-                  setError("Please enter your email address first");
-                  return;
-                }
-                try {
-                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: `${window.location.origin}/auth/reset-password`,
-                  });
-                  if (error) throw error;
-                  toast({
-                    title: "Reset Link Sent",
-                    description: "Check your email for a password reset link.",
-                  });
-                } catch (err: unknown) {
-                  const error = err as { message?: string };
-                  setError(error.message || "Failed to send reset email");
-                }
-              }}
-              className="font-serif text-sm text-primary/70 hover:text-primary transition-colors underline-offset-4 hover:underline"
-            >
-              Forgot Password?
-            </button>
-          </div>
-        )}
-
-        <div className="mt-6 text-center">
+      {/* Nav (matches landing) */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 md:px-12 border-b border-lilac/10 bg-background/78 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
-            type="button"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError("");
-            }}
-            className="font-serif text-base text-cream-muted/70 hover:text-primary transition-colors"
+            onClick={() => navigate("/")}
+            className="font-display text-xl tracking-[0.25em] text-foreground/90 uppercase"
           >
-            {isLogin ? "New here? Accept the invitation" : "Already initiated? Sign in"}
+            Moonday<span className="text-lilac">.</span>Live
+          </button>
+          <button
+            onClick={() => navigate("/")}
+            className="text-xs md:text-sm tracking-[0.2em] uppercase text-foreground/60 hover:text-lilac transition-colors duration-300"
+          >
+            ← Back
           </button>
         </div>
-      </GlassmorphismCard>
-    </PageLayout>
+      </nav>
+
+      <main className="relative z-10 flex-1 flex items-center justify-center px-6 pt-28 pb-16">
+        <div className="max-w-md w-full">
+          {/* Header */}
+          <div className="text-center mb-10 animate-fade-up">
+            <div className="relative inline-block mb-6">
+              <div
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-lilac/30"
+                style={{
+                  background:
+                    "radial-gradient(circle at 35% 30%, hsl(var(--cream) / 0.85), hsl(var(--lilac) / 0.4) 45%, hsl(var(--navy-dark)) 80%)",
+                  boxShadow:
+                    "0 0 60px -10px hsl(var(--lilac) / 0.6), inset -10px -15px 40px hsl(var(--navy-deep) / 0.8)",
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Moon className="w-8 h-8 text-cream/80" strokeWidth={1.2} />
+              </div>
+            </div>
+            <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-4">
+              {isLogin ? "Welcome Back" : "Begin the Journey"}
+            </p>
+            <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-3">
+              {isLogin ? "Sign in to your blueprint" : "Find your moon sign"}
+            </h1>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              {isLogin
+                ? "Step back into rhythm with the sky."
+                : "Three details. A lifetime of clarity."}
+            </p>
+          </div>
+
+          {/* Form card */}
+          <div className="p-8 md:p-10 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)] animate-fade-up stagger-1">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/50 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/50 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                />
+              </div>
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
+                    Confirm Password
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/50 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                  />
+                </div>
+              )}
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label htmlFor="birthday" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
+                    Birthday
+                  </label>
+                  <input
+                    id="birthday"
+                    type="date"
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    min="1900-01-01"
+                    className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300 [color-scheme:dark]"
+                  />
+                  <p className="text-xs text-muted-foreground/70 pl-1 pt-1">
+                    Used to chart your natal moon sign — saved to your profile.
+                  </p>
+                </div>
+              )}
+
+              {error && (
+                <p className="text-destructive text-sm text-center py-1">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? <MoonLoader size="sm" /> : isLogin ? "Sign In" : "Find My Moon Sign"}
+              </button>
+            </form>
+
+            {isLogin && (
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      setError("Please enter your email address first");
+                      return;
+                    }
+                    try {
+                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: `${window.location.origin}/auth/reset-password`,
+                      });
+                      if (error) throw error;
+                      toast({
+                        title: "Reset Link Sent",
+                        description: "Check your email for a password reset link.",
+                      });
+                    } catch (err: unknown) {
+                      const error = err as { message?: string };
+                      setError(error.message || "Failed to send reset email");
+                    }
+                  }}
+                  className="text-sm text-muted-foreground hover:text-lilac transition-colors duration-300"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Toggle */}
+          <div className="mt-8 text-center animate-fade-up stagger-2">
+            <button
+              type="button"
+              onClick={() => {
+                const next = !isLogin;
+                setIsLogin(next);
+                setError("");
+                navigate(next ? "/login" : "/signup", { replace: true });
+              }}
+              className="text-sm text-muted-foreground hover:text-lilac transition-colors duration-300"
+            >
+              {isLogin ? (
+                <>New to Moonday? <span className="text-lilac">Find your moon sign →</span></>
+              ) : (
+                <>Already initiated? <span className="text-lilac">Sign in →</span></>
+              )}
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
   );
 };
 
