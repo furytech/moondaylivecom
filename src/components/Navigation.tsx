@@ -53,9 +53,10 @@ const Navigation = () => {
               <Link
                 key={link.path}
                 to={link.path}
+                onClick={(e) => handleNavClick(e, link)}
                 className={`font-display text-sm tracking-widest uppercase elegant-hover ${
-                  isActive(link.path) 
-                    ? "text-primary" 
+                  isActive(link.path)
+                    ? "text-primary"
                     : "text-foreground/70"
                 }`}
               >
@@ -97,10 +98,13 @@ const Navigation = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    handleNavClick(e, link);
+                    setMobileMenuOpen(false);
+                  }}
                   className={`font-display text-sm tracking-widest uppercase py-2 ${
-                    isActive(link.path) 
-                      ? "text-primary" 
+                    isActive(link.path)
+                      ? "text-primary"
                       : "text-foreground/70"
                   }`}
                 >
