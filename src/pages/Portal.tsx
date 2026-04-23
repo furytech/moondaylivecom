@@ -39,9 +39,9 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
   useEffect(() => {
     if (user && !authLoading) {
-      navigate("/blueprint", { replace: true });
+      navigate(redirectTo, { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, redirectTo]);
 
   // Stable starfield (matches landing)
   const stars = useMemo(
@@ -82,7 +82,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     try {
       if (isLogin) {
         await signIn(email, password);
-        navigate("/blueprint", { replace: true });
+        navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
         const moonSign = calculateMoonSign(birthDate);
