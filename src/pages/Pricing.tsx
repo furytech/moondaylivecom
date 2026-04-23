@@ -49,7 +49,7 @@ const Pricing = () => {
 
   const handleCheckout = async () => {
     if (!user || !session) {
-      navigate("/portal");
+      navigate("/login");
       return;
     }
 
@@ -184,7 +184,7 @@ const Pricing = () => {
             </ul>
 
             <button
-              onClick={() => navigate(user ? "/blueprint" : "/portal")}
+              onClick={() => navigate(user ? "/blueprint" : "/login")}
               className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3"
             >
               {user ? "Continue Free" : "Start Free"}

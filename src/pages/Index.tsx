@@ -94,7 +94,7 @@ const Index = () => {
           </button>
           <div className="flex items-center gap-3 md:gap-5">
             <button
-              onClick={() => navigate("/portal")}
+              onClick={() => navigate("/login")}
               className="text-xs md:text-sm tracking-[0.2em] uppercase text-foreground/60 hover:text-lilac transition-colors duration-300"
             >
               Sign In
@@ -153,7 +153,7 @@ const Index = () => {
                 Begin Your Lunar Journey
               </button>
               <button
-                onClick={() => navigate("/portal")}
+                onClick={() => navigate("/login")}
                 className="px-10 py-4 border border-lilac/30 hover:border-lilac/60 text-foreground/80 hover:text-foreground text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300"
               >
                 Sign In

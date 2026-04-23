@@ -171,7 +171,7 @@ const ResetPassword = () => {
         description: "Your new credentials are active. Please sign in.",
       });
 
-      setTimeout(() => navigate("/portal", { replace: true }), 2000);
+      setTimeout(() => navigate("/login", { replace: true }), 2000);
     } catch (err: unknown) {
       const error = err as { message?: string };
       toast({
@@ -223,7 +223,7 @@ const ResetPassword = () => {
               This page is only accessible via a password reset email. Please request a new link.
             </p>
             <Button
-              onClick={() => navigate("/portal")}
+              onClick={() => navigate("/login")}
               className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
             >
               Return to Portal
