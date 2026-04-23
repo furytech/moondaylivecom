@@ -92,7 +92,7 @@ const Pricing = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-16 md:pt-[4.5rem] pb-6 px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-20 md:pt-24 pb-6 px-6 relative z-20">
         <div className="w-full max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8 animate-fade-up pt-6">

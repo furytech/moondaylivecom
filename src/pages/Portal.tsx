@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Moon, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
+import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
 
@@ -187,25 +188,9 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
       <Starfield />
 
-      {/* Nav (matches landing) */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 md:px-12 border-b border-lilac/10 bg-background/78 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <button
-            onClick={() => navigate("/")}
-            className="font-display text-xl tracking-[0.25em] text-foreground/90 uppercase"
-          >
-            Moonday<span className="text-lilac">.</span>Live
-          </button>
-          <button
-            onClick={() => navigate("/")}
-            className="text-xs md:text-sm tracking-[0.2em] uppercase text-foreground/60 hover:text-lilac transition-colors duration-300"
-          >
-            ← Back
-          </button>
-        </div>
-      </nav>
+      <Navigation />
 
-      <main className="relative z-10 flex-1 flex items-center justify-center px-6 pt-28 pb-16">
+      <main className="relative z-10 flex-1 flex items-center justify-center px-6 pt-20 md:pt-24 pb-16">
         <div className="max-w-md w-full">
           {/* Header */}
           <div className="text-center mb-10 animate-fade-up">
