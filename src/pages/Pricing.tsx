@@ -130,15 +130,15 @@ const Pricing = () => {
             </button>
             <button
               onClick={() => setBillingInterval("yearly")}
-              className={`px-6 py-2.5 font-display text-xs tracking-[0.15em] uppercase transition-all duration-400 rounded-full relative ${
+              className={`px-6 py-2.5 font-display text-xs tracking-[0.15em] uppercase transition-all duration-400 rounded-full inline-flex items-center gap-2 ${
                 billingInterval === "yearly"
                   ? "bg-primary/20 text-primary"
                   : "text-cream-muted/60 hover:text-primary"
               }`}
             >
               Yearly
-              <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-display rounded-full tracking-wider">
-                Best
+              <span className="px-2 py-0.5 bg-primary/90 text-primary-foreground text-[10px] font-display rounded-full tracking-wider">
+                Save 42%
               </span>
             </button>
           </div>
