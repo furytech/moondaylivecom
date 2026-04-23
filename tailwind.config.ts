@@ -118,8 +118,8 @@ export default {
           "50%": { opacity: "1" },
         },
         "twinkle": {
-          "0%, 100%": { opacity: "0.3", transform: "scale(1)" },
-          "50%": { opacity: "1", transform: "scale(1.2)" },
+          "0%, 100%": { opacity: "0.28", transform: "scale(1)" },
+          "50%": { opacity: "0.5", transform: "scale(1.04)" },
         },
         "nebula-drift": {
           "0%": { transform: "translate(0, 0) scale(1)" },
@@ -141,7 +141,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "float": "float 6s ease-in-out infinite",
         "glow": "glow 3s ease-in-out infinite",
-        "twinkle": "twinkle 2s ease-in-out infinite",
+        "twinkle": "twinkle 14s ease-in-out infinite",
         "nebula-drift": "nebula-drift 20s ease-in-out infinite",
         "star-pulse": "star-pulse 3s ease-in-out infinite",
         "amber-pulse": "amber-pulse 2.8s ease-in-out infinite",
