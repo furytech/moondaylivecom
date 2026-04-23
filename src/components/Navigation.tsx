@@ -18,16 +18,20 @@ const Navigation = () => {
     setMobileMenuOpen(false);
   };
 
-  const navLinks = user
-    ? [
-        { path: "/blueprint", label: "Blueprint" },
-        { path: "/library", label: "Library" },
-        { path: "/pricing", label: "Pricing" },
-      ]
-    : [
-        { path: "/library", label: "Library" },
-        { path: "/pricing", label: "Pricing" },
-      ];
+  // Same menu for everyone — protected items redirect to /login when unauth
+  const navLinks = [
+    { path: "/blueprint", label: "Blueprint", protected: true },
+    { path: "/library", label: "Library", protected: false },
+    { path: "/pricing", label: "Pricing", protected: false },
+  ];
+
+  const handleNavClick = (e: React.MouseEvent, link: { path: string; protected: boolean }) => {
+    if (link.protected && !user) {
+      e.preventDefault();
+      navigate(`/login?from=${encodeURIComponent(link.path)}`);
+      setMobileMenuOpen(false);
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/20">
