@@ -23,6 +23,7 @@ const Navigation = () => {
     { path: "/blueprint", label: "Blueprint", protected: true },
     { path: "/library", label: "Library", protected: false },
     { path: "/pricing", label: "Pricing", protected: false },
+    { path: "/account", label: "Account", protected: true },
   ];
 
   const handleNavClick = (e: React.MouseEvent, link: { path: string; protected: boolean }) => {
