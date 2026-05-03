@@ -153,10 +153,10 @@ const Account = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-20 md:pt-24 pb-6 px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-[68px] pb-6 px-6 relative z-20">
         <div className="max-w-2xl mx-auto w-full">
-          <div className="text-center mb-12 animate-fade-up">
-            <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-wider mb-4 leading-[1.2] pb-2">
+          <div className="text-center mb-6 animate-fade-up">
+            <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-2 leading-[1.2] pb-1">
               Your Account
             </h1>
             <p className="font-serif text-lg text-cream-muted">

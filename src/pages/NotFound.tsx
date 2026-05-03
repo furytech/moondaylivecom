@@ -31,11 +31,11 @@ const NotFound = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center justify-center pt-20 md:pt-24 pb-6 px-6 relative z-20">
-        <h1 className="font-display text-6xl md:text-7xl text-gold-gradient tracking-wider mb-4">
+      <main className="flex-1 flex flex-col items-center justify-start pt-[68px] pb-6 px-6 relative z-20">
+        <h1 className="font-display text-5xl md:text-6xl text-gold-gradient tracking-wider mb-3">
           404
         </h1>
-        <p className="font-serif text-xl text-cream-muted mb-8">
+        <p className="font-serif text-lg text-cream-muted mb-6">
           This celestial path does not exist
         </p>
         <button

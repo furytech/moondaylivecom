@@ -44,9 +44,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           ))}
         </div>
 
-        <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+        <main className="flex-1 flex flex-col items-center justify-start pt-[68px] pb-6 px-6 relative z-10">
           {/* Moon Logo */}
-          <div className="animate-float mb-6">
+          <div className="animate-float mb-4">
             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-background logo-halo">
               <img
                 src={moonLogo}
