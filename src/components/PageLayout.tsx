@@ -53,7 +53,7 @@ const PageLayout = ({
 
       <main
         className={`flex-1 flex flex-col items-center ${
-          showNav ? "pt-[72px] md:pt-20" : "pt-4"
+          showNav ? "pt-[68px]" : "pt-4"
         } pb-6 px-6 relative z-20 ${className}`}
       >
         {children}
