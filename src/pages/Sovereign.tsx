@@ -259,16 +259,16 @@ export default function Sovereign() {
   return (
     <div className="sov-shell min-h-screen">
       <Navigation />
-      <main className={`pt-[72px] md:pt-20 pb-20 px-6 ${isVoid ? "sov-void" : ""}`}>
+      <main className={`pt-[68px] pb-20 px-6 ${isVoid ? "sov-void" : ""}`}>
         <div className="max-w-6xl mx-auto">
-          <header className="text-center mb-6">
-            <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-3">
+          <header className="text-center mb-4">
+            <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
               Sovereign · Awareness Dashboard
             </div>
-            <h1 className="font-display text-4xl md:text-5xl tracking-tight text-[hsl(var(--sov-ivory))]">
+            <h1 className="font-display text-3xl md:text-4xl tracking-tight text-[hsl(var(--sov-ivory))]">
               Present-Moment Geometry
             </h1>
-            <p className="mt-3 text-sm text-[hsl(var(--sov-ivory)/0.55)] max-w-xl mx-auto">
+            <p className="mt-2 text-sm text-[hsl(var(--sov-ivory)/0.55)] max-w-xl mx-auto">
               Live geocentric positions. Whole Sign houses anchored to your natal Moon (Chandra Lagna). Aspects classified by kinetic phase.
             </p>
           </header>
