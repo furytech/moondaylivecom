@@ -284,21 +284,12 @@ export default function Sovereign() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
               <TriadCard triad={triad} />
               <ShaktiCard triad={triad} />
               {audit && <AuditCard audit={audit} />}
+              <KineticCard aspects={aspects} />
               <ShadowCard loops={loops} />
-              <div className="md:col-span-2 sov-card">
-                <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
-                  Kinetic Aspect Field
-                </div>
-                <div className="space-y-3">
-                  {aspects.slice(0, 8).map((a, i) => (
-                    <AspectRow key={i} a={a} />
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </div>
