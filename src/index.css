@@ -396,38 +396,66 @@
   background: linear-gradient(180deg, hsl(var(--sov-obsidian-2) / 0.85), hsl(var(--sov-obsidian) / 0.85));
   border: 1px solid hsl(var(--sov-champagne) / 0.18);
   border-radius: 14px;
-  padding: 1.75rem 1.5rem 1.5rem;
+  padding: 2rem 1.875rem;
   backdrop-filter: blur(6px);
-  text-align: center;
+  text-align: left;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  min-height: 420px;
-  height: 100%;
+  height: auto;
 }
-.sov-card--wide { min-height: 420px; }
+.sov-card--wide { height: auto; }
+
+/* Secondary data label/value pair sitting above the hero insight */
+.sov-data {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid hsl(var(--sov-champagne) / 0.15);
+}
+.sov-data__label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: hsl(var(--sov-champagne));
+}
+.sov-data__value {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: hsl(var(--sov-ivory) / 0.7);
+  letter-spacing: 0.02em;
+}
+
+/* Hero insight — the dominant, actionable statement */
 .sov-statement {
-  margin-top: auto;
-  padding-top: 1.25rem;
-  border-top: 1px solid hsl(var(--sov-champagne) / 0.15);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: left;
   hyphens: auto;
-  font-size: 0.8125rem;
-  line-height: 1.7;
-  color: hsl(var(--sov-ivory) / 0.78);
-  font-style: italic;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: hsl(var(--sov-ivory));
+  font-style: normal;
+  letter-spacing: -0.005em;
+}
+@media (min-width: 768px) {
+  .sov-statement { font-size: 1.375rem; line-height: 1.45; }
 }
 .sov-statement strong {
   display: block;
-  font-style: normal;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: hsl(var(--sov-champagne));
-  margin-bottom: 0.5rem;
-  text-align: center;
+  margin-bottom: 0.75rem;
+  text-align: left;
 }
 .sov-card::after {
   content: "";
