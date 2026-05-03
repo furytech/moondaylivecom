@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Portal from "./pages/Portal";
 import Pricing from "./pages/Pricing";
 import Blueprint from "./pages/Blueprint";
+import Sovereign from "./pages/Sovereign";
 import Library from "./pages/Library";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -38,6 +39,11 @@ const App = () => (
             <Route path="/blueprint" element={
               <ProtectedRoute>
                 <Blueprint />
+              </ProtectedRoute>
+            } />
+            <Route path="/sovereign" element={
+              <ProtectedRoute>
+                <Sovereign />
               </ProtectedRoute>
             } />
             <Route path="/library" element={<Library />} />
