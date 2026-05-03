@@ -63,15 +63,34 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
         </p>
       </div>
 
-      {/* Crystals & Timing */}
-      <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-primary/10 mb-8">
-        <div className="text-center">
-          <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">Crystals</p>
-          <p className="font-serif text-lg text-cream-muted">{ritual.crystals.join(" · ")}</p>
+      {/* Action Tiles: Timing + Practice (uniform grid) */}
+      <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-primary/10 mb-6 auto-rows-fr">
+        {/* Timing — top-left */}
+        <div className="sov-card sov-card--wide rounded-xl p-6 flex flex-col text-center">
+          <p className="font-display text-xs uppercase tracking-widest mb-3" style={{ color: "hsl(var(--sov-champagne))" }}>Timing</p>
+          <p className="font-serif text-lg" style={{ color: "hsl(var(--sov-ivory))" }}>{ritual.timing}</p>
+          <p className="sov-statement font-serif text-sm mt-auto pt-4" style={{ textAlign: "justify", textJustify: "inter-word" }}>
+            <strong style={{ color: "hsl(var(--sov-champagne))" }}>The Window of Opportunity:</strong> These specific hours represent the peak saturation of your natal lunar frequency. Act within this window.
+          </p>
         </div>
-        <div className="text-center">
-          <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">Timing</p>
-          <p className="font-serif text-lg text-cream-muted">{ritual.timing}</p>
+        {/* Practice — top-right */}
+        <div className="sov-card sov-card--wide rounded-xl p-6 flex flex-col text-center">
+          <p className="font-display text-xs uppercase tracking-widest mb-3" style={{ color: "hsl(var(--sov-champagne))" }}>Practice</p>
+          <p className="font-serif text-base" style={{ color: "hsl(var(--sov-ivory))" }}>{ritual.practice}</p>
+          <p className="sov-statement font-serif text-sm mt-auto pt-4" style={{ textAlign: "justify", textJustify: "inter-word" }}>
+            <strong style={{ color: "hsl(var(--sov-champagne))" }}>Daily Alignment:</strong> Use this physical exercise to ground your birth moon's energy into your body.
+          </p>
+        </div>
+      </div>
+
+      {/* Secondary Row: Crystals */}
+      <div className="grid md:grid-cols-1 gap-6 mb-8 auto-rows-fr">
+        <div className="sov-card sov-card--wide rounded-xl p-6 flex flex-col text-center">
+          <p className="font-display text-xs uppercase tracking-widest mb-3" style={{ color: "hsl(var(--sov-champagne))" }}>Crystals</p>
+          <p className="font-serif text-lg" style={{ color: "hsl(var(--sov-ivory))" }}>{ritual.crystals.join(" · ")}</p>
+          <p className="sov-statement font-serif text-sm mt-auto pt-4" style={{ textAlign: "justify", textJustify: "inter-word" }}>
+            <strong style={{ color: "hsl(var(--sov-champagne))" }}>Environmental Resonance:</strong> These stones act as a supportive vibration for your current transit.
+          </p>
         </div>
       </div>
 
