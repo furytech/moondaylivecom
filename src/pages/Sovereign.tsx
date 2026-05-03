@@ -67,23 +67,43 @@ function AspectRow({ a }: { a: KineticAspect }) {
 
 function TriadCard({ triad }: { triad: TriadMoon }) {
   const rows = [
-    { label: "Tropical",   sub: "Daily climate",          pos: triad.tropical.formatted },
-    { label: "Sidereal",   sub: `Nakshatra · ${triad.sidereal.nakshatra.name} · Pada ${triad.sidereal.nakshatra.pada}`, pos: triad.sidereal.formatted },
-    { label: "Draconic",   sub: "Soul vector (Moon − True Node)", pos: triad.draconic.formatted },
+    {
+      label: "Tropical",
+      sub: "Daily climate",
+      pos: triad.tropical.formatted,
+      statement: { title: "The Persona", body: "Navigating the Collective Weather. Action: Notice how social interactions are flavored by this sign today." },
+    },
+    {
+      label: "Sidereal",
+      sub: `Nakshatra · ${triad.sidereal.nakshatra.name} · Pada ${triad.sidereal.nakshatra.pada}`,
+      pos: triad.sidereal.formatted,
+      statement: { title: "The Wiring", body: "The Primal Impulse. Inquiry: Are your actions aligned with your root power, or are you forcing a pace?" },
+    },
+    {
+      label: "Draconic",
+      sub: "Soul vector (Moon − True Node)",
+      pos: triad.draconic.formatted,
+      statement: { title: "The Soul", body: "The Hidden Blueprint. Insight: Listen for the deep pull of your soul through the daily noise." },
+    },
   ];
   return (
     <div className="sov-card">
       <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
         Triad Lunar Position
       </div>
-      <div className="space-y-5">
+      <div className="space-y-4">
         {rows.map((r) => (
-          <div key={r.label} className="flex items-baseline justify-between border-b border-[hsl(var(--sov-champagne)/0.15)] pb-3 last:border-0">
-            <div className="text-left">
-              <div className="font-display text-sm tracking-[0.15em] uppercase">{r.label}</div>
-              <div className="text-xs text-[hsl(var(--sov-ivory)/0.55)]">{r.sub}</div>
+          <div key={r.label} className="border-b border-[hsl(var(--sov-champagne)/0.15)] pb-3 last:border-0">
+            <div className="flex items-baseline justify-between">
+              <div className="text-left">
+                <div className="font-display text-sm tracking-[0.15em] uppercase">{r.label}</div>
+                <div className="text-xs text-[hsl(var(--sov-ivory)/0.55)]">{r.sub}</div>
+              </div>
+              <div className="font-display text-lg text-[hsl(var(--sov-ivory))] tabular-nums">{r.pos}</div>
             </div>
-            <div className="font-display text-lg text-[hsl(var(--sov-ivory))] tabular-nums">{r.pos}</div>
+            <p className="mt-2 text-[11px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
+              <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">{r.statement.title}.</span> {r.statement.body}
+            </p>
           </div>
         ))}
       </div>
