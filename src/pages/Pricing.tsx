@@ -92,14 +92,14 @@ const Pricing = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-20 md:pt-24 pb-6 px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-[68px] pb-6 px-6 relative z-20">
         <div className="w-full max-w-5xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8 animate-fade-up pt-6">
+          <div className="text-center mb-6 animate-fade-up">
             <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-2">
               Choose Your Path
           </p>
-          <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-[0.06em] mb-3">
+          <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-2">
             Pick a plan to unlock your moon
           </h1>
           <p className="font-serif text-lg text-cream-muted/70 max-w-2xl mx-auto">
