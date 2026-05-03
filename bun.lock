@@ -37,6 +37,7 @@
         "@supabase/supabase-js": "^2.93.3",
         "@tanstack/react-query": "^5.83.0",
         "astronomy-bundle": "^7.7.7",
+        "astronomy-engine": "^2.1.19",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -615,6 +616,8 @@
     "assertion-error": ["assertion-error@2.0.1", "", {}, "sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA=="],
 
     "astronomy-bundle": ["astronomy-bundle@7.7.7", "", {}, "sha512-fCVKeer2EDVYQcLbKWiXWG0gv3TF4PGQNMw9rtNjB3llOkkqQ+w+kQeQ3dIqs6UOPcsoxMR4cvKHdxh5QJPp3w=="],
+
+    "astronomy-engine": ["astronomy-engine@2.1.19", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/astronomy-engine/-/astronomy-engine-2.1.19.tgz", {}, "sha512-8yWKNf7UeNbH458h3sAJ6ZgAjE5jTXp/mNNRFoC20j2SHwZIjAQeEsBB2Q3uCFRaTCCJRv33K2XhkhZQMXoX6w=="],
 
     "asynckit": ["asynckit@0.4.0", "", {}, "sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q=="],
 
