@@ -237,7 +237,7 @@ const Blueprint = () => {
       </div>
       <Navigation />
       
-      <main className="flex-1 flex flex-col items-start pt-[72px] md:pt-20 pb-6 px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-start pt-[68px] pb-6 px-6 relative z-20">
         <div className="max-w-5xl mx-auto w-full">
           {/* Success Message */}
           {success && (
@@ -253,8 +253,8 @@ const Blueprint = () => {
           )}
 
           {/* Welcome Header */}
-          <div className="text-center mb-6 animate-fade-up stagger-1">
-            <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="text-center mb-4 animate-fade-up stagger-1">
+            <div className="flex items-center justify-center gap-3 mb-3">
               {isPro && (
                 <span className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
                   <Crown className="w-4 h-4 text-primary" />
@@ -262,10 +262,10 @@ const Blueprint = () => {
                 </span>
               )}
             </div>
-            <h1 className="font-display text-4xl md:text-6xl text-gold-gradient tracking-wider mb-4">
+            <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-wider mb-2">
               Your Blueprint
             </h1>
-            <p className="font-serif text-2xl text-cream-muted">
+            <p className="font-serif text-lg md:text-xl text-cream-muted">
               Welcome back, {userName}
             </p>
           </div>
