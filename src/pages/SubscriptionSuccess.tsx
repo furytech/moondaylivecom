@@ -52,10 +52,10 @@ const SubscriptionSuccess = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-center justify-start pt-[68px] pb-6 px-6 relative z-20">
         <div className="max-w-2xl mx-auto w-full text-center">
           {/* Crown badge */}
-          <div className="flex justify-center mb-6 animate-fade-up stagger-1">
+          <div className="flex justify-center mb-4 animate-fade-up stagger-1">
             <span className="inline-flex items-center gap-2 px-5 py-2.5 glass-card rounded-full shadow-glow">
               <Crown className="w-5 h-5 text-primary" />
               <span className="font-display text-sm text-primary uppercase tracking-widest">
@@ -65,16 +65,16 @@ const SubscriptionSuccess = () => {
           </div>
 
           {/* Main heading */}
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl text-gold-gradient tracking-wider mb-6 animate-fade-up stagger-2 leading-[1.2] pb-2">
+          <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-gold-gradient tracking-wider mb-3 animate-fade-up stagger-2 leading-[1.2] pb-1">
             Welcome, Sovereign.
           </h1>
 
-          <p className="font-serif text-xl md:text-2xl text-cream-muted mb-4 animate-fade-up stagger-2">
+          <p className="font-serif text-lg md:text-xl text-cream-muted mb-3 animate-fade-up stagger-2">
             Your moon compass is now fully calibrated.
           </p>
 
           {/* Decorative divider */}
-          <div className="flex items-center justify-center gap-4 my-8 animate-fade-up stagger-2">
+          <div className="flex items-center justify-center gap-4 my-5 animate-fade-up stagger-2">
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/40" />
             <div className="w-2 h-2 rotate-45 border border-primary/40" />
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/40" />
