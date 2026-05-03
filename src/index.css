@@ -396,10 +396,38 @@
   background: linear-gradient(180deg, hsl(var(--sov-obsidian-2) / 0.85), hsl(var(--sov-obsidian) / 0.85));
   border: 1px solid hsl(var(--sov-champagne) / 0.18);
   border-radius: 14px;
-  padding: 1.5rem 1.5rem 1.25rem;
+  padding: 1.75rem 1.5rem 1.5rem;
   backdrop-filter: blur(6px);
   text-align: center;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  height: 100%;
+}
+.sov-card--wide { min-height: 420px; }
+.sov-statement {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid hsl(var(--sov-champagne) / 0.15);
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: hsl(var(--sov-ivory) / 0.78);
+  font-style: italic;
+}
+.sov-statement strong {
+  display: block;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.625rem;
+  color: hsl(var(--sov-champagne));
+  margin-bottom: 0.5rem;
+  text-align: center;
 }
 .sov-card::after {
   content: "";
