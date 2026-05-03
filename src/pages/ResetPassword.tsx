@@ -212,7 +212,7 @@ const ResetPassword = () => {
             />
           ))}
         </div>
-        <main className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+        <main className="flex-1 flex flex-col items-center justify-start pt-[68px] pb-6 px-6 relative z-10">
           <GlassmorphismCard className="max-w-md w-full text-center">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full border border-primary/30 flex items-center justify-center">
               <span className="text-3xl">🔒</span>
@@ -255,14 +255,14 @@ const ResetPassword = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-20 md:pt-24 pb-6 px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-[68px] pb-6 px-6 relative z-20">
         <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
           {/* Header */}
-          <div className="text-center mb-10">
-            <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-4">
+          <div className="text-center mb-6">
+            <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-2">
               Secure Recovery
             </p>
-            <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-3">
+            <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-2">
               Set New Credentials
             </h1>
             <p className="font-serif text-lg text-cream-muted/70">
