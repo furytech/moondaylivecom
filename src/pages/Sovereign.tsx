@@ -261,7 +261,7 @@ export default function Sovereign() {
       <Navigation />
       <main className={`pt-[72px] md:pt-20 pb-20 px-6 ${isVoid ? "sov-void" : ""}`}>
         <div className="max-w-6xl mx-auto">
-          <header className="text-center mb-12">
+          <header className="text-center mb-6">
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-3">
               Sovereign · Awareness Dashboard
             </div>
