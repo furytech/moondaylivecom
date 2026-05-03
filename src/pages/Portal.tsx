@@ -143,7 +143,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     return (
       <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
         <Starfield />
-        <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-16">
+        <main className="relative z-10 flex-1 flex items-start justify-center px-6 pt-[68px] pb-10">
           <div className="max-w-lg w-full text-center animate-fade-up">
             <div className="relative inline-block mb-8">
               <div
@@ -195,11 +195,11 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
       <Navigation />
 
-      <main className="relative z-10 flex-1 flex items-center justify-center px-6 pt-20 md:pt-24 pb-16">
+      <main className="relative z-10 flex-1 flex items-start justify-center px-6 pt-[68px] pb-16">
         <div className="max-w-md w-full">
           {/* Header */}
-          <div className="text-center mb-10 animate-fade-up">
-            <div className="relative inline-block mb-6">
+          <div className="text-center mb-6 animate-fade-up">
+            <div className="relative inline-block mb-4">
               <div
                 className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-lilac/30"
                 style={{
@@ -213,10 +213,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 <Moon className="w-8 h-8 text-cream/80" strokeWidth={1.2} />
               </div>
             </div>
-            <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-4">
+            <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
               {isLogin ? "Welcome Back" : "Begin the Journey"}
             </p>
-            <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-3">
+            <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-2">
               {isLogin ? "Sign in to your blueprint" : "Find your moon sign"}
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed">
