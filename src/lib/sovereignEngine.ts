@@ -214,13 +214,35 @@ function toSignPosition(longitude: number): SignPosition {
 // Body positions
 // ─────────────────────────────────────────────────────────────
 
-/** True Node geocentric ecliptic longitude (degrees).
- *  astronomy-engine exposes Body.MoonNode whose coordinates point to the
- *  ascending node — instantaneous (true), includes nutation jitter. */
+/** True (instantaneous) Lunar Ascending Node ecliptic longitude (degrees).
+ *
+ *  Derived directly from the Moon's geocentric state vector:
+ *  the orbital angular momentum L = r × v defines the orbital plane normal;
+ *  the ascending node line is the intersection of that plane with the
+ *  ecliptic. Its ecliptic longitude is Ω = atan2(Lx, -Ly).
+ *
+ *  This produces the *true* node (with nutation/short-period jitter) rather
+ *  than the smoothed mean node, matching the spec. */
 function trueNodeLongitude(time: AstroTime): number {
-  const vec = GeoVector(Body.MoonNode, time, true);
-  const ecl = Ecliptic(vec);
-  return norm360(ecl.elon);
+  const dt = 1 / 1440; // 1 minute in days — short baseline preserves jitter
+  const r1 = GeoVector(Body.Moon, time, true);
+  const r2 = GeoVector(Body.Moon, time.AddDays(dt), true);
+  const vx = (r2.x - r1.x) / dt;
+  const vy = (r2.y - r1.y) / dt;
+  const vz = (r2.z - r1.z) / dt;
+  // L = r × v (equatorial frame from GeoVector)
+  const Lx = r1.y * vz - r1.z * vy;
+  const Ly = r1.z * vx - r1.x * vz;
+  const Lz = r1.x * vy - r1.y * vx;
+  // Rotate equatorial → ecliptic about X by mean obliquity (~23.4393°).
+  const eps = (23.4392911 * Math.PI) / 180;
+  const cE = Math.cos(eps), sE = Math.sin(eps);
+  const Lxe = Lx;
+  const Lye = Ly * cE + Lz * sE;
+  // Lze unused for node longitude
+  // Ascending node longitude: Ω = atan2(Lx, -Ly) in ecliptic frame.
+  const omega = Math.atan2(Lxe, -Lye) * 180 / Math.PI;
+  return norm360(omega);
 }
 
 function moonTropicalLongitude(time: AstroTime): number {
