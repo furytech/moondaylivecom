@@ -40,21 +40,21 @@ const Library = () => {
 
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-20 md:pt-24 pb-12 px-4 md:px-8 relative z-20">
+      <main className="flex-1 flex flex-col items-center pt-[68px] pb-12 px-4 md:px-8 relative z-20">
         <div className="max-w-6xl mx-auto w-full">
           {/* Header */}
-          <div className="text-center mb-14 animate-fade-up">
-            <p className="font-display text-xs md:text-sm text-primary/60 tracking-[0.3em] uppercase mb-4">
+          <div className="text-center mb-8 animate-fade-up">
+            <p className="font-display text-xs md:text-sm text-primary/60 tracking-[0.3em] uppercase mb-2">
               The Archives of
             </p>
-            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl text-gold-gradient tracking-[0.1em] md:tracking-[0.15em] uppercase mb-6">
+            <h1 className="font-display text-3xl md:text-5xl lg:text-6xl text-gold-gradient tracking-[0.1em] md:tracking-[0.15em] uppercase mb-3">
               Lunar Encyclopedia
             </h1>
             <p className="font-serif text-lg md:text-xl text-cream-muted max-w-2xl mx-auto leading-relaxed">
               Twelve portals to the soul's emotional architecture
             </p>
 
-            <div className="flex items-center justify-center gap-3 mt-8">
+            <div className="flex items-center justify-center gap-3 mt-5">
               <div className="w-20 md:w-32 h-px bg-gradient-to-r from-transparent to-primary/40" />
               <div className="w-3 h-3 rotate-45 border border-primary/50" />
               <div className="w-20 md:w-32 h-px bg-gradient-to-l from-transparent to-primary/40" />
