@@ -21,6 +21,7 @@ const Navigation = () => {
   // Same menu for everyone — protected items redirect to /login when unauth
   const navLinks = [
     { path: "/blueprint", label: "Blueprint", protected: true },
+    { path: "/sovereign", label: "Sovereign", protected: true },
     { path: "/library", label: "Library", protected: false },
     { path: "/pricing", label: "Pricing", protected: false },
     { path: "/account", label: "Account", protected: true },
