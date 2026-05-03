@@ -118,15 +118,19 @@ function ShaktiCard({ triad }: { triad: TriadMoon }) {
   const n = triad.sidereal.nakshatra;
   return (
     <div className="sov-card">
-      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
+      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
         The Shakti Key
       </div>
-      <div className="font-display text-2xl tracking-wide mb-1">{n.name}</div>
-      <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-4">
+      <div className="font-display text-3xl tracking-wide mb-2">{n.name}</div>
+      <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-5">
         Ruler · {n.ruler}
       </div>
-      <div className="text-sm text-[hsl(var(--sov-ivory)/0.85)] italic text-left">
+      <div className="text-sm text-[hsl(var(--sov-ivory)/0.85)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
         {n.shakti}
+      </div>
+      <div className="sov-statement">
+        <strong>The Wiring</strong>
+        The Primal Impulse. Inquiry: Are your actions aligned with your root power, or are you forcing a pace?
       </div>
     </div>
   );
@@ -135,14 +139,19 @@ function ShaktiCard({ triad }: { triad: TriadMoon }) {
 function AuditCard({ audit }: { audit: ChandraLagnaHouse }) {
   return (
     <div className="sov-card">
-      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
-        Internal Audit · Chandra Lagna H{audit.house}
+      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
+        Internal Audit · Chandra Lagna
       </div>
-      <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-3">
+      <div className="font-display text-3xl tracking-wide mb-2">House {audit.house}</div>
+      <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-5">
         Transit through {audit.sign}
       </div>
-      <div className="text-sm text-[hsl(var(--sov-ivory)/0.9)] text-left leading-relaxed">
+      <div className="text-sm text-[hsl(var(--sov-ivory)/0.9)] leading-relaxed" style={{ textAlign: "justify", hyphens: "auto" }}>
         {audit.inquiry}
+      </div>
+      <div className="sov-statement">
+        <strong>The Persona</strong>
+        Navigating the Collective Weather. Action: Notice how social interactions are flavored by this sign today.
       </div>
     </div>
   );
@@ -151,25 +160,48 @@ function AuditCard({ audit }: { audit: ChandraLagnaHouse }) {
 function ShadowCard({ loops }: { loops: KineticAspect[] }) {
   return (
     <div className="sov-card">
-      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
+      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
         Shadow-to-Light · Active Loops
       </div>
       {loops.length === 0 ? (
-        <div className="text-sm text-[hsl(var(--sov-ivory)/0.55)] italic">
+        <div className="text-sm text-[hsl(var(--sov-ivory)/0.55)] italic flex-1 flex items-center justify-center">
           No tight applying patterns. Field is in observation.
         </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3 flex-1">
           {loops.slice(0, 4).map((a, i) => (
-            <li key={i} className="text-sm text-left">
-              <span className="text-[hsl(var(--sov-ivory))]">
+            <li key={i} className="text-sm" style={{ textAlign: "justify", hyphens: "auto" }}>
+              <span className="text-[hsl(var(--sov-ivory))] font-medium">
                 {bodyLabel(a.bodyA)} {a.aspect.toLowerCase()} {bodyLabel(a.bodyB)}
               </span>
-              <span className="text-[hsl(var(--sov-ivory)/0.5)]"> — orb {Math.abs(a.orb).toFixed(2)}°. Bring the pattern into observation before it discharges.</span>
+              <span className="text-[hsl(var(--sov-ivory)/0.55)]"> — orb {Math.abs(a.orb).toFixed(2)}°. Bring the pattern into observation before it discharges.</span>
             </li>
           ))}
         </ul>
       )}
+      <div className="sov-statement">
+        <strong>The Loop</strong>
+        Breaking Habits. Locate the 3° gap between trigger and reaction to choose a new path.
+      </div>
+    </div>
+  );
+}
+
+function KineticCard({ aspects }: { aspects: KineticAspect[] }) {
+  return (
+    <div className="sov-card">
+      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
+        Kinetic Aspect Field
+      </div>
+      <div className="space-y-1 flex-1">
+        {aspects.slice(0, 4).map((a, i) => (
+          <AspectRow key={i} a={a} />
+        ))}
+      </div>
+      <div className="sov-statement">
+        <strong>The Breath</strong>
+        Inhale (Applying) is building pressure — observe. Exhale (Separating) is releasing — integrate.
+      </div>
     </div>
   );
 }
