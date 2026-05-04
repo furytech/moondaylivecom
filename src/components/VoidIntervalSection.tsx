@@ -52,11 +52,15 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
       <div className="glass-card rounded-xl p-6 mb-10 text-center">
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <div>
-            <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-1">Start Time</p>
+            <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-1">
+              Start Time <span className="text-cream-muted/80 normal-case tracking-normal">· {formatDate(vocTiming.startTime)}</span>
+            </p>
             <p className="font-display text-lg text-primary">{formatTime(vocTiming.startTime)}</p>
           </div>
           <div>
-            <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-1">End Time</p>
+            <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-1">
+              End Time <span className="text-cream-muted/80 normal-case tracking-normal">· {formatDate(vocTiming.endTime)}</span>
+            </p>
             <p className="font-display text-lg text-primary">{formatTime(vocTiming.endTime)}</p>
           </div>
         </div>
