@@ -54,7 +54,7 @@ const PageLayout = ({
       <main
         className={`flex-1 flex flex-col items-center ${
           showNav ? "pt-[68px]" : "pt-4"
-        } pb-6 px-6 relative z-20 ${className}`}
+        } pb-6 pb-[calc(env(safe-area-inset-bottom)+76px)] md:pb-6 px-6 relative z-20 ${className}`}
       >
         {children}
       </main>
