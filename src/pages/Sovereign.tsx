@@ -94,12 +94,12 @@ function TriadCard({ triad }: { triad: TriadMoon }) {
       <div className="space-y-4">
         {rows.map((r) => (
           <div key={r.label} className="border-b border-[hsl(var(--sov-champagne)/0.15)] pb-3 last:border-0">
-            <div className="flex items-baseline justify-between">
-              <div className="text-left">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="text-left min-w-0">
                 <div className="font-display text-sm tracking-[0.15em] uppercase">{r.label}</div>
                 <div className="text-xs text-[hsl(var(--sov-ivory)/0.55)]">{r.sub}</div>
               </div>
-              <div className="font-display text-lg text-[hsl(var(--sov-ivory))] tabular-nums">{r.pos}</div>
+              <div className="font-display text-sm sm:text-base text-[hsl(var(--sov-ivory))] tabular-nums whitespace-nowrap shrink-0">{r.pos}</div>
             </div>
             <p className="mt-2 text-[11px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
               <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">{r.statement.title}.</span> {r.statement.body}
