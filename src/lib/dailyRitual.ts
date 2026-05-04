@@ -17,7 +17,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Light a red candle at sunrise. Write three bold intentions for the day. Speak them aloud with conviction, then extinguish the flame with gratitude.",
     element: "Fire",
     crystals: ["Carnelian", "Red Jasper", "Bloodstone"],
-    timing: "Best performed at dawn or during the first hour of waking",
+    timing: "Peak window: 5:00 AM – 7:00 AM (dawn / first hour of waking)",
   },
   Taurus: {
     title: "The Earthen Embrace",
@@ -25,7 +25,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Walk barefoot on natural ground for 5 minutes. Hold a piece of green jade while envisioning your desires manifesting as blooming flowers.",
     element: "Earth",
     crystals: ["Rose Quartz", "Emerald", "Green Jade"],
-    timing: "Best performed during the golden hour before sunset",
+    timing: "Peak window: 5:00 PM – 7:00 PM (golden hour before sunset)",
   },
   Gemini: {
     title: "The Messenger's Breath",
@@ -33,7 +33,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Write a letter to your future self. Read it aloud, then fold it and place it under a yellow crystal until the next new moon.",
     element: "Air",
     crystals: ["Citrine", "Blue Lace Agate", "Clear Quartz"],
-    timing: "Best performed mid-morning when the mind is sharp",
+    timing: "Peak window: 9:00 AM – 11:00 AM (mid-morning mental clarity)",
   },
   Cancer: {
     title: "The Moonlit Sanctuary",
@@ -41,7 +41,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Fill a bowl with water and float a white flower upon it. Gaze at the reflection while taking 12 deep breaths. Pour the water onto a plant you love.",
     element: "Water",
     crystals: ["Moonstone", "Pearl", "Selenite"],
-    timing: "Best performed at moonrise or before sleep",
+    timing: "Peak window: 9:00 PM – 11:00 PM (moonrise / before sleep)",
   },
   Leo: {
     title: "The Solar Coronation",
@@ -49,7 +49,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Stand in sunlight for 3 minutes with arms outstretched. Visualize golden light filling your heart. Roar (yes, actually roar) once to release stagnant energy.",
     element: "Fire",
     crystals: ["Sunstone", "Tiger's Eye", "Pyrite"],
-    timing: "Best performed at solar noon",
+    timing: "Peak window: 11:00 AM – 1:00 PM (around solar noon)",
   },
   Virgo: {
     title: "The Sacred Arrangement",
@@ -57,7 +57,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Arrange 6 small objects in a pattern that pleases you. As you place each one, name something you're grateful for. Leave the arrangement until tomorrow.",
     element: "Earth",
     crystals: ["Amazonite", "Moss Agate", "Peridot"],
-    timing: "Best performed in the quiet evening hours",
+    timing: "Peak window: 7:00 PM – 9:00 PM (quiet evening hours)",
   },
   Libra: {
     title: "The Scales of Beauty",
@@ -65,7 +65,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Light two candles of different colors side by side. Meditate on the balance between giving and receiving. Blow them out simultaneously.",
     element: "Air",
     crystals: ["Opal", "Lapis Lazuli", "Rose Quartz"],
-    timing: "Best performed at twilight",
+    timing: "Peak window: 6:00 PM – 8:00 PM (twilight)",
   },
   Scorpio: {
     title: "The Phoenix Rising",
@@ -73,7 +73,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Write down one fear on paper. Burn it safely, letting the smoke carry it away. Bury the ashes in soil as a symbol of regeneration.",
     element: "Water",
     crystals: ["Obsidian", "Malachite", "Labradorite"],
-    timing: "Best performed at midnight or during the darkest hour",
+    timing: "Peak window: 11:00 PM – 1:00 AM (around midnight)",
   },
   Sagittarius: {
     title: "The Archer's Quest",
@@ -81,7 +81,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Face a different cardinal direction than usual and set a spontaneous intention. Take one action today that breaks your routine.",
     element: "Fire",
     crystals: ["Turquoise", "Amethyst", "Sodalite"],
-    timing: "Best performed at the hour of your choosing",
+    timing: "Peak window: 2:00 PM – 4:00 PM (afternoon expansion)",
   },
   Capricorn: {
     title: "The Mountain Summit",
@@ -89,7 +89,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Stack three stones (or coins) on your desk. Each represents a goal. Touch them each morning as you recite your daily intention.",
     element: "Earth",
     crystals: ["Garnet", "Onyx", "Smoky Quartz"],
-    timing: "Best performed at dawn before the world wakes",
+    timing: "Peak window: 5:00 AM – 7:00 AM (dawn before the world wakes)",
   },
   Aquarius: {
     title: "The Starseeker's Vision",
@@ -97,7 +97,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Gaze at the stars or a picture of the cosmos for 5 minutes. Journal one idea that could change your world, no matter how wild.",
     element: "Air",
     crystals: ["Aquamarine", "Fluorite", "Angelite"],
-    timing: "Best performed under the night sky",
+    timing: "Peak window: 10:00 PM – 12:00 AM (under the night sky)",
   },
   Pisces: {
     title: "The Dreamer's Portal",
@@ -105,7 +105,7 @@ const rituals: Record<string, DailyRitual> = {
     practice: "Before sleep, place lavender under your pillow. Ask your dreams for guidance. Upon waking, write the first thing you remember.",
     element: "Water",
     crystals: ["Amethyst", "Aquamarine", "Clear Quartz"],
-    timing: "Best performed in the liminal moments before sleep",
+    timing: "Peak window: 10:00 PM – 12:00 AM (liminal moments before sleep)",
   },
 };
 
