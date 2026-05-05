@@ -145,7 +145,7 @@ function TriadCard({ triad }: { triad: TriadMoon }) {
               </div>
               <div className="font-display text-sm sm:text-base text-[hsl(var(--sov-ivory))] tabular-nums whitespace-nowrap shrink-0">{r.pos}</div>
             </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
+            <p className="mt-2 text-[14px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
               <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">{r.statement.title}.</span> {r.statement.body}
             </p>
           </div>
