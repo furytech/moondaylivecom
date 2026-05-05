@@ -397,8 +397,8 @@
 
 .sov-card {
   position: relative;
-  background: linear-gradient(180deg, hsl(var(--sov-obsidian-2) / 0.85), hsl(var(--sov-obsidian) / 0.85));
-  border: 1px solid hsl(var(--sov-champagne) / 0.18);
+  background: linear-gradient(180deg, hsl(var(--sov-obsidian-2) / 0.95), hsl(var(--sov-obsidian-2) / 0.85));
+  border: 1px solid hsl(var(--sov-champagne) / 0.35);
   border-radius: 14px;
   padding: 2rem 1.875rem;
   backdrop-filter: blur(6px);
