@@ -20,6 +20,7 @@ const PILLAR_ICONS = [
 ];
 
 const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSectionProps) => {
+  const [infoOpen, setInfoOpen] = useState(false);
   const isVoid = lunar.voidOfCourse;
   const guidance = isVoid ? VOC_UNPLUGGED : VOC_CONNECTED;
   const StatusIcon = isVoid ? Pause : Zap;
