@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Brain, Sparkles, Globe, Lock } from "lucide-react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import EducationButton from "@/components/EducationButton";
+import EducationModal from "@/components/EducationModal";
 import { INNER_CIRCLE } from "@/lib/innerCircleDictionary";
 import type { LunarIntelligence } from "@/lib/lunarEngine";
 
@@ -16,6 +19,7 @@ const PILLAR_ICONS = [
 ];
 
 const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureSectionProps) => {
+  const [infoOpen, setInfoOpen] = useState(false);
   const signature = INNER_CIRCLE[lunar.sign.name] || INNER_CIRCLE.Aries;
 
   return (
