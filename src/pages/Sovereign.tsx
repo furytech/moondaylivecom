@@ -126,13 +126,12 @@ function ShaktiCard({ triad }: { triad: TriadMoon }) {
       <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-5">
         Ruler · {n.ruler}
       </div>
-      <div className="text-sm text-[hsl(var(--sov-ivory)/0.85)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
+      <div className="text-sm text-[hsl(var(--sov-ivory)/0.85)] italic mb-3" style={{ textAlign: "justify", hyphens: "auto" }}>
         {n.shakti}
       </div>
-      <div className="sov-statement">
-        <strong>The Wiring</strong>
-        The Primal Impulse. Inquiry: Are your actions aligned with your root power, or are you forcing a pace?
-      </div>
+      <p className="text-[13px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
+        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Wiring.</span> The Primal Impulse. Inquiry: Are your actions aligned with your root power, or are you forcing a pace?
+      </p>
     </div>
   );
 }
