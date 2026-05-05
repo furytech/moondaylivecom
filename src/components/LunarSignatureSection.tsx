@@ -82,6 +82,22 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
         </div>
       </div>
     </GlassmorphismCard>
+    <EducationModal
+      isOpen={infoOpen}
+      onClose={() => setInfoOpen(false)}
+      eyebrow="The Lunar Signature"
+      title={`Moon in ${lunar.sign.name}`}
+      symbol={lunar.sign.symbol}
+      subtitle={`${lunar.sign.element} Sign`}
+      intro={`When the transiting Moon moves through ${lunar.sign.name}, the collective emotional tone shifts to match this sign's frequency. Align your Mind, Soul, and Body to the current signature.`}
+      sections={[
+        { label: "Mind", body: signature.psychological },
+        { label: "Soul", body: signature.spiritual },
+        { label: "Body", body: signature.material },
+      ]}
+      closing={`Today, the Moon speaks in the language of ${lunar.sign.name}.`}
+    />
+    </>
   );
 };
 
