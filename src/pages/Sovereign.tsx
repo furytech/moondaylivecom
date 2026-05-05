@@ -163,25 +163,37 @@ function ShadowCard({ loops }: { loops: KineticAspect[] }) {
         Shadow-to-Light · Active Loops
       </div>
       {loops.length === 0 ? (
-        <div className="text-sm text-[hsl(var(--sov-ivory)/0.55)] italic flex-1 flex items-center justify-center">
-          No tight applying patterns. Field is in observation.
-        </div>
+        <>
+          <div className="text-sm text-[hsl(var(--sov-ivory)/0.75)] flex-1 flex items-center justify-center text-center px-2">
+            No active loops within this Moon phase. The field is clear — a rare window of integrated flow. Move with confidence.
+          </div>
+          <p className="text-[13px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic mt-4">
+            <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
+              All Clear.
+            </span>{" "}
+            No sub-3° applying tensions detected between tracked bodies. Use this opening to consolidate, not to expand.
+          </p>
+        </>
       ) : (
-        <ul className="space-y-3 flex-1">
-          {loops.slice(0, 4).map((a, i) => (
-            <li key={i} className="text-sm" style={{ textAlign: "justify", hyphens: "auto" }}>
-              <span className="text-[hsl(var(--sov-ivory))] font-medium">
-                {bodyLabel(a.bodyA)} {a.aspect.toLowerCase()} {bodyLabel(a.bodyB)}
-              </span>
-              <span className="text-[hsl(var(--sov-ivory)/0.55)]"> — orb {Math.abs(a.orb).toFixed(2)}°. Bring the pattern into observation before it discharges.</span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="space-y-3 flex-1">
+            {loops.slice(0, 4).map((a, i) => (
+              <li key={i} className="text-[13px] leading-relaxed" style={{ textAlign: "justify", hyphens: "auto" }}>
+                <span className="font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
+                  {bodyLabel(a.bodyA)} {a.aspect.toLowerCase()} {bodyLabel(a.bodyB)}.
+                </span>
+                <span className="text-[hsl(var(--sov-ivory)/0.7)] italic"> Orb {Math.abs(a.orb).toFixed(2)}°. Bring the pattern into observation before it discharges.</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[13px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic mt-4">
+            <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
+              The Loop.
+            </span>{" "}
+            Breaking Habits. We found a less than 3° gap between these planets. Intercept the trigger before the reaction takes hold.
+          </p>
+        </>
       )}
-      <div className="sov-statement">
-        <strong>The Loop</strong>
-        Breaking Habits. Locate the 3° gap between trigger and reaction to choose a new path.
-      </div>
     </div>
   );
 }
