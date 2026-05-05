@@ -469,12 +469,65 @@
 }
 
 .sov-aspect-row {
+  position: relative;
   border-top: 1px solid hsl(var(--sov-champagne) / 0.12);
-  padding: 0.85rem 0;
+  padding: 0.85rem 0 0.85rem 1.1rem;
   text-align: left;
-  transition: filter 600ms ease, opacity 600ms ease, letter-spacing 600ms ease;
+  transition: filter 600ms ease, opacity 600ms ease;
 }
 .sov-aspect-row:first-child { border-top: 0; }
+.sov-aspect-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.85rem;
+  bottom: 0.85rem;
+  width: 2px;
+  border-radius: 2px;
+}
 .aspect-heat { color: hsl(var(--sov-ivory)); }
 .aspect-apex { color: hsl(var(--sov-apex)); }
-.aspect-cold { color: hsl(var(--sov-cold)); }
+.aspect-cold { color: hsl(var(--sov-ivory) / 0.85); }
+
+.phase-applying::before {
+  background: linear-gradient(to bottom, transparent, hsl(var(--sov-heat) / 0.9), transparent);
+  box-shadow: 0 0 8px hsl(var(--sov-heat) / 0.6);
+  animation: sov-pulse-up 2.4s ease-in-out infinite;
+}
+.phase-exact::before {
+  background: hsl(var(--sov-apex));
+  box-shadow: 0 0 14px hsl(var(--sov-apex) / 0.9);
+}
+.phase-separating::before {
+  background-image: linear-gradient(to bottom, hsl(var(--sov-cold) / 0.7) 50%, transparent 50%);
+  background-size: 100% 8px;
+  background-repeat: repeat-y;
+  animation: sov-drift-down 3.6s linear infinite;
+}
+.aspect-glyph {
+  display: inline-block;
+  font-size: 0.7em;
+  width: 1em;
+  text-align: center;
+  opacity: 0.75;
+}
+.phase-applying .aspect-glyph { color: hsl(var(--sov-heat)); animation: sov-rise 2.4s ease-in-out infinite; }
+.phase-exact .aspect-glyph { color: hsl(var(--sov-apex)); }
+.phase-separating .aspect-glyph { color: hsl(var(--sov-cold)); animation: sov-fall 3.6s ease-in-out infinite; }
+
+@keyframes sov-pulse-up {
+  0%, 100% { opacity: 0.55; transform: translateY(2px); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+@keyframes sov-drift-down {
+  from { background-position: 0 0; }
+  to { background-position: 0 8px; }
+}
+@keyframes sov-rise {
+  0%, 100% { transform: translateY(1px); opacity: 0.7; }
+  50% { transform: translateY(-2px); opacity: 1; }
+}
+@keyframes sov-fall {
+  0%, 100% { transform: translateY(-1px); opacity: 0.7; }
+  50% { transform: translateY(2px); opacity: 0.5; }
+}
