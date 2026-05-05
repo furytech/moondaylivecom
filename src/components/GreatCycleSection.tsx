@@ -83,6 +83,22 @@ const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSe
         </div>
       </div>
     </GlassmorphismCard>
+    <EducationModal
+      isOpen={infoOpen}
+      onClose={() => setInfoOpen(false)}
+      eyebrow="The Great Cycle"
+      title={`${lunar.phase.name} Phase`}
+      symbol={lunar.phase.emoji as string}
+      subtitle={`${lunar.phase.illumination}% illuminated • ${lunar.phase.isWaxing ? "Waxing" : "Waning"}`}
+      intro="Each lunar phase carries a distinct energetic signature. Working with — rather than against — the current phase amplifies your intentions across mind, soul, and body."
+      sections={[
+        { label: "Mind", body: guidance.psychological },
+        { label: "Soul", body: guidance.spiritual },
+        { label: "Body", body: guidance.material },
+      ]}
+      closing="Move with the cycle. Resist nothing."
+    />
+    </>
   );
 };
 
