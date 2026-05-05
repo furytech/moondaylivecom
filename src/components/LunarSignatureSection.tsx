@@ -23,6 +23,7 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
   const signature = INNER_CIRCLE[lunar.sign.name] || INNER_CIRCLE.Aries;
 
   return (
+    <>
     <GlassmorphismCard size="lg" className="animate-fade-up stagger-3 shadow-glow">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
@@ -31,9 +32,13 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
         <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider mb-2">
           {lunar.sign.symbol} {lunar.sign.name}
         </h2>
-        <p className="font-serif text-lg text-cream-muted">
+        <p className="font-serif text-lg text-cream-muted mb-6">
           {lunar.sign.element} Sign
         </p>
+        <EducationButton
+          label={`About Moon in ${lunar.sign.name}`}
+          onClick={() => setInfoOpen(true)}
+        />
       </div>
 
       {/* Pillar cards - gated */}
