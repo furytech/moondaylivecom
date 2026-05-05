@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Brain, Sparkles, Globe, Lock } from "lucide-react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import EducationButton from "@/components/EducationButton";
+import EducationModal from "@/components/EducationModal";
 import { PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 import type { LunarIntelligence } from "@/lib/lunarEngine";
 
@@ -16,6 +19,7 @@ const PILLAR_ICONS = [
 ];
 
 const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSectionProps) => {
+  const [infoOpen, setInfoOpen] = useState(false);
   const phaseKey = Object.keys(PHASE_GUIDANCE).find(
     (k) => lunar.phase.name.toLowerCase().includes(k.toLowerCase())
   ) || "New";
