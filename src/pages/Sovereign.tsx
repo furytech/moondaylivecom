@@ -99,7 +99,7 @@ function AspectRow({ a }: { a: KineticAspect }) {
         <span>Orb {orbStr}</span>
         <span>Separation {a.separation.toFixed(2)}°</span>
       </div>
-      <p className="mt-2 text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
+      <p className="mt-2 text-[16px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
         <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
           {bodyLabel(a.bodyA)} {a.aspect.toLowerCase()} {bodyLabel(a.bodyB)}.
         </span>{" "}
@@ -183,11 +183,11 @@ function ShaktiCard({ triad }: { triad: TriadMoon }) {
       <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-5">
         Ruler · {n.ruler}
       </div>
-      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left mb-3">
+      <p className="text-[16px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left mb-3">
         <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Wiring.</span>{" "}
         {n.shakti}. This is the primal current threaded through your day — the specific power your Moon is metabolizing right now.
       </p>
-      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
+      <p className="text-[16px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
         <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Practice.</span>{" "}
         Under {n.ruler}'s rulership, {behavior}. Choose the deliberate path; let the chaotic one pass.
       </p>
@@ -238,11 +238,11 @@ function AuditCard({ audit }: { audit: ChandraLagnaHouse }) {
       <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-5">
         Transit through {audit.sign}
       </div>
-      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left mb-3">
+      <p className="text-[16px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left mb-3">
         <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Inquiry.</span>{" "}
         {audit.inquiry}
       </p>
-      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
+      <p className="text-[16px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
         <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Practice.</span>{" "}
         Today the audit lands in your domain of {domain}, colored by {audit.sign}'s {element.toLowerCase()} signature — {practice}. Sit with the inquiry before reacting; choose the response, do not perform it.
       </p>
@@ -261,7 +261,7 @@ function ShadowCard({ loops }: { loops: KineticAspect[] }) {
           <div className="text-sm text-[hsl(var(--sov-ivory)/0.75)] flex-1 flex items-center justify-center text-center px-2">
             No active loops within this Moon phase. The field is clear — a rare window of integrated flow. Move with confidence.
           </div>
-          <p className="text-[13px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic mt-4">
+          <p className="text-[16px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic mt-4">
             <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
               All Clear.
             </span>{" "}
@@ -272,7 +272,7 @@ function ShadowCard({ loops }: { loops: KineticAspect[] }) {
         <>
           <ul className="space-y-3 flex-1">
             {loops.slice(0, 4).map((a, i) => (
-              <li key={i} className="text-[13px] leading-relaxed" style={{ textAlign: "justify", hyphens: "auto" }}>
+              <li key={i} className="text-[16px] leading-relaxed" style={{ textAlign: "justify", hyphens: "auto" }}>
                 <span className="font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
                   {bodyLabel(a.bodyA)} {a.aspect.toLowerCase()} {bodyLabel(a.bodyB)}.
                 </span>
@@ -280,7 +280,7 @@ function ShadowCard({ loops }: { loops: KineticAspect[] }) {
               </li>
             ))}
           </ul>
-          <p className="text-[13px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic mt-4">
+          <p className="text-[16px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic mt-4">
             <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
               The Loop.
             </span>{" "}
