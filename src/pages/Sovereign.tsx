@@ -28,14 +28,6 @@ const PHASE_TONE: Record<KineticAspect["phase"], { label: string; cls: string; g
 };
 
 // Plain-language meaning of each aspect geometry
-const ASPECT_MEANING: Record<KineticAspect["aspect"], string> = {
-  Conjunction: "fusion — these forces merge and amplify one another",
-  Opposition:  "polarity — a tug-of-war asking for conscious balance",
-  Trine:       "easeful flow — talent and grace move without resistance",
-  Square:      "friction — tension that demands action and reshapes structure",
-  Sextile:     "opportunity — an open door that rewards small, deliberate effort",
-};
-
 // What to expect during each kinetic phase
 const PHASE_MEANING: Record<KineticAspect["phase"], string> = {
   Applying:   "Pressure is building. Observe the pattern now, before it expresses outwardly.",
