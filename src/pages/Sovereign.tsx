@@ -78,6 +78,12 @@ function AspectRow({ a }: { a: KineticAspect }) {
         <span>Orb {orbStr}</span>
         <span>Separation {a.separation.toFixed(2)}°</span>
       </div>
+      <p className="mt-2 text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)]">
+        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
+          {a.aspect}.
+        </span>{" "}
+        A {ASPECT_MEANING[a.aspect]}. {PHASE_MEANING[a.phase]}
+      </p>
     </div>
   );
 }
