@@ -271,7 +271,7 @@ const Blueprint = () => {
           </div>
 
           {/* Dashboard Grid - Birth Moon & Today's Moon */}
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
             {/* Birth Moon Sign */}
             <GlassmorphismCard className="animate-fade-up stagger-1">
               <div className="flex items-center justify-center gap-2 mb-6">

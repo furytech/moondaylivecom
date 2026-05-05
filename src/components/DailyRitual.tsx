@@ -56,7 +56,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
       </div>
 
       {/* Action Tiles — flexible grid, hero insight dominant */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-primary/10 mb-8 items-start">
+      <div className="grid lg:grid-cols-3 gap-6 pt-6 border-t border-primary/10 mb-8 items-start">
         {/* Timing */}
         <div className="sov-card sov-card--wide h-auto">
           <div className="sov-data">
