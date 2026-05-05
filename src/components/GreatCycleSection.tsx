@@ -26,6 +26,7 @@ const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSe
   const guidance = PHASE_GUIDANCE[phaseKey];
 
   return (
+    <>
     <GlassmorphismCard size="lg" className="animate-fade-up stagger-2">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
