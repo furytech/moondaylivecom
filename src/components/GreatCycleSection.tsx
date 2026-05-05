@@ -34,9 +34,13 @@ const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSe
         <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider mb-2">
           {lunar.phase.emoji} {lunar.phase.name}
         </h2>
-        <p className="font-serif text-lg text-cream-muted">
+        <p className="font-serif text-lg text-cream-muted mb-6">
           {lunar.phase.illumination}% illuminated • {lunar.phase.isWaxing ? "Waxing" : "Waning"}
         </p>
+        <EducationButton
+          label={`About the ${lunar.phase.name} Phase`}
+          onClick={() => setInfoOpen(true)}
+        />
       </div>
 
       <div className="relative">
