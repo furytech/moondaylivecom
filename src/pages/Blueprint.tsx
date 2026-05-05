@@ -12,6 +12,8 @@ import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PricingModal from "@/components/PricingModal";
 import MoonSignModal from "@/components/MoonSignModal";
+import EducationModal from "@/components/EducationModal";
+import { INNER_CIRCLE, PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 
 import DailyForecast from "@/components/DailyForecast";
 import DailyRitual from "@/components/DailyRitual";
