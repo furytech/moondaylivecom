@@ -282,15 +282,39 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                   <label htmlFor="birthday" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
                     Birthday
                   </label>
-                  <input
-                    id="birthday"
-                    type="date"
-                    value={birthday}
-                    onChange={(e) => setBirthday(e.target.value)}
-                    max={new Date().toISOString().split("T")[0]}
-                    min="1900-01-01"
-                    className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300 [color-scheme:dark]"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        id="birthday"
+                        className={cn(
+                          "w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-left flex items-center justify-between focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300",
+                          !birthday && "text-muted-foreground/50"
+                        )}
+                      >
+                        {birthday ? format(new Date(`${birthday}T12:00:00`), "PPP") : "Pick your birth date"}
+                        <CalendarIcon className="w-4 h-4 text-lilac/60" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-navy-dark border-lilac/30" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={birthday ? new Date(`${birthday}T12:00:00`) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, "0");
+                            const d = String(date.getDate()).padStart(2, "0");
+                            setBirthday(`${y}-${m}-${d}`);
+                          }
+                        }}
+                        defaultMonth={birthday ? new Date(`${birthday}T12:00:00`) : new Date(1990, 0)}
+                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <p className="text-xs text-muted-foreground/70 pl-1 pt-1">
                     Used to chart your natal moon sign — saved to your profile.
                   </p>
