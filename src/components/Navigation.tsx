@@ -54,7 +54,7 @@ const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -90,7 +90,7 @@ const Navigation = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden text-foreground p-2"
+            className="lg:hidden text-foreground p-2"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -98,7 +98,7 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-6 border-t border-border/30 animate-fade-in">
+          <div className="lg:hidden py-6 border-t border-border/30 animate-fade-in">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
