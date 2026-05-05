@@ -11,12 +11,12 @@ import Footer from "@/components/Footer";
 // Stripe Price IDs
 const PRICES = {
   monthly: {
-    id: "price_1Sv1zyBzaednmcCFe8sl5ad9",
+    id: "price_1TTqaPBzaednmcCFmPSW7Vuj",
     amount: "$2.88",
     interval: "month",
   },
   yearly: {
-    id: "price_1SvGpyBzaednmcCFzS90Mzht",
+    id: "price_1TTqaxBzaednmcCFjbbknm0L",
     amount: "$19.88",
     interval: "year",
     savings: "Save 42%",
