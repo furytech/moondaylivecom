@@ -25,7 +25,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
         <div className="space-y-4">
           <Skeleton className="h-6 w-3/4 mx-auto" />
           <Skeleton className="h-20 w-full" />
-          <div className="grid md:grid-cols-2 gap-6 pt-6">
+          <div className="grid lg:grid-cols-2 gap-6 pt-6">
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-16 w-full" />
           </div>
@@ -92,7 +92,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
       </div>
 
       {/* Energy & Focus */}
-      <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-primary/10">
+      <div className="grid lg:grid-cols-2 gap-6 pt-6 border-t border-primary/10">
         <div className="text-center">
           <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">
             Today's Energy

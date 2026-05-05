@@ -95,7 +95,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
           </div>
         )}
 
-        <div className={`grid md:grid-cols-3 gap-6 ${!isPro ? "opacity-30 blur-md pointer-events-none" : ""}`}>
+        <div className={`grid lg:grid-cols-3 gap-6 ${!isPro ? "opacity-30 blur-md pointer-events-none" : ""}`}>
           {PILLAR_ICONS.map(({ icon: Icon, label, key }) => (
             <div
               key={key}

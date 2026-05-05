@@ -57,7 +57,7 @@ const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSe
           </div>
         )}
 
-        <div className={`grid md:grid-cols-3 gap-6 ${!isSubscriber ? "opacity-30 blur-md pointer-events-none" : ""}`}>
+        <div className={`grid lg:grid-cols-3 gap-6 ${!isSubscriber ? "opacity-30 blur-md pointer-events-none" : ""}`}>
           {PILLAR_ICONS.map(({ icon: Icon, label, key }) => (
             <div
               key={key}
