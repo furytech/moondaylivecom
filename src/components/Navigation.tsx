@@ -78,12 +78,20 @@ const Navigation = () => {
                 Logout
               </button>
             ) : (
-              <Link
-                to="/login"
-                className="font-display text-sm tracking-widest uppercase px-5 py-2 art-deco-border brass-glow text-primary"
-              >
-                Login
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  className="font-display text-sm tracking-widest uppercase text-foreground/70 elegant-hover"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="font-display text-sm tracking-widest uppercase px-5 py-2 art-deco-border brass-glow text-primary"
+                >
+                  Sign Up
+                </Link>
+              </>
             )}
           </div>
 
