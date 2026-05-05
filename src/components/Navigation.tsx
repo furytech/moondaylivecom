@@ -134,13 +134,22 @@ const Navigation = () => {
                   Logout
                 </button>
               ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="font-display text-sm tracking-widest uppercase text-primary py-2"
-                >
-                  Login
-                </Link>
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="font-display text-sm tracking-widest uppercase text-foreground/70 py-2"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="font-display text-sm tracking-widest uppercase text-primary py-2"
+                  >
+                    Sign Up
+                  </Link>
+                </>
               )}
             </div>
           </div>
