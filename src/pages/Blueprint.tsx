@@ -38,6 +38,7 @@ const Blueprint = () => {
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const [moonSignModalOpen, setMoonSignModalOpen] = useState(false);
+  const [todaysMoonModalOpen, setTodaysMoonModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   
