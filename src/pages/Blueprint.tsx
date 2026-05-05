@@ -12,6 +12,8 @@ import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import PricingModal from "@/components/PricingModal";
 import MoonSignModal from "@/components/MoonSignModal";
+import EducationModal from "@/components/EducationModal";
+import { INNER_CIRCLE, PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 
 import DailyForecast from "@/components/DailyForecast";
 import DailyRitual from "@/components/DailyRitual";
@@ -38,6 +40,7 @@ const Blueprint = () => {
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const [moonSignModalOpen, setMoonSignModalOpen] = useState(false);
+  const [todaysMoonModalOpen, setTodaysMoonModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   
@@ -333,13 +336,20 @@ const Blueprint = () => {
                 </p>
               </div>
 
-              <div className="border-t border-primary/10 pt-6 mt-4">
+              <div className="border-t border-primary/10 pt-6 mt-4 space-y-5">
                 <div className="flex items-center justify-center gap-3 text-cream-muted">
                   <Clock className="w-5 h-5 text-primary" />
                   <span className="font-serif text-lg">
                     Next sign in <span className="text-primary font-display">{timeUntilTransition}</span>
                   </span>
                 </div>
+                <button
+                  onClick={() => setTodaysMoonModalOpen(true)}
+                  className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 text-primary font-display text-sm uppercase tracking-widest transition-all duration-300"
+                >
+                  <Info className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" />
+                  <span>About Today's Moon Energy</span>
+                </button>
               </div>
             </GlassmorphismCard>
           </div>
@@ -431,6 +441,31 @@ const Blueprint = () => {
         onClose={() => setMoonSignModalOpen(false)}
         moonSign={displayedMoonSign || null}
       />
+
+      {(() => {
+        const phaseKey = Object.keys(PHASE_GUIDANCE).find((k) =>
+          lunar.phase.name.toLowerCase().includes(k.toLowerCase())
+        ) || "New";
+        const phaseG = PHASE_GUIDANCE[phaseKey];
+        const signG = INNER_CIRCLE[lunar.sign.name] || INNER_CIRCLE.Aries;
+        return (
+          <EducationModal
+            isOpen={todaysMoonModalOpen}
+            onClose={() => setTodaysMoonModalOpen(false)}
+            eyebrow="Today's Moon"
+            title={`Moon in ${lunar.sign.name}`}
+            symbol={lunar.sign.symbol}
+            subtitle={`${lunar.phase.name} • ${lunar.phase.illumination}% illuminated • Next sign in ${timeUntilTransition}`}
+            intro={`Today's lunar weather blends the ${lunar.phase.name} phase with the ${lunar.sign.name} signature. Together they shape the emotional tone of your day across mind, soul, and body.`}
+            sections={[
+              { label: `Mind · ${lunar.sign.name}`, body: signG.psychological },
+              { label: `Soul · ${lunar.phase.name} Phase`, body: phaseG.spiritual },
+              { label: `Body · ${lunar.sign.name}`, body: signG.material },
+            ]}
+            closing="Read the sky. Move with intention."
+          />
+        );
+      })()}
     </div>
   );
 };

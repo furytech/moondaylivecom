@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Brain, Sparkles, Globe, Lock, Zap, Pause } from "lucide-react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import EducationButton from "@/components/EducationButton";
+import EducationModal from "@/components/EducationModal";
 import { VOC_CONNECTED, VOC_UNPLUGGED } from "@/lib/innerCircleDictionary";
 import type { LunarIntelligence } from "@/lib/lunarEngine";
 import { getVocTimingWindow } from "@/lib/lunarEngine";
@@ -17,6 +20,7 @@ const PILLAR_ICONS = [
 ];
 
 const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSectionProps) => {
+  const [infoOpen, setInfoOpen] = useState(false);
   const isVoid = lunar.voidOfCourse;
   const guidance = isVoid ? VOC_UNPLUGGED : VOC_CONNECTED;
   const StatusIcon = isVoid ? Pause : Zap;
@@ -30,6 +34,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
     d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return (
+    <>
     <GlassmorphismCard size="lg" className="animate-fade-up stagger-4 shadow-glow">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
@@ -41,11 +46,15 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
             {statusLabel}
           </h2>
         </div>
-        <p className="font-serif text-lg text-cream-muted">
+        <p className="font-serif text-lg text-cream-muted mb-6">
           {isVoid
             ? "The Moon is between signs. Routine tasks only."
             : "The Moon's signal is clear. Act with confidence."}
         </p>
+        <EducationButton
+          label={isVoid ? "About Void Moon Periods" : "About Connected Periods"}
+          onClick={() => setInfoOpen(true)}
+        />
       </div>
 
       {/* Phase Timing Window */}
@@ -113,6 +122,25 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
         </div>
       </div>
     </GlassmorphismCard>
+    <EducationModal
+      isOpen={infoOpen}
+      onClose={() => setInfoOpen(false)}
+      eyebrow="Between Phases"
+      title={isVoid ? "Void of Course Moon" : "Connected Moon"}
+      subtitle={statusLabel}
+      intro={
+        isVoid
+          ? "A Void of Course Moon happens between the time the Moon completes its last major aspect in one sign and enters the next. During this interval, the lunar signal grows quiet — actions taken often fizzle, decisions don't stick, and outcomes drift sideways. It is a sacred pause."
+          : "When the Moon is connected, its signal is clear and amplified. Aspects to other planets carry weight, intentions land, and momentum builds. This is the time to launch, decide, and execute."
+      }
+      sections={[
+        { label: "Mind", body: guidance.psychological },
+        { label: "Soul", body: guidance.spiritual },
+        { label: "Body", body: guidance.material },
+      ]}
+      closing={isVoid ? "Soften. Reroute. Rest. The signal returns soon." : "Move boldly. The cosmos is listening."}
+    />
+    </>
   );
 };
 
