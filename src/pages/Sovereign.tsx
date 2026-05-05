@@ -158,8 +158,22 @@ function TriadCard({ triad }: { triad: TriadMoon }) {
   );
 }
 
+// ─── Shakti Key composition ───────────────────────────────
+const RULER_BEHAVIOR: Record<string, string> = {
+  Sun:     "lead from sovereign center; act on what only you can author",
+  Moon:    "tend the inner climate first; let feeling inform pace",
+  Mercury: "gather data, then articulate — speak with precision, not volume",
+  Venus:   "choose by resonance; favor what feels harmonized over what feels urgent",
+  Mars:    "channel the heat into one decisive movement; refuse scattershot effort",
+  Jupiter: "expand where meaning is real; do not inflate where it is performative",
+  Saturn:  "honor the long form; constrain now to compound later",
+  Rahu:    "engage the unfamiliar edge; the discomfort is the curriculum",
+  Ketu:    "release what is already complete; let mastery exit gracefully",
+};
+
 function ShaktiCard({ triad }: { triad: TriadMoon }) {
   const n = triad.sidereal.nakshatra;
+  const behavior = RULER_BEHAVIOR[n.ruler] ?? "move in alignment with the day's underlying current";
   return (
     <div className="sov-card">
       <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
@@ -169,17 +183,52 @@ function ShaktiCard({ triad }: { triad: TriadMoon }) {
       <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-5">
         Ruler · {n.ruler}
       </div>
-      <div className="text-sm text-[hsl(var(--sov-ivory)/0.85)] italic mb-3" style={{ textAlign: "justify", hyphens: "auto" }}>
-        {n.shakti}
-      </div>
-      <p className="text-[13px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
-        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Wiring.</span> The Primal Impulse. Inquiry: Are your actions aligned with your root power, or are you forcing a pace?
+      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left mb-3">
+        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Wiring.</span>{" "}
+        {n.shakti}. This is the primal current threaded through your day — the specific power your Moon is metabolizing right now.
+      </p>
+      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
+        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Practice.</span>{" "}
+        Under {n.ruler}'s rulership, {behavior}. Choose the deliberate path; let the chaotic one pass.
       </p>
     </div>
   );
 }
 
+// ─── Internal Audit composition ───────────────────────────
+const SIGN_ELEMENT_PRACTICE: Record<string, string> = {
+  Fire:  "act first, refine in motion; courage clears the static",
+  Earth: "ground the inquiry in something tangible — body, calendar, or craft",
+  Water: "let feeling lead the data; honor what the tide is showing you",
+  Air:   "name it precisely; the right sentence reorganizes the field",
+};
+
+const HOUSE_DOMAIN: Record<number, string> = {
+  1:  "self-presentation",
+  2:  "resources and worth",
+  3:  "communication and immediate exchange",
+  4:  "foundations and inner home",
+  5:  "creative expression",
+  6:  "daily systems and routine",
+  7:  "partnership and mirrors",
+  8:  "shared depth and intimacy",
+  9:  "belief and worldview",
+  10: "public structure and direction",
+  11: "networks and alliances",
+  12: "subconscious and integration",
+};
+
+const SIGN_ELEMENT_LOCAL: Record<string, "Fire" | "Earth" | "Air" | "Water"> = {
+  Aries: "Fire", Leo: "Fire", Sagittarius: "Fire",
+  Taurus: "Earth", Virgo: "Earth", Capricorn: "Earth",
+  Gemini: "Air", Libra: "Air", Aquarius: "Air",
+  Cancer: "Water", Scorpio: "Water", Pisces: "Water",
+};
+
 function AuditCard({ audit }: { audit: ChandraLagnaHouse }) {
+  const element = SIGN_ELEMENT_LOCAL[audit.sign];
+  const practice = SIGN_ELEMENT_PRACTICE[element];
+  const domain = HOUSE_DOMAIN[audit.house];
   return (
     <div className="sov-card">
       <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-4">
@@ -189,11 +238,13 @@ function AuditCard({ audit }: { audit: ChandraLagnaHouse }) {
       <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.55)] mb-5">
         Transit through {audit.sign}
       </div>
-      <div className="text-sm text-[hsl(var(--sov-ivory)/0.9)] leading-relaxed mb-3" style={{ textAlign: "justify", hyphens: "auto" }}>
+      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left mb-3">
+        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Inquiry.</span>{" "}
         {audit.inquiry}
-      </div>
-      <p className="text-[13px] leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] italic" style={{ textAlign: "justify", hyphens: "auto" }}>
-        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Persona.</span> Navigating the Collective Weather. Action: Notice how social interactions are flavored by this sign today.
+      </p>
+      <p className="text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)] text-left">
+        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">The Practice.</span>{" "}
+        Today the audit lands in your domain of {domain}, colored by {audit.sign}'s {element.toLowerCase()} signature — {practice}. Sit with the inquiry before reacting; choose the response, do not perform it.
       </p>
     </div>
   );
