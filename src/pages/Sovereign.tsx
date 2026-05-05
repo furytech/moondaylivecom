@@ -27,6 +27,22 @@ const PHASE_TONE: Record<KineticAspect["phase"], { label: string; cls: string; g
   Separating: { label: "Separating · Exhale", cls: "aspect-cold", glyph: "▽" },
 };
 
+// Plain-language meaning of each aspect geometry
+const ASPECT_MEANING: Record<KineticAspect["aspect"], string> = {
+  Conjunction: "fusion — these forces merge and amplify one another",
+  Opposition:  "polarity — a tug-of-war asking for conscious balance",
+  Trine:       "easeful flow — talent and grace move without resistance",
+  Square:      "friction — tension that demands action and reshapes structure",
+  Sextile:     "opportunity — an open door that rewards small, deliberate effort",
+};
+
+// What to expect during each kinetic phase
+const PHASE_MEANING: Record<KineticAspect["phase"], string> = {
+  Applying:   "Pressure is building. Observe the pattern now, before it expresses outwardly.",
+  Exact:      "Peak charge. The lesson is live — meet it with full presence.",
+  Separating: "The wave is releasing. Integrate what surfaced and let the residue clear.",
+};
+
 function useTick(intervalMs: number) {
   const [, setN] = useState(0);
   useEffect(() => {
@@ -62,6 +78,12 @@ function AspectRow({ a }: { a: KineticAspect }) {
         <span>Orb {orbStr}</span>
         <span>Separation {a.separation.toFixed(2)}°</span>
       </div>
+      <p className="mt-2 text-[13px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.7)]">
+        <span className="not-italic font-semibold tracking-wider text-[hsl(var(--sov-champagne))]">
+          {a.aspect}.
+        </span>{" "}
+        A {ASPECT_MEANING[a.aspect]}. {PHASE_MEANING[a.phase]}
+      </p>
     </div>
   );
 }
