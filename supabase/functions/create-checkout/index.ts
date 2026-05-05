@@ -60,6 +60,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
+      allow_promotion_codes: true,
       success_url: `${origin}/welcome-sovereign`,
       cancel_url: `${origin}/pricing?canceled=true`,
     });
