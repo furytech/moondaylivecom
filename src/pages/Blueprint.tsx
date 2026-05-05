@@ -441,6 +441,31 @@ const Blueprint = () => {
         onClose={() => setMoonSignModalOpen(false)}
         moonSign={displayedMoonSign || null}
       />
+
+      {(() => {
+        const phaseKey = Object.keys(PHASE_GUIDANCE).find((k) =>
+          lunar.phase.name.toLowerCase().includes(k.toLowerCase())
+        ) || "New";
+        const phaseG = PHASE_GUIDANCE[phaseKey];
+        const signG = INNER_CIRCLE[lunar.sign.name] || INNER_CIRCLE.Aries;
+        return (
+          <EducationModal
+            isOpen={todaysMoonModalOpen}
+            onClose={() => setTodaysMoonModalOpen(false)}
+            eyebrow="Today's Moon"
+            title={`Moon in ${lunar.sign.name}`}
+            symbol={lunar.sign.symbol}
+            subtitle={`${lunar.phase.name} • ${lunar.phase.illumination}% illuminated • Next sign in ${timeUntilTransition}`}
+            intro={`Today's lunar weather blends the ${lunar.phase.name} phase with the ${lunar.sign.name} signature. Together they shape the emotional tone of your day across mind, soul, and body.`}
+            sections={[
+              { label: `Mind · ${lunar.sign.name}`, body: signG.psychological },
+              { label: `Soul · ${lunar.phase.name} Phase`, body: phaseG.spiritual },
+              { label: `Body · ${lunar.sign.name}`, body: signG.material },
+            ]}
+            closing="Read the sky. Move with intention."
+          />
+        );
+      })()}
     </div>
   );
 };
