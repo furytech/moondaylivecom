@@ -122,6 +122,25 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
         </div>
       </div>
     </GlassmorphismCard>
+    <EducationModal
+      isOpen={infoOpen}
+      onClose={() => setInfoOpen(false)}
+      eyebrow="Between Phases"
+      title={isVoid ? "Void of Course Moon" : "Connected Moon"}
+      subtitle={statusLabel}
+      intro={
+        isVoid
+          ? "A Void of Course Moon happens between the time the Moon completes its last major aspect in one sign and enters the next. During this interval, the lunar signal grows quiet — actions taken often fizzle, decisions don't stick, and outcomes drift sideways. It is a sacred pause."
+          : "When the Moon is connected, its signal is clear and amplified. Aspects to other planets carry weight, intentions land, and momentum builds. This is the time to launch, decide, and execute."
+      }
+      sections={[
+        { label: "Mind", body: guidance.psychological },
+        { label: "Soul", body: guidance.spiritual },
+        { label: "Body", body: guidance.material },
+      ]}
+      closing={isVoid ? "Soften. Reroute. Rest. The signal returns soon." : "Move boldly. The cosmos is listening."}
+    />
+    </>
   );
 };
 
