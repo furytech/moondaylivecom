@@ -34,6 +34,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
     d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return (
+    <>
     <GlassmorphismCard size="lg" className="animate-fade-up stagger-4 shadow-glow">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
@@ -45,11 +46,15 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
             {statusLabel}
           </h2>
         </div>
-        <p className="font-serif text-lg text-cream-muted">
+        <p className="font-serif text-lg text-cream-muted mb-6">
           {isVoid
             ? "The Moon is between signs. Routine tasks only."
             : "The Moon's signal is clear. Act with confidence."}
         </p>
+        <EducationButton
+          label={isVoid ? "About Void Moon Periods" : "About Connected Periods"}
+          onClick={() => setInfoOpen(true)}
+        />
       </div>
 
       {/* Phase Timing Window */}
