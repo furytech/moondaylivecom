@@ -21,10 +21,10 @@ import {
    "Breath" of the aspects: Heat (Applying) ↔ Cold (Separating)
    ──────────────────────────────────────────────────────────── */
 
-const PHASE_TONE: Record<KineticAspect["phase"], { label: string; cls: string }> = {
-  Applying:   { label: "Applying · Inhale",   cls: "aspect-heat" },
-  Exact:      { label: "Exact · Apex",        cls: "aspect-apex" },
-  Separating: { label: "Separating · Exhale", cls: "aspect-cold" },
+const PHASE_TONE: Record<KineticAspect["phase"], { label: string; cls: string; glyph: string }> = {
+  Applying:   { label: "Applying · Inhale",   cls: "aspect-heat", glyph: "▲" },
+  Exact:      { label: "Exact · Apex",        cls: "aspect-apex", glyph: "◆" },
+  Separating: { label: "Separating · Exhale", cls: "aspect-cold", glyph: "▽" },
 };
 
 function useTick(intervalMs: number) {
