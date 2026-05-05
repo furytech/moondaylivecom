@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Brain, Sparkles, Globe, Lock, Zap, Pause } from "lucide-react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import EducationButton from "@/components/EducationButton";
+import EducationModal from "@/components/EducationModal";
 import { VOC_CONNECTED, VOC_UNPLUGGED } from "@/lib/innerCircleDictionary";
 import type { LunarIntelligence } from "@/lib/lunarEngine";
 import { getVocTimingWindow } from "@/lib/lunarEngine";
