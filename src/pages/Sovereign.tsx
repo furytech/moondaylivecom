@@ -38,18 +38,19 @@ function useTick(intervalMs: number) {
 function AspectRow({ a }: { a: KineticAspect }) {
   const tone = PHASE_TONE[a.phase];
   const orbStr = `${Math.abs(a.orb).toFixed(2)}°`;
-  // Heat: increase glow w/ intensity; Cold: reduce opacity & spread letters.
+  // Heat: build glow with intensity. Apex: bright bloom. Cold: keep readable, signal via dashed rail + glyph.
   const style: React.CSSProperties =
-    a.phase === "Separating"
-      ? { opacity: 0.35 + 0.25 * a.intensity, letterSpacing: `${0.04 + 0.06 * (1 - a.intensity)}em` }
-      : a.phase === "Applying"
+    a.phase === "Applying"
       ? { filter: `drop-shadow(0 0 ${4 + 14 * a.intensity}px hsl(var(--sov-heat) / ${0.35 + 0.5 * a.intensity}))` }
-      : { filter: `drop-shadow(0 0 22px hsl(var(--sov-apex) / 0.85))` };
+      : a.phase === "Exact"
+      ? { filter: `drop-shadow(0 0 22px hsl(var(--sov-apex) / 0.85))` }
+      : {};
 
   return (
-    <div className={`sov-aspect-row ${tone.cls}`} style={style}>
+    <div className={`sov-aspect-row ${tone.cls} phase-${a.phase.toLowerCase()}`} style={style}>
       <div className="flex items-baseline justify-between gap-4">
-        <div className="font-display text-base tracking-wide">
+        <div className="font-display text-base tracking-wide flex items-center gap-2">
+          <span className="aspect-glyph" aria-hidden>{tone.glyph}</span>
           {bodyLabel(a.bodyA)} <span className="opacity-60">·</span> {a.aspect}{" "}
           <span className="opacity-60">·</span> {bodyLabel(a.bodyB)}
         </div>
