@@ -43,6 +43,35 @@ const PHASE_MEANING: Record<KineticAspect["phase"], string> = {
   Separating: "The wave is releasing. Integrate what surfaced and let the residue clear.",
 };
 
+// Archetypal voice of each tracked body — the "noun" of the sentence
+const BODY_VOICE: Record<string, { domain: string; verb: string }> = {
+  Sun:       { domain: "core identity and vitality",        verb: "illuminating" },
+  Moon:      { domain: "emotional tide and instinct",        verb: "feeling into" },
+  Mercury:   { domain: "thought, language, and exchange",    verb: "translating" },
+  Venus:     { domain: "values, attraction, and harmony",    verb: "drawing toward" },
+  Mars:      { domain: "drive, courage, and assertion",      verb: "igniting" },
+  Jupiter:   { domain: "expansion, meaning, and faith",      verb: "amplifying" },
+  Saturn:    { domain: "structure, mastery, and limit",      verb: "consolidating" },
+  "True Node": { domain: "soul direction and karmic axis",   verb: "orienting" },
+};
+
+// How each aspect colors the meeting between the two bodies
+const ASPECT_DYNAMIC: Record<KineticAspect["aspect"], (a: string, b: string) => string> = {
+  Conjunction: (a, b) => `${a} fuses with ${b}; the two themes braid into a single, amplified signal.`,
+  Opposition:  (a, b) => `${a} faces ${b} across an axis, asking you to hold both truths without collapsing one into the other.`,
+  Trine:       (a, b) => `${a} flows easily into ${b}; gifts arrive with little friction, but require conscious use to matter.`,
+  Square:      (a, b) => `${a} grinds against ${b}; the friction is the lesson — pressure that reshapes structure when met directly.`,
+  Sextile:     (a, b) => `${a} extends an open hand to ${b}; a small, deliberate move now opens disproportionate movement later.`,
+};
+
+function describeAspect(a: KineticAspect): string {
+  const A = bodyLabel(a.bodyA);
+  const B = bodyLabel(a.bodyB);
+  const va = BODY_VOICE[A]?.domain ?? A;
+  const vb = BODY_VOICE[B]?.domain ?? B;
+  return ASPECT_DYNAMIC[a.aspect](`your ${va}`, `your ${vb}`);
+}
+
 function useTick(intervalMs: number) {
   const [, setN] = useState(0);
   useEffect(() => {
