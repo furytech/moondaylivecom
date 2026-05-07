@@ -275,7 +275,7 @@ const Index = () => {
             </p>
 
             <div className="relative inline-block max-w-3xl w-full rounded-3xl overflow-hidden border border-lilac/20 bg-card/40 backdrop-blur-xl">
-              <div className="aspect-[16/9] relative">
+              <div className="relative md:aspect-[16/9]">
                 <div
                   className="absolute inset-0"
                   style={{
@@ -284,7 +284,7 @@ const Index = () => {
                   }}
                 />
                 <div className="absolute inset-0 backdrop-blur-md bg-navy-deep/40 z-10" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-8">
+                <div className="relative md:absolute md:inset-0 flex flex-col items-center justify-center z-20 p-8">
                   <h3 className="font-display text-2xl md:text-3xl text-foreground mb-4 tracking-wide">
                     Unlock Sovereign Insight
                   </h3>
