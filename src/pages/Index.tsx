@@ -259,7 +259,7 @@ const Index = () => {
         </section>
 
         {/* Sovereign Tier teaser */}
-        <section className="py-20 md:py-28 px-6 text-center border-t border-lilac/10">
+        <section className="pt-8 pb-20 md:pt-12 md:pb-28 px-6 text-center border-t border-lilac/10">
           <div className="max-w-4xl mx-auto">
             <Compass className="w-6 h-6 text-lilac mx-auto mb-6" strokeWidth={1.5} />
             <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-4">
