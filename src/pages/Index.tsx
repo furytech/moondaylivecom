@@ -243,9 +243,9 @@ const Index = () => {
             </p>
 
             <div
-              className="inline-block p-10 md:p-12 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl max-w-lg w-full shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)]"
+              className="inline-block p-6 md:p-8 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl max-w-lg w-full shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)]"
             >
-              <p className="font-display text-sm text-lilac/80 tracking-[0.25em] uppercase mb-6">
+              <p className="font-display text-sm text-lilac/80 tracking-[0.25em] uppercase mb-4">
                 Begin in Moments
               </p>
               <button
