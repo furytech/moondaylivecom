@@ -110,11 +110,8 @@ export function getLunarIntelligence(date: Date = new Date()): LunarIntelligence
  * Get time remaining until the Moon enters the next sign (approximate).
  */
 export function getTimeUntilNextSign(date: Date = new Date()): { hours: number; minutes: number } {
-  const diffMs = date.getTime() - REFERENCE_DATE.getTime();
-  const daysSinceRef = diffMs / (1000 * 60 * 60 * 24);
-  const positionInSign = daysSinceRef % MOON_SIGN_DAYS;
-  const daysRemaining = MOON_SIGN_DAYS - positionInSign;
-  const totalMinutes = Math.floor(daysRemaining * 24 * 60);
+  const endTime = getNextSignIngress(date);
+  const totalMinutes = Math.max(0, Math.floor((endTime.getTime() - date.getTime()) / (60 * 1000)));
   return {
     hours: Math.floor(totalMinutes / 60),
     minutes: totalMinutes % 60,
@@ -130,18 +127,8 @@ export function getVocTimingWindow(date: Date = new Date()): {
   endTime: Date;
   peakTime: Date;
 } {
-  const diffMs = date.getTime() - REFERENCE_DATE.getTime();
-  const daysSinceRef = diffMs / (1000 * 60 * 60 * 24);
-  const positionInSign = daysSinceRef % MOON_SIGN_DAYS;
-  const vocThreshold = MOON_SIGN_DAYS - 0.125; // ~3 hours before sign change
-
-  // End time = when the Moon enters the next sign
-  const daysUntilEnd = MOON_SIGN_DAYS - positionInSign;
-  const endTime = new Date(date.getTime() + daysUntilEnd * 24 * 60 * 60 * 1000);
-
-  // Start time = vocThreshold into the current sign period
-  const daysUntilStart = vocThreshold - positionInSign;
-  const startTime = new Date(date.getTime() + daysUntilStart * 24 * 60 * 60 * 1000);
+  const endTime = getNextSignIngress(date);
+  const startTime = new Date(endTime.getTime() - 3 * 60 * 60 * 1000);
 
   // Peak = midpoint between start and end
   const peakTime = new Date(startTime.getTime() + (endTime.getTime() - startTime.getTime()) / 2);
