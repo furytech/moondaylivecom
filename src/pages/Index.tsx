@@ -84,26 +84,27 @@ const Index = () => {
       />
 
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 md:px-12 border-b border-lilac/10 bg-background/78 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-3 md:px-12 md:py-4 border-b border-lilac/10 bg-background/78 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <button
             onClick={() => navigate("/")}
-            className="font-display text-xl tracking-[0.25em] text-foreground/90 uppercase"
+            className="font-display text-base md:text-xl tracking-[0.2em] md:tracking-[0.25em] text-foreground/90 uppercase shrink-0"
           >
             Moonday<span className="text-lilac">.</span>Live
           </button>
-          <div className="flex items-center gap-3 md:gap-5">
+          <div className="flex items-center gap-2 md:gap-5 shrink-0">
             <button
               onClick={() => navigate("/login")}
-              className="text-xs md:text-sm tracking-[0.2em] uppercase text-foreground/60 hover:text-lilac transition-colors duration-300"
+              className="text-[11px] md:text-sm tracking-[0.15em] md:tracking-[0.2em] uppercase text-foreground/60 hover:text-lilac transition-colors duration-300 shrink-0"
             >
               Sign In
             </button>
             <button
               onClick={() => navigate("/signup")}
-              className="px-5 py-2 md:px-6 md:py-2.5 bg-lilac hover:bg-lilac-light text-primary-foreground text-xs md:text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_30px_-8px_hsl(var(--lilac)/0.6)]"
+              className="px-3 py-1.5 md:px-6 md:py-2.5 bg-lilac hover:bg-lilac-light text-primary-foreground text-[10px] md:text-sm tracking-[0.15em] md:tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_30px_-8px_hsl(var(--lilac)/0.6)] shrink-0"
             >
-              Find My Moon Sign
+              <span className="hidden sm:inline">Find My Moon Sign</span>
+              <span className="sm:hidden">Get Started</span>
             </button>
           </div>
         </div>
