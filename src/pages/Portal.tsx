@@ -11,7 +11,9 @@ import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSign } from "@/lib/moonSign";
+import { calculateMoonSign, getTransitionInfoAsync, type TransitionInfo } from "@/lib/moonSign";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Sparkles as SparklesIcon } from "lucide-react";
 
 interface PortalProps {
   defaultMode?: "login" | "signup";
@@ -35,6 +37,27 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [transitionInfo, setTransitionInfo] = useState<TransitionInfo | null>(null);
+
+  // Detect Moon-sign transition days as soon as the user picks a birthday
+  useEffect(() => {
+    if (isLogin || !birthday) {
+      setTransitionInfo(null);
+      return;
+    }
+    let cancelled = false;
+    const birthDate = new Date(`${birthday}T12:00:00`);
+    getTransitionInfoAsync(birthDate)
+      .then((info) => {
+        if (!cancelled) setTransitionInfo(info);
+      })
+      .catch(() => {
+        if (!cancelled) setTransitionInfo(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [birthday, isLogin]);
 
   // Sync mode if route prop changes (e.g. /signup -> /login)
   useEffect(() => {
@@ -89,8 +112,11 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
-        const moonSign = calculateMoonSign(birthDate);
-        await signUp(email, password, birthday, moonSign.sign);
+        // Prefer the majority sign on transition days; fall back to noon calc
+        const moonSignName = transitionInfo?.isTransitionDay
+          ? transitionInfo.majoritySign
+          : calculateMoonSign(birthDate).sign;
+        await signUp(email, password, birthday, moonSignName);
         setSignupSuccess(true);
       }
     } catch (err: unknown) {
@@ -318,6 +344,36 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                   <p className="text-xs text-muted-foreground/70 pl-1 pt-1">
                     Used to chart your natal moon sign — saved to your profile.
                   </p>
+
+                  {transitionInfo?.isTransitionDay && (
+                    <Alert className="mt-3 bg-lilac/5 border-lilac/30 text-left">
+                      <SparklesIcon className="w-4 h-4 text-lilac" />
+                      <AlertDescription className="text-xs leading-relaxed text-cream/85">
+                        <span className="block font-display tracking-[0.2em] uppercase text-lilac mb-1.5">
+                          Between Phases
+                        </span>
+                        On this date the Moon shifted from{" "}
+                        <span className="text-lilac font-medium">{transitionInfo.signAtStart}</span>{" "}
+                        into{" "}
+                        <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>{" "}
+                        around{" "}
+                        <span className="text-lilac font-medium">
+                          {String(Math.floor(transitionInfo.ingressHour ?? 0)).padStart(2, "0")}:
+                          {String(
+                            Math.floor(((transitionInfo.ingressHour ?? 0) % 1) * 60)
+                          ).padStart(2, "0")}{" "}
+                          UTC
+                        </span>
+                        . Without an exact birth time, we'll assign{" "}
+                        <span className="text-lilac font-medium">
+                          {transitionInfo.majoritySign}
+                        </span>{" "}
+                        — the sign holding the Moon for{" "}
+                        {transitionInfo.majorityHours.toFixed(1)} of the 24 hours.
+                        Sovereign Tier resolves this exactly with your birth time.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
               )}
 
