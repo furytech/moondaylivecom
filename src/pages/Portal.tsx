@@ -112,8 +112,11 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
-        const moonSign = calculateMoonSign(birthDate);
-        await signUp(email, password, birthday, moonSign.sign);
+        // Prefer the majority sign on transition days; fall back to noon calc
+        const moonSignName = transitionInfo?.isTransitionDay
+          ? transitionInfo.majoritySign
+          : calculateMoonSign(birthDate).sign;
+        await signUp(email, password, birthday, moonSignName);
         setSignupSuccess(true);
       }
     } catch (err: unknown) {
