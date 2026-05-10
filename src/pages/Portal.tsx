@@ -37,6 +37,27 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [transitionInfo, setTransitionInfo] = useState<TransitionInfo | null>(null);
+
+  // Detect Moon-sign transition days as soon as the user picks a birthday
+  useEffect(() => {
+    if (isLogin || !birthday) {
+      setTransitionInfo(null);
+      return;
+    }
+    let cancelled = false;
+    const birthDate = new Date(`${birthday}T12:00:00`);
+    getTransitionInfoAsync(birthDate)
+      .then((info) => {
+        if (!cancelled) setTransitionInfo(info);
+      })
+      .catch(() => {
+        if (!cancelled) setTransitionInfo(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [birthday, isLogin]);
 
   // Sync mode if route prop changes (e.g. /signup -> /login)
   useEffect(() => {
