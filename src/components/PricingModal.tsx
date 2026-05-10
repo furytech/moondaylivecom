@@ -37,6 +37,15 @@ const PricingModal = ({ open, onOpenChange, onSelectPlan, loading }: PricingModa
 
   const handleSelectPlan = async (priceId: string) => {
     setSelectedPlan(priceId);
+    const plan = PLANS.find((p) => p.priceId === priceId);
+    const value = plan ? parseFloat(plan.price.replace(/[^0-9.]/g, "")) : undefined;
+    trackEvent("begin_checkout", {
+      currency: "USD",
+      value,
+      items: plan
+        ? [{ item_id: plan.id, item_name: `Sovereign ${plan.name}`, price: value }]
+        : undefined,
+    });
     await onSelectPlan(priceId);
     setSelectedPlan(null);
   };
