@@ -1,5 +1,14 @@
 // Current Moon Sign Calculator
-// Calculates the moon sign for any given date
+// Uses astronomy-engine for sub-arcminute accurate geocentric tropical
+// positions — the same engine that powers the Sovereign blueprint.
+
+import {
+  AstroTime,
+  EclipticGeoMoon,
+  Illumination,
+  MoonPhase,
+  Body,
+} from "astronomy-engine";
 
 export interface CurrentMoonData {
   sign: string;
@@ -25,53 +34,48 @@ const moonSigns = [
   { sign: "Pisces", symbol: "♓", element: "Water" },
 ];
 
-// Known new moon date for reference (Jan 29, 2025)
-const REFERENCE_NEW_MOON = new Date(2025, 0, 29);
-const LUNAR_CYCLE_DAYS = 29.53059;
-const MOON_SIGN_DAYS = 2.46421; // ~29.53 / 12
-
-function daysSinceReference(date: Date): number {
-  const diffMs = date.getTime() - REFERENCE_NEW_MOON.getTime();
-  return diffMs / (1000 * 60 * 60 * 24);
+function norm360(x: number): number {
+  return ((x % 360) + 360) % 360;
 }
 
-function getMoonPhase(daysSinceNew: number): { phase: string; illumination: number; phaseEmoji: string } {
-  const cyclePosition = ((daysSinceNew % LUNAR_CYCLE_DAYS) + LUNAR_CYCLE_DAYS) % LUNAR_CYCLE_DAYS;
-  const phaseIndex = cyclePosition / LUNAR_CYCLE_DAYS;
-  
-  // Calculate illumination (0-100%)
-  const illumination = Math.round(50 * (1 - Math.cos(2 * Math.PI * phaseIndex)));
-  
-  if (phaseIndex < 0.0625) return { phase: "New Moon", illumination, phaseEmoji: "🌑" };
-  if (phaseIndex < 0.1875) return { phase: "Waxing Crescent", illumination, phaseEmoji: "🌒" };
-  if (phaseIndex < 0.3125) return { phase: "First Quarter", illumination, phaseEmoji: "🌓" };
-  if (phaseIndex < 0.4375) return { phase: "Waxing Gibbous", illumination, phaseEmoji: "🌔" };
-  if (phaseIndex < 0.5625) return { phase: "Full Moon", illumination, phaseEmoji: "🌕" };
-  if (phaseIndex < 0.6875) return { phase: "Waning Gibbous", illumination, phaseEmoji: "🌖" };
-  if (phaseIndex < 0.8125) return { phase: "Last Quarter", illumination, phaseEmoji: "🌗" };
-  if (phaseIndex < 0.9375) return { phase: "Waning Crescent", illumination, phaseEmoji: "🌘" };
-  return { phase: "New Moon", illumination, phaseEmoji: "🌑" };
+/**
+ * MoonPhase returns the elongation of the Moon from the Sun in degrees:
+ *   0° = New, 90° = First Quarter, 180° = Full, 270° = Last Quarter.
+ */
+function describePhase(phaseAngle: number): { phase: string; phaseEmoji: string } {
+  const a = norm360(phaseAngle);
+  if (a < 22.5)  return { phase: "New Moon",         phaseEmoji: "🌑" };
+  if (a < 67.5)  return { phase: "Waxing Crescent",  phaseEmoji: "🌒" };
+  if (a < 112.5) return { phase: "First Quarter",    phaseEmoji: "🌓" };
+  if (a < 157.5) return { phase: "Waxing Gibbous",   phaseEmoji: "🌔" };
+  if (a < 202.5) return { phase: "Full Moon",        phaseEmoji: "🌕" };
+  if (a < 247.5) return { phase: "Waning Gibbous",   phaseEmoji: "🌖" };
+  if (a < 292.5) return { phase: "Last Quarter",     phaseEmoji: "🌗" };
+  if (a < 337.5) return { phase: "Waning Crescent",  phaseEmoji: "🌘" };
+  return { phase: "New Moon", phaseEmoji: "🌑" };
 }
 
 export function getCurrentMoon(date: Date = new Date()): CurrentMoonData {
-  const days = daysSinceReference(date);
-  
-  // Calculate current moon sign
-  // Reference: On Jan 29, 2025 (new moon), moon was in Aquarius
-  const referenceSignIndex = 10; // Aquarius
-  const signOffset = Math.floor(days / MOON_SIGN_DAYS);
-  const currentSignIndex = ((referenceSignIndex + signOffset) % 12 + 12) % 12;
-  
-  const currentSign = moonSigns[currentSignIndex];
-  const phaseData = getMoonPhase(days);
-  
+  const time = new AstroTime(date);
+
+  // Geocentric tropical ecliptic longitude of the Moon (degrees, 0–360)
+  const lon = norm360(EclipticGeoMoon(time).lon);
+  const signIndex = Math.floor(lon / 30) % 12;
+  const currentSign = moonSigns[signIndex];
+
+  // True phase angle (Sun–Earth–Moon elongation) and illuminated fraction
+  const phaseAngle = MoonPhase(time);
+  const illum = Illumination(Body.Moon, time);
+  const illumination = Math.round(illum.phase_fraction * 100);
+  const { phase, phaseEmoji } = describePhase(phaseAngle);
+
   return {
     sign: currentSign.sign,
     symbol: currentSign.symbol,
     element: currentSign.element,
-    phase: phaseData.phase,
-    illumination: phaseData.illumination,
-    phaseEmoji: phaseData.phaseEmoji,
+    phase,
+    illumination,
+    phaseEmoji,
   };
 }
 
@@ -90,6 +94,6 @@ export function getMoonMessage(moonData: CurrentMoonData): string {
     Aquarius: "Embrace your uniqueness. Innovation flows through you.",
     Pisces: "Dreams hold wisdom. Trust your intuition and inner visions.",
   };
-  
+
   return messages[moonData.sign] || "The moon guides your path tonight.";
 }
