@@ -3,8 +3,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Crown, Sparkles, Brain, Globe } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import { trackEvent } from "@/lib/analytics";
 
 const SubscriptionSuccess = () => {
   const navigate = useNavigate();
