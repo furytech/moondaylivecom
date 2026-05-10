@@ -390,7 +390,6 @@ export default function Sovereign() {
             </div>
           ) : (
             <div className="grid gap-6 grid-cols-1 items-start">
-              <TriadCard triad={triad} />
               <ShaktiCard triad={triad} />
               {audit && <AuditCard audit={audit} />}
               <KineticCard aspects={aspects} />
