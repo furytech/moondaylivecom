@@ -130,16 +130,91 @@ export interface TransitionCheck {
   signAtEnd: string;
 }
 
+export interface TransitionInfo {
+  isTransitionDay: boolean;
+  signAtStart: string;
+  signAtEnd: string;
+  /** UTC hour (0-24, fractional) at which the Moon ingressed into the new sign */
+  ingressHour: number | null;
+  /** Sign that occupies the majority of the day (used as the assigned natal sign) */
+  majoritySign: string;
+  majorityHours: number;
+  minoritySign: string | null;
+  minorityHours: number;
+}
+
 // Check if a date is a transition day (moon changes signs during the day)
 export async function checkTransitionDay(birthDate: Date): Promise<TransitionCheck> {
   const startSign = await calculateMoonSignForTime(birthDate, 0); // Start of day
   const endSign = await calculateMoonSignForTime(birthDate, 23); // End of day
-  
+
   return {
     isTransitionDay: startSign !== endSign,
     signAtStart: startSign,
     signAtEnd: endSign
   };
+}
+
+// Compute fine-grained transition information including the ingress hour
+// and which sign occupies the majority of the 24-hour birth date window.
+export async function getTransitionInfoAsync(birthDate: Date): Promise<TransitionInfo> {
+  const signAtStart = await calculateMoonSignForTime(birthDate, 0);
+  const signAtEnd = await calculateMoonSignForTimeFractional(birthDate, 23.9833); // ~23:59
+
+  if (signAtStart === signAtEnd) {
+    return {
+      isTransitionDay: false,
+      signAtStart,
+      signAtEnd,
+      ingressHour: null,
+      majoritySign: signAtStart,
+      majorityHours: 24,
+      minoritySign: null,
+      minorityHours: 0,
+    };
+  }
+
+  // Binary search for ingress hour (resolution ~1 minute)
+  let lo = 0;
+  let hi = 24;
+  for (let i = 0; i < 16; i++) {
+    const mid = (lo + hi) / 2;
+    const s = await calculateMoonSignForTimeFractional(birthDate, mid);
+    if (s === signAtStart) lo = mid;
+    else hi = mid;
+  }
+  const ingressHour = (lo + hi) / 2;
+  const startHours = ingressHour;
+  const endHours = 24 - ingressHour;
+
+  const majoritySign = startHours >= endHours ? signAtStart : signAtEnd;
+  const minoritySign = startHours >= endHours ? signAtEnd : signAtStart;
+  const majorityHours = Math.max(startHours, endHours);
+  const minorityHours = Math.min(startHours, endHours);
+
+  return {
+    isTransitionDay: true,
+    signAtStart,
+    signAtEnd,
+    ingressHour,
+    majoritySign,
+    majorityHours,
+    minoritySign,
+    minorityHours,
+  };
+}
+
+async function calculateMoonSignForTimeFractional(birthDate: Date, hourFloat: number): Promise<string> {
+  const day = birthDate.getDate();
+  const month = birthDate.getMonth() + 1;
+  const year = birthDate.getFullYear();
+  const h = Math.floor(hourFloat);
+  const m = Math.floor((hourFloat - h) * 60);
+  const s = Math.floor((((hourFloat - h) * 60) - m) * 60);
+  const toi = createTimeOfInterest.fromTime(year, month, day, h, m, s);
+  const moon = createMoon(toi);
+  const coords = await moon.getGeocentricEclipticSphericalDateCoordinates();
+  return longitudeToZodiacSign(coords.lon);
 }
 
 // Synchronous version for backwards compatibility - uses approximation for transition check
