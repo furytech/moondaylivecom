@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 
+const SUPPORT_EMAIL = "support@moondaylive.com";
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+
+  const linkClass =
+    "font-serif text-xs text-muted-foreground/60 hover:text-foreground transition-colors";
 
   return (
     <footer className="border-t border-border/20 bg-background/95 backdrop-blur-sm relative z-30">
@@ -15,32 +20,75 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Brand & Copyright */}
-        <div className="text-center mb-6">
-          <p className="font-display text-sm text-primary/60 tracking-[0.2em] uppercase mb-2">
-            Moonday
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <p className="font-display text-sm text-primary/70 tracking-[0.25em] uppercase mb-2">
+            Moonday Live
           </p>
-          <p className="font-serif text-xs text-muted-foreground/60">
-            © {currentYear} Moonday Portal. All rights reserved.
+          <p className="font-serif text-xs text-muted-foreground/60 max-w-md mx-auto">
+            Luxury lunar guidance for the Mind, Soul, and Body.
           </p>
         </div>
 
-        {/* Legal Links */}
-        <nav className="flex items-center justify-center gap-6">
-          <Link 
-            to="/privacy" 
-            className="font-serif text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-          >
-            Privacy Policy
-          </Link>
-          <span className="text-muted-foreground/30">•</span>
-          <Link 
-            to="/terms" 
-            className="font-serif text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-          >
-            Terms of Service
-          </Link>
+        {/* Link grid */}
+        <nav
+          aria-label="Footer"
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center mb-8 max-w-3xl mx-auto"
+        >
+          <div className="space-y-3">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+              Experience
+            </p>
+            <ul className="space-y-2">
+              <li><Link to="/" className={linkClass}>Home</Link></li>
+              <li><Link to="/pricing" className={linkClass}>Sovereign Tier</Link></li>
+              <li><Link to="/library" className={linkClass}>Lunar Library</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+              Company
+            </p>
+            <ul className="space-y-2">
+              <li><Link to="/about" className={linkClass}>About</Link></li>
+              <li><Link to="/contact" className={linkClass}>Contact</Link></li>
+              <li><Link to="/faq" className={linkClass}>FAQ</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+              Legal
+            </p>
+            <ul className="space-y-2">
+              <li><Link to="/privacy" className={linkClass}>Privacy</Link></li>
+              <li><Link to="/terms" className={linkClass}>Terms</Link></li>
+              <li><Link to="/refund" className={linkClass}>Refunds</Link></li>
+              <li><Link to="/disclaimer" className={linkClass}>Disclaimer</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+              Concierge
+            </p>
+            <ul className="space-y-2">
+              <li>
+                <a href={`mailto:${SUPPORT_EMAIL}`} className={linkClass}>
+                  {SUPPORT_EMAIL}
+                </a>
+              </li>
+            </ul>
+          </div>
         </nav>
+
+        {/* Copyright */}
+        <div className="text-center pt-6 border-t border-border/10">
+          <p className="font-serif text-[0.7rem] text-muted-foreground/50">
+            © {currentYear} Moonday Live. All rights reserved. For entertainment purposes only.
+          </p>
+        </div>
       </div>
     </footer>
   );

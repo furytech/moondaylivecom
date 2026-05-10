@@ -1,14 +1,9 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+Disallow: /account
+Disallow: /blueprint
+Disallow: /sovereign
+Disallow: /welcome-sovereign
+Disallow: /auth/
+
+Sitemap: https://moondaylive.com/sitemap.xml
