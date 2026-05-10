@@ -400,13 +400,18 @@
   background: linear-gradient(180deg, hsl(var(--sov-obsidian-2) / 0.95), hsl(var(--sov-obsidian-2) / 0.85));
   border: 1px solid hsl(var(--sov-champagne) / 0.35);
   border-radius: 14px;
-  padding: 2rem 1.875rem;
+  padding: 1.5rem 1.125rem;
   backdrop-filter: blur(6px);
   text-align: left;
   z-index: 2;
   display: flex;
   flex-direction: column;
   height: auto;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+@media (min-width: 640px) {
+  .sov-card { padding: 2rem 1.875rem; }
 }
 .sov-card--wide { height: auto; }
 

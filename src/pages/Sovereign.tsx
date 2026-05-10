@@ -85,13 +85,13 @@ function AspectRow({ a }: { a: KineticAspect }) {
 
   return (
     <div className={`sov-aspect-row ${tone.cls} phase-${a.phase.toLowerCase()}`} style={style}>
-      <div className="flex items-baseline justify-between gap-4">
-        <div className="font-display text-base tracking-wide flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
+        <div className="font-display text-base tracking-wide flex items-center gap-2 flex-wrap">
           <span className="aspect-glyph" aria-hidden>{tone.glyph}</span>
           {bodyLabel(a.bodyA)} <span className="opacity-60">·</span> {a.aspect}{" "}
           <span className="opacity-60">·</span> {bodyLabel(a.bodyB)}
         </div>
-        <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-champagne))]">
+        <div className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[hsl(var(--sov-champagne))] whitespace-nowrap">
           {tone.label}
         </div>
       </div>
@@ -364,7 +364,7 @@ export default function Sovereign() {
   return (
     <div className="sov-shell min-h-screen">
       <Navigation />
-      <main className={`pt-[68px] pb-20 px-6 ${isVoid ? "sov-void" : ""}`}>
+      <main className={`pt-[68px] pb-20 px-4 sm:px-6 ${isVoid ? "sov-void" : ""}`}>
         <div className="max-w-6xl mx-auto">
           <header className="text-center mb-4">
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
@@ -390,7 +390,6 @@ export default function Sovereign() {
             </div>
           ) : (
             <div className="grid gap-6 grid-cols-1 items-start">
-              <TriadCard triad={triad} />
               <ShaktiCard triad={triad} />
               {audit && <AuditCard audit={audit} />}
               <KineticCard aspects={aspects} />
