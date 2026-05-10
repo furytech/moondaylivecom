@@ -19,6 +19,11 @@ import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import Account from "./pages/Account";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import Refund from "./pages/Refund";
+import Disclaimer from "./pages/Disclaimer";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +61,11 @@ const App = () => (
             } />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/refund" element={<Refund />} />
+            <Route path="/disclaimer" element={<Disclaimer />} />
+            <Route path="/about" element={<About />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/welcome-sovereign" element={
               <ProtectedRoute>
