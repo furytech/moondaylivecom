@@ -11,7 +11,9 @@ import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSign } from "@/lib/moonSign";
+import { calculateMoonSign, getTransitionInfoAsync, type TransitionInfo } from "@/lib/moonSign";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Sparkles as SparklesIcon } from "lucide-react";
 
 interface PortalProps {
   defaultMode?: "login" | "signup";
