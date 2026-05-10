@@ -54,6 +54,11 @@ const App = () => (
                 <Sovereign />
               </ProtectedRoute>
             } />
+            <Route path="/triad" element={
+              <ProtectedRoute>
+                <Triad />
+              </ProtectedRoute>
+            } />
             <Route path="/library" element={<Library />} />
             <Route path="/account" element={
               <ProtectedRoute>
