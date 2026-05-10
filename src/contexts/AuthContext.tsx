@@ -152,6 +152,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           { onConflict: "user_id" }
         );
     }
+
+    trackEvent("sign_up", { method: "email" });
   };
 
   const handleSignOut = async () => {
