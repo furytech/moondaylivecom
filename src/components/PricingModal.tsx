@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Crown, Sparkles, Check } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
+import { trackEvent } from "@/lib/analytics";
 
 interface PricingModalProps {
   open: boolean;
