@@ -364,7 +364,7 @@ export default function Sovereign() {
   return (
     <div className="sov-shell min-h-screen">
       <Navigation />
-      <main className={`pt-[68px] pb-20 px-6 ${isVoid ? "sov-void" : ""}`}>
+      <main className={`pt-[68px] pb-20 px-4 sm:px-6 ${isVoid ? "sov-void" : ""}`}>
         <div className="max-w-6xl mx-auto">
           <header className="text-center mb-4">
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
