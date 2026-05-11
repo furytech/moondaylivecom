@@ -54,11 +54,12 @@ const App = () => (
                 <Sovereign />
               </ProtectedRoute>
             } />
-            <Route path="/triad" element={
+            <Route path="/lenses" element={
               <ProtectedRoute>
-                <Triad />
+                <Lenses />
               </ProtectedRoute>
             } />
+            <Route path="/triad" element={<Navigate to="/lenses" replace />} />
             <Route path="/library" element={<Library />} />
             <Route path="/account" element={
               <ProtectedRoute>
