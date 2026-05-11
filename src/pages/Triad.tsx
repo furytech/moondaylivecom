@@ -80,9 +80,10 @@ function PositionBlock({
 
 export default function Triad() {
   useSEO({
-    title: "Triad Lunar Position — Tropical, Sidereal & Draconic | Moonday",
+    title: "Lenses — Tropical, Sidereal & Draconic Moon | Moonday",
     description:
-      "Today's Moon across three coordinate systems — Tropical (climate), Sidereal (wiring), and Draconic (soul) — with a plain-language breakdown of each.",
+      "Three Lenses, One Sovereign View — today's Moon read through Tropical (persona), Sidereal (wiring), and Draconic (soul), explained simply.",
+    canonical: "https://moondaylive.com/lenses",
   });
 
   const navigate = useNavigate();
@@ -93,7 +94,7 @@ export default function Triad() {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/login?from=/triad");
+        navigate("/login?from=/lenses");
         return;
       }
       const { data: profile } = await supabase
