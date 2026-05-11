@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /account
+Disallow: /dashboard
 Disallow: /blueprint
 Disallow: /sovereign
 Disallow: /welcome-sovereign
