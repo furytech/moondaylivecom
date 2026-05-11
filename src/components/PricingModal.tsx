@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Crown, Sparkles, Check } from "lucide-react";
+import { Crown, Sparkles, Check, X } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import { trackEvent } from "@/lib/analytics";
 
@@ -53,6 +53,13 @@ const PricingModal = ({ open, onOpenChange, onSelectPlan, loading }: PricingModa
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg glass-card border-primary/20 bg-background/95 backdrop-blur-xl">
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute right-4 top-4 z-50 p-2 rounded-full bg-background/50 hover:bg-background/80 border border-primary/20 hover:border-primary/40 transition-all group"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+        </button>
         <DialogHeader className="text-center pb-4">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Crown className="w-6 h-6 text-primary" />
