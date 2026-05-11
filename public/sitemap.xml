@@ -8,6 +8,7 @@
   <url><loc>https://moondaylive.com/faq</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://moondaylive.com/refund</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://moondaylive.com/disclaimer</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://moondaylive.com/lenses</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://moondaylive.com/privacy</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://moondaylive.com/terms</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://moondaylive.com/login</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
