@@ -12,7 +12,7 @@ import Portal from "./pages/Portal";
 import Pricing from "./pages/Pricing";
 import Blueprint from "./pages/Blueprint";
 import Sovereign from "./pages/Sovereign";
-import Triad from "./pages/Triad";
+import Lenses from "./pages/Triad";
 import Library from "./pages/Library";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -54,11 +54,12 @@ const App = () => (
                 <Sovereign />
               </ProtectedRoute>
             } />
-            <Route path="/triad" element={
+            <Route path="/lenses" element={
               <ProtectedRoute>
-                <Triad />
+                <Lenses />
               </ProtectedRoute>
             } />
+            <Route path="/triad" element={<Navigate to="/lenses" replace />} />
             <Route path="/library" element={<Library />} />
             <Route path="/account" element={
               <ProtectedRoute>

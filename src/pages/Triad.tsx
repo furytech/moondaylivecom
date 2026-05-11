@@ -80,9 +80,10 @@ function PositionBlock({
 
 export default function Triad() {
   useSEO({
-    title: "Triad Lunar Position — Tropical, Sidereal & Draconic | Moonday",
+    title: "Lenses — Tropical, Sidereal & Draconic Moon | Moonday",
     description:
-      "Today's Moon across three coordinate systems — Tropical (climate), Sidereal (wiring), and Draconic (soul) — with a plain-language breakdown of each.",
+      "Three Lenses, One Sovereign View — today's Moon read through Tropical (persona), Sidereal (wiring), and Draconic (soul), explained simply.",
+    canonical: "https://moondaylive.com/lenses",
   });
 
   const navigate = useNavigate();
@@ -93,7 +94,7 @@ export default function Triad() {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/login?from=/triad");
+        navigate("/login?from=/lenses");
         return;
       }
       const { data: profile } = await supabase
@@ -130,14 +131,13 @@ export default function Triad() {
         <div className="max-w-3xl mx-auto">
           <header className="text-center mb-8">
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
-              Triad Lunar Position
+              The Lenses
             </div>
             <h1 className="font-display text-3xl md:text-4xl tracking-tight text-[hsl(var(--sov-ivory))]">
-              Three Moons, One Sky
+              Three Lenses, One Sovereign View
             </h1>
             <p className="mt-3 text-sm sm:text-base text-[hsl(var(--sov-ivory)/0.65)] max-w-xl mx-auto leading-relaxed">
-              The same Moon, read through three lenses. Each system answers a different question:
-              what is the weather, what is the wiring, what is the soul reaching toward.
+              The same Moon, read through three lenses — Persona, Wiring, Soul.
             </p>
             <div className="mt-4 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--sov-ivory)/0.4)]">
               Lahiri Ayanamsha · {triad.ayanamsha.toFixed(4)}°
@@ -145,6 +145,51 @@ export default function Triad() {
           </header>
 
           <div className="grid gap-6 grid-cols-1 items-start">
+            <article className="sov-card">
+              <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
+                Three Lenses, One Sovereign View
+              </div>
+              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-3">
+                The three positions rarely agree — and that is the point. When your Tropical,
+                Sidereal, and Draconic positions all land in the same sign, your day is unusually
+                unified: outer weather, inner wiring, and soul direction are pulling in one line.
+                On these days, move boldly.
+              </p>
+              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-4">
+                Most days, however, these perspectives diverge. Read them as a sequence to
+                understand the layers of your experience:
+              </p>
+              <ul className="space-y-3 text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)]">
+                <li>
+                  <span className="text-[hsl(var(--sov-champagne))] font-medium">
+                    The Tropical Lens (The Persona):
+                  </span>{" "}
+                  the public, social texture of the day — what the "room" feels like, the shared
+                  atmospheric weather you and the world are walking through together.
+                </li>
+                <li>
+                  <span className="text-[hsl(var(--sov-champagne))] font-medium">
+                    The Sidereal Lens (The Wiring):
+                  </span>{" "}
+                  your actual astronomical alignment — how your nervous system is truly responding
+                  to the cosmic environment, regardless of the social weather.
+                </li>
+                <li>
+                  <span className="text-[hsl(var(--sov-champagne))] font-medium">
+                    The Draconic Lens (The Soul):
+                  </span>{" "}
+                  your spiritual compass — the underlying direction your soul wants this specific
+                  experience to deliver you toward.
+                </li>
+              </ul>
+              <p className="mt-5 text-[11px] uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.45)]">
+                For self-reflection and entertainment ·{" "}
+                <a href="/disclaimer" className="underline hover:text-[hsl(var(--sov-champagne))]">
+                  Read the disclaimer
+                </a>
+              </p>
+            </article>
+
             <PositionBlock
               eyebrow="Lens One · The Persona"
               title="Tropical"
@@ -177,26 +222,6 @@ export default function Triad() {
               how="We take today's Moon position and subtract the position of the True North Node. What remains is the Moon read in 'soul coordinates' — a chart that ignores both season and constellation and shows only directional pull."
               use="Listen for the deep, quiet pull beneath the noise. When a choice feels disproportionately important for no logical reason, that is usually the Draconic Moon speaking. Follow it gently; do not argue with it."
             />
-
-            <article className="sov-card">
-              <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
-                Reading the Triad together
-              </div>
-              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-3">
-                The three positions rarely agree — and that is the point. When Tropical, Sidereal,
-                and Draconic all land in the same sign, the day is unusually unified: outer weather,
-                inner wiring, and soul direction are pulling in one line. Move boldly.
-              </p>
-              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)]">
-                When they diverge — which is most days — read them as a sequence:
-                <span className="text-[hsl(var(--sov-champagne))]"> Tropical </span>
-                tells you what the room feels like,
-                <span className="text-[hsl(var(--sov-champagne))]"> Sidereal </span>
-                tells you what your nervous system is actually doing in response, and
-                <span className="text-[hsl(var(--sov-champagne))]"> Draconic </span>
-                tells you which direction your soul wants the experience to deliver you.
-              </p>
-            </article>
           </div>
         </div>
       </main>
