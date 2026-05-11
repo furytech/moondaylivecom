@@ -71,7 +71,7 @@ const Footer = () => {
 
           <div className="space-y-3">
             <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
-              Concierge
+              Support
             </p>
             <ul className="space-y-2">
               <li>

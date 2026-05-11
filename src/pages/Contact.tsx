@@ -17,7 +17,7 @@ const Contact = () => {
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
-            Contact the Concierge
+            Contact Support
           </h1>
           <p className="font-serif text-cream-muted text-sm md:text-base">
             For account, billing, or sovereign inquiries — we are listening.
