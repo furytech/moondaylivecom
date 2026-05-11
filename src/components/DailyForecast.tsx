@@ -105,7 +105,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
           <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">
             Lucky Focus
           </p>
-          <p className="font-serif text-lg text-cream-muted capitalize">
+          <p className="font-display text-xl text-primary capitalize">
             {forecast.luckyFocus}
           </p>
         </div>
