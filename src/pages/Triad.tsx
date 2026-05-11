@@ -45,8 +45,16 @@ function PositionBlock({
             {meta}
           </div>
         )}
-        <div className="mt-3 font-display text-base sm:text-lg text-[hsl(var(--sov-champagne))] tabular-nums break-words">
-          {position}
+        <div className="mt-4 rounded-md border border-[hsl(var(--sov-champagne)/0.25)] bg-[hsl(var(--sov-ivory)/0.03)] px-4 py-3 text-center">
+          <div className="text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--sov-ivory)/0.55)] mb-1">
+            Current Moon position · {title}
+          </div>
+          <div className="font-display text-base sm:text-lg text-[hsl(var(--sov-champagne))] tabular-nums break-words">
+            {position}
+          </div>
+          <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.4)]">
+            Sign · Degrees · Minutes (live)
+          </div>
         </div>
       </div>
 
