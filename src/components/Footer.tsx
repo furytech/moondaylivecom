@@ -26,7 +26,7 @@ const Footer = () => {
             Moonday Live
           </p>
           <p className="font-serif text-xs text-muted-foreground/60 max-w-md mx-auto">
-            Luxury lunar guidance for the Mind, Soul, and Body.
+            Daily lunar guidance for the Mind, Soul, and Body.
           </p>
         </div>
 
