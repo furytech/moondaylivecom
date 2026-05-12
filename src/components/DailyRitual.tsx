@@ -42,14 +42,14 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
       {/* Ritual Title & Element */}
       <div className="text-center mb-6">
         <h3 className="font-display text-2xl text-gold-gradient mb-2">{ritual.title}</h3>
-        <span className="font-display text-xs text-primary/60 uppercase tracking-widest">
+        <span className="font-display text-xs text-primary/90 uppercase tracking-widest">
           {ritual.element} Element
         </span>
       </div>
 
       {/* Affirmation */}
       <div className="mb-8 text-center">
-        <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-3">Affirmation</p>
+        <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-3">Affirmation</p>
         <p className="font-serif text-xl text-primary italic leading-relaxed max-w-2xl mx-auto">
           "{ritual.affirmation}"
         </p>
@@ -105,7 +105,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
             </h3>
           </div>
           <div className="text-center mb-4">
-            <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-3">
+            <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-3">
               Why This Matters to You
             </p>
           </div>
