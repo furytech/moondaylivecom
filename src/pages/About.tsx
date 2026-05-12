@@ -35,7 +35,12 @@ const About = () => {
               Every blueprint, ritual, and forecast on this platform is built
               on precise astronomical engines and dressed in the language of
               ceremony. Nothing here is generic; everything is tuned to your
-              Lunar Signature.
+              Lunar Signature, read through{" "}
+              <Link to="/lenses" className="text-primary/90 hover:text-primary underline underline-offset-2 transition-colors">
+                three distinct lenses
+              </Link>{" "}
+              — Tropical, Sidereal, and Draconic — so you see the full picture,
+              not just one surface.
             </p>
           </div>
         </GlassmorphismCard>
