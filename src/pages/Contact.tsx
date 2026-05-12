@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { useSEO } from "@/hooks/useSEO";
+import { trackEvent } from "@/lib/analytics";
 import { Mail, Clock, Sparkles } from "lucide-react";
 
 const SUPPORT_EMAIL = "support@moondaylive.com";
@@ -11,6 +13,17 @@ const Contact = () => {
     description:
       "Reach the Moonday Live concierge for account help, billing questions, or partnership inquiries. We respond within two lunar cycles (48 hours).",
   });
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      trackEvent("contact_intent", { method: "page_dwell" });
+    }, 30000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const handleEmailClick = () => {
+    trackEvent("contact_intent", { method: "email_click" });
+  };
 
   return (
     <PageLayout>
@@ -36,6 +49,7 @@ const Contact = () => {
                 </p>
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
+                  onClick={handleEmailClick}
                   className="font-display text-lg md:text-xl text-foreground hover:text-primary transition-colors"
                 >
                   {SUPPORT_EMAIL}
