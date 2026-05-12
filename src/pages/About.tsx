@@ -79,6 +79,67 @@ const About = () => {
         <GlassmorphismCard>
           <div className="font-serif text-cream-muted leading-relaxed space-y-6 text-sm md:text-base text-center">
             <h2 className="font-display text-lg md:text-xl text-gold-gradient tracking-wider">
+              Beyond the Birth Certificate
+            </h2>
+            <p>
+              Most people encounter a barrier in astrology before they even
+              begin: they don't know their exact minute of birth. I realized
+              that this missing piece of paper shouldn't lock someone out of
+              understanding their internal rhythm. My vision for Moonday Live
+              started there — creating a system that uses the date to provide
+              a clear, actionable pulse of the Moon's influence, regardless of
+              whether you have a birth certificate in hand.
+            </p>
+          </div>
+        </GlassmorphismCard>
+
+        <GlassmorphismCard>
+          <div className="font-serif text-cream-muted leading-relaxed space-y-6 text-sm md:text-base text-center">
+            <h2 className="font-display text-lg md:text-xl text-gold-gradient tracking-wider">
+              The Gravity of the Moon
+            </h2>
+            <p>
+              We often look to far-off planets, but the Moon is our closest
+              and most influential planetary body. It is the silent driver of
+              our moods, our intuition, and our daily energy. As a{" "}
+              <span className="text-primary/90">Cancer with a Cancer Moon</span>,
+              I don't just study these cycles; I live them. I understand
+              intimately how the Moon's placement, phase, and daily house
+              transit can shift the entire "weather" of a person's life.
+            </p>
+          </div>
+        </GlassmorphismCard>
+
+        <GlassmorphismCard>
+          <div className="font-serif text-cream-muted leading-relaxed space-y-6 text-sm md:text-base text-center">
+            <h2 className="font-display text-lg md:text-xl text-gold-gradient tracking-wider">
+              The Three Lenses Approach
+            </h2>
+            <p>
+              Moonday Live was built to move beyond "flat" horoscopes. By
+              looking through the{" "}
+              <span className="text-primary/90">
+                Tropical, Sidereal, and Draconic lenses
+              </span>
+              , we offer a balanced perspective on how the Moon affects the
+              areas of your life you haven't yet considered. We provide the
+              data; you maintain the sovereignty to use that insight to find
+              balance and move boldly through your day.
+            </p>
+            <div className="flex justify-center pt-2">
+              <Link
+                to="/lenses"
+                className="font-display text-xs tracking-widest uppercase px-8 py-3 art-deco-border brass-glow text-primary"
+              >
+                Explore the Three Lenses
+              </Link>
+            </div>
+          </div>
+        </GlassmorphismCard>
+
+        <GlassmorphismCard>
+          <div className="font-serif text-cream-muted leading-relaxed space-y-6 text-sm md:text-base text-center">
+            <h2 className="font-display text-lg md:text-xl text-gold-gradient tracking-wider">
               Our Promise
             </h2>
             <p>
