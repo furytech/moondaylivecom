@@ -49,6 +49,7 @@ const Contact = () => {
                 </p>
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
+                  onClick={handleEmailClick}
                   className="font-display text-lg md:text-xl text-foreground hover:text-primary transition-colors"
                 >
                   {SUPPORT_EMAIL}
