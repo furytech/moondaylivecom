@@ -51,7 +51,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
       {/* Moon Comparison Header */}
       <div className="flex items-center justify-center gap-8 mb-8">
         <div className="text-center">
-          <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">
+          <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-2">
             Your Birth Moon
           </p>
           <p className="font-display text-xl text-primary">
@@ -60,7 +60,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
         </div>
         <div className="text-2xl text-primary/40">⟷</div>
         <div className="text-center">
-          <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">
+          <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-2">
             Today's Moon
           </p>
           <p className="font-display text-xl text-primary">
@@ -71,7 +71,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
 
       {/* Headline */}
       <div className="mb-8 text-center">
-        <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-3">
+        <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-3">
           {currentMoon.phaseEmoji} {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
         <h3 className="sanctuary-text text-gold-gradient italic leading-relaxed">
@@ -94,7 +94,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
       {/* Energy & Focus */}
       <div className="grid lg:grid-cols-2 gap-6 pt-6 border-t border-primary/10">
         <div className="text-center">
-          <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">
+          <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-2">
             Today's Energy
           </p>
           <p className="font-display text-xl text-primary capitalize">
@@ -102,7 +102,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
           </p>
         </div>
         <div className="text-center">
-          <p className="font-display text-xs text-primary/60 uppercase tracking-widest mb-2">
+          <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-2">
             Lucky Focus
           </p>
           <p className="font-display text-xl text-primary capitalize">

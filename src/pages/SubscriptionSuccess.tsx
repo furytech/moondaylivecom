@@ -122,7 +122,7 @@ const SubscriptionSuccess = () => {
                   <div className="w-12 h-12 rounded-full glass-card flex items-center justify-center shadow-glow">
                     <Icon className="w-5 h-5 text-primary" />
                   </div>
-                  <span className="font-display text-xs text-primary/60 uppercase tracking-widest">
+                  <span className="font-display text-xs text-primary/90 uppercase tracking-widest">
                     {label}
                   </span>
                 </div>

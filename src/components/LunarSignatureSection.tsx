@@ -26,7 +26,7 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
     <>
     <GlassmorphismCard size="lg" className="animate-fade-up stagger-3 shadow-glow">
       <div className="text-center mb-10">
-        <p className="font-display text-sm text-primary/60 uppercase tracking-[0.2em] mb-3">
+        <p className="font-display text-sm text-primary/90 uppercase tracking-[0.2em] mb-3">
           The Lunar Signature
         </p>
         <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider mb-2">
@@ -71,7 +71,7 @@ const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureS
               className="glass-card p-6 rounded-xl text-center card-lift"
             >
               <Icon className="w-6 h-6 text-primary mx-auto mb-4" />
-              <p className="font-display text-xs text-primary/60 uppercase tracking-[0.15em] mb-3">
+              <p className="font-display text-xs text-primary/90 uppercase tracking-[0.15em] mb-3">
                 {label}
               </p>
               <p className="font-serif text-base text-cream-muted leading-relaxed text-center">
