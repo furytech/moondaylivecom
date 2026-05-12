@@ -6,7 +6,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const linkClass =
-    "font-serif text-xs text-muted-foreground/60 hover:text-foreground transition-colors";
+    "font-serif text-xs text-cream-muted hover:text-foreground transition-colors";
 
   return (
     <footer className="border-t border-border/20 bg-background/95 backdrop-blur-sm relative z-30">
