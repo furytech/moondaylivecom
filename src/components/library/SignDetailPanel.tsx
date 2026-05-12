@@ -102,7 +102,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
 
                   <div className="grid md:grid-cols-2 gap-8 mt-10">
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
                         Core Wounds
                       </h4>
                       <ul className="space-y-3">
@@ -116,13 +116,13 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
                     </div>
 
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
                         Soul Gifts
                       </h4>
                       <ul className="space-y-3">
                         {content.essence.soulGifts.map((gift, i) => (
                           <li key={i} className="font-serif text-cream-muted flex gap-3">
-                            <span className="text-primary/60 mt-1">◆</span>
+                            <span className="text-primary/90 mt-1">◆</span>
                             <span>{gift}</span>
                           </li>
                         ))}
@@ -146,7 +146,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
 
                   <div className="grid md:grid-cols-3 gap-6 mt-10">
                     <div className="border border-primary/10 p-5">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4 text-center">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Triggers
                       </h4>
                       <ul className="space-y-2">
@@ -159,7 +159,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
                     </div>
 
                     <div className="border border-primary/10 p-5">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4 text-center">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Hidden Fears
                       </h4>
                       <ul className="space-y-2">
@@ -172,7 +172,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
                     </div>
 
                     <div className="border border-primary/10 p-5">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4 text-center">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Destructive Patterns
                       </h4>
                       <ul className="space-y-2">
@@ -204,12 +204,12 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-3">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3">
                         Optimal Timing
                       </h4>
                       <p className="font-serif text-cream-muted">{content.ritual.timing}</p>
 
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-3 mt-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3 mt-6">
                         Sacred Tools
                       </h4>
                       <ul className="space-y-2">
@@ -223,13 +223,13 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
                     </div>
 
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
                         The Practice
                       </h4>
                       <ol className="space-y-3">
                         {content.ritual.steps.map((step, i) => (
                           <li key={i} className="font-serif text-cream-muted flex gap-3">
-                            <span className="text-primary/60 font-display text-sm">{i + 1}.</span>
+                            <span className="text-primary/90 font-display text-sm">{i + 1}.</span>
                             <span>{step}</span>
                           </li>
                         ))}
@@ -253,7 +253,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
                   <div className="grid md:grid-cols-3 gap-6">
                     {/* Stones */}
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4 text-center">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Sacred Stones
                       </h4>
                       <ul className="space-y-4">
@@ -268,7 +268,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
 
                     {/* Botanicals */}
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4 text-center">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Botanicals
                       </h4>
                       <ul className="space-y-4">
@@ -283,7 +283,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
 
                     {/* Colors */}
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/60 mb-4 text-center">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Sacred Colors
                       </h4>
                       <ul className="space-y-4">

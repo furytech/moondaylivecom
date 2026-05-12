@@ -44,7 +44,7 @@ const Library = () => {
         <div className="max-w-6xl mx-auto w-full">
           {/* Header */}
           <div className="text-center mb-8 animate-fade-up">
-            <p className="font-display text-xs md:text-sm text-primary/60 tracking-[0.3em] uppercase mb-2">
+            <p className="font-display text-xs md:text-sm text-primary/90 tracking-[0.3em] uppercase mb-2">
               The Archives of
             </p>
             <h1 className="font-display text-3xl md:text-5xl lg:text-6xl text-gold-gradient tracking-[0.1em] md:tracking-[0.15em] uppercase mb-3">

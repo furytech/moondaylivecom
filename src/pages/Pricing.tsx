@@ -96,7 +96,7 @@ const Pricing = () => {
         <div className="w-full max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-6 animate-fade-up">
-            <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-2">
+            <p className="font-serif text-sm text-primary/90 uppercase tracking-[0.2em] mb-2">
               Choose Your Path
           </p>
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-2">

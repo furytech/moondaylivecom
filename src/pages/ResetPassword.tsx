@@ -259,7 +259,7 @@ const ResetPassword = () => {
         <GlassmorphismCard className="max-w-md w-full animate-fade-up stagger-1">
           {/* Header */}
           <div className="text-center mb-6">
-            <p className="font-serif text-sm text-primary/60 uppercase tracking-[0.2em] mb-2">
+            <p className="font-serif text-sm text-primary/90 uppercase tracking-[0.2em] mb-2">
               Secure Recovery
             </p>
             <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-2">

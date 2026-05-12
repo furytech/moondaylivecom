@@ -36,7 +36,7 @@ const Footer = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center mb-8 max-w-3xl mx-auto"
         >
           <div className="space-y-3">
-            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/90">
               Experience
             </p>
             <ul className="space-y-2">
@@ -47,7 +47,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-3">
-            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/90">
               Company
             </p>
             <ul className="space-y-2">
@@ -58,7 +58,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-3">
-            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/90">
               Legal
             </p>
             <ul className="space-y-2">
@@ -70,7 +70,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-3">
-            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/60">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.25em] text-primary/90">
               Support
             </p>
             <ul className="space-y-2">

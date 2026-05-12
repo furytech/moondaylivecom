@@ -155,7 +155,7 @@ const MoonSignModal = ({ isOpen, onClose, moonSign }: MoonSignModalProps) => {
 
             {/* Affirmation */}
             <div className="text-center">
-              <p className="font-display text-sm text-primary/60 uppercase tracking-widest mb-4">
+              <p className="font-display text-sm text-primary/90 uppercase tracking-widest mb-4">
                 Your Affirmation
               </p>
               <blockquote className="sanctuary-text text-gold-gradient italic leading-relaxed">

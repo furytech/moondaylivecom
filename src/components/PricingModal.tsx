@@ -103,7 +103,7 @@ const PricingModal = ({ open, onOpenChange, onSelectPlan, loading }: PricingModa
                 {loading && selectedPlan === plan.priceId ? (
                   <MoonLoader size="sm" />
                 ) : (
-                  <Sparkles className="w-6 h-6 text-primary/60" />
+                  <Sparkles className="w-6 h-6 text-primary/90" />
                 )}
               </div>
 
