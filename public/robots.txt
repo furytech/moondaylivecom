@@ -6,5 +6,7 @@ Disallow: /blueprint
 Disallow: /sovereign
 Disallow: /welcome-sovereign
 Disallow: /auth/
+Disallow: /portal
+Disallow: /triad
 
 Sitemap: https://moondaylive.com/sitemap.xml
