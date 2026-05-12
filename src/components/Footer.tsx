@@ -22,10 +22,10 @@ const Footer = () => {
 
         {/* Brand */}
         <div className="text-center mb-8">
-          <p className="font-display text-sm text-primary/70 tracking-[0.25em] uppercase mb-2">
+          <p className="font-display text-sm text-primary/80 tracking-[0.25em] uppercase mb-2">
             Moonday Live
           </p>
-          <p className="font-serif text-xs text-muted-foreground/60 max-w-md mx-auto">
+          <p className="font-serif text-xs text-cream-muted max-w-md mx-auto">
             Daily lunar guidance for the Mind, Soul, and Body.
           </p>
         </div>
@@ -85,7 +85,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="text-center pt-6 border-t border-border/10">
-          <p className="font-serif text-[0.7rem] text-muted-foreground/50">
+          <p className="font-serif text-[0.7rem] text-cream-muted/70">
             © {currentYear} Moonday Live. All rights reserved. For entertainment purposes only.
           </p>
         </div>
