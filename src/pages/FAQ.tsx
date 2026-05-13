@@ -44,14 +44,12 @@ const faqs = [
 ];
 
 const FAQ = () => {
-  useSEO({
-    title: "Frequently Asked Questions — Moonday Live",
-    description:
-      "Answers about your Lunar Signature, the Sovereign Tier, billing, cancellations, and how Moonday Live guides your Great Cycle.",
-  });
-
   return (
     <PageLayout>
+      <SEO
+        title="FAQ — Moonday Live"
+        description="Answers about your Lunar Signature, the Sovereign Tier, billing, cancellations, and how Moonday guides your Great Cycle."
+      />
       <div className="max-w-3xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
