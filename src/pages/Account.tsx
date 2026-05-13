@@ -290,6 +290,9 @@ const Account = () => {
                 </div>
               </GlassmorphismCard>
 
+              {/* Sovereign Security (2FA) */}
+              <SovereignSecurity />
+
               {/* Sign out */}
               <div className="text-center pt-4 animate-fade-up stagger-3">
                 <button
