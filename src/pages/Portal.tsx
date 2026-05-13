@@ -403,7 +403,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/50 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                  className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
                 />
               </div>
 
@@ -417,7 +417,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/50 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                  className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
                 />
               </div>
 
@@ -432,7 +432,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/50 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                    className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
                   />
                 </div>
               )}
@@ -449,7 +449,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                         id="birthday"
                         className={cn(
                           "w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-left flex items-center justify-between focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300",
-                          !birthday && "text-muted-foreground/50"
+                          !birthday && "text-muted-foreground/80"
                         )}
                       >
                         {birthday ? format(new Date(`${birthday}T12:00:00`), "PPP") : "Pick your birth date"}
