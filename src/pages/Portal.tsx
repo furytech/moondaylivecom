@@ -13,6 +13,7 @@ import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign, getTransitionInfoAsync, type TransitionInfo } from "@/lib/moonSign";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import SEO from "@/components/SEO";
 import { Sparkles as SparklesIcon } from "lucide-react";
 
 interface PortalProps {
