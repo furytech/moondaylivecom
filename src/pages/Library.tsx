@@ -84,7 +84,7 @@ const Library = () => {
 
           <div className="flex items-center justify-center gap-3 mt-16">
             <div className="w-16 h-px bg-gradient-to-r from-transparent to-primary/30" />
-            <span className="text-primary/30 text-xs tracking-[0.3em] uppercase font-display">
+            <span className="text-primary/70 text-xs tracking-[0.3em] uppercase font-display">
               Select a Portal
             </span>
             <div className="w-16 h-px bg-gradient-to-l from-transparent to-primary/30" />

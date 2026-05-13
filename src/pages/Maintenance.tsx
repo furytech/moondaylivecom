@@ -49,7 +49,7 @@ const Maintenance = () => {
           </div>
         </div>
 
-        <p className="font-serif text-sm text-muted-foreground/50">
+        <p className="font-serif text-sm text-muted-foreground/80">
           support@moondaylive.com
         </p>
       </div>
