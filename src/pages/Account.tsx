@@ -137,6 +137,11 @@ const Account = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Account — Moonday Live"
+        description="Manage your Moonday Live account, birth details, subscription, and Sovereign Security settings."
+        noindex
+      />
       {/* Decorative stars */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {stars.map((s) => (
