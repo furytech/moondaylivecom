@@ -19,6 +19,7 @@ import Terms from "./pages/Terms";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 import Account from "./pages/Account";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
