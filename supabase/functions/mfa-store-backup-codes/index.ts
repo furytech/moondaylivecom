@@ -1,16 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -51,14 +45,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Wipe any existing codes for this user, then insert fresh hashes
+    // Wipe any existing codes for this user, then insert fresh bcrypt hashes.
+    // bcrypt embeds a random per-row salt and uses a slow KDF (cost=10),
+    // making rainbow-table / brute-force attacks infeasible even if the
+    // mfa_backup_codes table is ever read by an attacker.
     await supabase.from("mfa_backup_codes").delete().eq("user_id", userData.user.id);
 
     const rows = await Promise.all(
-      codes.map(async (c: string) => ({
-        user_id: userData.user!.id,
-        code_hash: await sha256(c.trim().toUpperCase()),
-      }))
+      codes.map(async (c: string) => {
+        const normalized = String(c).trim().toUpperCase();
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(normalized, salt);
+        return {
+          user_id: userData.user!.id,
+          code_hash: hash,
+        };
+      })
     );
 
     const { error: insErr } = await supabase.from("mfa_backup_codes").insert(rows);
