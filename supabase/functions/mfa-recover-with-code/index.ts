@@ -2,18 +2,12 @@
 // backup code and have their TOTP factor removed by the service role, restoring
 // access. After recovery the user should re-enroll MFA from Sovereign Security.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-async function sha256(input: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -53,27 +47,52 @@ Deno.serve(async (req) => {
       });
     }
 
-    const hash = await sha256(code.trim().toUpperCase().replace(/\s+/g, ""));
+    const normalized = code.trim().toUpperCase().replace(/\s+/g, "");
 
-    const { data: row, error } = await admin
+    // Fetch all unused codes for this user; bcrypt hashes embed their own salt
+    // so we must compare against each candidate row.
+    const { data: rows, error } = await admin
       .from("mfa_backup_codes")
-      .select("id, used_at")
+      .select("id, code_hash, used_at")
       .eq("user_id", userData.user.id)
-      .eq("code_hash", hash)
-      .maybeSingle();
+      .is("used_at", null);
 
-    if (error || !row || row.used_at) {
+    if (error) throw error;
+
+    let matchedId: string | null = null;
+    for (const row of rows ?? []) {
+      try {
+        if (await bcrypt.compare(normalized, row.code_hash)) {
+          matchedId = row.id;
+          break;
+        }
+      } catch {
+        // ignore malformed hashes
+      }
+    }
+
+    if (!matchedId) {
       return new Response(JSON.stringify({ error: "Code is invalid or already used" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Mark consumed
-    await admin
+    // Atomic consume: only succeeds if still unused. Prevents TOCTOU double-use.
+    const { data: updated, error: updErr } = await admin
       .from("mfa_backup_codes")
       .update({ used_at: new Date().toISOString() })
-      .eq("id", row.id);
+      .eq("id", matchedId)
+      .is("used_at", null)
+      .select("id");
+
+    if (updErr) throw updErr;
+    if (!updated || updated.length === 0) {
+      return new Response(JSON.stringify({ error: "Code is invalid or already used" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Remove every TOTP factor on this user so they regain access
     const { data: factors } = await admin.auth.admin.mfa.listFactors({
