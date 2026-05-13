@@ -10,6 +10,7 @@ import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info } from "lu
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import SEO from "@/components/SEO";
 import PricingModal from "@/components/PricingModal";
 import MoonSignModal from "@/components/MoonSignModal";
 import EducationModal from "@/components/EducationModal";
