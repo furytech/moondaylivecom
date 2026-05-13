@@ -19,6 +19,7 @@ import Terms from "./pages/Terms";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 import Account from "./pages/Account";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/refund" element={<Refund />} />
             <Route path="/disclaimer" element={<Disclaimer />} />
             <Route path="/about" element={<About />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/welcome-sovereign" element={
               <ProtectedRoute>
