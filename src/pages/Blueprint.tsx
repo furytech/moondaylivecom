@@ -224,6 +224,11 @@ const Blueprint = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Your Lunar Blueprint — Moonday Live"
+        description="Your personalized lunar blueprint: today's phase, sign, and the rituals tuned to your unique signature."
+        noindex
+      />
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(20)].map((_, i) => (
