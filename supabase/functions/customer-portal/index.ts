@@ -49,7 +49,15 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    const origin = req.headers.get("origin") || "https://moondaylive.com";
+    // Hardcoded allowlist — never trust client Origin header for return URLs
+    const ALLOWED_ORIGINS = new Set<string>([
+      "https://moondaylive.com",
+      "https://www.moondaylive.com",
+      "https://moondaylivecom.lovable.app",
+    ]);
+    const reqOrigin = req.headers.get("origin") ?? "";
+    const origin = ALLOWED_ORIGINS.has(reqOrigin) ? reqOrigin : "https://moondaylive.com";
+
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/blueprint`,
