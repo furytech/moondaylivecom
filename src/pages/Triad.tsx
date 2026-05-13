@@ -129,6 +129,11 @@ export default function Triad() {
 
   return (
     <div className="sov-shell min-h-screen">
+      <SEO
+        title="The Three Lenses — Tropical, Sidereal & Draconic Moon"
+        description="One Sovereign View of today's Moon through Tropical (persona), Sidereal (wiring), and Draconic (soul) lenses."
+        canonical="https://moondaylive.com/lenses"
+      />
       <Navigation />
       <main className="pt-[68px] pb-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
