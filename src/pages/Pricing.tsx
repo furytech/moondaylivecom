@@ -76,6 +76,11 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Pricing — The Sovereign Tier | Moonday Live"
+        description="Unlock the full lunar archive: deep daily forecasts, the Lunar Library, and your personal blueprint. From $2.88/month."
+        canonical="https://moondaylive.com/pricing"
+      />
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(15)].map((_, i) => (
