@@ -1,0 +1,20 @@
+# Moonday Live
+
+> Luxury lunar guidance — personalized blueprints, daily forecasts, and rituals across Mind, Soul, and Body, attuned to the Great Cycle of the Moon. For entertainment and reflection.
+
+## Pages
+
+- [Home](/): Live lunar climate, current Moon phase, and an introduction to your Lunar Signature.
+- [About](/about): The vision behind Moonday Live and its luxury lunar philosophy.
+- [Lenses](/lenses): The astronomy engines and technical foundations that power Moonday's calculations.
+- [Pricing](/pricing): Free tier and the Sovereign Tier subscription — monthly and yearly plans.
+- [Lunar Library](/library): Art Deco zodiac archive with deep guidance for each Moon sign.
+- [FAQ](/faq): Answers about Lunar Signatures, Sovereign Tier, billing, and cancellations.
+- [Contact](/contact): Reach the Moonday Live team.
+
+## Optional
+
+- [Disclaimer](/disclaimer): Entertainment-only notice and scope of guidance.
+- [Privacy Policy](/privacy): How personal and birth data are handled.
+- [Terms of Service](/terms): Terms governing use of Moonday Live.
+- [Refund Policy](/refund): Refund and cancellation terms for the Sovereign Tier.
