@@ -32,14 +32,14 @@ const ForgotPassword = () => {
       setSent(true);
       toast({
         title: "Recovery Link Sent ✓",
-        description: "If an account exists for that address, a secure reset link is on its way.",
+        description: "A secure reset link has been sent to your inbox. Check your mail to maintain your access.",
       });
     } catch (err: unknown) {
-      // Always present a neutral confirmation to avoid email enumeration.
+      // Neutral confirmation to avoid email enumeration.
       setSent(true);
       toast({
         title: "Recovery Link Sent ✓",
-        description: "If an account exists for that address, a secure reset link is on its way.",
+        description: "A secure reset link has been sent to your inbox. Check your mail to maintain your access.",
       });
     } finally {
       setLoading(false);
