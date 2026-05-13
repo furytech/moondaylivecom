@@ -7,6 +7,7 @@ import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 // Stripe Price IDs
 const PRICES = {
