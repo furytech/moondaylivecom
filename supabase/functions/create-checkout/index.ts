@@ -22,11 +22,26 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
   );
 
+  // Server-side allowlist of valid Sovereign Tier price IDs.
+  // Only these prices may ever be used to create a checkout session.
+  const ALLOWED_PRICE_IDS = new Set<string>([
+    "price_1TTqaxBzaednmcCFjbbknm0L", // Monthly
+    "price_1TTqaPBzaednmcCFmPSW7Vuj", // Annual
+  ]);
+
   try {
     logStep("Function started");
-    
+
     const { priceId } = await req.json();
     logStep("Received price ID", { priceId });
+
+    if (typeof priceId !== "string" || !ALLOWED_PRICE_IDS.has(priceId)) {
+      logStep("Rejected invalid price ID", { priceId });
+      return new Response(JSON.stringify({ error: "Invalid price" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
