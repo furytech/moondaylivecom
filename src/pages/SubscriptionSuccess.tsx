@@ -6,6 +6,7 @@ import { Crown, Sparkles, Brain, Globe } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { trackEvent } from "@/lib/analytics";
+import SEO from "@/components/SEO";
 
 const SubscriptionSuccess = () => {
   const navigate = useNavigate();
