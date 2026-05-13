@@ -5,6 +5,7 @@ import { getCurrentMoon } from "@/lib/currentMoon";
 import { Moon, Sparkles, Compass } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const pillars = [
   {
