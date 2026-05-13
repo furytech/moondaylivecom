@@ -63,14 +63,8 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Hardcoded allowlist — never trust client Origin header for redirect URLs
-    const ALLOWED_ORIGINS = new Set<string>([
-      "https://moondaylive.com",
-      "https://www.moondaylive.com",
-      "https://moondaylivecom.lovable.app",
-    ]);
-    const reqOrigin = req.headers.get("origin") ?? "";
-    const origin = ALLOWED_ORIGINS.has(reqOrigin) ? reqOrigin : "https://moondaylive.com";
+    // Hardcoded redirect URLs — never trust client headers for payment redirects.
+    const SITE_URL = "https://moondaylive.com";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -83,8 +77,8 @@ serve(async (req) => {
       ],
       mode: "subscription",
       allow_promotion_codes: true,
-      success_url: `${origin}/welcome-sovereign`,
-      cancel_url: `${origin}/pricing?canceled=true`,
+      success_url: `${SITE_URL}/welcome-sovereign`,
+      cancel_url: `${SITE_URL}/pricing?canceled=true`,
     });
 
     logStep("Checkout session created", { sessionId: session.id });
