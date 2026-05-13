@@ -238,6 +238,11 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Set New Password — Moonday Live"
+        description="Choose a strong new password to protect your Moonday Live account."
+        noindex
+      />
       {/* Stars */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
