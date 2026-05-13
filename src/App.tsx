@@ -75,7 +75,9 @@ const App = () => (
             <Route path="/disclaimer" element={<Disclaimer />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/update-password" element={<ResetPassword />} />
             <Route path="/welcome-sovereign" element={
               <ProtectedRoute>
                 <SubscriptionSuccess />
