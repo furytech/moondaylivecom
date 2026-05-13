@@ -63,8 +63,15 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    const origin = req.headers.get("origin") || "https://moondaylive.com";
-    
+    // Hardcoded allowlist — never trust client Origin header for redirect URLs
+    const ALLOWED_ORIGINS = new Set<string>([
+      "https://moondaylive.com",
+      "https://www.moondaylive.com",
+      "https://moondaylivecom.lovable.app",
+    ]);
+    const reqOrigin = req.headers.get("origin") ?? "";
+    const origin = ALLOWED_ORIGINS.has(reqOrigin) ? reqOrigin : "https://moondaylive.com";
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
