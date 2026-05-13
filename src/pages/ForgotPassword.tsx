@@ -7,6 +7,7 @@ import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 const ForgotPassword = () => {
   const { toast } = useToast();
@@ -48,6 +49,11 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Forgot Password — Moonday Live"
+        description="Reclaim your portal. We'll send a secure password reset link to your inbox."
+        noindex
+      />
       {/* Stars */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (

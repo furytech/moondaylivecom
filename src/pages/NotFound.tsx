@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,6 +14,11 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Page Not Found — Moonday Live"
+        description="This page has slipped between phases. Return to your blueprint or explore the Lunar Library."
+        noindex
+      />
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (

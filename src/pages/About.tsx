@@ -1,18 +1,16 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import { useSEO } from "@/hooks/useSEO";
+import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { Moon, Sparkles, Compass } from "lucide-react";
 
 const About = () => {
-  useSEO({
-    title: "About Moonday Live — Luxury Lunar Guidance",
-    description:
-      "Moonday Live is a modern sanctuary for ancient lunar wisdom — translating the Great Cycle into personalized rituals for Mind, Soul, and Body.",
-  });
-
   return (
     <PageLayout>
+      <SEO
+        title="About Moonday Live — Luxury Lunar Guidance"
+        description="A modern sanctuary for ancient lunar wisdom — translating the Great Cycle into rituals for Mind, Soul, and Body."
+      />
       <div className="max-w-3xl mx-auto w-full animate-fade-up space-y-6">
         <header className="text-center">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">

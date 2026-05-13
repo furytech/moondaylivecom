@@ -1,16 +1,14 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import { useSEO } from "@/hooks/useSEO";
+import SEO from "@/components/SEO";
 
 const Disclaimer = () => {
-  useSEO({
-    title: "Disclaimer — Moonday Live",
-    description:
-      "Moonday Live is provided for entertainment and personal reflection only. It is not medical, psychological, legal, or financial advice.",
-  });
-
   return (
     <PageLayout>
+      <SEO
+        title="Disclaimer — Moonday Live"
+        description="Moonday Live is provided for entertainment and personal reflection only — not medical, legal, or financial advice."
+      />
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">

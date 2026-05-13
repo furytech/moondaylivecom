@@ -13,6 +13,7 @@ import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign, getTransitionInfoAsync, type TransitionInfo } from "@/lib/moonSign";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import SEO from "@/components/SEO";
 import { Sparkles as SparklesIcon } from "lucide-react";
 
 interface PortalProps {
@@ -345,6 +346,15 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
+      <SEO
+        title={isLogin ? "Sign In — Moonday Live" : "Create Your Account — Moonday Live"}
+        description={
+          isLogin
+            ? "Sign in to your Moonday Live blueprint and continue your lunar journey."
+            : "Create your Moonday Live account and find your moon sign in three details."
+        }
+        noindex
+      />
       <Starfield />
 
       <Navigation />

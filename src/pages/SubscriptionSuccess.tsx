@@ -6,6 +6,7 @@ import { Crown, Sparkles, Brain, Globe } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { trackEvent } from "@/lib/analytics";
+import SEO from "@/components/SEO";
 
 const SubscriptionSuccess = () => {
   const navigate = useNavigate();
@@ -59,6 +60,11 @@ const SubscriptionSuccess = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Welcome to the Sovereign Tier — Moonday Live"
+        description="Your Sovereign Tier is active. Step into the full lunar archive and your personal blueprint."
+        noindex
+      />
       {/* Stars */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(30)].map((_, i) => (

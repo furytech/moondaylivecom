@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { useSEO } from "@/hooks/useSEO";
+import SEO from "@/components/SEO";
 import { computeTriadMoon, type TriadMoon } from "@/lib/sovereignEngine";
 
 /* ────────────────────────────────────────────────────────────
@@ -87,12 +87,7 @@ function PositionBlock({
 }
 
 export default function Triad() {
-  useSEO({
-    title: "Lenses — Tropical, Sidereal & Draconic Moon | Moonday",
-    description:
-      "Three Lenses, One Sovereign View — today's Moon read through Tropical (persona), Sidereal (wiring), and Draconic (soul), explained simply.",
-    canonical: "https://moondaylive.com/lenses",
-  });
+  // SEO injected in render below
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -134,6 +129,11 @@ export default function Triad() {
 
   return (
     <div className="sov-shell min-h-screen">
+      <SEO
+        title="The Three Lenses — Tropical, Sidereal & Draconic Moon"
+        description="One Sovereign View of today's Moon through Tropical (persona), Sidereal (wiring), and Draconic (soul) lenses."
+        canonical="https://moondaylive.com/lenses"
+      />
       <Navigation />
       <main className="pt-[68px] pb-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">

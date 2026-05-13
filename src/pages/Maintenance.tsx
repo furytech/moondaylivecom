@@ -1,14 +1,14 @@
-import { useSEO } from "@/hooks/useSEO";
+import SEO from "@/components/SEO";
 import { Wrench } from "lucide-react";
 
 const Maintenance = () => {
-  useSEO({
-    title: "Moonday Live — Briefly Under Maintenance",
-    description: "We are upgrading our celestial systems. Moonday Live will return shortly.",
-  });
-
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 relative">
+      <SEO
+        title="Briefly Under Maintenance — Moonday Live"
+        description="We are upgrading our celestial systems. Moonday Live will return shortly."
+        noindex
+      />
       {/* Subtle star field */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (

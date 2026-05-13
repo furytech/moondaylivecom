@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import {
   computeTriadMoon,
   computeKineticAspects,
@@ -363,6 +364,11 @@ export default function Sovereign() {
 
   return (
     <div className="sov-shell min-h-screen">
+      <SEO
+        title="Sovereign Dashboard — Present-Moment Geometry"
+        description="Live geocentric lunar positions, Whole Sign houses, and kinetic aspects for the Sovereign Tier."
+        noindex
+      />
       <Navigation />
       <main className={`pt-[68px] pb-20 px-4 sm:px-6 ${isVoid ? "sov-void" : ""}`}>
         <div className="max-w-6xl mx-auto">

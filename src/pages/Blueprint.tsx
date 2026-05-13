@@ -10,6 +10,7 @@ import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info } from "lu
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import SEO from "@/components/SEO";
 import PricingModal from "@/components/PricingModal";
 import MoonSignModal from "@/components/MoonSignModal";
 import EducationModal from "@/components/EducationModal";
@@ -223,6 +224,11 @@ const Blueprint = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
+      <SEO
+        title="Your Lunar Blueprint — Moonday Live"
+        description="Your personalized lunar blueprint: today's phase, sign, and the rituals tuned to your unique signature."
+        noindex
+      />
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(20)].map((_, i) => (

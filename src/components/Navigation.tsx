@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import moonLogo from "@/assets/moon-logo-new.png";
+import moonLogo from "@/assets/moon-logo-new.webp";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 

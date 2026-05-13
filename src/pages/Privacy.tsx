@@ -1,9 +1,14 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import SEO from "@/components/SEO";
 
 const Privacy = () => {
   return (
     <PageLayout>
+      <SEO
+        title="Privacy Policy — Moonday Live"
+        description="How Moonday Live collects, uses, and protects your personal and birth data — written plainly."
+      />
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-8 text-center">
           Privacy Policy
