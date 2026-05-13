@@ -1,19 +1,13 @@
 import { useEffect } from "react";
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import { useSEO } from "@/hooks/useSEO";
+import SEO from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { Mail, Clock, Sparkles } from "lucide-react";
 
 const SUPPORT_EMAIL = "support@moondaylive.com";
 
 const Contact = () => {
-  useSEO({
-    title: "Contact Moonday Live — Support & Inquiries",
-    description:
-      "Reach the Moonday Live concierge for account help, billing questions, or partnership inquiries. We respond within two lunar cycles (48 hours).",
-  });
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
       trackEvent("contact_intent", { method: "page_dwell" });
@@ -27,6 +21,10 @@ const Contact = () => {
 
   return (
     <PageLayout>
+      <SEO
+        title="Contact Moonday Live — Support & Inquiries"
+        description="Reach the Moonday Live concierge for account help, billing, or partnership inquiries. We respond within 48 hours."
+      />
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
