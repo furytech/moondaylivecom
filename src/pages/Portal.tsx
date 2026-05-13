@@ -113,6 +113,17 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     try {
       if (isLogin) {
         await signIn(email, password);
+        // Check if MFA challenge is required (AAL upgrade)
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal && aal.currentLevel !== aal.nextLevel && aal.nextLevel === "aal2") {
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          const totp = factors?.totp?.find((f) => f.status === "verified");
+          if (totp) {
+            setMfaChallenge({ factorId: totp.id });
+            setLoading(false);
+            return;
+          }
+        }
         navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
