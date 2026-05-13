@@ -1,6 +1,6 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import { useSEO } from "@/hooks/useSEO";
+import SEO from "@/components/SEO";
 import {
   Accordion,
   AccordionContent,
