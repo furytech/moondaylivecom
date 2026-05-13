@@ -135,31 +135,42 @@ Deno.serve(async (req) => {
       const rawScore = I * PHASE_WEIGHT + Z * W_sign + V;
       const climate_score = Math.max(0, Math.min(100, Math.round(50 + rawScore - PHASE_WEIGHT / 2)));
 
-      // Persist to moon_history with rate limiting — at most one row per 5 minutes.
-      // This prevents anonymous flooding/corruption of the fallback row while keeping
-      // the public endpoint usable. The inserted values are derived from server-side
-      // astronomy calculations only (illumination input does NOT affect what is stored).
-      try {
-        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        const { data: recent } = await supabase
-          .from("moon_history")
-          .select("id")
-          .gte("created_at", fiveMinAgo)
-          .limit(1)
-          .maybeSingle();
+      // Persist to moon_history ONLY when the caller proves internal/service-role auth.
+      // Public/anonymous callers still receive the live computation, but cannot write —
+      // eliminating anonymous DB writes entirely while keeping the gauge usable for
+      // signed-out homepage visitors.
+      const authHeader = req.headers.get("authorization") ?? "";
+      const internalHeader = req.headers.get("x-internal-auth") ?? "";
+      const bearer = authHeader.toLowerCase().startsWith("bearer ")
+        ? authHeader.slice(7).trim()
+        : "";
+      const isInternalCaller =
+        (bearer && bearer === serviceKey) ||
+        (internalHeader && internalHeader === serviceKey);
 
-        if (!recent) {
-          const { error: insertErr } = await supabase
+      if (isInternalCaller) {
+        try {
+          const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+          const { data: recent } = await supabase
             .from("moon_history")
-            .insert({
-              climate_score,        // derived from server astronomy + clamped illumination
-              zodiac_sign: sign,    // derived from server astronomy
-              volatility_alert,     // derived from server astronomy
-            });
-          if (insertErr) console.error("moon_history insert failed:", insertErr);
+            .select("id")
+            .gte("created_at", fiveMinAgo)
+            .limit(1)
+            .maybeSingle();
+
+          if (!recent) {
+            const { error: insertErr } = await supabase
+              .from("moon_history")
+              .insert({
+                climate_score,        // derived from server astronomy
+                zodiac_sign: sign,    // derived from server astronomy
+                volatility_alert,     // derived from server astronomy
+              });
+            if (insertErr) console.error("moon_history insert failed:", insertErr);
+          }
+        } catch (rlErr) {
+          console.error("moon_history write check failed:", rlErr);
         }
-      } catch (rlErr) {
-        console.error("moon_history rate-limit check failed:", rlErr);
       }
 
       return new Response(
