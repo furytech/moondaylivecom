@@ -364,6 +364,11 @@ export default function Sovereign() {
 
   return (
     <div className="sov-shell min-h-screen">
+      <SEO
+        title="Sovereign Dashboard — Present-Moment Geometry"
+        description="Live geocentric lunar positions, Whole Sign houses, and kinetic aspects for the Sovereign Tier."
+        noindex
+      />
       <Navigation />
       <main className={`pt-[68px] pb-20 px-4 sm:px-6 ${isVoid ? "sov-void" : ""}`}>
         <div className="max-w-6xl mx-auto">
