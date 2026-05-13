@@ -222,7 +222,7 @@ const Index = () => {
                   key={step.n}
                   className={`text-center animate-fade-up stagger-${i + 1}`}
                 >
-                  <div className="font-display text-5xl text-lilac/40 mb-4">{step.n}</div>
+                  <div className="font-display text-5xl text-lilac/70 mb-4">{step.n}</div>
                   <h3 className="font-display text-lg text-foreground mb-3 tracking-wide">{step.t}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{step.d}</p>
                 </div>
