@@ -37,6 +37,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string } | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaError, setMfaError] = useState("");
+  const [mfaSubmitting, setMfaSubmitting] = useState(false);
   const [transitionInfo, setTransitionInfo] = useState<TransitionInfo | null>(null);
 
   // Detect Moon-sign transition days as soon as the user picks a birthday
