@@ -24,6 +24,11 @@ const Library = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
+      <SEO
+        title="The Lunar Library — Zodiac Archive | Moonday Live"
+        description="An Art Deco encyclopedia of the twelve zodiac signs — symbolism, ritual, and the Moon's voice in each."
+        canonical="https://moondaylive.com/library"
+      />
       {/* Subtle star field */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(15)].map((_, i) => (
