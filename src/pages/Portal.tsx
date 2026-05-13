@@ -394,25 +394,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
               <div className="mt-6 text-center">
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!email) {
-                      setError("Please enter your email address first");
-                      return;
-                    }
-                    try {
-                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${window.location.origin}/auth/reset-password`,
-                      });
-                      if (error) throw error;
-                      toast({
-                        title: "Reset Link Sent",
-                        description: "Check your email for a password reset link.",
-                      });
-                    } catch (err: unknown) {
-                      const error = err as { message?: string };
-                      setError(error.message || "Failed to send reset email");
-                    }
-                  }}
+                  onClick={() => navigate("/auth/forgot-password")}
                   className="text-sm text-muted-foreground hover:text-lilac transition-colors duration-300"
                 >
                   Forgot password?
