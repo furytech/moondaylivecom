@@ -37,6 +37,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string } | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaError, setMfaError] = useState("");
+  const [mfaSubmitting, setMfaSubmitting] = useState(false);
   const [transitionInfo, setTransitionInfo] = useState<TransitionInfo | null>(null);
 
   // Detect Moon-sign transition days as soon as the user picks a birthday
@@ -109,6 +113,17 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     try {
       if (isLogin) {
         await signIn(email, password);
+        // Check if MFA challenge is required (AAL upgrade)
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal && aal.currentLevel !== aal.nextLevel && aal.nextLevel === "aal2") {
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          const totp = factors?.totp?.find((f) => f.status === "verified");
+          if (totp) {
+            setMfaChallenge({ factorId: totp.id });
+            setLoading(false);
+            return;
+          }
+        }
         navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
@@ -215,6 +230,115 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           </div>
         </main>
         <Footer />
+      </div>
+    );
+  }
+
+  // MFA challenge view (after password, before navigation)
+  if (mfaChallenge) {
+    const submitMfa = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (mfaCode.length !== 6) return;
+      setMfaError("");
+      setMfaSubmitting(true);
+      try {
+        const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({
+          factorId: mfaChallenge.factorId,
+        });
+        if (chErr) throw chErr;
+        const { error: vErr } = await supabase.auth.mfa.verify({
+          factorId: mfaChallenge.factorId,
+          challengeId: ch.id,
+          code: mfaCode,
+        });
+        if (vErr) throw vErr;
+        navigate(redirectTo, { replace: true });
+      } catch (err: unknown) {
+        setMfaError((err as Error).message || "Invalid code. Try again.");
+      } finally {
+        setMfaSubmitting(false);
+      }
+    };
+
+    const useBackupCode = async () => {
+      const code = prompt("Enter one of your backup recovery codes:");
+      if (!code) return;
+      setMfaSubmitting(true);
+      try {
+        const { error: rErr } = await supabase.functions.invoke("mfa-recover-with-code", {
+          body: { code },
+        });
+        if (rErr) throw rErr;
+        toast({
+          title: "Recovery Successful",
+          description:
+            "Two-factor has been removed. Please re-enroll from Sovereign Security.",
+        });
+        navigate(redirectTo, { replace: true });
+      } catch (err: unknown) {
+        setMfaError((err as Error).message || "Invalid recovery code.");
+      } finally {
+        setMfaSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
+        <Starfield />
+        <Navigation />
+        <main className="relative z-10 flex-1 flex items-start justify-center px-6 pt-[68px] pb-16">
+          <div className="max-w-md w-full">
+            <div className="text-center mb-6 animate-fade-up">
+              <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
+                Sovereign Security
+              </p>
+              <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-2">
+                Two-Factor Required
+              </h1>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                Enter the 6-digit code from your authenticator app.
+              </p>
+            </div>
+            <div className="p-8 md:p-10 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)] animate-fade-up stagger-1">
+              <form onSubmit={submitMfa} className="space-y-5">
+                <input
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={(e) =>
+                    setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  className="w-full px-4 py-3 bg-background/40 border border-primary/20 rounded-md font-mono text-center text-2xl tracking-[0.5em] text-foreground focus:outline-none focus:border-primary/60"
+                  placeholder="000000"
+                  autoFocus
+                />
+                {mfaError && (
+                  <p className="text-destructive text-sm text-center" role="alert">
+                    {mfaError}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={mfaSubmitting || mfaCode.length !== 6}
+                  className="w-full h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 flex items-center justify-center"
+                >
+                  {mfaSubmitting ? <MoonLoader size="sm" /> : "Verify"}
+                </button>
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={useBackupCode}
+                    disabled={mfaSubmitting}
+                    className="text-sm text-muted-foreground hover:text-lilac transition-colors"
+                  >
+                    Use a backup recovery code
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

@@ -9,6 +9,7 @@ import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
 import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar } from "lucide-react";
+import SovereignSecurity from "@/components/SovereignSecurity";
 
 interface ProfileRow {
   email: string | null;
@@ -288,6 +289,9 @@ const Account = () => {
                   )}
                 </div>
               </GlassmorphismCard>
+
+              {/* Sovereign Security (2FA) */}
+              <SovereignSecurity />
 
               {/* Sign out */}
               <div className="text-center pt-4 animate-fade-up stagger-3">
