@@ -87,12 +87,7 @@ function PositionBlock({
 }
 
 export default function Triad() {
-  useSEO({
-    title: "Lenses — Tropical, Sidereal & Draconic Moon | Moonday",
-    description:
-      "Three Lenses, One Sovereign View — today's Moon read through Tropical (persona), Sidereal (wiring), and Draconic (soul), explained simply.",
-    canonical: "https://moondaylive.com/lenses",
-  });
+  // SEO injected in render below
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
