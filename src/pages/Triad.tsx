@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { useSEO } from "@/hooks/useSEO";
+import SEO from "@/components/SEO";
 import { computeTriadMoon, type TriadMoon } from "@/lib/sovereignEngine";
 
 /* ────────────────────────────────────────────────────────────
