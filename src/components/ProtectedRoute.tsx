@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MoonLoader from "./MoonLoader";
 import GlassmorphismCard from "./GlassmorphismCard";
-import moonLogo from "@/assets/moon-logo-new.png";
+import moonLogo from "@/assets/moon-logo-new.webp";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
