@@ -116,8 +116,8 @@ const ForgotPassword = () => {
                 <span className="text-3xl">✦</span>
               </div>
               <p className="font-serif text-base text-cream-muted/80 leading-relaxed">
-                If an account exists for <span className="text-primary/90">{email}</span>, a secure reset link
-                has been dispatched. Check your inbox — and your spam — within a few minutes.
+                A secure reset link has been sent to{" "}
+                <span className="text-primary/90">{email}</span>. Check your mail to maintain your access.
               </p>
               <div className="flex flex-col gap-3">
                 <Button
