@@ -1,6 +1,7 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
 import {
   Accordion,
   AccordionContent,
@@ -50,6 +51,19 @@ const FAQ = () => {
         title="FAQ — Moonday Live"
         description="Answers about your Lunar Signature, the Sovereign Tier, billing, cancellations, and how Moonday guides your Great Cycle."
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          })}
+        </script>
+      </Helmet>
       <div className="max-w-3xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
