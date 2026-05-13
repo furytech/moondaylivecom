@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { zodiacDeepContent, ZodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { ZodiacPortal } from "@/components/library/ZodiacPortal";
 import { SignDetailPanel } from "@/components/library/SignDetailPanel";
+import SEO from "@/components/SEO";
 
 const zodiacSigns = [
   "Aries", "Taurus", "Gemini", "Cancer", 
