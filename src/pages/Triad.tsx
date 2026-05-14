@@ -5,6 +5,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { computeTriadMoon, type TriadMoon } from "@/lib/sovereignEngine";
+import DailyPulse from "@/components/DailyPulse";
 
 /* ────────────────────────────────────────────────────────────
    Triad Lunar Position — dedicated breakdown page
@@ -151,6 +152,10 @@ export default function Triad() {
               Lahiri Ayanamsha · {triad.ayanamsha.toFixed(4)}°
             </div>
           </header>
+
+          <div className="mb-8">
+            <DailyPulse />
+          </div>
 
           <div className="grid gap-6 grid-cols-1 items-start">
             <article className="sov-card">
