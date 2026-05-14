@@ -27,6 +27,7 @@ import Refund from "./pages/Refund";
 import Disclaimer from "./pages/Disclaimer";
 import About from "./pages/About";
 import TransitionQuiz from "./pages/TransitionQuiz";
+import Pulse from "./pages/Pulse";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
           <BottomTabBar />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/pulse" element={<Pulse />} />
             <Route path="/login" element={<Portal defaultMode="login" />} />
             <Route path="/signup" element={<Portal defaultMode="signup" />} />
             {/* Legacy redirect */}

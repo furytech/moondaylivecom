@@ -20,6 +20,7 @@ const Navigation = () => {
 
   // Same menu for everyone — protected items redirect to /login when unauth
   const navLinks = [
+    { path: "/pulse", label: "Daily Pulse", protected: false },
     { path: "/blueprint", label: "Blueprint", protected: true },
     { path: "/sovereign", label: "Sovereign", protected: true },
     { path: "/lenses", label: "Lenses", protected: true },
