@@ -106,6 +106,45 @@ const Footer = () => {
           </div>
         </nav>
 
+        {/* Test Mode (Daily Pulse date override) */}
+        <div className="mt-4 mb-6 text-center">
+          <button
+            type="button"
+            onClick={() => setTestOpen((v) => !v)}
+            className="font-display text-[0.6rem] uppercase tracking-[0.3em] text-cream-muted/60 hover:text-primary transition-colors"
+            aria-expanded={testOpen}
+            aria-controls="test-mode-panel"
+          >
+            {testDate ? `Test Mode · ${testDate}` : "Test Mode"}
+          </button>
+          {testOpen && (
+            <div
+              id="test-mode-panel"
+              className="mx-auto mt-3 inline-flex flex-wrap items-center justify-center gap-2 rounded-sm border border-primary/30 bg-background/40 px-3 py-2"
+            >
+              <label htmlFor="test-mode-date" className="font-display text-[0.6rem] uppercase tracking-[0.25em] text-primary/80">
+                Pulse date
+              </label>
+              <input
+                id="test-mode-date"
+                type="date"
+                value={testDate}
+                onChange={(e) => applyTestDate(e.target.value)}
+                className="rounded-sm border border-border/40 bg-background/60 px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              {testDate && (
+                <button
+                  type="button"
+                  onClick={() => applyTestDate("")}
+                  className="font-display text-[0.6rem] uppercase tracking-[0.25em] text-cream-muted hover:text-primary"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Copyright */}
         <div className="text-center pt-6 border-t border-border/10">
           <p className="font-serif text-[0.7rem] text-cream-muted/70">
