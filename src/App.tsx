@@ -26,6 +26,7 @@ import FAQ from "./pages/FAQ";
 import Refund from "./pages/Refund";
 import Disclaimer from "./pages/Disclaimer";
 import About from "./pages/About";
+import TransitionQuiz from "./pages/TransitionQuiz";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/refund" element={<Refund />} />
             <Route path="/disclaimer" element={<Disclaimer />} />
             <Route path="/about" element={<About />} />
+            <Route path="/transition-quiz" element={<TransitionQuiz />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
