@@ -152,6 +152,10 @@ export default function Triad() {
             </div>
           </header>
 
+          <div className="mb-8">
+            <DailyPulse />
+          </div>
+
           <div className="grid gap-6 grid-cols-1 items-start">
             <article className="sov-card">
               <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
