@@ -290,7 +290,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                 onClick={() => setOpenLens(isOpen ? null : lens.key)}
                 aria-expanded={isOpen}
                 aria-controls={`lens-detail-${lens.key}`}
-                className={`group relative rounded-sm border p-5 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold-medium))] ${
+                className={`group relative h-full flex flex-col rounded-sm border p-5 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold-medium))] ${
                   isOpen
                     ? "border-[hsl(var(--gold-medium)/0.7)] bg-[hsl(var(--navy-dark)/0.85)]"
                     : "border-[hsl(var(--gold-medium)/0.3)] bg-[hsl(var(--navy-dark)/0.6)] hover:border-[hsl(var(--gold-medium)/0.55)] hover:bg-[hsl(var(--navy-dark)/0.8)]"
@@ -302,29 +302,31 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                 <div className="text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.5)] mb-2">
                   {lens.eyebrow}
                 </div>
-                <h3 className="font-display text-base sm:text-lg tracking-wide text-[hsl(var(--cream))]">
+                <h3 className="font-display text-base sm:text-lg tracking-wide text-[hsl(var(--cream))] min-h-[3.5rem] flex items-center justify-center">
                   {lens.title}
                 </h3>
-                <p className="mt-1 text-[12px] italic text-[hsl(var(--cream)/0.6)] leading-snug">
+                <p className="mt-1 text-[12px] italic text-[hsl(var(--cream)/0.6)] leading-snug min-h-[2.5rem]">
                   {lens.subtitle}
                 </p>
-                <div className="my-4 mx-auto h-px w-10 bg-[hsl(var(--gold-medium)/0.5)]" />
-                <div className="font-display text-lg text-[hsl(var(--gold-light))] tabular-nums">
-                  {sign}
-                </div>
-                <div className="mt-1 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.45)] tabular-nums">
-                  {lens.position(triad)}
-                </div>
-                <div className="mt-1 text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.35)]">
-                  {SIGN_ELEMENT[sign]} · {SIGN_MODALITY[sign]}
-                </div>
-                <div className="mt-3 inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--gold-medium)/0.8)]">
-                  {isOpen ? "Hide details" : "Expose alignment details"}
-                  <ChevronDown
-                    size={11}
-                    className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-                    aria-hidden
-                  />
+                <div className="mt-auto pt-4">
+                  <div className="mb-4 mx-auto h-px w-10 bg-[hsl(var(--gold-medium)/0.5)]" />
+                  <div className="font-display text-lg text-[hsl(var(--gold-light))] tabular-nums">
+                    {sign}
+                  </div>
+                  <div className="mt-1 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.45)] tabular-nums">
+                    {lens.position(triad)}
+                  </div>
+                  <div className="mt-1 text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.35)]">
+                    {SIGN_ELEMENT[sign]} · {SIGN_MODALITY[sign]}
+                  </div>
+                  <div className="mt-3 inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--gold-medium)/0.8)]">
+                    {isOpen ? "Hide details" : "Expose alignment details"}
+                    <ChevronDown
+                      size={11}
+                      className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      aria-hidden
+                    />
+                  </div>
                 </div>
               </button>
             );
