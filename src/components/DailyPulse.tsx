@@ -6,6 +6,11 @@ import {
   type TriadMoon,
   type ZodiacSign,
 } from "@/lib/sovereignEngine";
+import {
+  generateSynthesis,
+  getLensAttribute,
+  type LensRegister,
+} from "@/lib/pulseSynthesis";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChevronDown } from "lucide-react";
 import { getTestDate, subscribeTestDate, utcNoon } from "@/lib/testMode";
@@ -14,96 +19,52 @@ import { getTestDate, subscribeTestDate, utcNoon } from "@/lib/testMode";
    Daily Pulse — Nouveau-Deco lens panel
    Three lenses · alignment verdict · Sovereign Synthesis
    Tone: artisan-tech. Never fate-based, never fear-based.
+   Sign attributes + synthesis live in @/lib/pulseSynthesis.
    ──────────────────────────────────────────────────────────── */
 
 type LensKey = "social" | "internal" | "soul";
 
 interface LensSpec {
   key: LensKey;
+  register: LensRegister;
   numeral: string;
   eyebrow: string;
   title: string;
   subtitle: string;
   pickSign: (t: TriadMoon) => ZodiacSign;
   position: (t: TriadMoon) => string;
-  why: (sign: ZodiacSign) => string;
 }
-
-const SOCIAL_WHY: Record<ZodiacSign, string> = {
-  Aries: "The room favors initiation — short, decisive openings outperform careful preambles.",
-  Taurus: "The room rewards stability — measured pace, tactile work, durable commitments.",
-  Gemini: "The room moves through exchange — multiple short loops outperform one long monologue.",
-  Cancer: "The room is sensitive to belonging — soft framing carries more weight than logic.",
-  Leo: "The room invites visible authorship — own the work in your name, not in passive voice.",
-  Virgo: "The room rewards refinement — small calibrations compound into large clarity.",
-  Libra: "The room asks for proportion — balance opposing inputs before naming the verdict.",
-  Scorpio: "The room runs deeper than its surface — what is unsaid is doing most of the work.",
-  Sagittarius: "The room widens — long-range framing lands better than tactical detail today.",
-  Capricorn: "The room rewards structure — show the architecture, not just the intention.",
-  Aquarius: "The room thinks in systems — propose the principle, then the example.",
-  Pisces: "The room dissolves edges — meaning travels through tone, image, and pause.",
-};
-
-const INTERNAL_WHY: Record<ZodiacSign, string> = {
-  Aries: "Your nervous system is primed to initiate. Discharge through one clean action, not many half-starts.",
-  Taurus: "Your wiring wants traction. Choose fewer inputs and let your senses calibrate the work.",
-  Gemini: "Your wiring is in scan mode. Capture quickly; sort later. Resist premature synthesis.",
-  Cancer: "Your inner barometer is reading the room. Honor the data; don't argue with the feeling.",
-  Leo: "Your wiring wants expression. Performance is regulation today, not vanity.",
-  Virgo: "Your nervous system is in audit mode. Useful for editing; punishing for first drafts.",
-  Libra: "Your wiring is relational. Decisions made in solitude will need a second pass.",
-  Scorpio: "Your wiring is concentrating. Depth is available; small talk will cost disproportionately.",
-  Sagittarius: "Your wiring is expansive. Movement (literal or conceptual) restores signal.",
-  Capricorn: "Your wiring is load-bearing. You can carry weight today — choose what is worth carrying.",
-  Aquarius: "Your wiring is pattern-seeking. Step back two paces before any close-up decision.",
-  Pisces: "Your wiring is permeable. Curate your inputs; you'll absorb whichever room you sit in.",
-};
-
-const SOUL_WHY: Record<ZodiacSign, string> = {
-  Aries: "The underlying pull is toward beginning — a quiet authorization to start something only you can.",
-  Taurus: "The underlying pull is toward worth — re-anchoring in what is already, slowly, yours.",
-  Gemini: "The underlying pull is toward connection — a thread between two ideas wants to be named.",
-  Cancer: "The underlying pull is toward home — interior, not real-estate. Tend the inner room.",
-  Leo: "The underlying pull is toward authorship — claim the line that has been waiting.",
-  Virgo: "The underlying pull is toward service — useful work as a private devotion.",
-  Libra: "The underlying pull is toward fairness — a quiet rebalancing of an old asymmetry.",
-  Scorpio: "The underlying pull is toward truth — a willingness to look at what was tactfully averted.",
-  Sagittarius: "The underlying pull is toward meaning — a wider story is reorganizing the small ones.",
-  Capricorn: "The underlying pull is toward mastery — long arcs are rewarded over visible bursts.",
-  Aquarius: "The underlying pull is toward the collective — your private work is in service of a larger weave.",
-  Pisces: "The underlying pull is toward dissolution — letting an old definition soften into the next one.",
-};
 
 const LENSES: LensSpec[] = [
   {
     key: "social",
+    register: "tropical",
     numeral: "I",
     eyebrow: "Lens One · Tropical",
     title: "The Social Atmosphere",
     subtitle: "The shared weather of the room.",
     pickSign: (t) => t.tropical.sign,
     position: (t) => t.tropical.formatted,
-    why: (s) => SOCIAL_WHY[s],
   },
   {
     key: "internal",
+    register: "sidereal",
     numeral: "II",
     eyebrow: "Lens Two · Sidereal",
     title: "The Internal Nervous System",
     subtitle: "The wiring beneath the surface.",
     pickSign: (t) => t.sidereal.sign,
     position: (t) => t.sidereal.formatted,
-    why: (s) => INTERNAL_WHY[s],
   },
   {
     key: "soul",
+    register: "draconic",
     numeral: "III",
     eyebrow: "Lens Three · Draconic",
     title: "The Soul's Intent",
     subtitle: "The quiet vector of becoming.",
     pickSign: (t) => t.draconic.sign,
     position: (t) => t.draconic.formatted,
-    why: (s) => SOUL_WHY[s],
   },
 ];
 
@@ -127,47 +88,6 @@ function alignmentVerdict(signs: ZodiacSign[]): {
     tooltip:
       "Two or more lenses share a sign. Signal concentrates — fewer registers, more amplitude. Move with deliberate weight.",
   };
-}
-
-/** Curated synthesis overrides for specific dates (UTC). */
-const SYNTHESIS_OVERRIDES: Record<string, string> = {
-  "2026-05-14":
-    "The day moves from the internal initiation of Sidereal Aries — a private spark that wants to begin something only you can name — into the external stability of Tropical Taurus, where the room rewards tactile, durable work. Underneath, a Draconic Aquarius soul-focus is quietly orienting the day toward collective cooperation: the small craft you complete today contributes to a larger weave you may not yet see. Begin alone, build in form, offer outward.",
-};
-
-function synthesize(triad: TriadMoon, when: Date): string {
-  const key = `${when.getUTCFullYear()}-${String(when.getUTCMonth() + 1).padStart(2, "0")}-${String(when.getUTCDate()).padStart(2, "0")}`;
-  if (SYNTHESIS_OVERRIDES[key]) return SYNTHESIS_OVERRIDES[key];
-
-  const social = triad.tropical.sign;
-  const internal = triad.sidereal.sign;
-  const soul = triad.draconic.sign;
-  const sameSI = social === internal;
-  const sameID = internal === soul;
-  const sameSD = social === soul;
-  const allSame = sameSI && sameID;
-
-  if (allSame) {
-    return `All three lenses converge in ${social}. Room, wiring, and underlying vector are speaking one language — a rare clean channel. Move with measured confidence; refinement matters more than novelty.`;
-  }
-  if (sameID && !sameSI) {
-    return `The internal system (${internal}) and the soul's intent (${soul}) move as one, while the social atmosphere wears ${social}. Expect a quiet certainty underneath that does not need to perform itself outwardly. Let the room have its weather; keep your craft.`;
-  }
-  if (sameSI && !sameID) {
-    return `Outside and inside both wear ${social}, but the soul is reaching toward ${soul}. The day will feel coherent and productive, with a low, persistent pull toward something the schedule does not name. Honor it after the work is done.`;
-  }
-  if (sameSD && !sameSI) {
-    return `Room and soul share ${social}, framing an internal system tuned to ${internal}. Public action and deeper direction agree; the friction is technical, not directional. Adjust the instrument, not the song.`;
-  }
-
-  const elInternal = SIGN_ELEMENT[internal];
-  const elSocial = SIGN_ELEMENT[social];
-  const flow = elInternal === elSocial;
-  return `An internal ${internal} spark meets an external ${social} climate, with the soul angling toward ${soul}. ${
-    flow
-      ? `Both registers share an elemental key (${elInternal}), so the friction is tempo rather than translation — match cadence and the day opens.`
-      : `Two distinct elements are at play (${elInternal} inside, ${elSocial} outside), so the work is translation: render internal motion in a vocabulary the room can receive.`
-  } Treat divergence as instrumentation, not obstacle.`;
 }
 
 /* ── Triad cache: one hour bucket per UTC hour, keyed by ISO hour. ── */
