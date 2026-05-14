@@ -505,6 +505,17 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                         — the sign holding the Moon for{" "}
                         {transitionInfo.majorityHours.toFixed(1)} of the 24 hours.
                         Sovereign Tier resolves this exactly with your birth time.
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(
+                              `/transition-quiz?signA=${transitionInfo.signAtStart}&signB=${transitionInfo.signAtEnd}&birthday=${birthday}`
+                            )
+                          }
+                          className="block mt-3 text-lilac hover:text-lilac-light underline-offset-4 hover:underline tracking-[0.15em] uppercase text-[11px]"
+                        >
+                          Refine with the Between Phases quiz →
+                        </button>
                       </AlertDescription>
                     </Alert>
                   )}
