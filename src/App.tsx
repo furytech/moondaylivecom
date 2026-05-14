@@ -27,6 +27,7 @@ import Refund from "./pages/Refund";
 import Disclaimer from "./pages/Disclaimer";
 import About from "./pages/About";
 import TransitionQuiz from "./pages/TransitionQuiz";
+import Pulse from "./pages/Pulse";
 
 const queryClient = new QueryClient();
 
