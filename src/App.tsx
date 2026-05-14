@@ -42,6 +42,7 @@ const App = () => (
           <BottomTabBar />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/pulse" element={<Pulse />} />
             <Route path="/login" element={<Portal defaultMode="login" />} />
             <Route path="/signup" element={<Portal defaultMode="signup" />} />
             {/* Legacy redirect */}
