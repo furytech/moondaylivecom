@@ -5,6 +5,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { computeTriadMoon, type TriadMoon } from "@/lib/sovereignEngine";
+import DailyPulse from "@/components/DailyPulse";
 
 /* ────────────────────────────────────────────────────────────
    Triad Lunar Position — dedicated breakdown page
