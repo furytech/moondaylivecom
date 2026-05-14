@@ -301,9 +301,15 @@ export interface SynthesisResult {
 
 /**
  * Compose the Sovereign Synthesis from a TriadMoon.
- * Highlights friction between Sidereal (internal) and Tropical (social mask)
- * when they diverge, and frames every configuration as an instrument for
- * learning and balance — never as fortune or warning.
+ *
+ * Voice: direct second-person ("you"), plain, advisory — like a technical
+ * advisor briefing you on the day's conditions. Each body follows the formula:
+ *   1. Observation of the alignment (one sentence)
+ *   2. Direct guidance on how to act (one to two sentences)
+ *   3. Perspective on the outcome (one sentence)
+ *
+ * No mystic persona, no fortune, no fear. Frame every configuration as
+ * working conditions you can use.
  */
 export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   const social = triad.tropical.sign;
@@ -323,7 +329,7 @@ export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   if (allSame) {
     return {
       subtitle: `Unified in ${social}`,
-      body: `All three lenses converge in ${social}. The social atmosphere, the internal nervous system, and the underlying soul-vector are speaking one language — a rare clean channel. ${socialAttr.headline} ${internalAttr.headline.toLowerCase()} Move with measured confidence; refinement matters more than novelty today.`,
+      body: `All three lenses are reading ${social} today — the room, your nervous system, and your underlying direction are running on one channel. Use the clarity: pick the work that benefits from focus, and ${lowerFirst(socialAttr.practice)} ${internalAttr.practice} Days like this don't come often, so spend the alignment instead of admiring it.`,
     };
   }
 
@@ -331,8 +337,8 @@ export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   if (sameID && !sameSI) {
     return {
       subtitle: `Inner accord · ${internal}`,
-      body: `The internal system and the soul's intent both move in ${internal}, while the social atmosphere wears ${social}. ${internalAttr.headline} ${soulAttr.headline} Underneath, a quiet certainty is forming that does not need to perform itself outwardly. Let the room have its weather; keep your craft.`,
-      frictionCue: `Outer ${social} · Inner ${internal} — the mask and the wiring differ.`,
+      body: `Your wiring and your direction both sit in ${internal}, but the room outside is running ${social}. Don't argue with the room — meet it on its terms when you have to, and protect a private window where you can ${lowerFirst(internalAttr.practice)} You'll end the day clearer about what's actually yours, even if the calendar looks ordinary.`,
+      frictionCue: `Outer ${social} · Inner ${internal} — perform the room, keep the wiring.`,
     };
   }
 
@@ -340,7 +346,7 @@ export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   if (sameSI && !sameID) {
     return {
       subtitle: `Outer accord · ${social}`,
-      body: `Outside and inside both wear ${social} — the room and the nervous system rhyme. The soul, however, is reaching toward ${soul}. ${socialAttr.headline} ${soulAttr.headline} The day will feel coherent and productive, with a low, persistent pull toward something the schedule does not name. Honor it after the work is done.`,
+      body: `The room and your nervous system are both in ${social}, so the surface of the day will move easily. Underneath, your longer arc is pulling toward ${soul} — note it, don't suppress it. ${capFirst(soulAttr.practice)} after the visible work is closed, and the day pays you twice.`,
     };
   }
 
@@ -348,25 +354,33 @@ export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   if (sameSD && !sameSI) {
     return {
       subtitle: `Direction agrees · ${social}`,
-      body: `The social atmosphere and the soul's vector both share ${social}, framing an internal system tuned to ${internal}. ${socialAttr.headline} ${internalAttr.headline} Public action and deeper direction agree; the friction is technical, not directional. Adjust the instrument, not the song.`,
+      body: `Where you're headed and where the room is pointing both read ${social}, but your nervous system is tuned to ${internal} — the disagreement is about pace, not destination. Adjust the cadence to your body: ${lowerFirst(internalAttr.practice)} The output won't change; the cost of producing it will drop noticeably.`,
       frictionCue: `Outer ${social} · Inner ${internal} — adjust cadence, not course.`,
     };
   }
 
-  // Fully divergent — three different signs. Foreground Sidereal vs Tropical friction.
+  // Fully divergent — three different signs.
   const elInternal = SIGN_ELEMENT[internal];
   const elSocial = SIGN_ELEMENT[social];
   const sharedElement = elInternal === elSocial;
   const modInternal = SIGN_MODALITY[internal];
   const modSocial = SIGN_MODALITY[social];
 
-  const translation = sharedElement
-    ? `Both registers share an elemental key (${elInternal}), so the friction is tempo rather than translation — the inner ${modInternal} pulse meets an outer ${modSocial} cadence. Match cadence and the day opens.`
-    : `Two distinct elements are at play (${elInternal} inside, ${elSocial} outside), so the work is translation: render internal motion in a vocabulary the room can receive.`;
+  const guidance = sharedElement
+    ? `You share an element (${elInternal}) with the room, so the gap is tempo: your ${modInternal} pulse meets a ${modSocial} cadence outside. Match the room's tempo before you push your content into it.`
+    : `Your inside (${elInternal}) and the outside (${elSocial}) are speaking different elemental languages, so translate before you transmit — say the same thing in the room's vocabulary, not yours.`;
 
   return {
     subtitle: "Divergent Alignment · Layered Navigation",
-    body: `An internal ${internal} signal meets an external ${social} climate, with the soul angling toward ${soul}. ${internalAttr.headline} ${socialAttr.headline} ${translation} Treat divergence as instrumentation, not obstacle — three registers give you three honest places to stand.`,
-    frictionCue: `Social mask: ${social} · Internal system: ${internal}. Translate, do not collapse.`,
+    body: `Three lenses, three signs: ${social} outside, ${internal} inside, ${soul} underneath. ${guidance} Treat the divergence as three honest readouts you can act on separately — by evening you'll have moved on all three without forcing any of them to agree.`,
+    frictionCue: `Social mask: ${social} · Internal system: ${internal}. Translate, don't collapse.`,
   };
+}
+
+function lowerFirst(s: string): string {
+  return s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+
+function capFirst(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
