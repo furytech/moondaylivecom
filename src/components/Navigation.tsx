@@ -56,13 +56,13 @@ const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-x-5 xl:gap-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={(e) => handleNavClick(e, link)}
-                className={`font-display text-sm tracking-widest uppercase elegant-hover ${
+                className={`font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap elegant-hover ${
                   isActive(link.path)
                     ? "text-primary"
                     : "text-foreground/70"
@@ -75,7 +75,7 @@ const Navigation = () => {
             {user ? (
               <button
                 onClick={handleSignOut}
-                className="font-display text-sm tracking-widest uppercase text-foreground/70 elegant-hover"
+                className="font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap text-foreground/70 elegant-hover"
               >
                 Logout
               </button>
@@ -83,13 +83,13 @@ const Navigation = () => {
               <>
                 <Link
                   to="/login"
-                  className="font-display text-sm tracking-widest uppercase text-foreground/70 elegant-hover"
+                  className="font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap text-foreground/70 elegant-hover"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="font-display text-sm tracking-widest uppercase px-5 py-2 art-deco-border brass-glow text-primary"
+                  className="font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap px-4 xl:px-5 py-2 art-deco-border brass-glow text-primary"
                 >
                   Sign Up
                 </Link>
