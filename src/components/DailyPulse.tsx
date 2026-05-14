@@ -263,16 +263,26 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
             {(() => {
               const lens = LENSES.find((l) => l.key === openLens)!;
               const sign = lens.pickSign(triad);
+              const attr = getLensAttribute(lens.register, sign);
               return (
                 <>
                   <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--gold-medium))] mb-2 text-center">
-                    Why · {lens.title} in {sign}
+                    {lens.title} in {sign}
                   </div>
                   <DecoDivider />
-                  <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-center">
-                    {lens.why(sign)}
+                  <p className="font-display text-[15px] leading-snug text-[hsl(var(--gold-light))] text-center mb-3">
+                    {attr.headline}
                   </p>
-                  <div className="mt-4 grid grid-cols-3 gap-3 text-center text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.55)]">
+                  <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-center">
+                    {attr.detail}
+                  </p>
+                  <div className="mt-4 mx-auto max-w-md text-center text-[12px] italic text-[hsl(var(--cream)/0.7)] border-t border-[hsl(var(--gold-medium)/0.25)] pt-3">
+                    <span className="not-italic uppercase tracking-[0.3em] text-[10px] text-[hsl(var(--gold-medium))] block mb-1">
+                      Practice
+                    </span>
+                    {attr.practice}
+                  </div>
+                  <div className="mt-5 grid grid-cols-3 gap-3 text-center text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.55)]">
                     <div>
                       <div className="text-[hsl(var(--gold-medium))]">Position</div>
                       <div className="mt-1 tabular-nums">{lens.position(triad)}</div>
@@ -293,12 +303,20 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
         )}
 
         <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.35)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
-          <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-3">
+          <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-1">
             Sovereign Synthesis
           </div>
+          <div className="text-[11px] italic text-[hsl(var(--cream)/0.55)] mb-3">
+            {synthesis.subtitle}
+          </div>
           <p className="text-[14px] sm:text-[15px] leading-relaxed text-[hsl(var(--cream)/0.85)]">
-            {synthesis}
+            {synthesis.body}
           </p>
+          {synthesis.frictionCue && (
+            <div className="mt-4 mx-auto max-w-lg text-[11px] uppercase tracking-[0.25em] text-[hsl(var(--gold-medium)/0.85)] border-t border-[hsl(var(--gold-medium)/0.3)] pt-3">
+              {synthesis.frictionCue}
+            </div>
+          )}
         </div>
 
         <p className="mt-6 text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.4)]">
