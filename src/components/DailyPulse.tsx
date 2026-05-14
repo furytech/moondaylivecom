@@ -141,7 +141,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
   const triad = useMemo(() => cachedTriad(now), [now]);
   const signs = LENSES.map((l) => l.pickSign(triad));
   const verdict = alignmentVerdict(signs);
-  const synthesis = useMemo(() => synthesize(triad, now), [triad, now]);
+  const synthesis = useMemo(() => generateSynthesis(triad), [triad]);
 
   const dateLabel = now.toLocaleDateString(undefined, {
     weekday: "long",
