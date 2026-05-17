@@ -166,7 +166,7 @@ const Pricing = () => {
               {/* Spacer to match Sovereign's "Save X%" line so checklists align */}
               <p className="font-serif text-sm mt-2 invisible" aria-hidden="true">placeholder</p>
               <p className="font-serif text-sm text-cream-muted/60 mt-3">
-                For curious souls beginning their lunar journey
+                The universal lunar climate — always free, always on
               </p>
             </div>
 
