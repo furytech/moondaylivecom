@@ -243,11 +243,26 @@ const Index = () => {
               <br />
               <span className="text-lilac">for free.</span>
             </h2>
-            <p className="text-lg text-muted-foreground mb-12 max-w-xl mx-auto leading-relaxed">
+            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto leading-relaxed">
               Enter your birth details to find your starting point. No credit
               card, no commitment. If Moonday speaks to you, the journey
               continues from there.
             </p>
+
+            {/* Free tier snapshot */}
+            <div className="grid sm:grid-cols-2 gap-4 text-left mb-10 max-w-lg mx-auto">
+              {[
+                "Your birth moon sign & element",
+                "Current moon phase & sign",
+                "Daily lunar climate gauge",
+                "Full Lunar Library access",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-lilac flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground">{item}</span>
+                </div>
+              ))}
+            </div>
 
             <div
               className="inline-block p-6 md:p-8 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl max-w-lg w-full shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)]"
