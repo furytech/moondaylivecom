@@ -311,12 +311,12 @@ const Blueprint = () => {
               ) : null}
 
               {displayedMoonSign && (
-                <div className="border-t border-primary/10 pt-6 mt-4">
+                <div className="border-t border-primary/10 pt-6 mt-auto">
                   <button
                     onClick={() => setMoonSignModalOpen(true)}
-                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 text-primary font-display text-sm uppercase tracking-widest transition-all duration-300"
+                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 text-primary font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
                   >
-                    <Info className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <Info className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" />
                     <span>Your Emotional Blueprint, Set at Birth</span>
                   </button>
                 </div>
