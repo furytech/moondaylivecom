@@ -195,8 +195,17 @@ const ResetPassword = () => {
     );
   }
 
-  // No recovery session
+  // No recovery session — link expired or already used
   if (!recoveryReady) {
+    const ATTEMPT_KEY = "moonday_reset_attempts";
+    const attempts = parseInt(localStorage.getItem(ATTEMPT_KEY) || "0", 10);
+    const exhausted = attempts >= 5;
+
+    const handleRequestNew = () => {
+      localStorage.setItem(ATTEMPT_KEY, String(attempts + 1));
+      navigate("/auth/forgot-password");
+    };
+
     return (
       <div className="min-h-screen bg-background flex flex-col relative">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -213,23 +222,50 @@ const ResetPassword = () => {
             />
           ))}
         </div>
+        <Navigation />
         <main className="flex-1 flex flex-col items-center justify-start pt-[68px] pb-6 px-6 relative z-10">
           <GlassmorphismCard className="max-w-md w-full text-center">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full border border-primary/30 flex items-center justify-center">
-              <span className="text-3xl">🔒</span>
+              <span className="text-3xl">✦</span>
             </div>
-            <h1 className="font-display text-2xl text-gold-gradient tracking-[0.06em] mb-4">
-              Invalid Recovery Link
-            </h1>
-            <p className="font-serif text-base text-cream-muted/70 mb-8">
-              This page is only accessible via a password reset email. Please request a new link.
-            </p>
-            <Button
-              onClick={() => navigate("/login")}
-              className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
-            >
-              Return to Portal
-            </Button>
+            {!exhausted ? (
+              <>
+                <h1 className="font-display text-2xl text-gold-gradient tracking-[0.06em] mb-4">
+                  Request a New Link
+                </h1>
+                <p className="font-serif text-base text-cream-muted/70 mb-8">
+                  This recovery link has expired or already been used. Request a fresh one to continue.
+                </p>
+                <Button
+                  onClick={handleRequestNew}
+                  className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
+                >
+                  Request a New Link
+                </Button>
+              </>
+            ) : (
+              <>
+                <h1 className="font-display text-2xl text-gold-gradient tracking-[0.06em] mb-4">
+                  Contact Support
+                </h1>
+                <p className="font-serif text-base text-cream-muted/70 mb-8">
+                  We're unable to reset your password automatically. Please email{" "}
+                  <a
+                    href="mailto:support@moondaylive.com"
+                    className="text-primary hover:underline"
+                  >
+                    support@moondaylive.com
+                  </a>{" "}
+                  and our team will restore your access.
+                </p>
+                <Button
+                  onClick={() => (window.location.href = "mailto:support@moondaylive.com")}
+                  className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
+                >
+                  Email Support
+                </Button>
+              </>
+            )}
           </GlassmorphismCard>
         </main>
       </div>
