@@ -165,6 +165,9 @@ const ResetPassword = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
 
+      // Reset the expired-link attempt counter on success
+      localStorage.removeItem("moonday_reset_attempts");
+
       // Sign out so user must re-authenticate with new password
       await supabase.auth.signOut();
 
