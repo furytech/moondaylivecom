@@ -343,12 +343,6 @@ const Blueprint = () => {
               </div>
 
               <div className="border-t border-primary/10 pt-6 mt-4 space-y-5">
-                <div className="flex items-center justify-center gap-3 text-cream-muted">
-                  <Clock className="w-5 h-5 text-primary" />
-                  <span className="font-serif text-lg">
-                    Next sign in <span className="text-primary font-display">{timeUntilTransition}</span>
-                  </span>
-                </div>
                 <button
                   onClick={() => setTodaysMoonModalOpen(true)}
                   className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 text-primary font-display text-sm uppercase tracking-widest transition-all duration-300"
@@ -356,6 +350,12 @@ const Blueprint = () => {
                   <Info className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" />
                   <span>About Today's Moon Energy</span>
                 </button>
+                <div className="flex items-center justify-center gap-3 text-cream-muted">
+                  <Clock className="w-5 h-5 text-primary" />
+                  <span className="font-serif text-lg">
+                    Next sign in <span className="text-primary font-display">{timeUntilTransition}</span>
+                  </span>
+                </div>
               </div>
             </GlassmorphismCard>
           </div>
