@@ -144,6 +144,44 @@ const quizQuestions: QuizQuestion[] = [
       text: "Security, stability, and building something lasting",
       signs: ["Taurus", "Cancer", "Capricorn", "Scorpio"]
     }
+  },
+  // --- Same-element neighbor distinguishers (close gaps for Taurus↔Gemini,
+  // Scorpio↔Sagittarius, Capricorn↔Aquarius, Pisces↔Aries) ---
+  {
+    id: "ideal-sunday",
+    question: "Your ideal Sunday is...",
+    optionA: {
+      text: "Slow and sensory — one thing done well, savored",
+      signs: ["Taurus", "Cancer", "Capricorn", "Scorpio", "Virgo"]
+    },
+    optionB: {
+      text: "Varied and stimulating — multiple plans, new ideas",
+      signs: ["Gemini", "Sagittarius", "Aquarius", "Aries", "Leo"]
+    }
+  },
+  {
+    id: "depth-breadth",
+    question: "You're more drawn to...",
+    optionA: {
+      text: "Going deep into one mystery until you understand it",
+      signs: ["Scorpio", "Cancer", "Pisces", "Virgo", "Capricorn"]
+    },
+    optionB: {
+      text: "Exploring many horizons and gathering wide experience",
+      signs: ["Sagittarius", "Gemini", "Aquarius", "Leo", "Aries"]
+    }
+  },
+  {
+    id: "life-measure",
+    question: "You measure a good life by...",
+    optionA: {
+      text: "Personal achievement, mastery, and a lasting legacy",
+      signs: ["Capricorn", "Leo", "Aries", "Taurus", "Scorpio"]
+    },
+    optionB: {
+      text: "Contribution to something larger than yourself",
+      signs: ["Aquarius", "Pisces", "Sagittarius", "Libra", "Cancer"]
+    }
   }
 ];
 
