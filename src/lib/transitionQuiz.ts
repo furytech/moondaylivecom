@@ -280,18 +280,6 @@ export function calculateQuizResult(
     secondaryScore
   };
 }
-  
-  // Base confidence of 50%, plus up to 50% based on score difference
-  const confidence = Math.min(100, Math.round(50 + (scoreDifference / maxDifference) * 50));
-  
-  return {
-    primarySign: primaryIsA ? signA : signB,
-    secondarySign: primaryIsA ? signB : signA,
-    confidence,
-    primaryScore,
-    secondaryScore
-  };
-}
 
 // Get all available questions
 export function getAllQuestions(): QuizQuestion[] {
