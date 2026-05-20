@@ -11,7 +11,8 @@ import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSign, getTransitionInfoAsync, type TransitionInfo } from "@/lib/moonSign";
+import { calculateMoonSign, type TransitionInfo } from "@/lib/moonSign";
+import { getCombinedTransitionInfo } from "@/lib/moonTransitions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEO from "@/components/SEO";
 import { Sparkles as SparklesIcon } from "lucide-react";
@@ -52,7 +53,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     }
     let cancelled = false;
     const birthDate = new Date(`${birthday}T12:00:00`);
-    getTransitionInfoAsync(birthDate)
+    getCombinedTransitionInfo(birthDate)
       .then((info) => {
         if (!cancelled) setTransitionInfo(info);
       })
