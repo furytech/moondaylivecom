@@ -161,6 +161,33 @@ export type Database = {
         }
         Relationships: []
       }
+      moon_transitions: {
+        Row: {
+          created_at: string
+          from_sign: string
+          id: string
+          to_sign: string
+          transition_at: string
+          transition_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          from_sign: string
+          id?: string
+          to_sign: string
+          transition_at: string
+          transition_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          from_sign?: string
+          id?: string
+          to_sign?: string
+          transition_at?: string
+          transition_date?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           birth_city: string | null
