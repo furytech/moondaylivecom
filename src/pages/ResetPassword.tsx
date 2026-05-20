@@ -365,13 +365,23 @@ const ResetPassword = () => {
 
             {/* Confirm Password */}
             <div className="space-y-1">
-              <Input
-                type="password"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
-              />
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cream-muted/50 hover:text-cream-muted/80 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
               {passwordsMismatch && (
                 <p className="font-serif text-xs text-destructive">Passwords do not match</p>
               )}
