@@ -321,13 +321,23 @@ const ResetPassword = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* New Password */}
             <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="New password (8+ chars, number & symbol)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl"
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="New password (8+ chars, number & symbol)"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 h-14 font-serif text-base rounded-xl pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cream-muted/50 hover:text-cream-muted/80 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
               {/* Strength Meter */}
               {password.length > 0 && (
                 <div className="space-y-1.5">
