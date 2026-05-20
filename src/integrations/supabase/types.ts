@@ -161,36 +161,6 @@ export type Database = {
         }
         Relationships: []
       }
-      signups: {
-        Row: {
-          birth_date: string
-          created_at: string
-          email: string
-          id: string
-          moon_element: string | null
-          moon_sign: string
-          moon_symbol: string | null
-        }
-        Insert: {
-          birth_date: string
-          created_at?: string
-          email: string
-          id?: string
-          moon_element?: string | null
-          moon_sign: string
-          moon_symbol?: string | null
-        }
-        Update: {
-          birth_date?: string
-          created_at?: string
-          email?: string
-          id?: string
-          moon_element?: string | null
-          moon_sign?: string
-          moon_symbol?: string | null
-        }
-        Relationships: []
-      }
       user_profiles: {
         Row: {
           birth_city: string | null
