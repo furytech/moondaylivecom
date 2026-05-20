@@ -8,9 +8,12 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
-import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar } from "lucide-react";
+import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon } from "lucide-react";
 import SovereignSecurity from "@/components/SovereignSecurity";
 import SEO from "@/components/SEO";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO } from "date-fns";
 
 interface ProfileRow {
   email: string | null;
@@ -199,7 +202,7 @@ const Account = () => {
 
                   {/* Birthday + Moon sign */}
                   <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                    <CalendarIcon className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                     <div className="flex-1">
                       <label
                         htmlFor="birthday"
@@ -207,14 +210,42 @@ const Account = () => {
                       >
                         Birthday
                       </label>
-                      <input
-                        id="birthday"
-                        type="date"
-                        value={birthday}
-                        max={new Date().toISOString().split("T")[0]}
-                        onChange={(e) => setBirthday(e.target.value)}
-                        className="w-full px-4 py-3 bg-background/40 border border-primary/20 rounded-md font-serif text-base text-foreground focus:outline-none focus:border-primary/60 transition-colors"
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            id="birthday"
+                            type="button"
+                            className="w-full px-4 py-3 bg-background/40 border border-primary/20 rounded-md font-serif text-base text-foreground text-left focus:outline-none focus:border-primary/60 transition-colors flex items-center justify-between"
+                          >
+                            <span>
+                              {birthday
+                                ? format(parseISO(birthday), "MMMM d, yyyy")
+                                : "Select your birthday"}
+                            </span>
+                            <CalendarIcon className="w-4 h-4 text-primary/70" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-navy-dark border-primary/30" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={birthday ? parseISO(birthday) : undefined}
+                            onSelect={(d) => {
+                              if (d) {
+                                const y = d.getFullYear();
+                                const m = String(d.getMonth() + 1).padStart(2, "0");
+                                const day = String(d.getDate()).padStart(2, "0");
+                                setBirthday(`${y}-${m}-${day}`);
+                              }
+                            }}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1920-01-01")
+                            }
+                            defaultMonth={birthday ? parseISO(birthday) : new Date(1990, 0, 1)}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                       <p className="font-serif text-xs text-cream-muted/50 mt-2">
                         Used to calculate your natal moon sign.
                       </p>
