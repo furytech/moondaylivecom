@@ -212,6 +212,24 @@ export function selectQuestionsForSigns(signA: string, signB: string, count: num
   return sorted.slice(0, count).map(sq => sq.question);
 }
 
+// Compute the best distinguishing score available for a sign pair.
+// Used to gate confidence — pairs with no strong distinguisher cap lower.
+export function maxDistinguishingScore(signA: string, signB: string): number {
+  let best = 0;
+  for (const q of quizQuestions) {
+    const aA = q.optionA.signs.includes(signA);
+    const aB = q.optionB.signs.includes(signA);
+    const bA = q.optionA.signs.includes(signB);
+    const bB = q.optionB.signs.includes(signB);
+    let score = 0;
+    if ((aA && bB) || (aB && bA)) score = 3;
+    else if ((aA && !bA) || (aB && !bB)) score = 2;
+    else if ((aA || aB) && (bA || bB)) score = 1;
+    if (score > best) best = score;
+  }
+  return best;
+}
+
 // Calculate quiz results based on answers
 export function calculateQuizResult(
   signA: string,
@@ -221,27 +239,47 @@ export function calculateQuizResult(
   let scoreA = 0;
   let scoreB = 0;
   let totalQuestions = 0;
-  
+
   Object.entries(answers).forEach(([questionId, answer]) => {
     const question = quizQuestions.find(q => q.id === questionId);
     if (!question) return;
-    
+
     totalQuestions++;
     const selectedOption = answer === 'A' ? question.optionA : question.optionB;
-    
+
     if (selectedOption.signs.includes(signA)) scoreA++;
     if (selectedOption.signs.includes(signB)) scoreB++;
   });
-  
+
   const total = scoreA + scoreB;
   const primaryIsA = scoreA >= scoreB;
-  
+
   const primaryScore = primaryIsA ? scoreA : scoreB;
   const secondaryScore = primaryIsA ? scoreB : scoreA;
-  
-  // Calculate confidence based on score difference
+
   const scoreDifference = primaryScore - secondaryScore;
-  const maxDifference = totalQuestions;
+  const maxDifference = totalQuestions || 1;
+
+  // Confidence ceiling depends on how distinguishable the pair is.
+  // 3 = perfect distinguisher exists → up to 100%
+  // 2 = partial distinguisher only   → cap at 90%
+  // 1 = weak overlap only            → cap at 80%
+  const best = maxDistinguishingScore(signA, signB);
+  const ceiling = best >= 3 ? 100 : best === 2 ? 90 : 80;
+
+  const confidence = Math.min(
+    ceiling,
+    Math.round(50 + (scoreDifference / maxDifference) * 50)
+  );
+
+  return {
+    primarySign: primaryIsA ? signA : signB,
+    secondarySign: primaryIsA ? signB : signA,
+    confidence,
+    primaryScore,
+    secondaryScore
+  };
+}
   
   // Base confidence of 50%, plus up to 50% based on score difference
   const confidence = Math.min(100, Math.round(50 + (scoreDifference / maxDifference) * 50));
