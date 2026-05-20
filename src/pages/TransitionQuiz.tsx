@@ -14,7 +14,8 @@ import {
   type QuizQuestion,
   type QuizResult,
 } from "@/lib/transitionQuiz";
-import { getMoonSignByName, getTransitionInfoAsync, type TransitionInfo } from "@/lib/moonSign";
+import { getMoonSignByName, type TransitionInfo } from "@/lib/moonSign";
+import { getCombinedTransitionInfo } from "@/lib/moonTransitions";
 
 const VALID_SIGNS = new Set([
   "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
@@ -46,7 +47,7 @@ const TransitionQuiz = () => {
     let cancelled = false;
     setResolving(true);
     const d = new Date(`${birthdayParam}T12:00:00`);
-    getTransitionInfoAsync(d)
+    getCombinedTransitionInfo(d)
       .then((tinfo) => {
         if (cancelled) return;
         setInfo(tinfo);
