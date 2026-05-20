@@ -8,9 +8,12 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
-import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar } from "lucide-react";
+import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon } from "lucide-react";
 import SovereignSecurity from "@/components/SovereignSecurity";
 import SEO from "@/components/SEO";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO } from "date-fns";
 
 interface ProfileRow {
   email: string | null;
