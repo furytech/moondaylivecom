@@ -34,7 +34,9 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [isLogin, setIsLogin] = useState(defaultMode === "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [birthday, setBirthday] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
