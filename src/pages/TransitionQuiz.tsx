@@ -102,9 +102,9 @@ const TransitionQuiz = () => {
   const handleSaveAndContinue = async () => {
     if (!result) return;
     if (!user) {
-      // Account not yet created — send them to signup. Their quiz result is
-      // stored in localStorage and will be applied after email verification.
-      navigate(`/signup${birthdayParam ? `?birthday=${birthdayParam}` : ""}`);
+      // Account not yet created — render inline signup form. The quiz result is
+      // already in localStorage and will be applied after email verification.
+      setSignupMode(true);
       return;
     }
     setSaving(true);
