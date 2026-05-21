@@ -546,21 +546,9 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                         <span className="text-lilac font-medium">{transitionInfo.signAtStart}</span>{" "}
                         into{" "}
                         <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>
-                        . To anchor your Lunar Signature accurately, we need a
-                        little more from you — a short guided quiz that reads
-                        your natural temperament and reveals which of the two
-                        signs truly holds your Moon.
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(
-                              `/transition-quiz?signA=${transitionInfo.signAtStart}&signB=${transitionInfo.signAtEnd}&birthday=${birthday}`
-                            )
-                          }
-                          className="block mt-3 text-lilac hover:text-lilac-light underline-offset-4 hover:underline tracking-[0.15em] uppercase text-[11px]"
-                        >
-                          Refine with the Between Phases quiz →
-                        </button>
+                        . When you continue, we'll guide you through five quick
+                        questions to anchor your true sign — then finish
+                        creating your account. No need to re-enter anything.
                       </AlertDescription>
                     </Alert>
                   )}
