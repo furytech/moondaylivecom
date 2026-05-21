@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles, Moon, ArrowRight, Eye, EyeOff, MailCheck } from "lucide-react";
 import Navigation from "@/components/Navigation";
