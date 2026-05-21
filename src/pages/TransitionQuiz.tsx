@@ -76,12 +76,25 @@ const TransitionQuiz = () => {
     } else {
       const r = calculateQuizResult(signA, signB, next);
       setResult(r);
+      // Persist so Portal can apply it after email verification + sign-in.
+      try {
+        localStorage.setItem(
+          "pendingMoonSign",
+          JSON.stringify({
+            sign: r.primarySign,
+            birthday: birthdayParam,
+            ts: Date.now(),
+          })
+        );
+      } catch { /* ignore */ }
     }
   };
 
   const handleSaveAndContinue = async () => {
     if (!result) return;
     if (!user) {
+      // Account not yet created — send them to signup. Their quiz result is
+      // stored in localStorage and will be applied after email verification.
       navigate(`/signup${birthdayParam ? `?birthday=${birthdayParam}` : ""}`);
       return;
     }
@@ -92,6 +105,7 @@ const TransitionQuiz = () => {
         .update({ moon_sign: result.primarySign })
         .eq("user_id", user.id);
       if (error) throw error;
+      try { localStorage.removeItem("pendingMoonSign"); } catch { /* ignore */ }
       toast({
         title: "Moon Sign Confirmed",
         description: `Your blueprint is now anchored in ${result.primarySign}.`,
@@ -276,10 +290,9 @@ const TransitionQuiz = () => {
 
                 {info?.isTransitionDay && (
                   <p className="text-xs text-muted-foreground/70 leading-relaxed border-t border-lilac/10 pt-4">
-                    On your birth date the Moon ingressed at{" "}
-                    {String(Math.floor(info.ingressHour ?? 0)).padStart(2, "0")}:
-                    {String(Math.floor(((info.ingressHour ?? 0) % 1) * 60)).padStart(2, "0")} UTC.
-                    Sovereign Tier resolves this exactly with birth time.
+                    Your answers anchor your Lunar Signature on a day the Moon
+                    was crossing thresholds. This result will be saved to your
+                    profile.
                   </p>
                 )}
 
@@ -292,7 +305,7 @@ const TransitionQuiz = () => {
                     {saving ? <MoonLoader size="sm" /> : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        {user ? "Anchor This Sign" : "Sign Up to Save"}
+                        {user ? "Anchor This Sign" : "Create My Account"}
                       </>
                     )}
                   </button>

@@ -74,7 +74,26 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
   useEffect(() => {
     if (user && !authLoading) {
-      navigate(redirectTo, { replace: true });
+      // Apply any pending Moon sign captured from the Between Phases quiz
+      // before the user verified their email.
+      (async () => {
+        try {
+          const raw = localStorage.getItem("pendingMoonSign");
+          if (raw) {
+            const pending = JSON.parse(raw) as { sign?: string };
+            if (pending?.sign) {
+              await supabase
+                .from("user_profiles")
+                .update({ moon_sign: pending.sign })
+                .eq("user_id", user.id);
+            }
+            localStorage.removeItem("pendingMoonSign");
+          }
+        } catch {
+          /* ignore */
+        }
+        navigate(redirectTo, { replace: true });
+      })();
     }
   }, [user, authLoading, navigate, redirectTo]);
 
@@ -131,10 +150,20 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
-        // Prefer the majority sign on transition days; fall back to noon calc
-        const moonSignName = transitionInfo?.isTransitionDay
-          ? transitionInfo.majoritySign
-          : calculateMoonSign(birthDate).sign;
+        // If the user already completed the Between Phases quiz, honor that
+        // result. Otherwise fall back to the noon-of-day calculation. We
+        // intentionally do NOT auto-assign by majority hours on transition days.
+        let pendingSign: string | null = null;
+        try {
+          const raw = localStorage.getItem("pendingMoonSign");
+          if (raw) {
+            const pending = JSON.parse(raw) as { sign?: string; birthday?: string };
+            if (pending?.sign && pending.birthday === birthday) {
+              pendingSign = pending.sign;
+            }
+          }
+        } catch { /* ignore */ }
+        const moonSignName = pendingSign ?? calculateMoonSign(birthDate).sign;
         await signUp(email, password, birthday, moonSignName);
         setSignupSuccess(true);
       }
@@ -509,25 +538,14 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                         <span className="block font-display tracking-[0.2em] uppercase text-lilac mb-1.5">
                           Between Phases
                         </span>
-                        On this date the Moon shifted from{" "}
+                        On this date the Moon was crossing from{" "}
                         <span className="text-lilac font-medium">{transitionInfo.signAtStart}</span>{" "}
                         into{" "}
-                        <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>{" "}
-                        around{" "}
-                        <span className="text-lilac font-medium">
-                          {String(Math.floor(transitionInfo.ingressHour ?? 0)).padStart(2, "0")}:
-                          {String(
-                            Math.floor(((transitionInfo.ingressHour ?? 0) % 1) * 60)
-                          ).padStart(2, "0")}{" "}
-                          UTC
-                        </span>
-                        . Without an exact birth time, we'll assign{" "}
-                        <span className="text-lilac font-medium">
-                          {transitionInfo.majoritySign}
-                        </span>{" "}
-                        — the sign holding the Moon for{" "}
-                        {transitionInfo.majorityHours.toFixed(1)} of the 24 hours.
-                        Sovereign Tier resolves this exactly with your birth time.
+                        <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>
+                        . To anchor your Lunar Signature accurately, we need a
+                        little more from you — a short guided quiz that reads
+                        your natural temperament and reveals which of the two
+                        signs truly holds your Moon.
                         <button
                           type="button"
                           onClick={() =>
