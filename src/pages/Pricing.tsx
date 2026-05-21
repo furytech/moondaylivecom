@@ -158,6 +158,61 @@ const Pricing = () => {
           </GlassmorphismCard>
         )}
 
+        {isSubscribed && (
+          <GlassmorphismCard
+            className="mb-10 max-w-2xl mx-auto animate-fade-up border-primary/40"
+            size="md"
+          >
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full mb-4">
+                <Crown className="w-4 h-4 text-primary" />
+                <span className="font-display text-sm text-primary uppercase tracking-widest">
+                  You're a Sovereign Member
+                </span>
+              </div>
+              <p className="font-serif text-base text-cream-muted mb-2">
+                You're already on the{" "}
+                <span className="text-primary">{planLabel}</span> plan — all premium
+                features are unlocked.
+              </p>
+              {subscription.subscriptionStart && (
+                <p className="font-serif text-sm text-cream-muted/70">
+                  Member since {formatDate(subscription.subscriptionStart)}
+                </p>
+              )}
+              {subscription.subscriptionEnd && (
+                <p className="font-serif text-sm text-cream-muted/70">
+                  Next renewal on {formatDate(subscription.subscriptionEnd)}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
+                <button
+                  onClick={() => navigate("/blueprint")}
+                  className="inline-flex items-center gap-2 px-6 py-3 font-display text-xs tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 transition-all duration-500"
+                >
+                  Enter Your Blueprint
+                </button>
+                <button
+                  onClick={handleManageSubscription}
+                  disabled={portalLoading}
+                  className="inline-flex items-center gap-2 font-serif text-base text-cream-muted elegant-hover disabled:opacity-50"
+                >
+                  {portalLoading ? (
+                    <MoonLoader size="sm" />
+                  ) : (
+                    <>
+                      <ExternalLink className="w-4 h-4" />
+                      Manage Subscription
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </GlassmorphismCard>
+        )}
+
+
+
         {/* Billing toggle */}
         <div className="flex justify-center mb-10 animate-fade-up stagger-1">
           <div className="inline-flex items-center p-1 border border-primary/20 rounded-full">
