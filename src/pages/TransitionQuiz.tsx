@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles, Moon, ArrowRight, Eye, EyeOff, MailCheck } from "lucide-react";
 import Navigation from "@/components/Navigation";
@@ -99,12 +99,15 @@ const TransitionQuiz = () => {
     }
   };
 
-  // Auto-finalize signup using credentials Portal stashed before sending the
-  // user into the quiz. The user does not see an inline form — once the quiz
-  // produces a sign, we call signUp and immediately show the email-verify
-  // confirmation screen.
+  // One-shot guard: ensure we only ever attempt the auto-signup ONCE per
+  // mount, regardless of re-renders, StrictMode double-invokes, or state
+  // changes. Without this guard a failure would flip signupSubmitting back
+  // to false and re-trigger the effect, hammering Supabase until it rate
+  // limits the IP.
+  const autoSignupAttempted = useRef(false);
   useEffect(() => {
-    if (!result || user || signupSuccess || signupSubmitting) return;
+    if (autoSignupAttempted.current) return;
+    if (!result || user || signupSuccess) return;
     let pending: { email?: string; password?: string; birthday?: string } | null = null;
     try {
       const raw = sessionStorage.getItem("pendingSignup");
@@ -112,6 +115,9 @@ const TransitionQuiz = () => {
     } catch { /* ignore */ }
     if (!pending?.email || !pending.password) return;
 
+    autoSignupAttempted.current = true;
+    // Clear the stash immediately so a reload can never replay the signup.
+    try { sessionStorage.removeItem("pendingSignup"); } catch { /* ignore */ }
     setSignupSubmitting(true);
     (async () => {
       try {
@@ -121,24 +127,28 @@ const TransitionQuiz = () => {
           pending!.birthday || birthdayParam,
           result.primarySign
         );
-        try { sessionStorage.removeItem("pendingSignup"); } catch { /* ignore */ }
         setSignupSuccess(true);
       } catch (err) {
         const msg = (err as { message?: string }).message || "Could not create account.";
+        const friendly = msg.includes("User already registered")
+          ? "This email is already registered. Please sign in to anchor your sign."
+          : msg.toLowerCase().includes("rate limit")
+            ? "Too many signup attempts. Please wait a minute and try again."
+            : msg;
         toast({
           title: "Could not create account",
-          description: msg.includes("User already registered")
-            ? "This email is already registered. Please sign in to anchor your sign."
-            : msg,
+          description: friendly,
           variant: "destructive",
         });
-        // Fall back to inline form so the user can correct their email.
+        // Prefill the fallback form with the email so the user can retry
+        // without re-typing everything.
+        setSignupEmail(pending!.email!);
         setSignupMode(true);
       } finally {
         setSignupSubmitting(false);
       }
     })();
-  }, [result, user, signupSuccess, signupSubmitting, signUp, birthdayParam, toast]);
+  }, [result, user, signupSuccess, signUp, birthdayParam, toast]);
 
   const handleSaveAndContinue = async () => {
     if (!result) return;
