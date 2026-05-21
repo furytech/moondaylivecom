@@ -42,10 +42,46 @@ const COMPARISON: { label: string; free: boolean; sovereign: boolean }[] = [
 const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, session } = useAuth();
+  const { user, session, subscription, checkSubscription } = useAuth();
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Refresh subscription state when this page mounts so it always reflects truth.
+  useEffect(() => {
+    if (session) checkSubscription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.access_token]);
+
+  const isSubscribed = subscription.subscribed;
+  const planLabel =
+    subscription.priceId === PRICES.yearly.id
+      ? "Yearly"
+      : subscription.priceId === PRICES.monthly.id
+      ? "Monthly"
+      : "Sovereign";
+
+  const formatDate = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : null;
+
+  const handleManageSubscription = async () => {
+    if (!session) return;
+    setPortalLoading(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("customer-portal", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (fnError) throw fnError;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (err) {
+      console.error("Portal error:", err);
+      setError("Unable to open subscription management. Please try again.");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
 
   const canceled = searchParams.get("canceled") === "true";
 
