@@ -74,7 +74,26 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
   useEffect(() => {
     if (user && !authLoading) {
-      navigate(redirectTo, { replace: true });
+      // Apply any pending Moon sign captured from the Between Phases quiz
+      // before the user verified their email.
+      (async () => {
+        try {
+          const raw = localStorage.getItem("pendingMoonSign");
+          if (raw) {
+            const pending = JSON.parse(raw) as { sign?: string };
+            if (pending?.sign) {
+              await supabase
+                .from("user_profiles")
+                .update({ moon_sign: pending.sign })
+                .eq("user_id", user.id);
+            }
+            localStorage.removeItem("pendingMoonSign");
+          }
+        } catch {
+          /* ignore */
+        }
+        navigate(redirectTo, { replace: true });
+      })();
     }
   }, [user, authLoading, navigate, redirectTo]);
 
