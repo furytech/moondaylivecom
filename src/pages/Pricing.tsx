@@ -58,6 +58,45 @@ const Pricing = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.access_token]);
 
+  // Generate a personalized AI teaser for logged-in non-subscribers with a moon sign.
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (!user || !session || subscription.subscribed) return;
+      try {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("moon_sign")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const birthMoonSign = profile?.moon_sign;
+        if (!birthMoonSign || cancelled) return;
+
+        setTeaserMoonSign(birthMoonSign);
+        setTeaserLoading(true);
+        const current = getCurrentMoon();
+        const { data, error: fnError } = await supabase.functions.invoke("sovereign-teaser", {
+          body: {
+            birthMoonSign,
+            currentMoonSign: current.sign,
+            currentPhase: current.phase,
+          },
+        });
+        if (cancelled) return;
+        if (fnError) throw fnError;
+        if (data?.teaser) setTeaser(data.teaser);
+      } catch (err) {
+        console.error("teaser error", err);
+      } finally {
+        if (!cancelled) setTeaserLoading(false);
+      }
+    };
+    run();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, session?.access_token, subscription.subscribed]);
+
+
   const isSubscribed = subscription.subscribed;
   const planLabel =
     subscription.priceId === PRICES.yearly.id
