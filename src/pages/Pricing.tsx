@@ -48,6 +48,9 @@ const Pricing = () => {
   const [loading, setLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState("");
+  const [teaser, setTeaser] = useState<string>("");
+  const [teaserLoading, setTeaserLoading] = useState(false);
+  const [teaserMoonSign, setTeaserMoonSign] = useState<string | null>(null);
 
   // Refresh subscription state when this page mounts so it always reflects truth.
   useEffect(() => {
