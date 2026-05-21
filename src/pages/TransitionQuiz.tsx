@@ -99,6 +99,47 @@ const TransitionQuiz = () => {
     }
   };
 
+  // Auto-finalize signup using credentials Portal stashed before sending the
+  // user into the quiz. The user does not see an inline form — once the quiz
+  // produces a sign, we call signUp and immediately show the email-verify
+  // confirmation screen.
+  useEffect(() => {
+    if (!result || user || signupSuccess || signupSubmitting) return;
+    let pending: { email?: string; password?: string; birthday?: string } | null = null;
+    try {
+      const raw = sessionStorage.getItem("pendingSignup");
+      if (raw) pending = JSON.parse(raw);
+    } catch { /* ignore */ }
+    if (!pending?.email || !pending.password) return;
+
+    setSignupSubmitting(true);
+    (async () => {
+      try {
+        await signUp(
+          pending!.email!,
+          pending!.password!,
+          pending!.birthday || birthdayParam,
+          result.primarySign
+        );
+        try { sessionStorage.removeItem("pendingSignup"); } catch { /* ignore */ }
+        setSignupSuccess(true);
+      } catch (err) {
+        const msg = (err as { message?: string }).message || "Could not create account.";
+        toast({
+          title: "Could not create account",
+          description: msg.includes("User already registered")
+            ? "This email is already registered. Please sign in to anchor your sign."
+            : msg,
+          variant: "destructive",
+        });
+        // Fall back to inline form so the user can correct their email.
+        setSignupMode(true);
+      } finally {
+        setSignupSubmitting(false);
+      }
+    })();
+  }, [result, user, signupSuccess, signupSubmitting, signUp, birthdayParam, toast]);
+
   const handleSaveAndContinue = async () => {
     if (!result) return;
     if (!user) {
