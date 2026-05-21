@@ -7,7 +7,9 @@ import { trackEvent } from "@/lib/analytics";
 interface SubscriptionStatus {
   subscribed: boolean;
   productId: string | null;
+  priceId: string | null;
   subscriptionEnd: string | null;
+  subscriptionStart: string | null;
 }
 
 interface AuthContextType {
