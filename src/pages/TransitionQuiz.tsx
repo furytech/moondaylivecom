@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Sparkles, Moon, ArrowRight } from "lucide-react";
+import { Sparkles, Moon, ArrowRight, Eye, EyeOff, MailCheck } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -25,7 +25,7 @@ const VALID_SIGNS = new Set([
 const TransitionQuiz = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signUp } = useAuth();
   const { toast } = useToast();
 
   const birthdayParam = params.get("birthday") || "";
@@ -40,6 +40,15 @@ const TransitionQuiz = () => {
   const [step, setStep] = useState<number>(0);
   const [result, setResult] = useState<QuizResult | null>(null);
   const [saving, setSaving] = useState(false);
+  const [signupMode, setSignupMode] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirm, setSignupConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [signupError, setSignupError] = useState("");
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   // Resolve signs from a birthday if not supplied
   useEffect(() => {
@@ -93,9 +102,9 @@ const TransitionQuiz = () => {
   const handleSaveAndContinue = async () => {
     if (!result) return;
     if (!user) {
-      // Account not yet created — send them to signup. Their quiz result is
-      // stored in localStorage and will be applied after email verification.
-      navigate(`/signup${birthdayParam ? `?birthday=${birthdayParam}` : ""}`);
+      // Account not yet created — render inline signup form. The quiz result is
+      // already in localStorage and will be applied after email verification.
+      setSignupMode(true);
       return;
     }
     setSaving(true);
@@ -126,6 +135,40 @@ const TransitionQuiz = () => {
     setAnswers({});
     setStep(0);
     setResult(null);
+  };
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignupError("");
+    if (!result) return;
+    if (!signupEmail || !signupPassword) {
+      setSignupError("Please enter your email and a password.");
+      return;
+    }
+    if (signupPassword.length < 6) {
+      setSignupError("Password must be at least 6 characters.");
+      return;
+    }
+    if (signupPassword !== signupConfirm) {
+      setSignupError("Passwords do not match.");
+      return;
+    }
+    setSignupSubmitting(true);
+    try {
+      // Keep pendingMoonSign in localStorage so Portal can apply it after the
+      // user clicks the email verification link and lands signed-in.
+      await signUp(signupEmail, signupPassword, birthdayParam, result.primarySign);
+      setSignupSuccess(true);
+    } catch (err) {
+      const msg = (err as { message?: string }).message || "Could not create account.";
+      setSignupError(
+        msg.includes("User already registered")
+          ? "This email is already registered. Please sign in to anchor your sign."
+          : msg
+      );
+    } finally {
+      setSignupSubmitting(false);
+    }
   };
 
   // Stable starfield
@@ -267,7 +310,120 @@ const TransitionQuiz = () => {
               </div>
             )}
 
-            {!resolving && result && (
+            {!resolving && result && signupSuccess && (
+              <div className="text-center space-y-6 py-2">
+                <div className="mx-auto w-16 h-16 rounded-full border border-lilac/40 flex items-center justify-center bg-lilac/10 shadow-[0_0_50px_-10px_hsl(var(--lilac)/0.6)]">
+                  <MailCheck className="w-7 h-7 text-lilac" strokeWidth={1.4} />
+                </div>
+                <div>
+                  <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-3">
+                    Check Your Inbox
+                  </p>
+                  <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight mb-4 leading-tight">
+                    Your Lunar Signature awaits
+                  </h2>
+                  <p className="text-sm md:text-base text-cream/85 leading-relaxed max-w-md mx-auto">
+                    An authentication link has been sent to your email. Please
+                    check your inbox and click the link to anchor your Lunar
+                    Signature and enter your Blueprint.
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground/70 leading-relaxed border-t border-lilac/10 pt-4 max-w-sm mx-auto">
+                  Your {result.primarySign} Moon is held safely until you confirm.
+                </p>
+              </div>
+            )}
+
+            {!resolving && result && !signupSuccess && signupMode && !user && (
+              <form onSubmit={handleSignupSubmit} className="space-y-5">
+                <div className="text-center space-y-2">
+                  <p className="text-lilac text-xs tracking-[0.3em] uppercase">
+                    Anchor {result.primarySign} Moon
+                  </p>
+                  <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
+                    Create your account
+                  </h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    We'll email you a confirmation link to seal your Blueprint.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <input
+                    type="email"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                    placeholder="Email"
+                    autoComplete="email"
+                    className="w-full h-12 px-4 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
+                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      placeholder="Password"
+                      autoComplete="new-password"
+                      className="w-full h-12 px-4 pr-12 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-lilac transition-colors"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      value={signupConfirm}
+                      onChange={(e) => setSignupConfirm(e.target.value)}
+                      placeholder="Confirm password"
+                      autoComplete="new-password"
+                      className="w-full h-12 px-4 pr-12 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-lilac transition-colors"
+                      aria-label={showConfirm ? "Hide password" : "Show password"}
+                    >
+                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {signupError && (
+                  <p className="text-xs text-destructive text-center leading-relaxed">{signupError}</p>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <button
+                    type="submit"
+                    disabled={signupSubmitting}
+                    className="flex-1 h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {signupSubmitting ? <MoonLoader size="sm" /> : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Create My Account
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSignupMode(false)}
+                    className="flex-1 h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300"
+                  >
+                    Back
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {!resolving && result && !signupSuccess && !signupMode && (
               <div className="text-center space-y-6">
                 <div>
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
