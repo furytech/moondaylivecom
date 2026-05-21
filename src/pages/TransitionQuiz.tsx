@@ -40,6 +40,15 @@ const TransitionQuiz = () => {
   const [step, setStep] = useState<number>(0);
   const [result, setResult] = useState<QuizResult | null>(null);
   const [saving, setSaving] = useState(false);
+  const [signupMode, setSignupMode] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirm, setSignupConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [signupError, setSignupError] = useState("");
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   // Resolve signs from a birthday if not supplied
   useEffect(() => {
