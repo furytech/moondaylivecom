@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, Crown, Moon, ExternalLink } from "lucide-react";
+import { Check, X, Crown, Moon, ExternalLink, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { useEffect } from "react";
+import { getCurrentMoon } from "@/lib/currentMoon";
 
 // Stripe Price IDs
 const PRICES = {
