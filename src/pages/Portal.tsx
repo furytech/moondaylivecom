@@ -564,7 +564,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 disabled={loading}
                 className="w-full h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {loading ? <MoonLoader size="sm" /> : isLogin ? "Sign In" : "Find My Moon Sign"}
+                {loading ? <MoonLoader size="sm" /> : isLogin ? "Sign In" : transitionInfo?.isTransitionDay ? "Continue to the Quiz" : "Find My Moon Sign"}
               </button>
             </form>
 
