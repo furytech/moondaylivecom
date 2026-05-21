@@ -76,12 +76,25 @@ const TransitionQuiz = () => {
     } else {
       const r = calculateQuizResult(signA, signB, next);
       setResult(r);
+      // Persist so Portal can apply it after email verification + sign-in.
+      try {
+        localStorage.setItem(
+          "pendingMoonSign",
+          JSON.stringify({
+            sign: r.primarySign,
+            birthday: birthdayParam,
+            ts: Date.now(),
+          })
+        );
+      } catch { /* ignore */ }
     }
   };
 
   const handleSaveAndContinue = async () => {
     if (!result) return;
     if (!user) {
+      // Account not yet created — send them to signup. Their quiz result is
+      // stored in localStorage and will be applied after email verification.
       navigate(`/signup${birthdayParam ? `?birthday=${birthdayParam}` : ""}`);
       return;
     }
@@ -92,6 +105,7 @@ const TransitionQuiz = () => {
         .update({ moon_sign: result.primarySign })
         .eq("user_id", user.id);
       if (error) throw error;
+      try { localStorage.removeItem("pendingMoonSign"); } catch { /* ignore */ }
       toast({
         title: "Moon Sign Confirmed",
         description: `Your blueprint is now anchored in ${result.primarySign}.`,
