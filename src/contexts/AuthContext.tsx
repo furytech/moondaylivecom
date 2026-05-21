@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const currentSession = sessionData?.session;
     
     if (!currentSession?.access_token) {
-      setSubscription({ subscribed: false, productId: null, subscriptionEnd: null });
+      setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
       return;
     }
 
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const interval = setInterval(checkSubscription, 60000);
       return () => clearInterval(interval);
     } else {
-      setSubscription({ subscribed: false, productId: null, subscriptionEnd: null });
+      setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
     }
   }, [session]);
 
@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-    setSubscription({ subscribed: false, productId: null, subscriptionEnd: null });
+    setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
   };
 
   const value = {
