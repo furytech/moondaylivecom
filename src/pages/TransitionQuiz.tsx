@@ -290,10 +290,9 @@ const TransitionQuiz = () => {
 
                 {info?.isTransitionDay && (
                   <p className="text-xs text-muted-foreground/70 leading-relaxed border-t border-lilac/10 pt-4">
-                    On your birth date the Moon ingressed at{" "}
-                    {String(Math.floor(info.ingressHour ?? 0)).padStart(2, "0")}:
-                    {String(Math.floor(((info.ingressHour ?? 0) % 1) * 60)).padStart(2, "0")} UTC.
-                    Sovereign Tier resolves this exactly with birth time.
+                    Your answers anchor your Lunar Signature on a day the Moon
+                    was crossing thresholds. This result will be saved to your
+                    profile.
                   </p>
                 )}
 
