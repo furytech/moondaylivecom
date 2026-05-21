@@ -257,6 +257,37 @@ const Pricing = () => {
 
 
         {!isSubscribed && (<>
+        {/* Personalized AI teaser for logged-in free users */}
+        {user && teaserMoonSign && (teaserLoading || teaser) && (
+          <GlassmorphismCard
+            className="mb-8 max-w-2xl mx-auto animate-fade-up border-primary/30"
+            size="md"
+          >
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 glass-card rounded-full mb-4">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="font-display text-[10px] text-primary uppercase tracking-[0.2em]">
+                  A glimpse of your {teaserMoonSign} reading
+                </span>
+              </div>
+              {teaserLoading ? (
+                <div className="flex justify-center py-4">
+                  <MoonLoader size="sm" />
+                </div>
+              ) : (
+                <p className="font-serif text-base md:text-lg text-cream-muted/90 italic leading-relaxed">
+                  {teaser}
+                </p>
+              )}
+              {!teaserLoading && teaser && (
+                <p className="font-serif text-xs text-primary/70 mt-4 uppercase tracking-[0.2em]">
+                  Unlock the full reading below
+                </p>
+              )}
+            </div>
+          </GlassmorphismCard>
+        )}
+
         {/* Billing toggle */}
         <div className="flex justify-center mb-10 animate-fade-up stagger-1">
           <div className="inline-flex items-center p-1 border border-primary/20 rounded-full">
