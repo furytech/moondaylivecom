@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, Crown, Moon, ExternalLink } from "lucide-react";
+import { Check, X, Crown, Moon, ExternalLink, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { useEffect } from "react";
+import { getCurrentMoon } from "@/lib/currentMoon";
 
 // Stripe Price IDs
 const PRICES = {
@@ -47,12 +48,54 @@ const Pricing = () => {
   const [loading, setLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState("");
+  const [teaser, setTeaser] = useState<string>("");
+  const [teaserLoading, setTeaserLoading] = useState(false);
+  const [teaserMoonSign, setTeaserMoonSign] = useState<string | null>(null);
 
   // Refresh subscription state when this page mounts so it always reflects truth.
   useEffect(() => {
     if (session) checkSubscription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.access_token]);
+
+  // Generate a personalized AI teaser for logged-in non-subscribers with a moon sign.
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (!user || !session || subscription.subscribed) return;
+      try {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("moon_sign")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const birthMoonSign = profile?.moon_sign;
+        if (!birthMoonSign || cancelled) return;
+
+        setTeaserMoonSign(birthMoonSign);
+        setTeaserLoading(true);
+        const current = getCurrentMoon();
+        const { data, error: fnError } = await supabase.functions.invoke("sovereign-teaser", {
+          body: {
+            birthMoonSign,
+            currentMoonSign: current.sign,
+            currentPhase: current.phase,
+          },
+        });
+        if (cancelled) return;
+        if (fnError) throw fnError;
+        if (data?.teaser) setTeaser(data.teaser);
+      } catch (err) {
+        console.error("teaser error", err);
+      } finally {
+        if (!cancelled) setTeaserLoading(false);
+      }
+    };
+    run();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, session?.access_token, subscription.subscribed]);
+
 
   const isSubscribed = subscription.subscribed;
   const planLabel =
@@ -214,6 +257,37 @@ const Pricing = () => {
 
 
         {!isSubscribed && (<>
+        {/* Personalized AI teaser for logged-in free users */}
+        {user && teaserMoonSign && (teaserLoading || teaser) && (
+          <GlassmorphismCard
+            className="mb-8 max-w-2xl mx-auto animate-fade-up border-primary/30"
+            size="md"
+          >
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 glass-card rounded-full mb-4">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="font-display text-[10px] text-primary uppercase tracking-[0.2em]">
+                  A glimpse of your {teaserMoonSign} reading
+                </span>
+              </div>
+              {teaserLoading ? (
+                <div className="flex justify-center py-4">
+                  <MoonLoader size="sm" />
+                </div>
+              ) : (
+                <p className="font-serif text-base md:text-lg text-cream-muted/90 italic leading-relaxed">
+                  {teaser}
+                </p>
+              )}
+              {!teaserLoading && teaser && (
+                <p className="font-serif text-xs text-primary/70 mt-4 uppercase tracking-[0.2em]">
+                  Unlock the full reading below
+                </p>
+              )}
+            </div>
+          </GlassmorphismCard>
+        )}
+
         {/* Billing toggle */}
         <div className="flex justify-center mb-10 animate-fade-up stagger-1">
           <div className="inline-flex items-center p-1 border border-primary/20 rounded-full">

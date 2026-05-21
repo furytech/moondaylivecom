@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.calculate-climate]
 verify_jwt = false
+
+[functions.sovereign-teaser]
+verify_jwt = false
