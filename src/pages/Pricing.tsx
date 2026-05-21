@@ -213,6 +213,7 @@ const Pricing = () => {
 
 
 
+        {!isSubscribed && (<>
         {/* Billing toggle */}
         <div className="flex justify-center mb-10 animate-fade-up stagger-1">
           <div className="inline-flex items-center p-1 border border-primary/20 rounded-full">
