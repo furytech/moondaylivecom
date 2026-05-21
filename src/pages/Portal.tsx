@@ -149,21 +149,25 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         }
         navigate(redirectTo, { replace: true });
       } else {
+        // Transition-day path: don't create the account yet. Stash the
+        // credentials and route the user into the Between Phases quiz. The
+        // quiz screen will finalize signUp with the disambiguated sign so
+        // the user never has to re-enter email/password.
+        if (transitionInfo?.isTransitionDay) {
+          try {
+            sessionStorage.setItem(
+              "pendingSignup",
+              JSON.stringify({ email, password, birthday })
+            );
+          } catch { /* ignore */ }
+          navigate(
+            `/transition-quiz?signA=${transitionInfo.signAtStart}&signB=${transitionInfo.signAtEnd}&birthday=${birthday}`
+          );
+          return;
+        }
+
         const birthDate = new Date(`${birthday}T12:00:00`);
-        // If the user already completed the Between Phases quiz, honor that
-        // result. Otherwise fall back to the noon-of-day calculation. We
-        // intentionally do NOT auto-assign by majority hours on transition days.
-        let pendingSign: string | null = null;
-        try {
-          const raw = localStorage.getItem("pendingMoonSign");
-          if (raw) {
-            const pending = JSON.parse(raw) as { sign?: string; birthday?: string };
-            if (pending?.sign && pending.birthday === birthday) {
-              pendingSign = pending.sign;
-            }
-          }
-        } catch { /* ignore */ }
-        const moonSignName = pendingSign ?? calculateMoonSign(birthDate).sign;
+        const moonSignName = calculateMoonSign(birthDate).sign;
         await signUp(email, password, birthday, moonSignName);
         setSignupSuccess(true);
       }
