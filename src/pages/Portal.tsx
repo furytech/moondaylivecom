@@ -150,10 +150,20 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         navigate(redirectTo, { replace: true });
       } else {
         const birthDate = new Date(`${birthday}T12:00:00`);
-        // Prefer the majority sign on transition days; fall back to noon calc
-        const moonSignName = transitionInfo?.isTransitionDay
-          ? transitionInfo.majoritySign
-          : calculateMoonSign(birthDate).sign;
+        // If the user already completed the Between Phases quiz, honor that
+        // result. Otherwise fall back to the noon-of-day calculation. We
+        // intentionally do NOT auto-assign by majority hours on transition days.
+        let pendingSign: string | null = null;
+        try {
+          const raw = localStorage.getItem("pendingMoonSign");
+          if (raw) {
+            const pending = JSON.parse(raw) as { sign?: string; birthday?: string };
+            if (pending?.sign && pending.birthday === birthday) {
+              pendingSign = pending.sign;
+            }
+          }
+        } catch { /* ignore */ }
+        const moonSignName = pendingSign ?? calculateMoonSign(birthDate).sign;
         await signUp(email, password, birthday, moonSignName);
         setSignupSuccess(true);
       }
