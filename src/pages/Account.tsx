@@ -210,45 +210,63 @@ const Account = () => {
                       >
                         Birthday
                       </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button
+
+                      {profile?.birthday ? (
+                        <>
+                          <div
                             id="birthday"
-                            type="button"
-                            className="w-full px-4 py-3 bg-background/40 border border-primary/20 rounded-md font-serif text-base text-foreground text-left focus:outline-none focus:border-primary/60 transition-colors flex items-center justify-between"
+                            className="w-full px-4 py-3 bg-background/40 border border-primary/20 rounded-md font-serif text-base text-foreground flex items-center justify-between opacity-90"
                           >
-                            <span>
-                              {birthday
-                                ? format(parseISO(birthday), "MMMM d, yyyy")
-                                : "Select your birthday"}
-                            </span>
-                            <CalendarIcon className="w-4 h-4 text-primary/70" />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-navy-dark border-primary/30" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={birthday ? parseISO(birthday) : undefined}
-                            onSelect={(d) => {
-                              if (d) {
-                                const y = d.getFullYear();
-                                const m = String(d.getMonth() + 1).padStart(2, "0");
-                                const day = String(d.getDate()).padStart(2, "0");
-                                setBirthday(`${y}-${m}-${day}`);
-                              }
-                            }}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1920-01-01")
-                            }
-                            defaultMonth={birthday ? parseISO(birthday) : new Date(1990, 0, 1)}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <p className="font-serif text-xs text-cream-muted/50 mt-2">
-                        Used to calculate your natal moon sign.
-                      </p>
+                            <span>{format(parseISO(profile.birthday), "MMMM d, yyyy")}</span>
+                            <CalendarIcon className="w-4 h-4 text-primary/40" />
+                          </div>
+                          <p className="font-serif text-xs text-cream-muted/50 mt-2">
+                            Your birthday is locked once set. It anchors your natal moon sign and cannot be changed from here. If you need to correct it, please contact support.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                id="birthday"
+                                type="button"
+                                className="w-full px-4 py-3 bg-background/40 border border-primary/20 rounded-md font-serif text-base text-foreground text-left focus:outline-none focus:border-primary/60 transition-colors flex items-center justify-between"
+                              >
+                                <span>
+                                  {birthday
+                                    ? format(parseISO(birthday), "MMMM d, yyyy")
+                                    : "Select your birthday"}
+                                </span>
+                                <CalendarIcon className="w-4 h-4 text-primary/70" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-navy-dark border-primary/30" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={birthday ? parseISO(birthday) : undefined}
+                                onSelect={(d) => {
+                                  if (d) {
+                                    const y = d.getFullYear();
+                                    const m = String(d.getMonth() + 1).padStart(2, "0");
+                                    const day = String(d.getDate()).padStart(2, "0");
+                                    setBirthday(`${y}-${m}-${day}`);
+                                  }
+                                }}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1920-01-01")
+                                }
+                                defaultMonth={birthday ? parseISO(birthday) : new Date(1990, 0, 1)}
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <p className="font-serif text-xs text-cream-muted/50 mt-2">
+                            Used to calculate your natal moon sign. This can only be set once.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -267,13 +285,15 @@ const Account = () => {
                     </div>
                   )}
 
-                  <button
-                    onClick={handleSaveBirthday}
-                    disabled={saving || !birthday || birthday === profile?.birthday}
-                    className="w-full mt-2 px-6 py-3 font-display text-xs tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/90 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {saving ? "Saving..." : "Save Profile"}
-                  </button>
+                  {!profile?.birthday && (
+                    <button
+                      onClick={handleSaveBirthday}
+                      disabled={saving || !birthday}
+                      className="w-full mt-2 px-6 py-3 font-display text-xs tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/90 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {saving ? "Saving..." : "Save Profile"}
+                    </button>
+                  )}
                 </div>
               </GlassmorphismCard>
 

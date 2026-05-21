@@ -1,11 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Moon, Fingerprint, Sparkles, User } from "lucide-react";
+import { Moon, Fingerprint, Eye, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const TABS = [
   { path: "/", label: "Home", icon: Moon, protected: false },
   { path: "/blueprint", label: "Blueprint", icon: Fingerprint, protected: true },
-  { path: "/sovereign", label: "Rituals", icon: Sparkles, protected: true },
+  { path: "/lenses", label: "Lenses", icon: Eye, protected: true },
   { path: "/account", label: "Account", icon: User, protected: true },
 ];
 
