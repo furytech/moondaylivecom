@@ -149,21 +149,25 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         }
         navigate(redirectTo, { replace: true });
       } else {
+        // Transition-day path: don't create the account yet. Stash the
+        // credentials and route the user into the Between Phases quiz. The
+        // quiz screen will finalize signUp with the disambiguated sign so
+        // the user never has to re-enter email/password.
+        if (transitionInfo?.isTransitionDay) {
+          try {
+            sessionStorage.setItem(
+              "pendingSignup",
+              JSON.stringify({ email, password, birthday })
+            );
+          } catch { /* ignore */ }
+          navigate(
+            `/transition-quiz?signA=${transitionInfo.signAtStart}&signB=${transitionInfo.signAtEnd}&birthday=${birthday}`
+          );
+          return;
+        }
+
         const birthDate = new Date(`${birthday}T12:00:00`);
-        // If the user already completed the Between Phases quiz, honor that
-        // result. Otherwise fall back to the noon-of-day calculation. We
-        // intentionally do NOT auto-assign by majority hours on transition days.
-        let pendingSign: string | null = null;
-        try {
-          const raw = localStorage.getItem("pendingMoonSign");
-          if (raw) {
-            const pending = JSON.parse(raw) as { sign?: string; birthday?: string };
-            if (pending?.sign && pending.birthday === birthday) {
-              pendingSign = pending.sign;
-            }
-          }
-        } catch { /* ignore */ }
-        const moonSignName = pendingSign ?? calculateMoonSign(birthDate).sign;
+        const moonSignName = calculateMoonSign(birthDate).sign;
         await signUp(email, password, birthday, moonSignName);
         setSignupSuccess(true);
       }
@@ -542,21 +546,9 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                         <span className="text-lilac font-medium">{transitionInfo.signAtStart}</span>{" "}
                         into{" "}
                         <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>
-                        . To anchor your Lunar Signature accurately, we need a
-                        little more from you — a short guided quiz that reads
-                        your natural temperament and reveals which of the two
-                        signs truly holds your Moon.
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(
-                              `/transition-quiz?signA=${transitionInfo.signAtStart}&signB=${transitionInfo.signAtEnd}&birthday=${birthday}`
-                            )
-                          }
-                          className="block mt-3 text-lilac hover:text-lilac-light underline-offset-4 hover:underline tracking-[0.15em] uppercase text-[11px]"
-                        >
-                          Refine with the Between Phases quiz →
-                        </button>
+                        . When you continue, we'll guide you through five quick
+                        questions to anchor your true sign — then finish
+                        creating your account. No need to re-enter anything.
                       </AlertDescription>
                     </Alert>
                   )}
@@ -572,7 +564,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 disabled={loading}
                 className="w-full h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {loading ? <MoonLoader size="sm" /> : isLogin ? "Sign In" : "Find My Moon Sign"}
+                {loading ? <MoonLoader size="sm" /> : isLogin ? "Sign In" : transitionInfo?.isTransitionDay ? "Continue to the Quiz" : "Find My Moon Sign"}
               </button>
             </form>
 

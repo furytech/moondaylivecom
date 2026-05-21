@@ -99,6 +99,47 @@ const TransitionQuiz = () => {
     }
   };
 
+  // Auto-finalize signup using credentials Portal stashed before sending the
+  // user into the quiz. The user does not see an inline form — once the quiz
+  // produces a sign, we call signUp and immediately show the email-verify
+  // confirmation screen.
+  useEffect(() => {
+    if (!result || user || signupSuccess || signupSubmitting) return;
+    let pending: { email?: string; password?: string; birthday?: string } | null = null;
+    try {
+      const raw = sessionStorage.getItem("pendingSignup");
+      if (raw) pending = JSON.parse(raw);
+    } catch { /* ignore */ }
+    if (!pending?.email || !pending.password) return;
+
+    setSignupSubmitting(true);
+    (async () => {
+      try {
+        await signUp(
+          pending!.email!,
+          pending!.password!,
+          pending!.birthday || birthdayParam,
+          result.primarySign
+        );
+        try { sessionStorage.removeItem("pendingSignup"); } catch { /* ignore */ }
+        setSignupSuccess(true);
+      } catch (err) {
+        const msg = (err as { message?: string }).message || "Could not create account.";
+        toast({
+          title: "Could not create account",
+          description: msg.includes("User already registered")
+            ? "This email is already registered. Please sign in to anchor your sign."
+            : msg,
+          variant: "destructive",
+        });
+        // Fall back to inline form so the user can correct their email.
+        setSignupMode(true);
+      } finally {
+        setSignupSubmitting(false);
+      }
+    })();
+  }, [result, user, signupSuccess, signupSubmitting, signUp, birthdayParam, toast]);
+
   const handleSaveAndContinue = async () => {
     if (!result) return;
     if (!user) {
@@ -310,6 +351,16 @@ const TransitionQuiz = () => {
               </div>
             )}
 
+            {!resolving && result && !signupSuccess && signupSubmitting && !signupMode && (
+              <div className="flex flex-col items-center gap-4 py-10 text-center">
+                <MoonLoader size="md" />
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                  Anchoring your {result.primarySign} Moon and sending your
+                  authentication link…
+                </p>
+              </div>
+            )}
+
             {!resolving && result && signupSuccess && (
               <div className="text-center space-y-6 py-2">
                 <div className="mx-auto w-16 h-16 rounded-full border border-lilac/40 flex items-center justify-center bg-lilac/10 shadow-[0_0_50px_-10px_hsl(var(--lilac)/0.6)]">
@@ -423,7 +474,7 @@ const TransitionQuiz = () => {
               </form>
             )}
 
-            {!resolving && result && !signupSuccess && !signupMode && (
+            {!resolving && result && !signupSuccess && !signupMode && !signupSubmitting && (
               <div className="text-center space-y-6">
                 <div>
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
