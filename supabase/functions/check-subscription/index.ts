@@ -74,21 +74,23 @@ serve(async (req) => {
     
     const hasActiveSub = subscriptions.data.length > 0;
     let productId = null;
+    let priceId = null;
     let subscriptionEnd = null;
+    let subscriptionStart = null;
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       logStep("Active subscription found", { subscriptionId: subscription.id });
-      
+
       if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
         subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-        logStep("Subscription end date", { endDate: subscriptionEnd });
       }
-      
-      if (subscription.items?.data?.[0]?.price?.product) {
-        productId = subscription.items.data[0].price.product;
-        logStep("Determined product", { productId });
+      if (subscription.start_date && typeof subscription.start_date === 'number') {
+        subscriptionStart = new Date(subscription.start_date * 1000).toISOString();
       }
+      const priceObj = subscription.items?.data?.[0]?.price;
+      if (priceObj?.product) productId = priceObj.product;
+      if (priceObj?.id) priceId = priceObj.id;
     } else {
       logStep("No active subscription found");
     }
@@ -112,7 +114,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       product_id: productId,
-      subscription_end: subscriptionEnd
+      price_id: priceId,
+      subscription_end: subscriptionEnd,
+      subscription_start: subscriptionStart,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

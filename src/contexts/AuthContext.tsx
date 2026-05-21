@@ -7,7 +7,9 @@ import { trackEvent } from "@/lib/analytics";
 interface SubscriptionStatus {
   subscribed: boolean;
   productId: string | null;
+  priceId: string | null;
   subscriptionEnd: string | null;
+  subscriptionStart: string | null;
 }
 
 interface AuthContextType {
@@ -42,7 +44,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     subscribed: false,
     productId: null,
+    priceId: null,
     subscriptionEnd: null,
+    subscriptionStart: null,
   });
 
   const checkSubscription = async () => {
@@ -51,7 +55,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const currentSession = sessionData?.session;
     
     if (!currentSession?.access_token) {
-      setSubscription({ subscribed: false, productId: null, subscriptionEnd: null });
+      setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
       return;
     }
 
@@ -75,7 +79,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSubscription({
         subscribed: data?.subscribed || false,
         productId: data?.product_id || null,
+        priceId: data?.price_id || null,
         subscriptionEnd: data?.subscription_end || null,
+        subscriptionStart: data?.subscription_start || null,
       });
     } catch (err) {
       console.error("Failed to check subscription:", err);
@@ -119,7 +125,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const interval = setInterval(checkSubscription, 60000);
       return () => clearInterval(interval);
     } else {
-      setSubscription({ subscribed: false, productId: null, subscriptionEnd: null });
+      setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
     }
   }, [session]);
 
@@ -159,7 +165,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-    setSubscription({ subscribed: false, productId: null, subscriptionEnd: null });
+    setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
   };
 
   const value = {

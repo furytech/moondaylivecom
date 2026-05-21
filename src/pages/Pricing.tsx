@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, Crown, Moon } from "lucide-react";
+import { Check, X, Crown, Moon, ExternalLink } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { useEffect } from "react";
 
 // Stripe Price IDs
 const PRICES = {
@@ -41,10 +42,46 @@ const COMPARISON: { label: string; free: boolean; sovereign: boolean }[] = [
 const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, session } = useAuth();
+  const { user, session, subscription, checkSubscription } = useAuth();
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Refresh subscription state when this page mounts so it always reflects truth.
+  useEffect(() => {
+    if (session) checkSubscription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.access_token]);
+
+  const isSubscribed = subscription.subscribed;
+  const planLabel =
+    subscription.priceId === PRICES.yearly.id
+      ? "Yearly"
+      : subscription.priceId === PRICES.monthly.id
+      ? "Monthly"
+      : "Sovereign";
+
+  const formatDate = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : null;
+
+  const handleManageSubscription = async () => {
+    if (!session) return;
+    setPortalLoading(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("customer-portal", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (fnError) throw fnError;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (err) {
+      console.error("Portal error:", err);
+      setError("Unable to open subscription management. Please try again.");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
 
   const canceled = searchParams.get("canceled") === "true";
 
@@ -120,6 +157,61 @@ const Pricing = () => {
             </p>
           </GlassmorphismCard>
         )}
+
+        {isSubscribed && (
+          <GlassmorphismCard
+            className="mb-10 max-w-2xl mx-auto animate-fade-up border-primary/40"
+            size="md"
+          >
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full mb-4">
+                <Crown className="w-4 h-4 text-primary" />
+                <span className="font-display text-sm text-primary uppercase tracking-widest">
+                  You're a Sovereign Member
+                </span>
+              </div>
+              <p className="font-serif text-base text-cream-muted mb-2">
+                You're already on the{" "}
+                <span className="text-primary">{planLabel}</span> plan — all premium
+                features are unlocked.
+              </p>
+              {subscription.subscriptionStart && (
+                <p className="font-serif text-sm text-cream-muted/70">
+                  Member since {formatDate(subscription.subscriptionStart)}
+                </p>
+              )}
+              {subscription.subscriptionEnd && (
+                <p className="font-serif text-sm text-cream-muted/70">
+                  Next renewal on {formatDate(subscription.subscriptionEnd)}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
+                <button
+                  onClick={() => navigate("/blueprint")}
+                  className="inline-flex items-center gap-2 px-6 py-3 font-display text-xs tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 transition-all duration-500"
+                >
+                  Enter Your Blueprint
+                </button>
+                <button
+                  onClick={handleManageSubscription}
+                  disabled={portalLoading}
+                  className="inline-flex items-center gap-2 font-serif text-base text-cream-muted elegant-hover disabled:opacity-50"
+                >
+                  {portalLoading ? (
+                    <MoonLoader size="sm" />
+                  ) : (
+                    <>
+                      <ExternalLink className="w-4 h-4" />
+                      Manage Subscription
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </GlassmorphismCard>
+        )}
+
+
 
         {/* Billing toggle */}
         <div className="flex justify-center mb-10 animate-fade-up stagger-1">

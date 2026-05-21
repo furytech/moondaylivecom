@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -88,9 +89,8 @@ function PositionBlock({
 }
 
 export default function Triad() {
-  // SEO injected in render below
-
   const navigate = useNavigate();
+  const { subscription, checkSubscription } = useAuth();
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
 
@@ -101,20 +101,42 @@ export default function Triad() {
         navigate("/login?from=/lenses");
         return;
       }
+
+      // Trust either the user_profiles flag OR the live Stripe-derived subscription.
       const { data: profile } = await supabase
         .from("user_profiles")
         .select("is_subscriber, subscription_status")
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      if (!profile?.is_subscriber && profile?.subscription_status !== "sovereign") {
-        navigate("/pricing");
+      const profileSub =
+        !!profile?.is_subscriber || profile?.subscription_status === "sovereign";
+
+      if (profileSub || subscription.subscribed) {
+        setAuthorized(true);
+        setLoading(false);
         return;
       }
-      setAuthorized(true);
-      setLoading(false);
+
+      // Final check: revalidate against Stripe in case context is stale.
+      await checkSubscription();
+      const { data: fresh } = await supabase
+        .from("user_profiles")
+        .select("is_subscriber, subscription_status")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (fresh?.is_subscriber || fresh?.subscription_status === "sovereign") {
+        setAuthorized(true);
+        setLoading(false);
+        return;
+      }
+
+      navigate("/pricing");
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
+
 
   const triad: TriadMoon = useMemo(() => computeTriadMoon(new Date()), []);
 
