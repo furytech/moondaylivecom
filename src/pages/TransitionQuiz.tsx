@@ -474,7 +474,7 @@ const TransitionQuiz = () => {
               </form>
             )}
 
-            {!resolving && result && !signupSuccess && !signupMode && (
+            {!resolving && result && !signupSuccess && !signupMode && !signupSubmitting && (
               <div className="text-center space-y-6">
                 <div>
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
