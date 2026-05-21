@@ -137,6 +137,40 @@ const TransitionQuiz = () => {
     setResult(null);
   };
 
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignupError("");
+    if (!result) return;
+    if (!signupEmail || !signupPassword) {
+      setSignupError("Please enter your email and a password.");
+      return;
+    }
+    if (signupPassword.length < 6) {
+      setSignupError("Password must be at least 6 characters.");
+      return;
+    }
+    if (signupPassword !== signupConfirm) {
+      setSignupError("Passwords do not match.");
+      return;
+    }
+    setSignupSubmitting(true);
+    try {
+      // Keep pendingMoonSign in localStorage so Portal can apply it after the
+      // user clicks the email verification link and lands signed-in.
+      await signUp(signupEmail, signupPassword, birthdayParam, result.primarySign);
+      setSignupSuccess(true);
+    } catch (err) {
+      const msg = (err as { message?: string }).message || "Could not create account.";
+      setSignupError(
+        msg.includes("User already registered")
+          ? "This email is already registered. Please sign in to anchor your sign."
+          : msg
+      );
+    } finally {
+      setSignupSubmitting(false);
+    }
+  };
+
   // Stable starfield
   const stars = useMemo(
     () =>
