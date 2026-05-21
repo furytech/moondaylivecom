@@ -77,7 +77,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSubscription({
         subscribed: data?.subscribed || false,
         productId: data?.product_id || null,
+        priceId: data?.price_id || null,
         subscriptionEnd: data?.subscription_end || null,
+        subscriptionStart: data?.subscription_start || null,
       });
     } catch (err) {
       console.error("Failed to check subscription:", err);
