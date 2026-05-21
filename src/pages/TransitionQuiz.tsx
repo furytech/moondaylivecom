@@ -25,7 +25,7 @@ const VALID_SIGNS = new Set([
 const TransitionQuiz = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signUp } = useAuth();
   const { toast } = useToast();
 
   const birthdayParam = params.get("birthday") || "";
