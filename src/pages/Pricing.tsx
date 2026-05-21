@@ -349,6 +349,7 @@ const Pricing = () => {
         <p className="font-serif text-sm text-cream-muted/40 text-center mb-6">
           Secure payment powered by Stripe. Cancel anytime.
         </p>
+        </>)}
         </div>
       </main>
       <Footer />
