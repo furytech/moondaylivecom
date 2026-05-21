@@ -509,25 +509,14 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                         <span className="block font-display tracking-[0.2em] uppercase text-lilac mb-1.5">
                           Between Phases
                         </span>
-                        On this date the Moon shifted from{" "}
+                        On this date the Moon was crossing from{" "}
                         <span className="text-lilac font-medium">{transitionInfo.signAtStart}</span>{" "}
                         into{" "}
-                        <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>{" "}
-                        around{" "}
-                        <span className="text-lilac font-medium">
-                          {String(Math.floor(transitionInfo.ingressHour ?? 0)).padStart(2, "0")}:
-                          {String(
-                            Math.floor(((transitionInfo.ingressHour ?? 0) % 1) * 60)
-                          ).padStart(2, "0")}{" "}
-                          UTC
-                        </span>
-                        . Without an exact birth time, we'll assign{" "}
-                        <span className="text-lilac font-medium">
-                          {transitionInfo.majoritySign}
-                        </span>{" "}
-                        — the sign holding the Moon for{" "}
-                        {transitionInfo.majorityHours.toFixed(1)} of the 24 hours.
-                        Sovereign Tier resolves this exactly with your birth time.
+                        <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>
+                        . To anchor your Lunar Signature accurately, we need a
+                        little more from you — a short guided quiz that reads
+                        your natural temperament and reveals which of the two
+                        signs truly holds your Moon.
                         <button
                           type="button"
                           onClick={() =>
