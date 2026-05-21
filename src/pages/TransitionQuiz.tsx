@@ -351,6 +351,16 @@ const TransitionQuiz = () => {
               </div>
             )}
 
+            {!resolving && result && !signupSuccess && signupSubmitting && !signupMode && (
+              <div className="flex flex-col items-center gap-4 py-10 text-center">
+                <MoonLoader size="md" />
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                  Anchoring your {result.primarySign} Moon and sending your
+                  authentication link…
+                </p>
+              </div>
+            )}
+
             {!resolving && result && signupSuccess && (
               <div className="text-center space-y-6 py-2">
                 <div className="mx-auto w-16 h-16 rounded-full border border-lilac/40 flex items-center justify-center bg-lilac/10 shadow-[0_0_50px_-10px_hsl(var(--lilac)/0.6)]">
