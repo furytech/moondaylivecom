@@ -305,7 +305,7 @@ const TransitionQuiz = () => {
                     {saving ? <MoonLoader size="sm" /> : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        {user ? "Anchor This Sign" : "Sign Up to Save"}
+                        {user ? "Anchor This Sign" : "Create My Account"}
                       </>
                     )}
                   </button>
