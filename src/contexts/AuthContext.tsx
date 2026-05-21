@@ -44,7 +44,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     subscribed: false,
     productId: null,
+    priceId: null,
     subscriptionEnd: null,
+    subscriptionStart: null,
   });
 
   const checkSubscription = async () => {
