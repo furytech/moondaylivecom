@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.prevent_birthday_update() FROM PUBLIC, anon, authenticated;
