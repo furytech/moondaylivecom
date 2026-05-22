@@ -43,6 +43,17 @@
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1CW7EV6QKH"></script>
     <script>
+      /* Hide .lovable.app staging domains from search engines */
+      (function() {
+        if (window.location.hostname.includes('.lovable.app')) {
+          var meta = document.createElement('meta');
+          meta.name = 'robots';
+          meta.content = 'noindex, nofollow';
+          document.head.appendChild(meta);
+        }
+      })();
+    </script>
+    <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       window.gtag = gtag;
