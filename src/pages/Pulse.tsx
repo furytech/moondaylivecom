@@ -9,8 +9,8 @@ export default function Pulse() {
   return (
     <div className="sov-shell min-h-screen">
       <SEO
-        title="Daily Pulse — Three Lenses, One Moon"
-        description="Today's lunar pulse through three lenses: Tropical, Sidereal, Draconic. A nightly artisan-tech read on social, internal, and soul-level alignment."
+        title="Today's Moon Sign & Phase — Live Now | Moonday Live"
+        description="Today's moon sign, phase, and lunar pulse — live and updated daily. Read the Moon through three lenses: Tropical, Sidereal, and Draconic."
         canonical="https://moondaylive.com/pulse"
       />
       <Navigation />
