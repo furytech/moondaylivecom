@@ -58,8 +58,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden">
       <SEO
-        title="Moonday Live — Luxury Lunar Guidance & Rituals"
-        description="Personalized lunar blueprints, rituals, and forecasts for Mind, Soul, and Body. Live in rhythm with the Great Cycle."
+        title="Moon Sign & Daily Lunar Guidance | Moonday Live"
+        description="Discover your moon sign and today's lunar phase. Personalized blueprints, rituals, and forecasts for Mind, Soul, and Body."
         canonical="https://moondaylive.com/"
       />
       {/* Starfield */}

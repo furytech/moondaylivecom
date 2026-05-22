@@ -8,8 +8,8 @@ const About = () => {
   return (
     <PageLayout>
       <SEO
-        title="About Moonday Live — Luxury Lunar Guidance"
-        description="A modern sanctuary for ancient lunar wisdom — translating the Great Cycle into rituals for Mind, Soul, and Body."
+        title="About Moonday Live — Moon Sign & Lunar Guidance"
+        description="Modern moon sign astrology and lunar guidance — translating the Great Cycle into rituals for Mind, Soul, and Body."
       />
       <div className="max-w-3xl mx-auto w-full animate-fade-up space-y-6">
         <header className="text-center">
