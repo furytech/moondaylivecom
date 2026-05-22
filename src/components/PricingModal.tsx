@@ -14,7 +14,7 @@ interface PricingModalProps {
 const PLANS = [
   {
     id: "yearly",
-    priceId: "price_1TTqaxBzaednmcCFjbbknm0L",
+    priceId: "price_1TZzugJowQfvwg0Zduc27kQz",
     name: "Yearly",
     price: "$19.88",
     period: "/year",
@@ -23,7 +23,7 @@ const PLANS = [
   },
   {
     id: "monthly",
-    priceId: "price_1TTqaPBzaednmcCFmPSW7Vuj",
+    priceId: "price_1TZzuIJowQfvwg0ZcP16vg7q",
     name: "Monthly",
     price: "$2.88",
     period: "/month",
