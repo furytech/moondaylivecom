@@ -317,7 +317,7 @@ const Blueprint = () => {
                 <div className="border-t border-primary/10 pt-6 mt-auto">
                   <button
                     onClick={() => setMoonSignModalOpen(true)}
-                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(245_100%_88%/0.45)] bg-[hsl(245_100%_88%/0.06)] hover:bg-[hsl(245_100%_88%/0.12)] hover:border-[hsl(245_100%_88%/0.75)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(245_100%_90%)] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(245_100%_92%/0.65)] bg-[hsl(245_100%_92%/0.12)] hover:bg-[hsl(245_100%_92%/0.22)] hover:border-[hsl(245_100%_96%/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(245_100%_96%)] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
                   >
                     <span>Your Emotional Blueprint, Set at Birth</span>
                     <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
@@ -354,7 +354,7 @@ const Blueprint = () => {
               <div className="border-t border-primary/10 pt-6 mt-auto">
                 <button
                   onClick={() => setTodaysMoonModalOpen(true)}
-                  className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(245_100%_88%/0.45)] bg-[hsl(245_100%_88%/0.06)] hover:bg-[hsl(245_100%_88%/0.12)] hover:border-[hsl(245_100%_88%/0.75)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(245_100%_90%)] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                  className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(245_100%_92%/0.65)] bg-[hsl(245_100%_92%/0.12)] hover:bg-[hsl(245_100%_92%/0.22)] hover:border-[hsl(245_100%_96%/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(245_100%_96%)] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
                 >
                   <span>About Today's Moon Energy</span>
                   <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
