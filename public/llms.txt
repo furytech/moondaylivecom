@@ -1,10 +1,11 @@
 # Moonday Live
 
-> Luxury lunar guidance — personalized blueprints, daily forecasts, and rituals across Mind, Soul, and Body, attuned to the Great Cycle of the Moon. For entertainment and reflection.
+> Ever wonder why today feels different? The Moon's 2.5-day cycle shapes your emotional climate. Moonday Live helps you discover your moon sign — free — with personalized blueprints, daily forecasts, and rituals across Mind, Soul, and Body. For entertainment and reflection.
 
 ## Pages
 
 - [Home](/): Live lunar climate, current Moon phase, and an introduction to your Lunar Signature.
+- [Daily Pulse](/pulse): Today's live moon sign, phase, and emotional weather — updated daily.
 - [About](/about): The vision behind Moonday Live and its luxury lunar philosophy.
 - [Lenses](/lenses): The astronomy engines and technical foundations that power Moonday's calculations.
 - [Pricing](/pricing): Free tier and the Sovereign Tier subscription — monthly and yearly plans.
