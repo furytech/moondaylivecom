@@ -256,7 +256,9 @@ const Index = () => {
                 "Free moon sign calculator",
                 "Your birth moon sign & element",
                 "Current moon phase & sign",
+                "Daily lunar climate gauge",
                 "Full Lunar Library access",
+                "Weekly moon forecast",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-lilac flex-shrink-0" />
