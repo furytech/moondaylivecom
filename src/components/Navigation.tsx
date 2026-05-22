@@ -74,7 +74,7 @@ const Navigation = () => {
             {user ? (
               <button
                 onClick={handleSignOut}
-                className="font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap text-foreground/70 elegant-hover"
+                className="font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap text-[hsl(var(--reveal)/0.8)] hover:text-[hsl(var(--reveal-strong))] transition-colors elegant-hover"
               >
                 Logout
               </button>
@@ -82,7 +82,7 @@ const Navigation = () => {
               <>
                 <Link
                   to="/login"
-                  className="font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap text-foreground/70 elegant-hover"
+                  className="font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap text-[hsl(var(--reveal)/0.8)] hover:text-[hsl(var(--reveal-strong))] transition-colors elegant-hover"
                 >
                   Login
                 </Link>
@@ -130,7 +130,7 @@ const Navigation = () => {
               {user ? (
                 <button
                   onClick={handleSignOut}
-                  className="font-display text-sm tracking-widest uppercase text-foreground/70 py-2 text-left"
+                  className="font-display text-sm tracking-widest uppercase text-[hsl(var(--reveal)/0.8)] hover:text-[hsl(var(--reveal-strong))] transition-colors py-2 text-left"
                 >
                   Logout
                 </button>
@@ -139,7 +139,7 @@ const Navigation = () => {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="font-display text-sm tracking-widest uppercase text-foreground/70 py-2"
+                    className="font-display text-sm tracking-widest uppercase text-[hsl(var(--reveal)/0.8)] hover:text-[hsl(var(--reveal-strong))] transition-colors py-2"
                   >
                     Login
                   </Link>
