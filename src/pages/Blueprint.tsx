@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 import { getLunarIntelligence, getTimeUntilNextSign } from "@/lib/lunarEngine";
 import { getSignSymbol } from "@/lib/forecastEngine";
-import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info } from "lucide-react";
+import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
@@ -317,10 +317,10 @@ const Blueprint = () => {
                 <div className="border-t border-primary/10 pt-6 mt-auto">
                   <button
                     onClick={() => setMoonSignModalOpen(true)}
-                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 text-primary font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(245_100%_88%/0.45)] bg-[hsl(245_100%_88%/0.06)] hover:bg-[hsl(245_100%_88%/0.12)] hover:border-[hsl(245_100%_88%/0.75)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(245_100%_90%)] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
                   >
-                    <Info className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" />
                     <span>Your Emotional Blueprint, Set at Birth</span>
+                    <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                   </button>
                 </div>
               )}
@@ -354,10 +354,10 @@ const Blueprint = () => {
               <div className="border-t border-primary/10 pt-6 mt-auto">
                 <button
                   onClick={() => setTodaysMoonModalOpen(true)}
-                  className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 text-primary font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                  className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(245_100%_88%/0.45)] bg-[hsl(245_100%_88%/0.06)] hover:bg-[hsl(245_100%_88%/0.12)] hover:border-[hsl(245_100%_88%/0.75)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(245_100%_90%)] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
                 >
-                  <Info className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" />
                   <span>About Today's Moon Energy</span>
+                  <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
                 </button>
               </div>
             </GlassmorphismCard>
