@@ -29,7 +29,7 @@ const Footer = () => {
   };
 
   const linkClass =
-    "font-serif text-xs text-cream-muted hover:text-foreground transition-colors";
+    "font-serif text-xs text-[hsl(var(--reveal)/0.75)] hover:text-[hsl(var(--reveal-strong))] transition-colors";
 
   return (
     <footer className="border-t border-border/20 bg-background/95 backdrop-blur-sm relative z-30">

@@ -40,6 +40,12 @@
     --amber-signal: 38 92% 60%;
     --amber-signal-soft: 38 80% 70%;
 
+    /* Reveal pill / interactive hint tokens (cream-lilac) */
+    --reveal: 245 100% 83%;
+    --reveal-strong: 245 100% 86%;
+
+
+
     /* Core semantic tokens */
     --background: var(--navy-deep);
     --foreground: var(--cream);
