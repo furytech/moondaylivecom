@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import { Activity, AlertTriangle, Loader2 } from "lucide-react";
+import { Activity, AlertTriangle, Loader2, ChevronRight } from "lucide-react";
 
 interface ClimateBreakdown {
   illumination: number;
