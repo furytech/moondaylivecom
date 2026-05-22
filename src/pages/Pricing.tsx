@@ -14,12 +14,12 @@ import { getCurrentMoon } from "@/lib/currentMoon";
 // Stripe Price IDs
 const PRICES = {
   monthly: {
-    id: "price_1TTqaPBzaednmcCFmPSW7Vuj",
+    id: "price_1TZzuIJowQfvwg0ZcP16vg7q",
     amount: "$2.88",
     interval: "month",
   },
   yearly: {
-    id: "price_1TTqaxBzaednmcCFjbbknm0L",
+    id: "price_1TZzugJowQfvwg0Zduc27kQz",
     amount: "$19.88",
     interval: "year",
     savings: "Save 42%",

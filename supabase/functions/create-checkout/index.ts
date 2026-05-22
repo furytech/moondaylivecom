@@ -25,8 +25,8 @@ serve(async (req) => {
   // Server-side allowlist of valid Sovereign Tier price IDs.
   // Only these prices may ever be used to create a checkout session.
   const ALLOWED_PRICE_IDS = new Set<string>([
-    "price_1TTqaxBzaednmcCFjbbknm0L", // Monthly
-    "price_1TTqaPBzaednmcCFmPSW7Vuj", // Annual
+    "price_1TZzugJowQfvwg0Zduc27kQz", // Monthly
+    "price_1TZzuIJowQfvwg0ZcP16vg7q", // Annual
   ]);
 
   try {
