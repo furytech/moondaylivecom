@@ -74,9 +74,10 @@ export default function ClimateGauge({ illumination, sign }: Props) {
           </p>
           <button
             onClick={fetchClimate}
-            className="px-6 py-3 rounded-full border border-primary/40 text-primary font-display text-sm tracking-widest uppercase hover:bg-primary/10 transition-colors"
+            className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-[hsl(245_100%_92%/0.65)] bg-[hsl(245_100%_92%/0.12)] hover:bg-[hsl(245_100%_92%/0.22)] hover:border-[hsl(245_100%_96%/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(245_100%_96%)] hover:text-primary-foreground font-display text-sm tracking-widest uppercase transition-all duration-300"
           >
-            View Today's Frequency
+            <span>View Today's Frequency</span>
+            <ChevronRight className="w-4 h-4 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
           </button>
         </div>
       )}
