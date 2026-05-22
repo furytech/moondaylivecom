@@ -244,17 +244,18 @@ const Index = () => {
               <span className="text-lilac">for free.</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto leading-relaxed">
-              Enter your birth details to find your starting point. No credit
-              card, no commitment. If Moonday speaks to you, the journey
-              continues from there.
+              Wondering <em>what's my moon sign?</em> Our free moon sign
+              calculator uses your birth details to reveal your starting
+              point. No credit card, no commitment. If Moonday speaks to you,
+              the journey continues from there.
             </p>
 
             {/* Free tier snapshot */}
             <div className="grid sm:grid-cols-2 gap-4 text-left mb-10 max-w-lg mx-auto">
               {[
+                "Free moon sign calculator",
                 "Your birth moon sign & element",
                 "Current moon phase & sign",
-                "Daily lunar climate gauge",
                 "Full Lunar Library access",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
