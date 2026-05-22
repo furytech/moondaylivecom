@@ -10,7 +10,7 @@ export default function Pulse() {
     <div className="sov-shell min-h-screen">
       <SEO
         title="Today's Moon Sign & Phase — Live Now | Moonday Live"
-        description="Today's moon sign, phase, and lunar pulse — live and updated daily. Read the Moon through three lenses: Tropical, Sidereal, and Draconic."
+        description="Ever wonder why today feels different? The Moon's 2.5-day cycle shapes your emotional climate. Today's live moon sign & phase — free."
         canonical="https://moondaylive.com/pulse"
       />
       <Navigation />
