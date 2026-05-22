@@ -28,6 +28,9 @@ import Disclaimer from "./pages/Disclaimer";
 import About from "./pages/About";
 import TransitionQuiz from "./pages/TransitionQuiz";
 import Pulse from "./pages/Pulse";
+import MoonSignHoroscope from "./pages/MoonSignHoroscope";
+import LunarClimate from "./pages/LunarClimate";
+import LunarCycleTracking from "./pages/LunarCycleTracking";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +46,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/pulse" element={<Pulse />} />
+            <Route path="/moon-sign-horoscope" element={<MoonSignHoroscope />} />
+            <Route path="/lunar-climate" element={<LunarClimate />} />
+            <Route path="/lunar-cycle-tracking" element={<LunarCycleTracking />} />
             <Route path="/login" element={<Portal defaultMode="login" />} />
             <Route path="/signup" element={<Portal defaultMode="signup" />} />
             {/* Legacy redirect */}
