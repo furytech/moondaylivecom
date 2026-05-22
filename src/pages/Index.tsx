@@ -59,7 +59,7 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden">
       <SEO
         title="Moon Sign & Daily Lunar Guidance | Moonday Live"
-        description="Discover your moon sign and today's lunar phase. Personalized blueprints, rituals, and forecasts for Mind, Soul, and Body."
+        description="Ever wonder why today feels different? The Moon's 2.5-day cycle shapes your emotional climate. Discover your moon sign — free. Daily lunar guidance."
         canonical="https://moondaylive.com/"
       />
       {/* Starfield */}
