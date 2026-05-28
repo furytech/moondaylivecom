@@ -62,7 +62,7 @@ export function ZodiacPortal({ content, onClick, index }: ZodiacPortalProps) {
           className="w-20 h-20 md:w-24 md:h-24 object-contain transition-transform duration-300 group-hover:scale-110"
           style={{ filter: "invert(72%) sepia(45%) saturate(2300%) hue-rotate(210deg) brightness(102%) contrast(95%)" }}
         />
-        <h3 className="font-display text-lg md:text-xl text-foreground tracking-[0.2em] uppercase group-hover:text-primary transition-colors duration-300">
+        <h3 className="font-display font-light text-base md:text-lg text-foreground/80 tracking-[0.15em] uppercase group-hover:text-primary transition-colors duration-300">
           {content.sign}
         </h3>
       </div>
