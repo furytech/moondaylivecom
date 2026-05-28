@@ -15,6 +15,7 @@ import {
   type ChandraLagnaHouse,
   type ZodiacSign,
 } from "@/lib/sovereignEngine";
+import LunarReturnCard from "@/components/sovereign/LunarReturnCard";
 
 /* ────────────────────────────────────────────────────────────
    Sovereign Dashboard — Midnight Luxe
@@ -398,6 +399,7 @@ export default function Sovereign() {
             <div className="grid gap-6 grid-cols-1 items-start">
               <ShaktiCard triad={triad} />
               {audit && <AuditCard audit={audit} />}
+              {natalMoon && <LunarReturnCard natalMoon={natalMoon} />}
               <KineticCard aspects={aspects} />
               <ShadowCard loops={loops} />
             </div>
