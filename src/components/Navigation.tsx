@@ -119,7 +119,7 @@ const Navigation = () => {
                   }}
                   className={`font-display text-sm tracking-widest uppercase py-2 ${
                     isActive(link.path)
-                      ? "text-primary"
+                      ? "text-[hsl(var(--primary))] font-semibold [text-shadow:0_0_12px_hsl(var(--primary)/0.65)]"
                       : "text-[hsl(var(--reveal)/0.8)] hover:text-[hsl(var(--reveal-strong))] transition-colors"
                   }`}
                 >
