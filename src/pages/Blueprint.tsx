@@ -21,6 +21,8 @@ import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
 import VoidIntervalSection from "@/components/VoidIntervalSection";
+import LunarReturnCard from "@/components/sovereign/LunarReturnCard";
+import type { ZodiacSign } from "@/lib/sovereignEngine";
 import ClimateGauge from "@/components/ClimateGauge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MoonSignResult } from "@/lib/moonSign";
@@ -429,6 +431,13 @@ const Blueprint = () => {
               onUpgradeClick={handleOpenPricing}
             />
           </div>
+
+          {/* Lunar Return Tracker — Sovereign only */}
+          {isPro && displayedMoonSign && (
+            <div className="mt-12 animate-fade-up">
+              <LunarReturnCard natalMoon={displayedMoonSign as ZodiacSign} />
+            </div>
+          )}
 
           {/* Manage Subscription (Pro only) */}
           {isPro && (
