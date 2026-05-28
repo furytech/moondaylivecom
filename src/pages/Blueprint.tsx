@@ -432,6 +432,13 @@ const Blueprint = () => {
             />
           </div>
 
+          {/* Lunar Return Tracker — Sovereign only */}
+          {isPro && displayedMoonSign && (
+            <div className="mt-12 animate-fade-up">
+              <LunarReturnCard natalMoon={displayedMoonSign as ZodiacSign} />
+            </div>
+          )}
+
           {/* Manage Subscription (Pro only) */}
           {isPro && (
             <div className="mt-12 text-center animate-fade-up stagger-4">
