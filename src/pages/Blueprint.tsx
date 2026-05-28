@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 import { getLunarIntelligence, getTimeUntilNextSign } from "@/lib/lunarEngine";
 import { getSignSymbol } from "@/lib/forecastEngine";
-import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight } from "lucide-react";
+import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
@@ -362,6 +362,22 @@ const Blueprint = () => {
               </div>
             </GlassmorphismCard>
           </div>
+
+          {/* Share Your Moon CTA */}
+          {displayedMoonSign && (
+            <div className="mt-8 flex justify-center animate-fade-up stagger-2">
+              <button
+                onClick={() => navigate("/my-moon-card")}
+                className="group inline-flex items-center gap-2 px-6 py-3 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/70 hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-primary font-display text-sm uppercase tracking-widest transition-all duration-300"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share Your Moon Sign</span>
+                <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          )}
+
+
 
           {/* Daily Forecast */}
           {displayedMoonSign && (

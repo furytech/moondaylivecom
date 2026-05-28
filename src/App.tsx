@@ -31,6 +31,7 @@ import Pulse from "./pages/Pulse";
 import MoonSignHoroscope from "./pages/MoonSignHoroscope";
 import LunarClimate from "./pages/LunarClimate";
 import LunarCycleTracking from "./pages/LunarCycleTracking";
+import MyMoonCard from "./pages/MyMoonCard";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,11 @@ const App = () => (
             } />
             <Route path="/triad" element={<Navigate to="/lenses" replace />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/my-moon-card" element={
+              <ProtectedRoute>
+                <MyMoonCard />
+              </ProtectedRoute>
+            } />
             <Route path="/account" element={
               <ProtectedRoute>
                 <Account />
