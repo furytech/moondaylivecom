@@ -63,7 +63,7 @@ const Navigation = () => {
                 onClick={(e) => handleNavClick(e, link)}
                 className={`font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap elegant-hover ${
                   isActive(link.path)
-                    ? "text-primary"
+                    ? "text-[hsl(var(--primary))] font-semibold [text-shadow:0_0_12px_hsl(var(--primary)/0.65),0_0_24px_hsl(var(--primary)/0.35)]"
                     : "text-[hsl(var(--reveal)/0.8)] hover:text-[hsl(var(--reveal-strong))] transition-colors"
                 }`}
               >
