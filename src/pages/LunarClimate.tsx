@@ -1,6 +1,7 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
 
 const LunarClimate = () => {
@@ -83,6 +84,8 @@ const LunarClimate = () => {
             </Link>
           </div>
         </GlassmorphismCard>
+
+        <SovereignTeaser />
 
         <p className="font-serif text-[11px] text-cream-muted/50 text-center max-w-xl mx-auto">
           For entertainment and reflection only. Not a substitute for medical, financial, or professional advice.
