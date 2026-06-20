@@ -1,0 +1,42 @@
+// Microsoft Clarity loader — free heatmaps, scroll depth, session recordings.
+// No-ops unless VITE_CLARITY_PROJECT_ID is set, so safe to ship before the
+// account is provisioned. Loads lazily after first paint to keep LCP clean.
+//
+// Privacy notes:
+// - Clarity masks form inputs by default. We keep that behavior (no override).
+// - .lovable.app staging hosts are already noindex'd; we also skip loading
+//   Clarity there so staging traffic doesn't pollute production metrics.
+
+const CLARITY_ID = import.meta.env.VITE_CLARITY_PROJECT_ID as string | undefined;
+
+declare global {
+  interface Window {
+    clarity?: (...args: any[]) => void;
+  }
+}
+
+let loaded = false;
+
+export const initClarity = () => {
+  if (loaded) return;
+  if (typeof window === "undefined") return;
+  if (!CLARITY_ID) return;
+  if (window.location.hostname.includes(".lovable.app")) return;
+  loaded = true;
+
+  // Official Clarity snippet, inlined.
+  (function (c: any, l: Document, a: string, r: string, i: string) {
+    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+    const t = l.createElement(r) as HTMLScriptElement;
+    t.async = true;
+    t.src = "https://www.clarity.ms/tag/" + i;
+    const y = l.getElementsByTagName(r)[0];
+    y.parentNode!.insertBefore(t, y);
+  })(window, document, "clarity", "script", CLARITY_ID);
+};
+
+// Tag the current session with a CRO-relevant event (e.g. "signup_started").
+export const clarityEvent = (name: string) => {
+  if (typeof window === "undefined" || typeof window.clarity !== "function") return;
+  window.clarity("event", name);
+};
