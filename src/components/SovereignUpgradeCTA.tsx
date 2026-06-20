@@ -43,8 +43,7 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
           the kind of read you'd pay an astrologer hundreds for. Perfect for the friend
           you just met, the family member who shrugs at &ldquo;what time were you born?&rdquo;,
           or you, right now, with no clock and no certificate. Know the city? We sharpen it.
-          Know the time? We complete it. Don't know either? You still get more dots connected
-          than any horoscope app will ever offer.
+          You still get more dots connected than any horoscope app will ever offer.
         </p>
 
         {/* What you get */}
