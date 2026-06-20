@@ -41,8 +41,7 @@ const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: Sover
         <p className="font-serif text-sm md:text-base text-cream-muted max-w-xl mx-auto mb-5 leading-relaxed">
           From your birthday alone we read you <em>remarkably</em> close — Sun, Moon, Mercury, Venus,
           Mars, Jupiter, Saturn, and your outer-planet signature. Know the city? We sharpen it.
-          Know the time? We complete it. Don't know either? You still get more dots connected than
-          any horoscope app will ever offer.
+          You still get more dots connected than any horoscope app will ever offer.
         </p>
 
         <Link

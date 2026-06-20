@@ -8,7 +8,7 @@ interface SovereignUpgradeCTAProps {
 /**
  * The Sovereign upgrade CTA — placed below the free Moon reveal on /blueprint.
  * Edgy, honest, glamour-forward. Tells the truth: a real astrologer can read
- * you closely from your birthday alone. Birth time + city sharpens the staging.
+ * you closely from your birthday alone.
  */
 const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
   return (
@@ -43,8 +43,7 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
           the kind of read you'd pay an astrologer hundreds for. Perfect for the friend
           you just met, the family member who shrugs at &ldquo;what time were you born?&rdquo;,
           or you, right now, with no clock and no certificate. Know the city? We sharpen it.
-          Know the time? We complete it. Don't know either? You still get more dots connected
-          than any horoscope app will ever offer.
+          You still get more dots connected than any horoscope app will ever offer.
         </p>
 
         {/* What you get */}
@@ -72,17 +71,6 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
           ))}
         </div>
 
-        {/* The honest fine print — what birth time would add */}
-        <div className="w-full max-w-2xl rounded-xl border border-primary/15 bg-background/30 px-5 py-4 mb-8">
-          <p className="font-display text-[11px] uppercase tracking-[0.25em] text-primary mb-2">
-            What a birth time + city would add
-          </p>
-          <p className="font-serif text-sm text-muted-foreground leading-relaxed">
-            Your Rising sign, your Midheaven, and the twelve houses — the <em>staging</em> of
-            your chart. The cast of planets is what we read either way. Add them when you have them;
-            the reading only gets richer.
-          </p>
-        </div>
 
         <button
           onClick={onUpgradeClick}
