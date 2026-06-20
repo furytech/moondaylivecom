@@ -2,6 +2,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import DailyPulse from "@/components/DailyPulse";
+import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
 
 /* Public entry portal — UTC-noon global pulse, accessible to all visitors. */
@@ -37,6 +38,10 @@ export default function Pulse() {
             >
               Personalize the Lenses →
             </Link>
+          </div>
+
+          <div className="mt-10">
+            <SovereignTeaser />
           </div>
         </div>
       </main>

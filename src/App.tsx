@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import BottomTabBar from "@/components/BottomTabBar";
+import DevTierPanel from "@/components/DevTierPanel";
 import Index from "./pages/Index";
 import Portal from "./pages/Portal";
 import Pricing from "./pages/Pricing";
@@ -44,6 +45,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <BottomTabBar />
+          <DevTierPanel />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/pulse" element={<Pulse />} />
