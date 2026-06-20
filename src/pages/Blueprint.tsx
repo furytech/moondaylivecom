@@ -24,6 +24,7 @@ import VoidIntervalSection from "@/components/VoidIntervalSection";
 import LunarReturnCard from "@/components/sovereign/LunarReturnCard";
 import type { ZodiacSign } from "@/lib/sovereignEngine";
 import ClimateGauge from "@/components/ClimateGauge";
+import SovereignUpgradeCTA from "@/components/SovereignUpgradeCTA";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MoonSignResult } from "@/lib/moonSign";
 
