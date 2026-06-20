@@ -54,10 +54,17 @@ const Blueprint = () => {
   // Temporary moon sign for users who use the lookup form but don't have a saved profile
   const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
   
-  const isPro =
-    userProfile?.subscription_status === 'sovereign' ||
-    userProfile?.is_subscriber === true ||
-    subscription.subscribed;
+  // Dev tier override wins in DEV builds; tree-shaken in production.
+  const devOverride = import.meta.env.DEV
+    ? (typeof window !== "undefined" ? localStorage.getItem("moonday.devTierOverride") : null)
+    : null;
+  const isPro = devOverride === "free"
+    ? false
+    : devOverride === "sovereign"
+      ? true
+      : (userProfile?.subscription_status === 'sovereign' ||
+         userProfile?.is_subscriber === true ||
+         subscription.subscribed);
   const success = searchParams.get("success") === "true";
 
   // The displayed moon sign - either from profile or temp lookup
