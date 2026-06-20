@@ -380,6 +380,13 @@ const Blueprint = () => {
             </div>
           )}
 
+          {/* Sovereign upgrade CTA — only for non-subscribers, only after Moon is revealed */}
+          {displayedMoonSign && !isPro && (
+            <div className="mt-12">
+              <SovereignUpgradeCTA onUpgradeClick={handleOpenPricing} />
+            </div>
+          )}
+
 
 
           {/* Daily Forecast */}
