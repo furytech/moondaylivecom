@@ -169,11 +169,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
   };
 
+  // Dev-only tier override (no-op in production — tree-shaken).
+  const [devTierTick, setDevTierTick] = useState(0);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    return subscribeDevTier(() => setDevTierTick((t) => t + 1));
+  }, []);
+
+  const effectiveSubscription = (() => {
+    if (!import.meta.env.DEV) return subscription;
+    const override = getDevTierOverride();
+    if (override === "free") return { ...subscription, subscribed: false };
+    if (override === "sovereign") return { ...subscription, subscribed: true };
+    return subscription;
+  })();
+  // Reference tick so React re-renders consumers when the override toggles.
+  void devTierTick;
+
   const value = {
     user,
     session,
     loading,
-    subscription,
+    subscription: effectiveSubscription,
     signIn: handleSignIn,
     signUp: handleSignUp,
     signOut: handleSignOut,
