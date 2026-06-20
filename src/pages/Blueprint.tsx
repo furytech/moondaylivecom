@@ -24,6 +24,7 @@ import VoidIntervalSection from "@/components/VoidIntervalSection";
 import LunarReturnCard from "@/components/sovereign/LunarReturnCard";
 import type { ZodiacSign } from "@/lib/sovereignEngine";
 import ClimateGauge from "@/components/ClimateGauge";
+import SovereignUpgradeCTA from "@/components/SovereignUpgradeCTA";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MoonSignResult } from "@/lib/moonSign";
 
@@ -376,6 +377,13 @@ const Blueprint = () => {
                 <span>Share Your Moon Sign</span>
                 <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
               </button>
+            </div>
+          )}
+
+          {/* Sovereign upgrade CTA — only for non-subscribers, only after Moon is revealed */}
+          {displayedMoonSign && !isPro && (
+            <div className="mt-12">
+              <SovereignUpgradeCTA onUpgradeClick={handleOpenPricing} />
             </div>
           )}
 
