@@ -600,6 +600,23 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
               )}
             </button>
           </div>
+
+          {/* Sovereign Teaser — signup only */}
+          {!isLogin && (
+            <div className="mt-10 animate-fade-up stagger-3">
+              <div className="relative rounded-2xl border border-lilac/20 bg-gradient-to-b from-lilac/[0.04] to-transparent p-6 text-center overflow-hidden">
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,hsl(var(--lilac)/0.12),transparent_60%)]" />
+                <p className="text-[10px] tracking-[0.3em] uppercase text-lilac/70 mb-3 relative">After your moon sign</p>
+                <h3 className="font-serif text-xl md:text-2xl text-foreground leading-snug mb-3 relative">
+                  You don't need your birth time.<br className="hidden sm:block" />
+                  <span className="bg-gradient-to-r from-[#E8C97A] via-[#F5DDA1] to-[#E8C97A] bg-clip-text text-transparent">A real astrologer never did.</span>
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto relative">
+                  Your Moon sign is the headline. <span className="text-lilac">Sovereign</span> reads the Sun, Mars, Venus, and the slow outer planets that shape who you actually are — no birth time required.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
