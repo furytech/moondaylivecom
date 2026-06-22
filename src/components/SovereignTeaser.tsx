@@ -38,6 +38,11 @@ const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: Sover
           <span className="text-primary"> A real astrologer never did.</span>
         </h2>
 
+        <p className="font-serif text-xs md:text-sm text-cream-muted/90 max-w-xl mx-auto mb-3 leading-relaxed italic">
+          The Moon is our closest celestial family — the nearest body in the sky, and the one that
+          moves you most. Tides, sleep, mood, instinct.
+        </p>
+
         <p className="font-serif text-sm md:text-base text-cream-muted max-w-xl mx-auto mb-5 leading-relaxed">
           From your birthday alone we read you <em>remarkably</em> close — Sun, Moon, Mercury, Venus,
           Mars, Jupiter, Saturn, and your outer-planet signature. Know the city? We sharpen it.
