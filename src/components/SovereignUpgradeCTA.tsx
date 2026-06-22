@@ -38,6 +38,11 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
           Your Moon sign is the headline. <span className="text-foreground">Sovereign is the rest of the story.</span>
         </p>
 
+        <p className="font-serif text-sm md:text-base text-cream-muted/90 max-w-2xl mb-3 leading-relaxed italic">
+          The Moon is our closest celestial family — the nearest body in the sky, and the one that
+          moves you most. Tides, sleep, mood, instinct. No other planet pulls on you so personally.
+        </p>
+
         <p className="font-serif text-base md:text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed">
           From your birthday alone we can read you <em>remarkably</em> close —
           the kind of read you'd pay an astrologer hundreds for. Perfect for the friend
