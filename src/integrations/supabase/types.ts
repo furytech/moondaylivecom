@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_drafts: {
+        Row: {
+          app_atmospheric_text: string | null
+          app_experiential_text: string | null
+          cosmic_weather_id: string
+          created_at: string
+          id: string
+          reddit_payload: Json | null
+          status: string
+          substack_payload: Json | null
+          updated_at: string
+        }
+        Insert: {
+          app_atmospheric_text?: string | null
+          app_experiential_text?: string | null
+          cosmic_weather_id: string
+          created_at?: string
+          id?: string
+          reddit_payload?: Json | null
+          status?: string
+          substack_payload?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          app_atmospheric_text?: string | null
+          app_experiential_text?: string | null
+          cosmic_weather_id?: string
+          created_at?: string
+          id?: string
+          reddit_payload?: Json | null
+          status?: string
+          substack_payload?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_drafts_cosmic_weather_id_fkey"
+            columns: ["cosmic_weather_id"]
+            isOneToOne: false
+            referencedRelation: "cosmic_weather"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cosmic_weather: {
+        Row: {
+          created_at: string
+          id: string
+          is_processed: boolean
+          moon_sign_draconic: string | null
+          moon_sign_sidereal: string | null
+          moon_sign_tropical: string | null
+          sun_sign_sidereal: string | null
+          sun_sign_tropical: string | null
+          trigger_timestamp: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_processed?: boolean
+          moon_sign_draconic?: string | null
+          moon_sign_sidereal?: string | null
+          moon_sign_tropical?: string | null
+          sun_sign_sidereal?: string | null
+          sun_sign_tropical?: string | null
+          trigger_timestamp: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_processed?: boolean
+          moon_sign_draconic?: string | null
+          moon_sign_sidereal?: string | null
+          moon_sign_tropical?: string | null
+          sun_sign_sidereal?: string | null
+          sun_sign_tropical?: string | null
+          trigger_timestamp?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_forecasts: {
         Row: {
           birth_moon_sign: string
@@ -188,6 +271,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_natal_profiles: {
+        Row: {
+          created_at: string
+          natal_moon_sidereal: string | null
+          natal_moon_tropical: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          natal_moon_sidereal?: string | null
+          natal_moon_tropical?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          natal_moon_sidereal?: string | null
+          natal_moon_tropical?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           birth_city: string | null
@@ -230,15 +337,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -365,6 +499,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
