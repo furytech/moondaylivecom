@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.sovereign-teaser]
 verify_jwt = false
+
+[functions.mcp]
+verify_jwt = false
