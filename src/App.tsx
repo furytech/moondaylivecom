@@ -33,6 +33,7 @@ import MoonSignHoroscope from "./pages/MoonSignHoroscope";
 import LunarClimate from "./pages/LunarClimate";
 import LunarCycleTracking from "./pages/LunarCycleTracking";
 import MyMoonCard from "./pages/MyMoonCard";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ const App = () => (
                 <SubscriptionSuccess />
               </ProtectedRoute>
             } />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
