@@ -1,5 +1,5 @@
 import { defineTool } from "@lovable.dev/mcp-js";
-import { getCurrentMoon } from "@/lib/currentMoon";
+import { getCurrentMoon } from "../../currentMoon";
 
 export default defineTool({
   name: "get_current_moon",

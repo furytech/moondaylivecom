@@ -7,7 +7,64 @@ import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.23.0";
 
 // src/lib/mcp/tools/get-current-moon.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.23.0";
-import { getCurrentMoon } from "npm:@/lib/currentMoon";
+
+// src/lib/currentMoon.ts
+import {
+  AstroTime,
+  EclipticGeoMoon,
+  Illumination,
+  MoonPhase,
+  Body
+} from "npm:astronomy-engine@^2.1.19";
+var moonSigns = [
+  { sign: "Aries", symbol: "\u2648", element: "Fire" },
+  { sign: "Taurus", symbol: "\u2649", element: "Earth" },
+  { sign: "Gemini", symbol: "\u264A", element: "Air" },
+  { sign: "Cancer", symbol: "\u264B", element: "Water" },
+  { sign: "Leo", symbol: "\u264C", element: "Fire" },
+  { sign: "Virgo", symbol: "\u264D", element: "Earth" },
+  { sign: "Libra", symbol: "\u264E", element: "Air" },
+  { sign: "Scorpio", symbol: "\u264F", element: "Water" },
+  { sign: "Sagittarius", symbol: "\u2650", element: "Fire" },
+  { sign: "Capricorn", symbol: "\u2651", element: "Earth" },
+  { sign: "Aquarius", symbol: "\u2652", element: "Air" },
+  { sign: "Pisces", symbol: "\u2653", element: "Water" }
+];
+function norm360(x) {
+  return (x % 360 + 360) % 360;
+}
+function describePhase(phaseAngle) {
+  const a = norm360(phaseAngle);
+  if (a < 22.5) return { phase: "New Moon", phaseEmoji: "\u{1F311}" };
+  if (a < 67.5) return { phase: "Waxing Crescent", phaseEmoji: "\u{1F312}" };
+  if (a < 112.5) return { phase: "First Quarter", phaseEmoji: "\u{1F313}" };
+  if (a < 157.5) return { phase: "Waxing Gibbous", phaseEmoji: "\u{1F314}" };
+  if (a < 202.5) return { phase: "Full Moon", phaseEmoji: "\u{1F315}" };
+  if (a < 247.5) return { phase: "Waning Gibbous", phaseEmoji: "\u{1F316}" };
+  if (a < 292.5) return { phase: "Last Quarter", phaseEmoji: "\u{1F317}" };
+  if (a < 337.5) return { phase: "Waning Crescent", phaseEmoji: "\u{1F318}" };
+  return { phase: "New Moon", phaseEmoji: "\u{1F311}" };
+}
+function getCurrentMoon(date = /* @__PURE__ */ new Date()) {
+  const time = new AstroTime(date);
+  const lon = norm360(EclipticGeoMoon(time).lon);
+  const signIndex = Math.floor(lon / 30) % 12;
+  const currentSign = moonSigns[signIndex];
+  const phaseAngle = MoonPhase(time);
+  const illum = Illumination(Body.Moon, time);
+  const illumination = Math.round(illum.phase_fraction * 100);
+  const { phase, phaseEmoji } = describePhase(phaseAngle);
+  return {
+    sign: currentSign.sign,
+    symbol: currentSign.symbol,
+    element: currentSign.element,
+    phase,
+    illumination,
+    phaseEmoji
+  };
+}
+
+// src/lib/mcp/tools/get-current-moon.ts
 var get_current_moon_default = defineTool({
   name: "get_current_moon",
   title: "Get current moon",
