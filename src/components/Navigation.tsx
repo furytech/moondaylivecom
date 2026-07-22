@@ -25,6 +25,7 @@ const Navigation = () => {
     { path: "/lenses", label: "Lenses", protected: true },
     { path: "/library", label: "Library", protected: false },
     { path: "/pricing", label: "Pricing", protected: false },
+    { path: "/blog", label: "Journal", protected: false },
     { path: "/account", label: "Account", protected: true },
   ];
 
