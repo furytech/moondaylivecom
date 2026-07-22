@@ -161,6 +161,34 @@ const Pricing = () => {
         description="Unlock your daily moon sign horoscope, the full Lunar Library, and your personal blueprint. Sovereign Tier from $2.88/month."
         canonical="https://moondaylive.com/pricing"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "Moonday Live Sovereign Tier",
+          description: "Personalized daily moon sign horoscope, full Lunar Library, SMS moon ingress alerts, and complete natal chart synthesis.",
+          brand: { "@type": "Brand", name: "Moonday Live" },
+          url: "https://moondaylive.com/pricing",
+          offers: [
+            {
+              "@type": "Offer",
+              name: "Sovereign Monthly",
+              price: "5.00",
+              priceCurrency: "USD",
+              url: "https://moondaylive.com/pricing",
+              availability: "https://schema.org/InStock",
+            },
+            {
+              "@type": "Offer",
+              name: "Sovereign Yearly",
+              price: "34.56",
+              priceCurrency: "USD",
+              url: "https://moondaylive.com/pricing",
+              availability: "https://schema.org/InStock",
+            },
+          ],
+        })}</script>
+      </Helmet>
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(15)].map((_, i) => (
