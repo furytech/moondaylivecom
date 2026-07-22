@@ -1,6 +1,7 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Moon, Sparkles, Compass } from "lucide-react";
 
@@ -11,6 +12,15 @@ const About = () => {
         title="About Moonday Live — Moon Sign & Lunar Guidance"
         description="Modern moon sign astrology and lunar guidance — translating the Great Cycle into rituals for Mind, Soul, and Body."
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          name: "About Moonday Live",
+          url: "https://moondaylive.com/about",
+          about: { "@type": "Organization", name: "Moonday Live", url: "https://moondaylive.com" },
+        })}</script>
+      </Helmet>
       <div className="max-w-3xl mx-auto w-full animate-fade-up space-y-6">
         <header className="text-center">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">

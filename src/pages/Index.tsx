@@ -6,6 +6,7 @@ import { Moon, Sparkles, Compass } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
 
 const pillars = [
   {
@@ -62,6 +63,19 @@ const Index = () => {
         description="Ever wonder why today feels different? The Moon's 2.5-day cycle shapes your emotional climate. Discover your moon sign — free. Daily lunar guidance."
         canonical="https://moondaylive.com/"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Moonday Live",
+          url: "https://moondaylive.com",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://moondaylive.com/library?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        })}</script>
+      </Helmet>
       {/* Starfield */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {stars.map((s) => (
