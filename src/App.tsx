@@ -54,6 +54,7 @@ const App = () => (
             <Route path="/moon-sign-horoscope" element={<MoonSignHoroscope />} />
             <Route path="/lunar-climate" element={<LunarClimate />} />
             <Route path="/lunar-cycle-tracking" element={<LunarCycleTracking />} />
+            <Route path="/birthday-moon-phase" element={<BirthdayMoonPhase />} />
             <Route path="/login" element={<Portal defaultMode="login" />} />
             <Route path="/signup" element={<Portal defaultMode="signup" />} />
             {/* Legacy redirect */}
