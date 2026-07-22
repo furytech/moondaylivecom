@@ -11,6 +11,7 @@
 - [Pricing](/pricing): Free tier and the Sovereign Tier subscription — monthly and yearly plans.
 - [Lunar Library](/library): Art Deco zodiac archive with deep guidance for each Moon sign.
 - [FAQ](/faq): Answers about Lunar Signatures, Sovereign Tier, billing, and cancellations.
+- [Birthday Moon Phase](/birthday-moon-phase): Free calculator — enter your birth date to reveal the moon phase and moon sign you were born under.
 - [Contact](/contact): Reach the Moonday Live team.
 
 ## Optional
