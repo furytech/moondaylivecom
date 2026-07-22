@@ -10,7 +10,10 @@ const Navigation = () => {
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) =>
+    path === "/blog"
+      ? location.pathname === "/blog" || location.pathname.startsWith("/blog/")
+      : location.pathname === path;
 
   const handleSignOut = async () => {
     await signOut();
@@ -25,6 +28,7 @@ const Navigation = () => {
     { path: "/lenses", label: "Lenses", protected: true },
     { path: "/library", label: "Library", protected: false },
     { path: "/pricing", label: "Pricing", protected: false },
+    { path: "/blog", label: "Journal", protected: false },
     { path: "/account", label: "Account", protected: true },
   ];
 
