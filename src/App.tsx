@@ -34,6 +34,7 @@ import LunarClimate from "./pages/LunarClimate";
 import LunarCycleTracking from "./pages/LunarCycleTracking";
 import MyMoonCard from "./pages/MyMoonCard";
 import OAuthConsent from "./pages/OAuthConsent";
+import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
 
 const queryClient = new QueryClient();
 
