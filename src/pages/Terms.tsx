@@ -1,6 +1,9 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
+
+const LAST_UPDATED = "2026-07-22";
 
 const Terms = () => {
   return (
@@ -9,6 +12,17 @@ const Terms = () => {
         title="Terms of Service — Moonday Live"
         description="The terms governing your use of Moonday Live, the Sovereign Tier subscription, and account responsibilities."
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "Terms of Service",
+          url: "https://moondaylive.com/terms",
+          datePublished: "2025-01-01",
+          dateModified: LAST_UPDATED,
+          publisher: { "@type": "Organization", name: "Moonday Live", url: "https://moondaylive.com" },
+        })}</script>
+      </Helmet>
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-8 text-center">
           Terms of Service

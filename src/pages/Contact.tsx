@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
 import { trackEvent } from "@/lib/analytics";
 import { Mail, Clock, Sparkles } from "lucide-react";
 
@@ -25,6 +26,20 @@ const Contact = () => {
         title="Contact Moonday Live — Support & Inquiries"
         description="Reach the Moonday Live concierge for account help, billing, or partnership inquiries. We respond within 48 hours."
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          name: "Contact Moonday Live",
+          url: "https://moondaylive.com/contact",
+          mainEntity: {
+            "@type": "Organization",
+            name: "Moonday Live",
+            email: "support@moondaylive.com",
+            url: "https://moondaylive.com",
+          },
+        })}</script>
+      </Helmet>
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">
