@@ -35,6 +35,8 @@ import LunarCycleTracking from "./pages/LunarCycleTracking";
 import MyMoonCard from "./pages/MyMoonCard";
 import OAuthConsent from "./pages/OAuthConsent";
 import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,9 @@ const App = () => (
             <Route path="/birthday-moon-phase" element={<BirthdayMoonPhase />} />
             <Route path="/login" element={<Portal defaultMode="login" />} />
             <Route path="/signup" element={<Portal defaultMode="signup" />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:category/:slug" element={<BlogPost />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             {/* Legacy redirect */}
             <Route path="/portal" element={<Navigate to="/login" replace />} />
             <Route path="/pricing" element={<Pricing />} />
