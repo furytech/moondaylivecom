@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { getTestDate, setTestDate, subscribeTestDate } from "@/lib/testMode";
+
 
 const SUPPORT_EMAIL = "support@moondaylive.com";
 
