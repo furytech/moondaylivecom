@@ -5,28 +5,6 @@ const SUPPORT_EMAIL = "support@moondaylive.com";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const [testDate, setLocalTestDate] = useState<string>("");
-  const [testOpen, setTestOpen] = useState(false);
-
-  useEffect(() => {
-    const sync = () => {
-      const d = getTestDate();
-      setLocalTestDate(d ? d.toISOString().slice(0, 10) : "");
-    };
-    sync();
-    return subscribeTestDate(sync);
-  }, []);
-
-  const applyTestDate = (value: string) => {
-    setLocalTestDate(value);
-    if (!value) {
-      setTestDate(null);
-      return;
-    }
-    const d = new Date(`${value}T12:00:00Z`);
-    if (!isNaN(d.getTime())) setTestDate(d);
-  };
-
   const linkClass =
     "font-serif text-xs text-[hsl(var(--reveal)/0.75)] hover:text-[hsl(var(--reveal-strong))] transition-colors";
 
