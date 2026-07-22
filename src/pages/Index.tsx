@@ -344,6 +344,41 @@ const Index = () => {
           </div>
         </section>
 
+        {/* From the Blog */}
+        <section className="py-16 md:py-20 px-6 border-t border-lilac/10">
+          <div className="max-w-5xl mx-auto text-center">
+            <p className="text-xs tracking-[0.3em] uppercase text-lilac/70 mb-3">From the Journal</p>
+            <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight mb-10">
+              Read the latest
+            </h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              {POSTS.slice(0, 3).map((p) => (
+                <Link
+                  key={p.slug}
+                  to={`/blog/${categoryPath(p.category)}/${p.slug}`}
+                  className="group text-left p-6 rounded-lg border border-lilac/15 bg-card/40 hover:border-lilac/40 hover:bg-card/60 transition-all"
+                >
+                  <p className="text-[10px] tracking-[0.25em] uppercase text-lilac/70 mb-3">
+                    {p.category} · {p.readMinutes} min
+                  </p>
+                  <h3 className="font-display text-lg leading-snug mb-3 group-hover:text-lilac transition-colors">
+                    {p.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-3">{p.excerpt}</p>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-10">
+              <Link
+                to="/blog"
+                className="inline-block text-xs tracking-[0.25em] uppercase text-lilac hover:text-lilac-light transition-colors border-b border-lilac/40 hover:border-lilac pb-1"
+              >
+                Visit the Journal →
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Closing CTA band */}
         <section className="py-16 md:py-20 px-6 text-center border-t border-lilac/10 bg-card/30">
           <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight mb-4">
