@@ -72,6 +72,8 @@ export function rowToPost(row: BlogPostRow): BlogPost {
     ctaType: (row.cta_type as CtaType) ?? (row.ctaType as CtaType) ?? "none",
     imageUrl: row.image_url || row.imageUrl,
     content: row.content || "",
+    zodiacSignTag: row.zodiac_sign_tag,
+    constellationGraphicPath: row.constellation_graphic_path,
   };
 }
 
