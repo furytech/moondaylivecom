@@ -52,6 +52,32 @@ const BlogAdmin = () => {
 
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
   const [message, setMessage] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyReddit = async (post: BlogPostRow) => {
+    const text = post.reddit_post || "";
+    if (!text) {
+      setMessage("No Reddit post drafted for this row yet.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(post.id || null);
+      setTimeout(() => setCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
+    } catch {
+      setMessage("Copy failed — browser blocked clipboard access.");
+    }
+  };
+
+  const handleApproveAndPublish = async (id: string) => {
+    try {
+      await publishPostNow(id);
+      setMessage("Approved and published live.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
 
   if (checkingAdmin) {
     return (
