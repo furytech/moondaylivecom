@@ -19,6 +19,8 @@ export interface BlogPost {
   imageUrl?: string;
   /** Raw markdown body (frontmatter stripped). */
   content: string;
+  zodiacSignTag?: string;
+  constellationGraphicPath?: string;
 }
 
 export interface BlogPostRow {
