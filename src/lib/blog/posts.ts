@@ -1,4 +1,44 @@
-import matter from "gray-matter";
+// Lightweight frontmatter parser (browser-safe; avoids Buffer polyfill).
+function matter(raw: string): { data: Record<string, unknown>; content: string } {
+  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!m) return { data: {}, content: raw };
+  const [, fm, body] = m;
+  const data: Record<string, unknown> = {};
+  const lines = fm.split(/\r?\n/);
+  let currentKey: string | null = null;
+  let listBuf: string[] | null = null;
+  const flushList = () => {
+    if (currentKey && listBuf) data[currentKey] = listBuf;
+    currentKey = null;
+    listBuf = null;
+  };
+  const stripQuotes = (v: string) => v.replace(/^["'](.*)["']$/s, "$1");
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const listItem = line.match(/^\s+-\s+(.*)$/);
+    if (listItem && listBuf) {
+      listBuf.push(stripQuotes(listItem[1].trim()));
+      continue;
+    }
+    flushList();
+    const kv = line.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
+    if (!kv) continue;
+    const [, key, rawVal] = kv;
+    const val = rawVal.trim();
+    if (val === "") {
+      currentKey = key;
+      listBuf = [];
+    } else if (val === "true" || val === "false") {
+      data[key] = val === "true";
+    } else if (/^-?\d+(\.\d+)?$/.test(val)) {
+      data[key] = Number(val);
+    } else {
+      data[key] = stripQuotes(val);
+    }
+  }
+  flushList();
+  return { data, content: body };
+}
 
 export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates";
 export type CtaType = "birthday-calculator" | "dashboard" | "none";
