@@ -1,4 +1,7 @@
+import matter from "gray-matter";
+
 export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates";
+export type CtaType = "birthday-calculator" | "dashboard" | "none";
 
 export interface BlogPost {
   slug: string;
@@ -8,55 +11,48 @@ export interface BlogPost {
   author: string;
   date: string; // ISO
   readMinutes: number;
+  readTime: number;
   keywords: string[];
   featured?: boolean;
-  /** Markdown-lite content. Supports: `## `, `### `, `> `, `- `, blank lines, and `[[callout:label|href]]`. */
+  ctaType?: CtaType;
+  /** Raw markdown body (frontmatter stripped). */
   content: string;
 }
 
 export const CATEGORIES: BlogCategory[] = ["Guides", "Transits", "Features", "Product Updates"];
 
-export const POSTS: BlogPost[] = [
-  {
-    slug: "unified-daily-moon-tracker",
-    title:
-      "Got Tired of Switching Between 3 Different Sites Just to Track the Moon — So I Built a Unified Daily Tool",
-    category: "Guides",
-    excerpt:
-      "The moon-tracking web is fragmented — astronomy here, astrology there, birth charts somewhere else. Here's how Moonday Live pulls it into one ad-free dashboard.",
-    author: "Moonday Live Team",
-    date: "2026-07-22",
-    readMinutes: 4,
-    keywords: [
-      "moon tracker",
-      "daily moon",
-      "moon phase",
-      "moon sign",
-      "birth chart",
-      "lunar dashboard",
-    ],
-    featured: true,
-    content: `If you track the moon daily, you've probably noticed how fragmented the tools are across the web.
+// Eager-load every markdown file in /src/content/blog/ as raw text.
+const files = import.meta.glob("/src/content/blog/*.md", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+}) as Record<string, string>;
 
-- The astronomical sites give you exact live phase tracking and illumination, but zero context on astrology or sign placements.
-- The legacy astrology sites give you sign interpretations, but their UI is stuck in the early 2000s, packed with ad banners, and rarely offer live visual phase data or personalization.
-- The birth chart tools sit somewhere else entirely, making it clunky to compare your personal natal phase against the active sky.
+function parsePost(raw: string, filepath: string): BlogPost {
+  const { data, content } = matter(raw);
+  const slug =
+    (data.slug as string) ??
+    filepath.split("/").pop()!.replace(/\.md$/, "");
+  const readTime = Number(data.readTime ?? data.readMinutes ?? 4);
+  return {
+    slug,
+    title: String(data.title ?? slug),
+    category: (data.category as BlogCategory) ?? "Guides",
+    excerpt: String(data.excerpt ?? ""),
+    author: String(data.author ?? "Moonday Live Team"),
+    date: String(data.date ?? new Date().toISOString().slice(0, 10)),
+    readMinutes: readTime,
+    readTime,
+    keywords: Array.isArray(data.keywords) ? data.keywords.map(String) : [],
+    featured: Boolean(data.featured),
+    ctaType: (data.ctaType as CtaType) ?? "none",
+    content: content.trim(),
+  };
+}
 
-We built Moonday Live to solve this exact fragmentation into one unified, ad-free experience.
-
-## What Moonday Live Brings Together in One Dashboard
-
-[[tiles:1. Live Phase & Astronomical Precision||Real-time visual phase tracking and illumination without digging through clunky tables. The current phase, sign, and illumination update seamlessly as the sky changes—no page refresh, no tab switching, no intrusive ads.;;2. Direct Moon Sign Integration||Instant zodiac sign placements paired directly with active phase dynamics. You see not only what the moon is doing, but where it's doing it—all in a single glance.;;3. Birthday Personalization||A built-in Birthday Moon Phase calculator that maps your exact natal birth phase and sign alongside today's active sky, letting you compare your personal lunar signature against the current climate.]]
-
-[[callout:Calculate Your Birthday Moon Phase|/birthday-moon-phase]]
-
-> One dashboard. Live phase, live sign, your natal moon — no ads, no tab-switching, no 2003 UI.
-
-## Why This Matters for Daily Tracking
-
-Most people don't want three logins and three interpretations. They want a single, honest view of the sky today and how it relates to *them*. That's the entire design brief behind Moonday Live — a command center for the moon, not a scrapbook of ten open tabs.`,
-  },
-];
+export const POSTS: BlogPost[] = Object.entries(files)
+  .map(([path, raw]) => parsePost(raw, path))
+  .sort((a, b) => (a.date < b.date ? 1 : -1));
 
 export function getPost(slug: string) {
   return POSTS.find((p) => p.slug === slug);
