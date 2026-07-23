@@ -9,9 +9,14 @@ import { getPost, getRelated, categoryPath } from "@/lib/blog/posts";
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
+const FALLBACK_SLUG = "unified-daily-moon-tracker";
+
 const BlogPost = () => {
-  const { slug, category } = useParams();
-  const post = slug ? getPost(slug) : undefined;
+  const { slug } = useParams();
+  // Template preview routes use literal placeholders like `:slug`.
+  // Resolve them to the first live post so the preview isn't blank.
+  const resolvedSlug = slug && !slug.startsWith(":") ? slug : FALLBACK_SLUG;
+  const post = getPost(resolvedSlug);
 
   if (!post) return <Navigate to="/blog" replace />;
 
