@@ -2,7 +2,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Calendar, ChevronRight, Clock } from "lucide-react";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
-import MarkdownLite from "@/components/blog/MarkdownLite";
+import MarkdownArticle from "@/components/blog/MarkdownArticle";
 import BlogCard from "@/components/blog/BlogCard";
 import { getPost, getRelated, categoryPath } from "@/lib/blog/posts";
 
@@ -112,7 +112,7 @@ const BlogPost = () => {
         </header>
 
         {/* Body */}
-        <MarkdownLite source={post.content} />
+        <MarkdownArticle source={post.content} ctaType={post.ctaType} />
 
         {/* Conversion Hero */}
         <div className="mt-14 rounded-xl border border-primary/30 bg-primary/[0.05] p-6 md:p-8 text-center backdrop-blur-sm">
