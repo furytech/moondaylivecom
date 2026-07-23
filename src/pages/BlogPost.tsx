@@ -1,10 +1,12 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Calendar, ChevronRight, Clock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import MarkdownArticle from "@/components/blog/MarkdownArticle";
 import BlogCard from "@/components/blog/BlogCard";
-import { getPost, getRelated, categoryPath } from "@/lib/blog/posts";
+import MoonLoader from "@/components/MoonLoader";
+import { fetchPostBySlug, getRelated, categoryPath } from "@/lib/blog/posts";
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -16,14 +18,37 @@ const BlogPost = () => {
   // Template preview routes use literal placeholders like `:slug`.
   // Resolve them to the first live post so the preview isn't blank.
   const resolvedSlug = slug && !slug.startsWith(":") ? slug : FALLBACK_SLUG;
-  const post = getPost(resolvedSlug);
 
-  if (!post) return <Navigate to="/blog" replace />;
+  const {
+    data: post,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["blog-post", resolvedSlug],
+    queryFn: () => fetchPostBySlug(resolvedSlug),
+  });
+
+  const { data: related = [] } = useQuery({
+    queryKey: ["blog-related", post?.slug, post?.category],
+    queryFn: () => (post ? getRelated(post.slug, post.category) : []),
+    enabled: !!post,
+  });
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="py-20 flex justify-center">
+          <MoonLoader size="md" text="Loading article..." />
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (!post || error) return <Navigate to="/blog" replace />;
 
   const canonicalCat = categoryPath(post.category);
   // If reached via /blog/:slug or wrong category, canonicalize the URL for SEO but still render.
   const canonical = `https://moondaylive.com/blog/${canonicalCat}/${post.slug}`;
-  const related = getRelated(post.slug, post.category);
 
   const articleLd = {
     "@context": "https://schema.org",
