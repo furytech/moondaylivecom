@@ -11,14 +11,12 @@ const formatDate = (iso: string) =>
 
 const FALLBACK_SLUG = "unified-daily-moon-tracker";
 
-const isPlaceholder = (value: string | undefined) =>
-  !value || value.startsWith(":") || value === "undefined";
-
 const BlogPost = () => {
-  const { slug, category } = useParams();
-  const resolvedSlug =
-    isPlaceholder(slug) || isPlaceholder(category) ? FALLBACK_SLUG : slug;
-  const post = resolvedSlug ? getPost(resolvedSlug) : undefined;
+  const { slug } = useParams();
+  // Template preview routes use literal placeholders like `:slug`.
+  // Resolve them to the first live post so the preview isn't blank.
+  const resolvedSlug = slug && !slug.startsWith(":") ? slug : FALLBACK_SLUG;
+  const post = getPost(resolvedSlug);
 
   if (!post) return <Navigate to="/blog" replace />;
 
