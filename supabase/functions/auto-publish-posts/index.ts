@@ -11,6 +11,20 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const cronSecret = req.headers.get('X-Cron-Secret');
+  const { data: secretData, error: secretError } = await supabase
+    .from('cron_secrets')
+    .select('secret_value')
+    .eq('name', 'auto-publish')
+    .single();
+
+  if (secretError || !secretData || cronSecret !== secretData.secret_value) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
