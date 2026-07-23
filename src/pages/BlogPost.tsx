@@ -9,9 +9,16 @@ import { getPost, getRelated, categoryPath } from "@/lib/blog/posts";
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
+const FALLBACK_SLUG = "unified-daily-moon-tracker";
+
+const isPlaceholder = (value: string | undefined) =>
+  !value || value.startsWith(":") || value === "undefined";
+
 const BlogPost = () => {
   const { slug, category } = useParams();
-  const post = slug ? getPost(slug) : undefined;
+  const resolvedSlug =
+    isPlaceholder(slug) || isPlaceholder(category) ? FALLBACK_SLUG : slug;
+  const post = resolvedSlug ? getPost(resolvedSlug) : undefined;
 
   if (!post) return <Navigate to="/blog" replace />;
 
