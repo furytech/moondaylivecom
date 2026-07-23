@@ -84,46 +84,48 @@ const BlogPost = () => {
         </nav>
 
         {/* Hero */}
-        <div className="relative rounded-2xl overflow-hidden mb-10 h-52 md:h-72 bg-gradient-to-br from-primary/30 via-navy-medium to-navy-deep border border-border/40">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.4),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_80%,hsl(var(--gold-medium)/0.2),transparent_55%)]" />
-          <span className="absolute top-5 left-5 inline-flex items-center rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-xs tracking-wider uppercase text-primary backdrop-blur">
+        <div className="relative rounded-xl overflow-hidden mb-8 h-32 md:h-44 bg-gradient-to-br from-primary/20 via-navy-medium/60 to-navy-deep border border-border/30">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.25),transparent_60%)]" />
+          <span className="absolute top-4 left-4 inline-flex items-center rounded-full border border-primary/30 bg-background/60 px-2.5 py-1 text-[10px] tracking-[0.2em] uppercase text-primary/90 backdrop-blur">
             {post.category}
           </span>
         </div>
 
-        <header className="mb-8">
-          <h1 className="font-display text-3xl md:text-5xl leading-tight tracking-wide text-foreground">
+        <header className="mb-10">
+          <h1 className="font-display text-2xl md:text-[32px] leading-snug tracking-tight text-foreground font-normal">
             {post.title}
           </h1>
-          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cream-muted">
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-cream-muted/80">
             <span>{post.author}</span>
             <span className="inline-flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-3.5 h-3.5" />
               {formatDate(post.date)}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Clock className="w-4 h-4" />
+              <Clock className="w-3.5 h-3.5" />
               {post.readMinutes} min read
             </span>
           </div>
+          <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic">
+            {post.excerpt}
+          </p>
         </header>
 
         {/* Body */}
         <MarkdownLite source={post.content} />
 
         {/* Conversion Hero */}
-        <div className="mt-14 rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/[0.12] via-background/60 to-background/60 p-8 md:p-10 text-center backdrop-blur-md shadow-[0_0_60px_-20px_hsl(var(--primary)/0.5)]">
-          <p className="text-xs uppercase tracking-[0.3em] text-primary mb-3">The Live Tracker</p>
-          <h2 className="font-display text-2xl md:text-3xl text-foreground mb-3">
+        <div className="mt-14 rounded-xl border border-primary/30 bg-primary/[0.05] p-6 md:p-8 text-center backdrop-blur-sm">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-primary/80 mb-3">The Live Tracker</p>
+          <h2 className="font-display text-lg md:text-xl text-foreground mb-2 font-normal">
             Experience the Live Tracker
           </h2>
-          <p className="text-cream-muted max-w-xl mx-auto mb-6">
+          <p className="text-sm text-cream-muted/85 max-w-xl mx-auto mb-5 leading-relaxed">
             One dashboard. Live phase, live sign, your natal moon — no ads, no tab-switching.
           </p>
           <Link
             to="/blueprint"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/90 text-primary-foreground font-medium hover:bg-primary transition-all hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.7)]"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/90 text-primary-foreground text-sm font-medium hover:bg-primary transition-all hover:shadow-[0_0_30px_-8px_hsl(var(--primary)/0.7)]"
           >
             Open the Dashboard
             <ArrowRight className="w-4 h-4" />
