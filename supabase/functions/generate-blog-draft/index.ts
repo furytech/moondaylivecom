@@ -91,6 +91,8 @@ Deno.serve(async (req) => {
       status: 'draft',
       publish_at: publishAt,
       cta_type: 'birthday-calculator',
+      zodiac_sign_tag: sign,
+      constellation_graphic_path: `/src/assets/zodiac/${sign}.png`,
     }).select().single();
 
     if (error) throw error;
