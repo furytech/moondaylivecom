@@ -131,7 +131,7 @@ const BlogAdmin = () => {
 
   return (
     <PageLayout>
-      <SEO title="Journal Admin — Moonday Live" canonical="https://moondaylive.com/admin/blog" />
+      <SEO title="Journal Admin — Moonday Live" description="Manage and approve Journal posts for Moonday Live." canonical="https://moondaylive.com/admin/blog" />
       <div className="w-full max-w-5xl mx-auto py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-display text-2xl md:text-3xl text-foreground">Journal Admin</h1>
