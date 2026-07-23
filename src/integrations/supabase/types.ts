@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           author: string
           category: string
+          constellation_graphic_path: string | null
           content: string
           created_at: string
           cta_type: string
@@ -36,10 +37,12 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          zodiac_sign_tag: string | null
         }
         Insert: {
           author?: string
           category?: string
+          constellation_graphic_path?: string | null
           content?: string
           created_at?: string
           cta_type?: string
@@ -58,10 +61,12 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          zodiac_sign_tag?: string | null
         }
         Update: {
           author?: string
           category?: string
+          constellation_graphic_path?: string | null
           content?: string
           created_at?: string
           cta_type?: string
@@ -80,6 +85,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          zodiac_sign_tag?: string | null
         }
         Relationships: []
       }
