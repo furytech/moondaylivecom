@@ -163,6 +163,24 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_secrets: {
+        Row: {
+          created_at: string
+          name: string
+          secret_value: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          secret_value: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          secret_value?: string
+        }
+        Relationships: []
+      }
       daily_forecasts: {
         Row: {
           birth_moon_sign: string
