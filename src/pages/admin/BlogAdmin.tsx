@@ -11,6 +11,7 @@ import {
   approvePost,
   publishPostNow,
   BlogPostRow,
+  BlogCategory,
   CATEGORIES,
 } from "@/lib/blog/posts";
 
