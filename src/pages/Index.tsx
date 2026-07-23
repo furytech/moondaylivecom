@@ -30,6 +30,11 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const moonData = getCurrentMoon();
+  const { data: posts = [] } = useQuery({
+    queryKey: ["home-blog-posts"],
+    queryFn: fetchPublishedPosts,
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     if (user && !loading) {
