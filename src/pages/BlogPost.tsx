@@ -78,8 +78,6 @@ const BlogPost = () => {
             <li><Link to="/blog" className="hover:text-primary transition">Blog</Link></li>
             <ChevronRight className="w-3.5 h-3.5" />
             <li><Link to={`/blog?category=${canonicalCat}`} className="hover:text-primary transition">{post.category}</Link></li>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <li className="text-foreground/80 truncate max-w-[200px] md:max-w-none">{post.title}</li>
           </ol>
         </nav>
 
