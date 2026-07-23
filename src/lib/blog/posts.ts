@@ -46,14 +46,7 @@ We built Moonday Live to solve this exact fragmentation into one unified, ad-fre
 
 ## What Moonday Live Brings Together in One Dashboard
 
-### 1. Live Phase & Astronomical Precision
-Real-time visual phase tracking and illumination without digging through clunky tables. The current phase, sign, and illumination update seamlessly as the sky changes—no page refresh, no tab switching, no intrusive ads.
-
-### 2. Direct Moon Sign Integration
-Instant zodiac sign placements paired directly with active phase dynamics. You see not only what the moon is doing, but where it's doing it—all in a single glance.
-
-### 3. Birthday Personalization
-A built-in Birthday Moon Phase calculator that maps your exact natal birth phase and sign alongside today's active sky, letting you compare your personal lunar signature against the current climate.
+[[tiles:1. Live Phase & Astronomical Precision||Real-time visual phase tracking and illumination without digging through clunky tables. The current phase, sign, and illumination update seamlessly as the sky changes—no page refresh, no tab switching, no intrusive ads.;;2. Direct Moon Sign Integration||Instant zodiac sign placements paired directly with active phase dynamics. You see not only what the moon is doing, but where it's doing it—all in a single glance.;;3. Birthday Personalization||A built-in Birthday Moon Phase calculator that maps your exact natal birth phase and sign alongside today's active sky, letting you compare your personal lunar signature against the current climate.]]
 
 [[callout:Calculate Your Birthday Moon Phase|/birthday-moon-phase]]
 

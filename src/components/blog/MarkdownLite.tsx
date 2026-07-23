@@ -14,6 +14,32 @@ const MarkdownLite = ({ source }: { source: string }) => {
       {blocks.map((block, i) => {
         const trimmed = block.trim();
 
+        // Tiles grid: [[tiles:Title1||Body1;;Title2||Body2;;Title3||Body3]]
+        const tiles = trimmed.match(/^\[\[tiles:([\s\S]+)\]\]$/);
+        if (tiles) {
+          const items = tiles[1].split(";;").map((t) => {
+            const [title, body] = t.split("||");
+            return { title: (title || "").trim(), body: (body || "").trim() };
+          });
+          return (
+            <div key={i} className="not-prose grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
+              {items.map((t, j) => (
+                <div
+                  key={j}
+                  className="rounded-2xl border border-border/40 bg-gradient-to-b from-navy-medium/50 to-navy-deep/40 p-6 backdrop-blur-sm transition-colors hover:border-primary/40"
+                >
+                  <h3 className="text-base md:text-lg font-semibold text-slate-100 mb-3 leading-snug">
+                    {t.title}
+                  </h3>
+                  <p className="text-[14px] md:text-[15px] text-slate-300/90 leading-relaxed">
+                    {t.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
         // Callout card
         const callout = trimmed.match(/^\[\[callout:([^|]+)\|([^\]]+)\]\]$/);
         if (callout) {
