@@ -2,8 +2,8 @@
 import { cn } from "@/lib/utils";
 import { ZodiacDeepContent } from "@/lib/zodiacDeepContent";
 
-import aries from "@/assets/zodiac/aries.png";
-import taurus from "@/assets/zodiac/taurus.png";
+import aries from "@/assets/zodiac/Aries.png";
+import taurus from "@/assets/zodiac/Taurus.png";
 import gemini from "@/assets/zodiac/Gemini.png";
 import cancer from "@/assets/zodiac/Cancer.png";
 import leo from "@/assets/zodiac/Leo.png";
