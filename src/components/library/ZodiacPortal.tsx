@@ -4,16 +4,16 @@ import { ZodiacDeepContent } from "@/lib/zodiacDeepContent";
 
 import aries from "@/assets/zodiac/aries.png";
 import taurus from "@/assets/zodiac/taurus.png";
-import gemini from "@/assets/zodiac/gemini.png";
-import cancer from "@/assets/zodiac/cancer.png";
-import leo from "@/assets/zodiac/leo.png";
-import virgo from "@/assets/zodiac/virgo.png";
-import libra from "@/assets/zodiac/libra.png";
-import scorpio from "@/assets/zodiac/scorpio.png";
-import sagittarius from "@/assets/zodiac/sagittarius.png";
-import capricorn from "@/assets/zodiac/capricorn.png";
-import aquarius from "@/assets/zodiac/aquarius.png";
-import pisces from "@/assets/zodiac/pisces.png";
+import gemini from "@/assets/zodiac/Gemini.png";
+import cancer from "@/assets/zodiac/Cancer.png";
+import leo from "@/assets/zodiac/Leo.png";
+import virgo from "@/assets/zodiac/Virgo.png";
+import libra from "@/assets/zodiac/Libra.png";
+import scorpio from "@/assets/zodiac/Scorpio.png";
+import sagittarius from "@/assets/zodiac/Sagittarius.png";
+import capricorn from "@/assets/zodiac/Capricorn.png";
+import aquarius from "@/assets/zodiac/Aquarius.png";
+import pisces from "@/assets/zodiac/Pisces.png";
 
 interface ZodiacPortalProps {
   content: ZodiacDeepContent;
