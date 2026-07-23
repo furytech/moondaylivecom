@@ -34,14 +34,14 @@ const MarkdownLite = ({ source }: { source: string }) => {
 
         if (trimmed.startsWith("### ")) {
           return (
-            <h3 key={i} className="text-base md:text-lg font-display font-normal tracking-wide text-foreground/90 mt-6 mb-1">
+            <h3 key={i} className="text-lg md:text-xl font-semibold text-slate-100 mt-8 mb-2 normal-case tracking-normal">
               {trimmed.slice(4)}
             </h3>
           );
         }
         if (trimmed.startsWith("## ")) {
           return (
-            <h2 key={i} className="text-lg md:text-xl font-display font-normal tracking-wide text-foreground mt-10 mb-1">
+            <h2 key={i} className="text-xl md:text-2xl font-semibold text-slate-100 mt-12 mb-3 normal-case tracking-normal">
               {trimmed.slice(3)}
             </h2>
           );
@@ -50,7 +50,7 @@ const MarkdownLite = ({ source }: { source: string }) => {
           return (
             <blockquote
               key={i}
-              className="border-l-2 border-primary/50 pl-5 py-1 italic text-cream-muted/90 text-[15px] leading-relaxed"
+              className="border-l-2 border-primary/50 pl-5 py-1 italic text-slate-300 text-[17px] leading-relaxed normal-case"
             >
               {trimmed.slice(2)}
             </blockquote>
@@ -59,10 +59,10 @@ const MarkdownLite = ({ source }: { source: string }) => {
         if (trimmed.split("\n").every((l) => l.trim().startsWith("- "))) {
           const items = trimmed.split("\n").map((l) => l.trim().slice(2));
           return (
-            <ul key={i} className="space-y-2 list-none pl-0">
+            <ul key={i} className="space-y-3 list-none pl-0">
               {items.map((item, j) => (
-                <li key={j} className="flex gap-3 text-cream-muted/90 leading-relaxed text-[15px]">
-                  <span className="text-primary/70 mt-2 w-1 h-1 rounded-full bg-primary/70 shrink-0" />
+                <li key={j} className="flex gap-3 text-slate-300 leading-relaxed text-[17px] md:text-[18px] normal-case">
+                  <span className="text-primary/70 mt-2.5 w-1 h-1 rounded-full bg-primary/70 shrink-0" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -70,7 +70,7 @@ const MarkdownLite = ({ source }: { source: string }) => {
           );
         }
         return (
-          <p key={i} className="text-cream-muted/90 leading-[1.75] text-[15px] md:text-[16px]">
+          <p key={i} className="text-slate-300 leading-relaxed text-[17px] md:text-[18px] normal-case tracking-normal">
             {trimmed}
           </p>
         );
