@@ -46,6 +46,8 @@ export interface BlogPostRow {
   meta_title?: string;
   meta_description?: string;
   reddit_post?: string;
+  zodiac_sign_tag?: string;
+  constellation_graphic_path?: string;
 }
 
 export const CATEGORIES: BlogCategory[] = ["Guides", "Transits", "Features", "Product Updates"];
