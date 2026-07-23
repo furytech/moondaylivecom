@@ -143,7 +143,7 @@ export async function upsertPost(post: Partial<BlogPostRow>): Promise<BlogPostRo
   if (post.id) {
     const { data, error } = await supabase
       .from("blog_posts")
-      .update(post as Record<string, unknown>)
+      .update(post as any)
       .eq("id", post.id)
       .select()
       .single();
@@ -152,7 +152,7 @@ export async function upsertPost(post: Partial<BlogPostRow>): Promise<BlogPostRo
   }
   const { data, error } = await supabase
     .from("blog_posts")
-    .insert(post as Record<string, unknown>)
+    .insert(post as any)
     .select()
     .single();
   if (error) throw error;
