@@ -36,8 +36,8 @@ export interface BlogPostRow {
   readMinutes?: number;
   readTime?: number;
   status: PostStatus;
-  publish_at?: string;
-  published_at?: string;
+  publish_at?: string | null;
+  published_at?: string | null;
   created_at?: string;
   updated_at?: string;
   featured?: boolean;

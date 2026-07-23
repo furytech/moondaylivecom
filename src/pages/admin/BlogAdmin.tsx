@@ -29,6 +29,24 @@ const defaultPost: Partial<BlogPostRow> = {
   cta_type: "none",
 };
 
+const toDatetimeLocalValue = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
+};
+
+const fromDatetimeLocalValue = (value: string) => (value ? new Date(value).toISOString() : null);
+
+const displayDate = (value?: string | null) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString();
+};
+
 const BlogAdmin = () => {
   const { data: isAdmin, isLoading: checkingAdmin } = useQuery({
     queryKey: ["admin-check"],
@@ -152,7 +170,7 @@ const BlogAdmin = () => {
   const openNew = () => setEditing({ ...defaultPost });
   const openEdit = (post: BlogPostRow) => setEditing({ ...post });
 
-  const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K]) => {
+  const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {
     setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
@@ -246,8 +264,8 @@ const BlogAdmin = () => {
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Publish At (scheduled)</label>
                 <input
                   type="datetime-local"
-                  value={editing.publish_at ? new Date(editing.publish_at).toISOString().slice(0, 16) : ""}
-                  onChange={(e) => setField("publish_at", e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                  value={toDatetimeLocalValue(editing.publish_at)}
+                  onChange={(e) => setField("publish_at", fromDatetimeLocalValue(e.target.value))}
                   className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                 />
               </div>
@@ -255,8 +273,8 @@ const BlogAdmin = () => {
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Published At (live date shown)</label>
                 <input
                   type="datetime-local"
-                  value={editing.published_at ? new Date(editing.published_at).toISOString().slice(0, 16) : ""}
-                  onChange={(e) => setField("published_at", e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                  value={toDatetimeLocalValue(editing.published_at)}
+                  onChange={(e) => setField("published_at", fromDatetimeLocalValue(e.target.value))}
                   className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                 />
               </div>
@@ -367,7 +385,8 @@ const BlogAdmin = () => {
                   <th className="px-4 py-3">Title</th>
                   <th className="px-4 py-3">Category</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Publish At</th>
+                  <th className="px-4 py-3">Scheduled</th>
+                  <th className="px-4 py-3">Live Date</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -390,7 +409,10 @@ const BlogAdmin = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-cream-muted">
-                      {p.publish_at ? new Date(p.publish_at).toLocaleString() : "—"}
+                      {displayDate(p.publish_at)}
+                    </td>
+                    <td className="px-4 py-3 text-cream-muted">
+                      {displayDate(p.published_at)}
                     </td>
                     <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                       <button onClick={() => openEdit(p)} className="text-primary hover:underline text-xs">
