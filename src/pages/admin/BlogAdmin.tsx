@@ -176,7 +176,7 @@ const BlogAdmin = () => {
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Category</label>
                 <select
                   value={editing.category || "Guides"}
-                  onChange={(e) => setField("category", e.target.value)}
+                  onChange={(e) => setField("category", e.target.value as BlogCategory)}
                   className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                 >
                   {CATEGORIES.map((c) => (
