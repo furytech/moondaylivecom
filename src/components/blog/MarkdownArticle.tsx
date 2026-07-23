@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import ReactMarkdown, { Components } from "react-markdown";
@@ -27,147 +27,164 @@ const BirthdayCalculatorCTA = () => (
   </Link>
 );
 
-// Group consecutive H3 + paragraph pairs inside a section into a feature-card grid.
-function groupFeatureCards(nodes: ReactNode[]): ReactNode[] {
-  const out: ReactNode[] = [];
-  let buffer: { title: ReactNode; body: ReactNode }[] = [];
+const proseComponents: Components = {
+  h2: ({ children }) => (
+    <h2 className="font-display text-xl md:text-2xl text-foreground mt-12 mb-5 font-normal leading-snug border-l-2 border-primary/60 pl-4">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="mt-8 mb-2 text-lg md:text-xl font-medium text-slate-100 leading-snug">
+      {children}
+    </h3>
+  ),
+  p: ({ children }) => (
+    <p className="text-slate-300 leading-relaxed text-[1.125rem] my-4">{children}</p>
+  ),
+  ul: ({ children }) => (
+    <ul className="my-5 space-y-2 text-slate-300 leading-relaxed text-[1.0625rem] list-disc pl-5 marker:text-primary/60">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="my-5 space-y-2 text-slate-300 leading-relaxed text-[1.0625rem] list-decimal pl-5 marker:text-primary/60">
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => <li className="pl-1">{children}</li>,
+  blockquote: ({ children }) => (
+    <blockquote className="my-6 border-l-2 border-primary/50 pl-5 italic text-slate-300/90 text-[1.0625rem] leading-relaxed">
+      {children}
+    </blockquote>
+  ),
+  a: ({ href, children }) =>
+    href?.startsWith("/") ? (
+      <Link to={href} className="text-primary underline underline-offset-4 hover:text-primary/80">
+        {children}
+      </Link>
+    ) : (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4 hover:text-primary/80">
+        {children}
+      </a>
+    ),
+  strong: ({ children }) => <strong className="text-slate-100 font-medium">{children}</strong>,
+  em: ({ children }) => <em className="text-slate-200/90">{children}</em>,
+  hr: () => <hr className="my-10 border-border/30" />,
+  code: ({ children }) => (
+    <code className="rounded bg-navy-deep/60 px-1.5 py-0.5 text-[0.95em] text-primary/90">
+      {children}
+    </code>
+  ),
+};
 
-  const flush = () => {
-    if (buffer.length === 0) return;
-    if (buffer.length >= 2) {
-      out.push(
-        <div
-          key={`grid-${out.length}`}
-          className="not-prose grid grid-cols-1 md:grid-cols-3 gap-4 my-6"
-        >
-          {buffer.map((c, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-border/40 bg-gradient-to-b from-navy-medium/50 to-navy-deep/40 p-6 backdrop-blur-sm transition-colors hover:border-primary/40"
-            >
-              <h3 className="text-base md:text-lg font-semibold text-slate-100 mb-3 leading-snug">
-                {c.title}
-              </h3>
-              <p className="text-[14px] md:text-[15px] text-slate-300/90 leading-relaxed">
-                {c.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      );
-    } else {
-      // Single H3 + paragraph → render inline
-      const c = buffer[0];
-      out.push(
-        <h3
-          key={`h3-${out.length}`}
-          className="mt-8 mb-2 text-lg md:text-xl font-medium text-slate-100 leading-snug"
-        >
-          {c.title}
-        </h3>
-      );
-      out.push(
-        <p
-          key={`p-${out.length}`}
-          className="text-slate-300 leading-relaxed text-[1.125rem] mb-4"
-        >
-          {c.body}
-        </p>
-      );
+const inlineComponents: Components = {
+  ...proseComponents,
+  p: ({ children }) => <>{children}</>,
+};
+
+type Segment =
+  | { kind: "md"; text: string }
+  | { kind: "cards"; items: { title: string; body: string }[] }
+  | { kind: "cta" };
+
+// Split a source into blocks separated by blank lines, then detect
+// runs of 2+ consecutive `### Title` + paragraph pairs and group into card grids.
+function segment(source: string, ctaType: CtaType): Segment[] {
+  const blocks = source.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  const out: Segment[] = [];
+  let mdBuf: string[] = [];
+
+  const flushMd = () => {
+    if (mdBuf.length) {
+      out.push({ kind: "md", text: mdBuf.join("\n\n") });
+      mdBuf = [];
     }
-    buffer = [];
   };
 
-  for (let i = 0; i < nodes.length; i++) {
-    const n = nodes[i] as { props?: { "data-block"?: string; children?: ReactNode } };
-    if (n?.props?.["data-block"] === "h3") {
-      const next = nodes[i + 1] as { props?: { "data-block"?: string; children?: ReactNode } } | undefined;
-      if (next?.props?.["data-block"] === "p") {
-        buffer.push({ title: n.props.children, body: next.props.children });
-        i++;
+  let i = 0;
+  while (i < blocks.length) {
+    const b = blocks[i];
+    const h3 = b.match(/^###\s+(.+)$/);
+    const next = blocks[i + 1];
+    const nextIsProse = next && !/^(#{1,6}\s|>|-\s|\d+\.\s|```)/.test(next);
+    if (h3 && nextIsProse) {
+      // Try to build a run
+      const run: { title: string; body: string }[] = [];
+      let j = i;
+      while (j < blocks.length) {
+        const bb = blocks[j];
+        const nn = blocks[j + 1];
+        const hh = bb.match(/^###\s+(.+)$/);
+        const nnProse = nn && !/^(#{1,6}\s|>|-\s|\d+\.\s|```)/.test(nn);
+        if (hh && nnProse) {
+          run.push({ title: hh[1].trim(), body: nn.trim() });
+          j += 2;
+        } else break;
+      }
+      if (run.length >= 2) {
+        flushMd();
+        out.push({ kind: "cards", items: run });
+        i = j;
         continue;
       }
     }
-    flush();
-    out.push(nodes[i]);
+    mdBuf.push(b);
+    i++;
   }
-  flush();
+  flushMd();
+
+  // Insert CTA after the first cards block, or before the last md block if no cards.
+  if (ctaType === "birthday-calculator") {
+    const cardsIdx = out.findIndex((s) => s.kind === "cards");
+    if (cardsIdx >= 0) {
+      out.splice(cardsIdx + 1, 0, { kind: "cta" });
+    } else {
+      out.push({ kind: "cta" });
+    }
+  }
   return out;
 }
 
 const MarkdownArticle = ({ source, ctaType = "none" }: Props) => {
-  const components: Components = {
-    h1: ({ children }) => (
-      <h1 className="font-display text-2xl md:text-[32px] leading-snug text-foreground mt-10 mb-4 font-normal">
-        {children}
-      </h1>
-    ),
-    h2: ({ children }) => (
-      <h2 className="font-display text-xl md:text-2xl text-foreground mt-12 mb-5 font-normal leading-snug border-l-2 border-primary/60 pl-4">
-        {children}
-      </h2>
-    ),
-    h3: ({ children }) => (
-      // Marker node; the section wrapper will decide whether to render as card or inline heading.
-      <div data-block="h3">{children}</div>
-    ),
-    p: ({ children }) => (
-      <div data-block="p">{children}</div>
-    ),
-    ul: ({ children }) => (
-      <ul className="my-5 space-y-2 text-slate-300 leading-relaxed text-[1.0625rem] list-disc pl-5 marker:text-primary/60">
-        {children}
-      </ul>
-    ),
-    ol: ({ children }) => (
-      <ol className="my-5 space-y-2 text-slate-300 leading-relaxed text-[1.0625rem] list-decimal pl-5 marker:text-primary/60">
-        {children}
-      </ol>
-    ),
-    li: ({ children }) => <li className="pl-1">{children}</li>,
-    blockquote: ({ children }) => (
-      <blockquote className="my-6 border-l-2 border-primary/50 pl-5 italic text-slate-300/90 text-[1.0625rem] leading-relaxed">
-        {children}
-      </blockquote>
-    ),
-    a: ({ href, children }) =>
-      href?.startsWith("/") ? (
-        <Link to={href} className="text-primary underline underline-offset-4 hover:text-primary/80">
-          {children}
-        </Link>
-      ) : (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4 hover:text-primary/80">
-          {children}
-        </a>
-      ),
-    strong: ({ children }) => <strong className="text-slate-100 font-medium">{children}</strong>,
-    em: ({ children }) => <em className="text-slate-200/90">{children}</em>,
-    hr: () => <hr className="my-10 border-border/30" />,
-    code: ({ children }) => (
-      <code className="rounded bg-navy-deep/60 px-1.5 py-0.5 text-[0.95em] text-primary/90">
-        {children}
-      </code>
-    ),
-  };
-
+  const segments = segment(source, ctaType);
   return (
     <div className="article-body">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={components}
-      >
-        {source}
-      </ReactMarkdown>
-      <PostProcessor ctaType={ctaType} />
+      {segments.map((seg, idx) => {
+        if (seg.kind === "cta") return <BirthdayCalculatorCTA key={idx} />;
+        if (seg.kind === "cards") {
+          return (
+            <div
+              key={idx}
+              className="not-prose grid grid-cols-1 md:grid-cols-3 gap-4 my-6"
+            >
+              {seg.items.map((c, j) => (
+                <div
+                  key={j}
+                  className="rounded-2xl border border-border/40 bg-gradient-to-b from-navy-medium/50 to-navy-deep/40 p-6 backdrop-blur-sm transition-colors hover:border-primary/40"
+                >
+                  <h3 className="text-base md:text-lg font-semibold text-slate-100 mb-3 leading-snug">
+                    {c.title}
+                  </h3>
+                  <div className="text-[14px] md:text-[15px] text-slate-300/90 leading-relaxed">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={inlineComponents}>
+                      {c.body}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+        return (
+          <Fragment key={idx}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={proseComponents}>
+              {seg.text}
+            </ReactMarkdown>
+          </Fragment>
+        );
+      })}
     </div>
   );
-};
-
-// Post-render pass: transforms h3/p markers into cards, wraps body paragraphs, and injects CTA.
-// Simpler alternative: render markdown, walk the DOM after mount. We use a wrapper approach instead.
-const PostProcessor = ({ ctaType }: { ctaType: CtaType }) => {
-  if (ctaType === "birthday-calculator") return <BirthdayCalculatorCTA />;
-  return null;
 };
 
 export default MarkdownArticle;
