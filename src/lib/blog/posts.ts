@@ -1,47 +1,8 @@
-// Lightweight frontmatter parser (browser-safe; avoids Buffer polyfill).
-function matter(raw: string): { data: Record<string, unknown>; content: string } {
-  const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
-  if (!m) return { data: {}, content: raw };
-  const [, fm, body] = m;
-  const data: Record<string, unknown> = {};
-  const lines = fm.split(/\r?\n/);
-  let currentKey: string | null = null;
-  let listBuf: string[] | null = null;
-  const flushList = () => {
-    if (currentKey && listBuf) data[currentKey] = listBuf;
-    currentKey = null;
-    listBuf = null;
-  };
-  const stripQuotes = (v: string) => v.replace(/^["'](.*)["']$/s, "$1");
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const listItem = line.match(/^\s+-\s+(.*)$/);
-    if (listItem && listBuf) {
-      listBuf.push(stripQuotes(listItem[1].trim()));
-      continue;
-    }
-    flushList();
-    const kv = line.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
-    if (!kv) continue;
-    const [, key, rawVal] = kv;
-    const val = rawVal.trim();
-    if (val === "") {
-      currentKey = key;
-      listBuf = [];
-    } else if (val === "true" || val === "false") {
-      data[key] = val === "true";
-    } else if (/^-?\d+(\.\d+)?$/.test(val)) {
-      data[key] = Number(val);
-    } else {
-      data[key] = stripQuotes(val);
-    }
-  }
-  flushList();
-  return { data, content: body };
-}
+import { supabase } from "@/integrations/supabase/client";
 
 export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates";
 export type CtaType = "birthday-calculator" | "dashboard" | "none";
+export type PostStatus = "draft" | "approved" | "published";
 
 export interface BlogPost {
   slug: string;
@@ -55,53 +16,168 @@ export interface BlogPost {
   keywords: string[];
   featured?: boolean;
   ctaType?: CtaType;
+  imageUrl?: string;
   /** Raw markdown body (frontmatter stripped). */
   content: string;
 }
 
+export interface BlogPostRow {
+  id?: string;
+  slug: string;
+  title: string;
+  category: BlogCategory;
+  excerpt: string;
+  author: string;
+  content: string;
+  keywords: string[];
+  read_time: number;
+  readMinutes: number;
+  readTime: number;
+  status: PostStatus;
+  publish_at?: string;
+  published_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  featured?: boolean;
+  cta_type?: CtaType;
+  ctaType?: CtaType;
+  image_url?: string;
+  imageUrl?: string;
+  meta_title?: string;
+  meta_description?: string;
+}
+
 export const CATEGORIES: BlogCategory[] = ["Guides", "Transits", "Features", "Product Updates"];
 
-// Eager-load every markdown file in /src/content/blog/ as raw text.
-const files = import.meta.glob("/src/content/blog/*.md", {
-  eager: true,
-  query: "?raw",
-  import: "default",
-}) as Record<string, string>;
+export function categoryPath(cat: BlogCategory | string) {
+  return cat.toLowerCase().replace(/\s+/g, "-");
+}
 
-function parsePost(raw: string, filepath: string): BlogPost {
-  const { data, content } = matter(raw);
-  const slug =
-    (data.slug as string) ??
-    filepath.split("/").pop()!.replace(/\.md$/, "");
-  const readTime = Number(data.readTime ?? data.readMinutes ?? 4);
+export function rowToPost(row: BlogPostRow): BlogPost {
+  const readTime = Number(row.read_time ?? row.readTime ?? row.readMinutes ?? 4);
   return {
-    slug,
-    title: String(data.title ?? slug),
-    category: (data.category as BlogCategory) ?? "Guides",
-    excerpt: String(data.excerpt ?? ""),
-    author: String(data.author ?? "Moonday Live Team"),
-    date: String(data.date ?? new Date().toISOString().slice(0, 10)),
+    slug: row.slug,
+    title: row.title,
+    category: (row.category as BlogCategory) ?? "Guides",
+    excerpt: row.excerpt || "",
+    author: row.author || "Moonday Live Team",
+    date: row.published_at || row.publish_at || row.created_at || new Date().toISOString(),
     readMinutes: readTime,
     readTime,
-    keywords: Array.isArray(data.keywords) ? data.keywords.map(String) : [],
-    featured: Boolean(data.featured),
-    ctaType: (data.ctaType as CtaType) ?? "none",
-    content: content.trim(),
+    keywords: Array.isArray(row.keywords) ? row.keywords.map(String) : [],
+    featured: Boolean(row.featured),
+    ctaType: (row.cta_type as CtaType) ?? (row.ctaType as CtaType) ?? "none",
+    imageUrl: row.image_url || row.imageUrl,
+    content: row.content || "",
   };
 }
 
-export const POSTS: BlogPost[] = Object.entries(files)
-  .map(([path, raw]) => parsePost(raw, path))
-  .sort((a, b) => (a.date < b.date ? 1 : -1));
-
-export function getPost(slug: string) {
-  return POSTS.find((p) => p.slug === slug);
+export function postToRow(post: Partial<BlogPost>): Partial<BlogPostRow> {
+  const row: Partial<BlogPostRow> = {};
+  if (post.slug !== undefined) row.slug = post.slug;
+  if (post.title !== undefined) row.title = post.title;
+  if (post.category !== undefined) row.category = post.category;
+  if (post.excerpt !== undefined) row.excerpt = post.excerpt;
+  if (post.content !== undefined) row.content = post.content;
+  if (post.keywords !== undefined) row.keywords = post.keywords;
+  if (post.readTime !== undefined || post.readMinutes !== undefined) {
+    row.read_time = post.readTime ?? post.readMinutes;
+  }
+  if (post.author !== undefined) row.author = post.author;
+  if (post.imageUrl !== undefined) row.image_url = post.imageUrl;
+  if (post.ctaType !== undefined) row.cta_type = post.ctaType;
+  return row;
 }
 
-export function getRelated(slug: string, category: BlogCategory, limit = 3) {
-  return POSTS.filter((p) => p.slug !== slug && p.category === category).slice(0, limit);
+export async function fetchPublishedPosts(): Promise<BlogPost[]> {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+  if (error) throw error;
+  return (data as BlogPostRow[] || []).map(rowToPost);
 }
 
-export function categoryPath(cat: BlogCategory) {
-  return cat.toLowerCase().replace(/\s+/g, "-");
+export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
+  if (!slug || slug.startsWith(":")) return null;
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .single();
+  if (error) return null;
+  return data ? rowToPost(data as BlogPostRow) : null;
+}
+
+export async function getRelated(slug: string, category: BlogCategory, limit = 3): Promise<BlogPost[]> {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("status", "published")
+    .eq("category", category)
+    .neq("slug", slug)
+    .limit(limit);
+  if (error) throw error;
+  return (data as BlogPostRow[] || []).map(rowToPost);
+}
+
+// Admin helpers
+export async function listAllPosts(): Promise<BlogPostRow[]> {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as BlogPostRow[] || []);
+}
+
+export async function getPostBySlugAdmin(slug: string): Promise<BlogPostRow | null> {
+  const { data, error } = await supabase.from("blog_posts").select("*").eq("slug", slug).single();
+  if (error) return null;
+  return data as BlogPostRow | null;
+}
+
+export async function upsertPost(post: Partial<BlogPostRow>): Promise<BlogPostRow> {
+  if (post.id) {
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .update(post)
+      .eq("id", post.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as BlogPostRow;
+  }
+  const { data, error } = await supabase.from("blog_posts").insert(post).select().single();
+  if (error) throw error;
+  return data as BlogPostRow;
+}
+
+export async function deletePost(id: string) {
+  const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function approvePost(id: string, publishAt?: string) {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .update({ status: "approved", publish_at: publishAt || new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as BlogPostRow;
+}
+
+export async function publishPostNow(id: string) {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .update({ status: "published", published_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as BlogPostRow;
 }
