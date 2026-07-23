@@ -66,7 +66,7 @@ const BlogAdmin = () => {
   if (!isAdmin) {
     return (
       <PageLayout>
-        <SEO title="Admin — Moonday Live" />
+        <SEO title="Admin — Moonday Live" description="Journal administration for Moonday Live." />
         <div className="max-w-2xl mx-auto py-20 text-center">
           <h1 className="font-display text-2xl text-foreground mb-4">Admin Access Required</h1>
           <p className="text-cream-muted">
