@@ -55,6 +55,7 @@ const BlogAdmin = () => {
   if (checkingAdmin) {
     return (
       <PageLayout>
+        <SEO title="Admin — Moonday Live" description="Journal administration for Moonday Live." />
         <div className="py-20 flex justify-center">
           <MoonLoader size="md" text="Checking access..." />
         </div>
