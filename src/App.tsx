@@ -37,6 +37,8 @@ import OAuthConsent from "./pages/OAuthConsent";
 import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import BlogAdmin from "./pages/admin/BlogAdmin";
+
 
 const queryClient = new QueryClient();
 
