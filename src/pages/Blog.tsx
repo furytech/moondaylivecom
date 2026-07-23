@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import BlogCard from "@/components/blog/BlogCard";
-import { POSTS, CATEGORIES, BlogCategory } from "@/lib/blog/posts";
+import { fetchPublishedPosts, CATEGORIES, BlogCategory, categoryPath } from "@/lib/blog/posts";
+import MoonLoader from "@/components/MoonLoader";
 
 type Filter = "All" | BlogCategory;
 const FILTERS: Filter[] = ["All", ...CATEGORIES];
@@ -12,9 +14,14 @@ const Blog = () => {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
 
+  const { data: posts = [], isLoading, error } = useQuery({
+    queryKey: ["blog-posts"],
+    queryFn: fetchPublishedPosts,
+  });
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return POSTS.filter((p) => {
+    return posts.filter((p) => {
       if (filter !== "All" && p.category !== filter) return false;
       if (!q) return true;
       return (
@@ -24,7 +31,7 @@ const Blog = () => {
         p.keywords.some((k) => k.toLowerCase().includes(q))
       );
     });
-  }, [query, filter]);
+  }, [query, filter, posts]);
 
   const featured = filtered.find((p) => p.featured);
   const rest = filtered.filter((p) => p !== featured);
@@ -34,12 +41,12 @@ const Blog = () => {
     "@type": "Blog",
     name: "Moonday Live — Lunar Insights & Guides",
     url: "https://moondaylive.com/blog",
-    blogPost: POSTS.map((p) => ({
+    blogPost: posts.map((p) => ({
       "@type": "BlogPosting",
       headline: p.title,
       datePublished: p.date,
       author: { "@type": "Organization", name: p.author },
-      url: `https://moondaylive.com/blog/${p.category.toLowerCase()}/${p.slug}`,
+      url: `https://moondaylive.com/blog/${categoryPath(p.category)}/${p.slug}`,
     })),
   };
 
@@ -98,7 +105,15 @@ const Blog = () => {
         </div>
 
         {/* Results */}
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="py-20 flex justify-center">
+            <MoonLoader size="md" text="Loading journal..." />
+          </div>
+        ) : error ? (
+          <p className="text-center text-cream-muted py-16">
+            The journal is temporarily unavailable. Please try again in a moment.
+          </p>
+        ) : filtered.length === 0 ? (
           <p className="text-center text-cream-muted py-16">No articles match your search.</p>
         ) : (
           <>
