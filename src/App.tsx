@@ -37,6 +37,8 @@ import OAuthConsent from "./pages/OAuthConsent";
 import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import BlogAdmin from "./pages/admin/BlogAdmin";
+
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,11 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:category/:slug" element={<BlogPost />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/admin/blog" element={
+              <ProtectedRoute>
+                <BlogAdmin />
+              </ProtectedRoute>
+            } />
             {/* Legacy redirect */}
             <Route path="/portal" element={<Navigate to="/login" replace />} />
             <Route path="/pricing" element={<Pricing />} />

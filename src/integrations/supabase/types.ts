@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_posts: {
+        Row: {
+          author: string
+          category: string
+          content: string
+          created_at: string
+          cta_type: string
+          excerpt: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          publish_at: string | null
+          published_at: string | null
+          read_time: number
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string
+          category?: string
+          content?: string
+          created_at?: string
+          cta_type?: string
+          excerpt?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          publish_at?: string | null
+          published_at?: string | null
+          read_time?: number
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          category?: string
+          content?: string
+          created_at?: string
+          cta_type?: string
+          excerpt?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          publish_at?: string | null
+          published_at?: string | null
+          read_time?: number
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_drafts: {
         Row: {
           app_atmospheric_text: string | null
@@ -94,6 +160,24 @@ export type Database = {
           sun_sign_tropical?: string | null
           trigger_timestamp?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cron_secrets: {
+        Row: {
+          created_at: string
+          name: string
+          secret_value: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          secret_value: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          secret_value?: string
         }
         Relationships: []
       }

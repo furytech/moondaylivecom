@@ -8,7 +8,8 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { POSTS, categoryPath } from "@/lib/blog/posts";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPublishedPosts, categoryPath } from "@/lib/blog/posts";
 
 const pillars = [
   {
@@ -29,6 +30,11 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const moonData = getCurrentMoon();
+  const { data: posts = [] } = useQuery({
+    queryKey: ["home-blog-posts"],
+    queryFn: fetchPublishedPosts,
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     if (user && !loading) {
@@ -352,7 +358,7 @@ const Index = () => {
               Read the latest
             </h2>
             <div className="grid gap-6 md:grid-cols-3">
-              {POSTS.slice(0, 3).map((p) => (
+              {posts.slice(0, 3).map((p) => (
                 <Link
                   key={p.slug}
                   to={`/blog/${categoryPath(p.category)}/${p.slug}`}
