@@ -11,14 +11,6 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  const cronSecret = req.headers.get('X-Cron-Secret');
-  if (cronSecret !== Deno.env.get('CRON_SECRET')) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
