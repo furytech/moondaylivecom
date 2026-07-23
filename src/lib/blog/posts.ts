@@ -31,8 +31,8 @@ export interface BlogPostRow {
   content: string;
   keywords: string[];
   read_time: number;
-  readMinutes: number;
-  readTime: number;
+  readMinutes?: number;
+  readTime?: number;
   status: PostStatus;
   publish_at?: string;
   published_at?: string;
@@ -45,6 +45,7 @@ export interface BlogPostRow {
   imageUrl?: string;
   meta_title?: string;
   meta_description?: string;
+  reddit_post?: string;
 }
 
 export const CATEGORIES: BlogCategory[] = ["Guides", "Transits", "Features", "Product Updates"];

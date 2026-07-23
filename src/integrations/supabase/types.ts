@@ -31,6 +31,7 @@ export type Database = {
           publish_at: string | null
           published_at: string | null
           read_time: number
+          reddit_post: string | null
           slug: string
           status: string
           title: string
@@ -52,6 +53,7 @@ export type Database = {
           publish_at?: string | null
           published_at?: string | null
           read_time?: number
+          reddit_post?: string | null
           slug: string
           status?: string
           title: string
@@ -73,6 +75,7 @@ export type Database = {
           publish_at?: string | null
           published_at?: string | null
           read_time?: number
+          reddit_post?: string | null
           slug?: string
           status?: string
           title?: string

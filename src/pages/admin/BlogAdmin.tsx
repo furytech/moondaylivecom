@@ -52,6 +52,32 @@ const BlogAdmin = () => {
 
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
   const [message, setMessage] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyReddit = async (post: BlogPostRow) => {
+    const text = post.reddit_post || "";
+    if (!text) {
+      setMessage("No Reddit post drafted for this row yet.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(post.id || null);
+      setTimeout(() => setCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
+    } catch {
+      setMessage("Copy failed — browser blocked clipboard access.");
+    }
+  };
+
+  const handleApproveAndPublish = async (id: string) => {
+    try {
+      await publishPostNow(id);
+      setMessage("Approved and published live.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
 
   if (checkingAdmin) {
     return (
@@ -257,6 +283,16 @@ const BlogAdmin = () => {
               />
             </div>
             <div className="mb-4">
+              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Reddit Post (Markdown, for r/moondaylive)</label>
+              <textarea
+                value={editing.reddit_post || ""}
+                onChange={(e) => setField("reddit_post", e.target.value)}
+                rows={6}
+                placeholder="Title line, then blank line, then body. Pasted straight into Reddit."
+                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
+              />
+            </div>
+            <div className="mb-4">
               <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Keywords (comma separated)</label>
               <input
                 value={Array.isArray(editing.keywords) ? editing.keywords.join(", ") : ""}
@@ -347,20 +383,27 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-cream-muted">
                       {p.publish_at ? new Date(p.publish_at).toLocaleString() : "—"}
                     </td>
-                    <td className="px-4 py-3 text-right space-x-2">
+                    <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                       <button onClick={() => openEdit(p)} className="text-primary hover:underline text-xs">
                         Edit
                       </button>
-                      {p.status === "draft" && (
-                        <button onClick={() => handleApprove(p.id!)} className="text-primary hover:underline text-xs">
-                          Approve
-                        </button>
-                      )}
                       {p.status !== "published" && (
-                        <button onClick={() => handlePublishNow(p.id!)} className="text-emerald-400 hover:underline text-xs">
-                          Publish Now
+                        <button
+                          onClick={() => handleApproveAndPublish(p.id!)}
+                          className="text-emerald-400 hover:underline text-xs"
+                        >
+                          Approve & Publish
                         </button>
                       )}
+                      <button
+                        onClick={() => handleCopyReddit(p)}
+                        disabled={!p.reddit_post}
+                        className={`text-xs hover:underline ${
+                          p.reddit_post ? "text-primary" : "text-cream-muted/40 cursor-not-allowed"
+                        }`}
+                      >
+                        {copiedId === p.id ? "Copied!" : "Copy Reddit Post"}
+                      </button>
                       <button onClick={() => handleDelete(p.id!)} className="text-red-400 hover:underline text-xs">
                         Delete
                       </button>
