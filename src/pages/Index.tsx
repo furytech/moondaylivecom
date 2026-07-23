@@ -358,7 +358,7 @@ const Index = () => {
               Read the latest
             </h2>
             <div className="grid gap-6 md:grid-cols-3">
-              {POSTS.slice(0, 3).map((p) => (
+              {posts.slice(0, 3).map((p) => (
                 <Link
                   key={p.slug}
                   to={`/blog/${categoryPath(p.category)}/${p.slug}`}
