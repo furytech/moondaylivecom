@@ -243,11 +243,20 @@ const BlogAdmin = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Publish At</label>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Publish At (scheduled)</label>
                 <input
                   type="datetime-local"
-                  value={editing.publish_at ? editing.publish_at.slice(0, 16) : ""}
+                  value={editing.publish_at ? new Date(editing.publish_at).toISOString().slice(0, 16) : ""}
                   onChange={(e) => setField("publish_at", e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Published At (live date shown)</label>
+                <input
+                  type="datetime-local"
+                  value={editing.published_at ? new Date(editing.published_at).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => setField("published_at", e.target.value ? new Date(e.target.value).toISOString() : undefined)}
                   className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                 />
               </div>
