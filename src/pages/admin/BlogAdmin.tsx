@@ -383,20 +383,27 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-cream-muted">
                       {p.publish_at ? new Date(p.publish_at).toLocaleString() : "—"}
                     </td>
-                    <td className="px-4 py-3 text-right space-x-2">
+                    <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                       <button onClick={() => openEdit(p)} className="text-primary hover:underline text-xs">
                         Edit
                       </button>
-                      {p.status === "draft" && (
-                        <button onClick={() => handleApprove(p.id!)} className="text-primary hover:underline text-xs">
-                          Approve
-                        </button>
-                      )}
                       {p.status !== "published" && (
-                        <button onClick={() => handlePublishNow(p.id!)} className="text-emerald-400 hover:underline text-xs">
-                          Publish Now
+                        <button
+                          onClick={() => handleApproveAndPublish(p.id!)}
+                          className="text-emerald-400 hover:underline text-xs"
+                        >
+                          Approve & Publish
                         </button>
                       )}
+                      <button
+                        onClick={() => handleCopyReddit(p)}
+                        disabled={!p.reddit_post}
+                        className={`text-xs hover:underline ${
+                          p.reddit_post ? "text-primary" : "text-cream-muted/40 cursor-not-allowed"
+                        }`}
+                      >
+                        {copiedId === p.id ? "Copied!" : "Copy Reddit Post"}
+                      </button>
                       <button onClick={() => handleDelete(p.id!)} className="text-red-400 hover:underline text-xs">
                         Delete
                       </button>
