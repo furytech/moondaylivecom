@@ -65,6 +65,7 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:category/:slug" element={<BlogPost />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/admin" element={<Navigate to="/admin/blog" replace />} />
             <Route path="/admin/blog" element={
               <ProtectedRoute>
                 <BlogAdmin />

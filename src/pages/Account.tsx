@@ -33,6 +33,14 @@ const Account = () => {
   const [birthday, setBirthday] = useState("");
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
+      setIsAdmin(!!data);
+    });
+  }, [user]);
 
   // Stable starfield
   const stars = useMemo(
@@ -349,6 +357,35 @@ const Account = () => {
 
               {/* Sovereign Security (2FA) */}
               <SovereignSecurity />
+
+              {/* Admin panel access */}
+              {isAdmin && (
+                <GlassmorphismCard className="animate-fade-up">
+                  <div className="text-center">
+                    <h2 className="font-display text-xl text-gold-gradient tracking-wider mb-3">
+                      Administrator
+                    </h2>
+                    <p className="font-serif text-sm text-cream-muted/70 mb-5">
+                      Manage the Journal and review Sovereign subscribers.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <button
+                        onClick={() => navigate("/admin/blog")}
+                        className="px-5 py-2.5 font-display text-xs tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 transition-all"
+                      >
+                        Journal Admin
+                      </button>
+                      <button
+                        onClick={() => navigate("/admin/subscribers")}
+                        className="px-5 py-2.5 font-display text-xs tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 transition-all"
+                      >
+                        Subscribers
+                      </button>
+                    </div>
+                  </div>
+                </GlassmorphismCard>
+              )}
+
 
               {/* Sign out */}
               <div className="text-center pt-4 animate-fade-up stagger-3">
