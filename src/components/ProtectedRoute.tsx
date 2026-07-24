@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MoonLoader from "./MoonLoader";
 import GlassmorphismCard from "./GlassmorphismCard";
@@ -10,6 +10,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -21,7 +22,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // Not logged in - redirect to portal
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const from = `${location.pathname}${location.search}`;
+    return <Navigate to={`/login?from=${encodeURIComponent(from)}`} replace />;
   }
 
   // User exists but email not verified
