@@ -38,6 +38,7 @@ import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import BlogAdmin from "./pages/admin/BlogAdmin";
+import Subscribers from "./pages/admin/Subscribers";
 
 
 const queryClient = new QueryClient();
@@ -67,6 +68,11 @@ const App = () => (
             <Route path="/admin/blog" element={
               <ProtectedRoute>
                 <BlogAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/subscribers" element={
+              <ProtectedRoute>
+                <Subscribers />
               </ProtectedRoute>
             } />
             {/* Legacy redirect */}
