@@ -25,8 +25,11 @@ serve(async (req) => {
   // Server-side allowlist of valid Sovereign Tier price IDs.
   // Only these prices may ever be used to create a checkout session.
   const ALLOWED_PRICE_IDS = new Set<string>([
-    "price_1TZzugJowQfvwg0Zduc27kQz", // Monthly
-    "price_1TZzuIJowQfvwg0ZcP16vg7q", // Annual
+    "price_1TyyX5JowQfvwg0ZUb0qwrdE", // Monthly ($9.99)
+    "price_1TyyXjJowQfvwg0ZmlzUBfAI", // Yearly ($89.99)
+    // Legacy prices — kept for existing subscriber renewals
+    "price_1TZzugJowQfvwg0Zduc27kQz", // Legacy Monthly ($2.88)
+    "price_1TZzuIJowQfvwg0ZcP16vg7q", // Legacy Annual ($19.88)
   ]);
 
   try {
