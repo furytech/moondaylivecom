@@ -23,7 +23,9 @@ interface ProfileRow {
   moon_sign: string | null;
   subscription_status: string;
   is_subscriber: boolean;
+  moon_alert_frequency: string | null;
 }
+
 
 const Account = () => {
   const navigate = useNavigate();
@@ -36,6 +38,9 @@ const Account = () => {
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [alertFrequency, setAlertFrequency] = useState<"all" | "natal">("all");
+  const [frequencySaving, setFrequencySaving] = useState(false);
+
 
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
@@ -65,9 +70,10 @@ const Account = () => {
       }
       const { data, error } = await supabase
         .from("user_profiles")
-        .select("email, birthday, moon_sign, subscription_status, is_subscriber")
+        .select("email, birthday, moon_sign, subscription_status, is_subscriber, moon_alert_frequency")
         .eq("user_id", user.id)
         .maybeSingle();
+
 
       if (error) {
         console.error("Error loading profile:", error);
@@ -109,7 +115,9 @@ const Account = () => {
         moon_sign: moon.sign,
         subscription_status: prev?.subscription_status ?? "free",
         is_subscriber: prev?.is_subscriber ?? false,
+        moon_alert_frequency: prev?.moon_alert_frequency ?? "all",
       }));
+
 
       toast({
         title: "Profile saved",
