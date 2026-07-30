@@ -13,6 +13,9 @@ import {
   BlogPostRow,
   BlogCategory,
   CATEGORIES,
+  SIGNS,
+  signImageUrl,
+  resolveSignImage,
 } from "@/lib/blog/posts";
 
 const defaultPost: Partial<BlogPostRow> = {
@@ -27,7 +30,11 @@ const defaultPost: Partial<BlogPostRow> = {
   status: "draft",
   featured: false,
   cta_type: "none",
+  zodiac_sign_tag: "",
+  constellation_graphic_path: "",
+  image_url: "",
 };
+
 
 const toDatetimeLocalValue = (value?: string | null) => {
   if (!value) return "";
