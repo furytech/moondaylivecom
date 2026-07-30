@@ -15,15 +15,15 @@ import { getCurrentMoon } from "@/lib/currentMoon";
 // Stripe Price IDs
 const PRICES = {
   monthly: {
-    id: "price_1TZzuIJowQfvwg0ZcP16vg7q",
-    amount: "$2.88",
+    id: "price_1TyyX5JowQfvwg0ZUb0qwrdE",
+    amount: "$9.99",
     interval: "month",
   },
   yearly: {
-    id: "price_1TZzugJowQfvwg0Zduc27kQz",
-    amount: "$19.88",
+    id: "price_1TyyXjJowQfvwg0ZmlzUBfAI",
+    amount: "$89.99",
     interval: "year",
-    savings: "Save 42%",
+    savings: "Save 25%",
   },
 };
 
@@ -39,6 +39,7 @@ const COMPARISON: { label: string; free: boolean; sovereign: boolean }[] = [
   { label: "Crystal & element guidance", free: false, sovereign: true },
   { label: "Moon transition alerts", free: false, sovereign: true },
   { label: "Sacred practice library", free: false, sovereign: true },
+  { label: "Honest Chart — no birth time required", free: false, sovereign: true },
 ];
 
 const Pricing = () => {
