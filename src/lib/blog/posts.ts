@@ -104,6 +104,7 @@ export function rowToPost(row: BlogPostRow): BlogPost {
     category: (row.category as BlogCategory) ?? "Guides",
     excerpt: row.excerpt || "",
     author: row.author || "Moonday Live Team",
+    reviewedBy: row.reviewed_by || row.reviewedBy || "Moonday Live Astrologer",
     date: row.published_at || row.publish_at || row.created_at || new Date().toISOString(),
     readMinutes: readTime,
     readTime,
@@ -129,6 +130,7 @@ export function postToRow(post: Partial<BlogPost>): Partial<BlogPostRow> {
     row.read_time = post.readTime ?? post.readMinutes;
   }
   if (post.author !== undefined) row.author = post.author;
+  if (post.reviewedBy !== undefined) row.reviewed_by = post.reviewedBy;
   if (post.imageUrl !== undefined) row.image_url = post.imageUrl;
   if (post.ctaType !== undefined) row.cta_type = post.ctaType;
   if (post.zodiacSignTag !== undefined) row.zodiac_sign_tag = post.zodiacSignTag;
