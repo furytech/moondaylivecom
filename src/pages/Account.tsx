@@ -8,7 +8,9 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
-import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon } from "lucide-react";
+import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+
 import SovereignSecurity from "@/components/SovereignSecurity";
 import SEO from "@/components/SEO";
 import { Calendar } from "@/components/ui/calendar";
