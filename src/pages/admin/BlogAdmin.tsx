@@ -369,15 +369,44 @@ const BlogAdmin = () => {
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Image URL</label>
-              <input
-                value={editing.image_url || ""}
-                onChange={(e) => setField("image_url", e.target.value)}
-                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                placeholder="https://..."
-              />
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Image URL</label>
+                <input
+                  value={editing.image_url || ""}
+                  onChange={(e) => setField("image_url", e.target.value)}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Constellation Path</label>
+                <input
+                  value={editing.constellation_graphic_path || ""}
+                  onChange={(e) => setField("constellation_graphic_path", e.target.value)}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                  placeholder="/assets/signs/Sign.png"
+                />
+              </div>
             </div>
+            {resolveSignImage({
+              imageUrl: editing.image_url,
+              zodiacSignTag: editing.zodiac_sign_tag,
+              constellationGraphicPath: editing.constellation_graphic_path,
+            }) && (
+              <div className="mb-4 rounded-xl border border-border/40 bg-[#0a0f1a] p-4 flex items-center justify-center">
+                <img
+                  src={resolveSignImage({
+                    imageUrl: editing.image_url,
+                    zodiacSignTag: editing.zodiac_sign_tag,
+                    constellationGraphicPath: editing.constellation_graphic_path,
+                  })!}
+                  alt="Sign card preview"
+                  className="max-h-40 object-contain"
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-3 mb-6">
               <input
                 id="featured"
