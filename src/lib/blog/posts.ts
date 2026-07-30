@@ -18,6 +18,7 @@ export interface BlogPost {
   category: BlogCategory;
   excerpt: string;
   author: string;
+  reviewedBy: string;
   date: string; // ISO
   readMinutes: number;
   readTime: number;
@@ -38,6 +39,7 @@ export interface BlogPostRow {
   category: BlogCategory;
   excerpt: string;
   author: string;
+  reviewed_by: string;
   content: string;
   keywords: string[];
   read_time: number;
@@ -58,6 +60,7 @@ export interface BlogPostRow {
   reddit_post?: string;
   zodiac_sign_tag?: string;
   constellation_graphic_path?: string;
+  reviewedBy?: string;
 }
 
 export const CATEGORIES: BlogCategory[] = ["Guides", "Transits", "Features", "Product Updates"];
