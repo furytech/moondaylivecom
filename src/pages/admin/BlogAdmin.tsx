@@ -27,6 +27,7 @@ const defaultPost: Partial<BlogPostRow> = {
   keywords: [],
   read_time: 4,
   author: "Moonday Live Team",
+  reviewed_by: "Moonday Live Astrologer",
   status: "draft",
   featured: false,
   cta_type: "none",
@@ -272,7 +273,15 @@ const BlogAdmin = () => {
                   className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                 />
               </div>
-
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Reviewed By</label>
+                <input
+                  value={editing.reviewed_by || ""}
+                  onChange={(e) => setField("reviewed_by", e.target.value)}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                  placeholder="Astrologer who reviewed this post"
+                />
+              </div>
               <div>
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Read Time (min)</label>
                 <input

@@ -89,6 +89,7 @@ Deno.serve(async (req) => {
       keywords: [`moon in ${sign.toLowerCase()}`, 'moon transit', 'moonday live'],
       read_time: 4,
       author: 'Moonday Live Team',
+      reviewed_by: 'Moonday Live Astrologer',
       status: 'draft',
       publish_at: publishAt,
       cta_type: 'birthday-calculator',
