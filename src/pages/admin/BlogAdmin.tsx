@@ -242,6 +242,29 @@ const BlogAdmin = () => {
                 </select>
               </div>
               <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Zodiac Sign Tag</label>
+                <select
+                  value={editing.zodiac_sign_tag || ""}
+                  onChange={(e) => {
+                    const sign = e.target.value;
+                    setEditing((prev) => {
+                      if (!prev) return prev;
+                      const img = sign ? signImageUrl(sign) : "";
+                      const graphic = sign ? `/assets/signs/${sign}.png` : "";
+                      return { ...prev, zodiac_sign_tag: sign, image_url: img, constellation_graphic_path: graphic };
+                    });
+                  }}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                >
+                  <option value="">— None —</option>
+                  {SIGNS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Author</label>
                 <input
                   value={editing.author || ""}
@@ -249,6 +272,7 @@ const BlogAdmin = () => {
                   className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                 />
               </div>
+
               <div>
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Read Time (min)</label>
                 <input
