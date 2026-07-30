@@ -341,7 +341,7 @@ const Pricing = () => {
             >
               Yearly
               <span className="px-2 py-0.5 bg-primary/90 text-primary-foreground text-[10px] font-display rounded-full tracking-wider">
-                Save 42%
+                {PRICES.yearly.savings}
               </span>
             </button>
           </div>
