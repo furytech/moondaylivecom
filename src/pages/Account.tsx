@@ -80,7 +80,11 @@ const Account = () => {
       } else if (data) {
         setProfile(data);
         if (data.birthday) setBirthday(data.birthday);
+        setAlertFrequency(
+          data.moon_alert_frequency === "natal" ? "natal" : "all"
+        );
       }
+
       setLoading(false);
     };
     load();
