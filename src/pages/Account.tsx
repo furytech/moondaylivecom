@@ -160,7 +160,39 @@ const Account = () => {
     navigate("/");
   };
 
+  const handleFrequencyChange = async (value: "all" | "natal") => {
+    if (!user) return;
+    setFrequencySaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ moon_alert_frequency: value })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setAlertFrequency(value);
+      setProfile((prev) => (prev ? { ...prev, moon_alert_frequency: value } : prev));
+      toast({
+        title: "Alert preference saved",
+        description: value === "all"
+          ? "You will receive every Moon ingress alert."
+          : "You will only receive alerts for your natal Moon sign.",
+      });
+    } catch (err) {
+      console.error("Frequency save error:", err);
+      toast({
+        title: "Could not save preference",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setFrequencySaving(false);
+    }
+  };
+
   return (
+
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
         title="Account — Moonday Live"
