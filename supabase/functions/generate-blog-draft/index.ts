@@ -64,14 +64,15 @@ Deno.serve(async (req) => {
 
     const blogPrompt = `Write a 600–800 word Moonday Live blog post titled: "${title}". Focus on how the Moon in ${sign} feels emotionally over the next ~2.5 days, one small daily ritual, and one thing to release. Weave in the phrase "The Lunar Signature" naturally once. End with a soft nudge to check today's Lunar Signature on Moonday Live.`;
 
-    const redditSystem = `You write short, human, low-noise Reddit posts for r/moondaylive. No hype, no emojis in the title, minimal formatting, conversational. Output pure Markdown ready to paste. Structure: a plain title line (no "Title:" prefix, no markdown heading), a blank line, then 120–180 words of body. End with one genuine open question.`;
+    const redditSystem = `You write short, human, low-noise Reddit posts for r/moondaylive. No hype, no emojis in the title, minimal formatting, conversational. Output pure Markdown ready to paste. Structure: a plain title line (no "Title:" prefix, no markdown heading), a blank line, then 120–180 words of body. End with one genuine open question. The body should end with the sign card image using Markdown: ![${sign} Moon card](https://moondaylive.com/assets/signs/${sign}.png)`;
 
-    const redditPrompt = `Write a Reddit post for r/moondaylive about the Moon entering ${sign}. Share one honest observation about how this transit tends to land emotionally, invite others to share what they're noticing. Don't link out. Don't sell anything.`;
+    const redditPrompt = `Write a Reddit post for r/moondaylive about the Moon entering ${sign}. Share one honest observation about how this transit tends to land emotionally, invite others to share what they're noticing. Don't link out. Don't sell anything. End with the provided image markdown exactly as shown in the system prompt.`;
 
     const [content, redditPost] = await Promise.all([
       callAI(blogPrompt, blogSystem),
       callAI(redditPrompt, redditSystem),
     ]);
+
 
     const excerpt = content.replace(/[#*_>`\[\]]/g, '').split('\n').find(l => l.trim().length > 40)?.slice(0, 180) ?? `The Moon moves into ${sign}. Here's what to notice.`;
 
