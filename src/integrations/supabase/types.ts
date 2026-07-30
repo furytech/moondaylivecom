@@ -630,6 +630,14 @@ export type Database = {
           read_ct: number
         }[]
       }
+      sovereign_users_for_ingress: {
+        Args: { p_to_sign: string; p_transition_at: string }
+        Returns: {
+          email: string
+          moon_sign: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
