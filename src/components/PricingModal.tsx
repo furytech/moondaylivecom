@@ -14,18 +14,18 @@ interface PricingModalProps {
 const PLANS = [
   {
     id: "yearly",
-    priceId: "price_1TZzugJowQfvwg0Zduc27kQz",
+    priceId: "price_1TyyXjJowQfvwg0ZmlzUBfAI",
     name: "Yearly",
-    price: "$19.88",
+    price: "$89.99",
     period: "/year",
-    savings: "Save 42%",
+    savings: "Save 25%",
     features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Sovereign Insight", "Priority support"],
   },
   {
     id: "monthly",
-    priceId: "price_1TZzuIJowQfvwg0ZcP16vg7q",
+    priceId: "price_1TyyX5JowQfvwg0ZUb0qwrdE",
     name: "Monthly",
-    price: "$2.88",
+    price: "$9.99",
     period: "/month",
     savings: null,
     features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Sovereign Insight"],
