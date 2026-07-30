@@ -364,6 +364,30 @@ export type Database = {
         }
         Relationships: []
       }
+      moon_ingress_notifications: {
+        Row: {
+          id: string
+          sent_at: string
+          to_sign: string
+          transition_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          sent_at?: string
+          to_sign: string
+          transition_at: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          sent_at?: string
+          to_sign?: string
+          transition_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       moon_phase_texts: {
         Row: {
           created_at: string
