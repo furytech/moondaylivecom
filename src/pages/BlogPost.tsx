@@ -151,6 +151,11 @@ const BlogPost = () => {
               <Clock className="w-3.5 h-3.5" />
               {post.readMinutes} min read
             </span>
+            {post.reviewedBy && (
+              <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] tracking-wider text-primary/90">
+                Human-reviewed by {post.reviewedBy}
+              </span>
+            )}
           </div>
           <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic">
             {post.excerpt}
