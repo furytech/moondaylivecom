@@ -415,7 +415,7 @@ const Pricing = () => {
               </div>
               {billingInterval === "yearly" ? (
                 <p className="font-serif text-sm text-primary/80 mt-2">
-                  Just $1.66/mo · billed yearly
+                  Just $7.49/mo · billed yearly
                 </p>
               ) : (
                 <p className="font-serif text-sm text-cream-muted/60 mt-2">
@@ -423,7 +423,7 @@ const Pricing = () => {
                 </p>
               )}
               <p className="font-serif text-sm text-cream-muted/70 mt-3">
-                Your fully personalized lunar sanctuary
+                Your fully personalized lunar sanctuary — no birth time required.
               </p>
             </div>
 
@@ -450,8 +450,25 @@ const Pricing = () => {
           </GlassmorphismCard>
         </div>
 
+        <GlassmorphismCard className="mb-10 max-w-3xl mx-auto animate-fade-up" size="md">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full mb-4">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="font-display text-[10px] text-primary uppercase tracking-[0.2em]">
+                The Honest Chart Doctrine
+              </span>
+            </div>
+            <h2 className="font-display text-xl text-foreground mb-3 tracking-wide">
+              No birth time? No problem.
+            </h2>
+            <p className="font-serif text-base text-cream-muted/85 leading-relaxed max-w-2xl mx-auto">
+              Most astrology apps demand a birth time and city before they reveal anything personal. Moonday Live is built differently: we synthesize your Sun, Moon, Mars through Pluto using proven astronomical data — without guessing houses or an Ascendant you can't verify. Free members get their moon sign; Sovereign members get the full picture, honestly delivered.
+            </p>
+          </div>
+        </GlassmorphismCard>
+
         <p className="font-serif text-sm text-cream-muted/40 text-center mb-6">
-          Secure payment powered by Stripe. Cancel anytime.
+          Have a promotion code? Enter it on the checkout page. Secure payment powered by Stripe. Cancel anytime.
         </p>
         </>)}
         </div>
