@@ -8,7 +8,9 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSign } from "@/lib/moonSign";
-import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon } from "lucide-react";
+import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+
 import SovereignSecurity from "@/components/SovereignSecurity";
 import SEO from "@/components/SEO";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,7 +23,9 @@ interface ProfileRow {
   moon_sign: string | null;
   subscription_status: string;
   is_subscriber: boolean;
+  moon_alert_frequency: string | null;
 }
+
 
 const Account = () => {
   const navigate = useNavigate();
@@ -34,6 +38,9 @@ const Account = () => {
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [alertFrequency, setAlertFrequency] = useState<"all" | "natal">("all");
+  const [frequencySaving, setFrequencySaving] = useState(false);
+
 
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
@@ -63,16 +70,21 @@ const Account = () => {
       }
       const { data, error } = await supabase
         .from("user_profiles")
-        .select("email, birthday, moon_sign, subscription_status, is_subscriber")
+        .select("email, birthday, moon_sign, subscription_status, is_subscriber, moon_alert_frequency")
         .eq("user_id", user.id)
         .maybeSingle();
+
 
       if (error) {
         console.error("Error loading profile:", error);
       } else if (data) {
         setProfile(data);
         if (data.birthday) setBirthday(data.birthday);
+        setAlertFrequency(
+          data.moon_alert_frequency === "natal" ? "natal" : "all"
+        );
       }
+
       setLoading(false);
     };
     load();
@@ -107,7 +119,9 @@ const Account = () => {
         moon_sign: moon.sign,
         subscription_status: prev?.subscription_status ?? "free",
         is_subscriber: prev?.is_subscriber ?? false,
+        moon_alert_frequency: prev?.moon_alert_frequency ?? "all",
       }));
+
 
       toast({
         title: "Profile saved",
@@ -146,7 +160,39 @@ const Account = () => {
     navigate("/");
   };
 
+  const handleFrequencyChange = async (value: "all" | "natal") => {
+    if (!user) return;
+    setFrequencySaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ moon_alert_frequency: value })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setAlertFrequency(value);
+      setProfile((prev) => (prev ? { ...prev, moon_alert_frequency: value } : prev));
+      toast({
+        title: "Alert preference saved",
+        description: value === "all"
+          ? "You will receive every Moon ingress alert."
+          : "You will only receive alerts for your natal Moon sign.",
+      });
+    } catch (err) {
+      console.error("Frequency save error:", err);
+      toast({
+        title: "Could not save preference",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setFrequencySaving(false);
+    }
+  };
+
   return (
+
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
         title="Account — Moonday Live"
@@ -353,7 +399,44 @@ const Account = () => {
                     </>
                   )}
                 </div>
+
+                {isPro && (
+                  <div className="mt-8 pt-6 border-t border-primary/10">
+                    <div className="flex items-start gap-3 mb-4">
+                      <Bell className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-display text-xs uppercase tracking-widest text-cream-muted/60 mb-1">
+                          Moon Ingress Alerts
+                        </p>
+                        <p className="font-serif text-sm text-cream-muted/80 mb-4">
+                          Choose how often we email you when the Moon is about to change signs.
+                        </p>
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 border border-primary/10">
+                          <span className="font-serif text-sm text-foreground">
+                            {alertFrequency === "all"
+                              ? "All ingresses"
+                              : "Only my natal sign ingress"}
+                          </span>
+                          <Switch
+                            checked={alertFrequency === "natal"}
+                            onCheckedChange={(checked) =>
+                              handleFrequencyChange(checked ? "natal" : "all")
+                            }
+                            disabled={frequencySaving}
+                            aria-label="Toggle natal-only Moon ingress alerts"
+                          />
+                        </div>
+                        <p className="font-serif text-xs text-cream-muted/50 mt-2">
+                          {alertFrequency === "all"
+                            ? "You will get an alert roughly 2 hours before every Moon sign change."
+                            : "You will only get an alert when the Moon enters your birth Moon sign."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </GlassmorphismCard>
+
 
               {/* Sovereign Security (2FA) */}
               <SovereignSecurity />

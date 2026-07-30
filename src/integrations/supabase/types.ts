@@ -364,6 +364,30 @@ export type Database = {
         }
         Relationships: []
       }
+      moon_ingress_notifications: {
+        Row: {
+          id: string
+          sent_at: string
+          to_sign: string
+          transition_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          sent_at?: string
+          to_sign: string
+          transition_at: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          sent_at?: string
+          to_sign?: string
+          transition_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       moon_phase_texts: {
         Row: {
           created_at: string
@@ -511,6 +535,7 @@ export type Database = {
           email: string | null
           id: string
           is_subscriber: boolean
+          moon_alert_frequency: string | null
           moon_sign: string | null
           subscription_status: string
           updated_at: string
@@ -524,6 +549,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_subscriber?: boolean
+          moon_alert_frequency?: string | null
           moon_sign?: string | null
           subscription_status?: string
           updated_at?: string
@@ -537,6 +563,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_subscriber?: boolean
+          moon_alert_frequency?: string | null
           moon_sign?: string | null
           subscription_status?: string
           updated_at?: string
@@ -601,6 +628,14 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      sovereign_users_for_ingress: {
+        Args: { p_to_sign: string; p_transition_at: string }
+        Returns: {
+          email: string
+          moon_sign: string
+          user_id: string
         }[]
       }
     }
