@@ -113,7 +113,8 @@ Deno.serve(async (req) => {
       const userId = user.user_id
       const email = user.email
       const natalMoonSign = user.moon_sign
-      const userName = user.first_name || user.display_name || null
+      const userName: string | null = null
+
 
       const idempotencyKey = `moon-ingress-${transitionAt}-${userId}`
 
