@@ -511,6 +511,7 @@ export type Database = {
           email: string | null
           id: string
           is_subscriber: boolean
+          moon_alert_frequency: string | null
           moon_sign: string | null
           subscription_status: string
           updated_at: string
@@ -524,6 +525,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_subscriber?: boolean
+          moon_alert_frequency?: string | null
           moon_sign?: string | null
           subscription_status?: string
           updated_at?: string
@@ -537,6 +539,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_subscriber?: boolean
+          moon_alert_frequency?: string | null
           moon_sign?: string | null
           subscription_status?: string
           updated_at?: string
