@@ -23,6 +23,7 @@ const Unsubscribe = () => {
 
     const validate = async () => {
       const { data, error } = await supabase.functions.invoke("handle-email-unsubscribe", {
+        method: "GET",
         body: { token },
       });
 
@@ -32,6 +33,7 @@ const Unsubscribe = () => {
         setStatus("valid");
       }
     };
+
 
     validate();
   }, [token]);
