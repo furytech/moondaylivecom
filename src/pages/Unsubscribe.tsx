@@ -22,17 +22,27 @@ const Unsubscribe = () => {
     }
 
     const validate = async () => {
-      const { data, error } = await supabase.functions.invoke("handle-email-unsubscribe", {
-        method: "GET",
-        body: { token },
-      });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/handle-email-unsubscribe?token=${encodeURIComponent(token)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${anonKey}`,
+            apikey: anonKey,
+          },
+        }
+      );
 
-      if (error || !data?.valid) {
+      const data = await res.json().catch(() => ({ valid: false }));
+      if (!res.ok || !data?.valid) {
         setStatus(data?.reason === "already_unsubscribed" ? "already" : "invalid");
       } else {
         setStatus("valid");
       }
     };
+
 
 
     validate();
