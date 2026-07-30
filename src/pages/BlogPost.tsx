@@ -89,6 +89,8 @@ const BlogPost = () => {
     ],
   };
 
+  const signImage = resolveSignImage(post);
+
   return (
     <PageLayout>
       <SEO
@@ -96,6 +98,7 @@ const BlogPost = () => {
         description={post.excerpt}
         canonical={canonical}
         ogType="article"
+        ogImage={signImage || undefined}
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
@@ -112,13 +115,27 @@ const BlogPost = () => {
           </ol>
         </nav>
 
-        {/* Hero */}
-        <div className="relative rounded-xl overflow-hidden mb-8 h-32 md:h-44 bg-gradient-to-br from-primary/20 via-navy-medium/60 to-navy-deep border border-border/30">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.25),transparent_60%)]" />
+        {/* Hero — sign constellation card */}
+        <div className="relative rounded-2xl overflow-hidden mb-8 border border-border/30 bg-[#0a0f1a]">
+          <div className="relative h-48 md:h-64 lg:h-72 w-full flex items-center justify-center">
+            {signImage ? (
+              <>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,hsl(var(--primary)/0.12),transparent_60%)]" />
+                <img
+                  src={signImage}
+                  alt={`${post.zodiacSignTag || "Constellation"} constellation card`}
+                  className="relative z-10 h-full w-full object-contain p-4 md:p-6"
+                />
+              </>
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-navy-medium/60 to-navy-deep" />
+            )}
+          </div>
           <span className="absolute top-4 left-4 inline-flex items-center rounded-full border border-primary/30 bg-background/60 px-2.5 py-1 text-[10px] tracking-[0.2em] uppercase text-primary/90 backdrop-blur">
             {post.category}
           </span>
         </div>
+
 
         <header className="mb-10">
           <h1 className="font-display text-2xl md:text-[32px] leading-snug tracking-tight text-foreground font-normal">
