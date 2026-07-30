@@ -22,7 +22,9 @@ import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import Account from "./pages/Account";
+import Unsubscribe from "./pages/Unsubscribe";
 import Contact from "./pages/Contact";
+
 import FAQ from "./pages/FAQ";
 import Refund from "./pages/Refund";
 import Disclaimer from "./pages/Disclaimer";
@@ -106,7 +108,9 @@ const App = () => (
                 <Account />
               </ProtectedRoute>
             } />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/privacy" element={<Privacy />} />
+
             <Route path="/terms" element={<Terms />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
