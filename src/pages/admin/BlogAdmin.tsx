@@ -13,6 +13,9 @@ import {
   BlogPostRow,
   BlogCategory,
   CATEGORIES,
+  SIGNS,
+  signImageUrl,
+  resolveSignImage,
 } from "@/lib/blog/posts";
 
 const defaultPost: Partial<BlogPostRow> = {
@@ -27,7 +30,11 @@ const defaultPost: Partial<BlogPostRow> = {
   status: "draft",
   featured: false,
   cta_type: "none",
+  zodiac_sign_tag: "",
+  constellation_graphic_path: "",
+  image_url: "",
 };
+
 
 const toDatetimeLocalValue = (value?: string | null) => {
   if (!value) return "";
@@ -78,14 +85,17 @@ const BlogAdmin = () => {
       setMessage("No Reddit post drafted for this row yet.");
       return;
     }
+    const signImage = signImageUrl(post.zodiac_sign_tag);
+    const redditWithImage = signImage ? `${text}\n\n![${post.zodiac_sign_tag || "Constellation"} card](${signImage})` : text;
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(redditWithImage);
       setCopiedId(post.id || null);
       setTimeout(() => setCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
     } catch {
       setMessage("Copy failed — browser blocked clipboard access.");
     }
   };
+
 
   const handleApproveAndPublish = async (id: string) => {
     try {
@@ -232,6 +242,29 @@ const BlogAdmin = () => {
                 </select>
               </div>
               <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Zodiac Sign Tag</label>
+                <select
+                  value={editing.zodiac_sign_tag || ""}
+                  onChange={(e) => {
+                    const sign = e.target.value;
+                    setEditing((prev) => {
+                      if (!prev) return prev;
+                      const img = sign ? signImageUrl(sign) : "";
+                      const graphic = sign ? `/assets/signs/${sign}.png` : "";
+                      return { ...prev, zodiac_sign_tag: sign, image_url: img, constellation_graphic_path: graphic };
+                    });
+                  }}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                >
+                  <option value="">— None —</option>
+                  {SIGNS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Author</label>
                 <input
                   value={editing.author || ""}
@@ -239,6 +272,7 @@ const BlogAdmin = () => {
                   className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                 />
               </div>
+
               <div>
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Read Time (min)</label>
                 <input
@@ -335,15 +369,44 @@ const BlogAdmin = () => {
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Image URL</label>
-              <input
-                value={editing.image_url || ""}
-                onChange={(e) => setField("image_url", e.target.value)}
-                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                placeholder="https://..."
-              />
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Image URL</label>
+                <input
+                  value={editing.image_url || ""}
+                  onChange={(e) => setField("image_url", e.target.value)}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Constellation Path</label>
+                <input
+                  value={editing.constellation_graphic_path || ""}
+                  onChange={(e) => setField("constellation_graphic_path", e.target.value)}
+                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                  placeholder="/assets/signs/Sign.png"
+                />
+              </div>
             </div>
+            {resolveSignImage({
+              imageUrl: editing.image_url,
+              zodiacSignTag: editing.zodiac_sign_tag,
+              constellationGraphicPath: editing.constellation_graphic_path,
+            }) && (
+              <div className="mb-4 rounded-xl border border-border/40 bg-[#0a0f1a] p-4 flex items-center justify-center">
+                <img
+                  src={resolveSignImage({
+                    imageUrl: editing.image_url,
+                    zodiacSignTag: editing.zodiac_sign_tag,
+                    constellationGraphicPath: editing.constellation_graphic_path,
+                  })!}
+                  alt="Sign card preview"
+                  className="max-h-40 object-contain"
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-3 mb-6">
               <input
                 id="featured"

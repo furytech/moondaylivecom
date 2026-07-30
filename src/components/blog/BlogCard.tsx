@@ -1,43 +1,13 @@
 import { Link } from "react-router-dom";
 import { Clock, Calendar } from "lucide-react";
-import { BlogPost, categoryPath } from "@/lib/blog/posts";
+import { BlogPost, categoryPath, resolveSignImage } from "@/lib/blog/posts";
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-// Eagerly bundle every constellation graphic in src/assets/zodiac/
-// so DB-stored paths like "/src/assets/zodiac/Sagittarius.png" resolve at runtime.
-const constellationModules = import.meta.glob("/src/assets/zodiac/*.{png,jpg,jpeg,webp}", {
-  eager: true,
-  import: "default",
-}) as Record<string, string>;
-
-const constellationByLower: Record<string, string> = Object.fromEntries(
-  Object.entries(constellationModules).map(([path, url]) => {
-    const file = path.split("/").pop() || "";
-    return [file.toLowerCase(), url];
-  })
-);
-
-function resolveConstellation(post: BlogPost): string | null {
-  const path = post.constellationGraphicPath;
-  if (path) {
-    const file = path.split("/").pop()?.toLowerCase() || "";
-    if (constellationByLower[file]) return constellationByLower[file];
-  }
-  const sign = post.zodiacSignTag?.toLowerCase();
-  if (sign) {
-    for (const ext of ["png", "jpg", "jpeg", "webp"]) {
-      const hit = constellationByLower[`${sign}.${ext}`];
-      if (hit) return hit;
-    }
-  }
-  return null;
-}
-
 const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boolean }) => {
   const href = `/blog/${categoryPath(post.category)}/${post.slug}`;
-  const constellation = resolveConstellation(post);
+  const signImage = resolveSignImage(post);
 
   return (
     <Link
@@ -47,20 +17,18 @@ const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boole
       }`}
     >
       <div
-        className={`relative w-full ${featured ? "h-56 md:h-72" : "h-40"} bg-gradient-to-br from-primary/25 via-navy-medium to-navy-deep overflow-hidden`}
-        style={
-          constellation
-            ? {
-                backgroundImage: `url(${constellation})`,
-                backgroundSize: "contain",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
-                backgroundColor: "#161622",
-              }
-            : undefined
-        }
+        className={`relative w-full ${featured ? "h-56 md:h-72" : "h-40"} bg-gradient-to-br from-primary/25 via-navy-medium to-navy-deep overflow-hidden flex items-center justify-center`}
       >
-        {!constellation && (
+        {signImage ? (
+          <>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,hsl(var(--primary)/0.18),transparent_55%)]" />
+            <img
+              src={signImage}
+              alt={`${post.zodiacSignTag || "Constellation"} constellation card`}
+              className="relative z-10 h-full w-full object-contain p-3 md:p-4"
+            />
+          </>
+        ) : (
           <>
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.35),transparent_55%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,hsl(var(--gold-medium)/0.15),transparent_50%)]" />
@@ -72,7 +40,6 @@ const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boole
           {post.category}
         </span>
       </div>
-
 
       <div className={`p-5 md:p-6 ${featured ? "md:p-8" : ""}`}>
         <h3

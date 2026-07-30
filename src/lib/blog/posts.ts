@@ -4,6 +4,14 @@ export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates
 export type CtaType = "birthday-calculator" | "dashboard" | "none";
 export type PostStatus = "draft" | "approved" | "published";
 
+export const SITE_URL = "https://moondaylive.com";
+export const SIGNS_PUBLIC_PATH = "/assets/signs";
+
+export const SIGNS = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+];
+
 export interface BlogPost {
   slug: string;
   title: string;
@@ -58,8 +66,35 @@ export function categoryPath(cat: BlogCategory | string) {
   return cat.toLowerCase().replace(/\s+/g, "-");
 }
 
+export function capitalizeSign(sign?: string | null): string {
+  if (!sign) return "";
+  const s = sign.trim().toLowerCase();
+  const match = SIGNS.find((x) => x.toLowerCase() === s);
+  return match || s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export function signImageUrl(sign?: string | null): string | null {
+  const name = capitalizeSign(sign);
+  if (!name) return null;
+  return `${SITE_URL}${SIGNS_PUBLIC_PATH}/${name}.png`;
+}
+
+export function resolveSignImage(post: Partial<BlogPost>): string | null {
+  if (post.imageUrl) return post.imageUrl;
+  const fromPath = post.constellationGraphicPath;
+  if (fromPath) {
+    const file = fromPath.split("/").pop()?.replace(/\.[^.]+$/, "") || "";
+    const url = signImageUrl(file);
+    if (url) return url;
+  }
+  return signImageUrl(post.zodiacSignTag);
+}
+
 export function rowToPost(row: BlogPostRow): BlogPost {
   const readTime = Number(row.read_time ?? row.readTime ?? row.readMinutes ?? 4);
+  const zodiacSignTag = row.zodiac_sign_tag;
+  const constellationGraphicPath = row.constellation_graphic_path;
+  const autoImage = signImageUrl(zodiacSignTag) || (constellationGraphicPath ? `${SITE_URL}${constellationGraphicPath}` : undefined);
   return {
     slug: row.slug,
     title: row.title,
@@ -72,10 +107,10 @@ export function rowToPost(row: BlogPostRow): BlogPost {
     keywords: Array.isArray(row.keywords) ? row.keywords.map(String) : [],
     featured: Boolean(row.featured),
     ctaType: (row.cta_type as CtaType) ?? (row.ctaType as CtaType) ?? "none",
-    imageUrl: row.image_url || row.imageUrl,
+    imageUrl: row.image_url || row.imageUrl || autoImage,
     content: row.content || "",
-    zodiacSignTag: row.zodiac_sign_tag,
-    constellationGraphicPath: row.constellation_graphic_path,
+    zodiacSignTag,
+    constellationGraphicPath,
   };
 }
 
@@ -93,8 +128,11 @@ export function postToRow(post: Partial<BlogPost>): Partial<BlogPostRow> {
   if (post.author !== undefined) row.author = post.author;
   if (post.imageUrl !== undefined) row.image_url = post.imageUrl;
   if (post.ctaType !== undefined) row.cta_type = post.ctaType;
+  if (post.zodiacSignTag !== undefined) row.zodiac_sign_tag = post.zodiacSignTag;
+  if (post.constellationGraphicPath !== undefined) row.constellation_graphic_path = post.constellationGraphicPath;
   return row;
 }
+
 
 export async function fetchPublishedPosts(): Promise<BlogPost[]> {
   const { data, error } = await supabase
