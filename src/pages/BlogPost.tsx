@@ -6,7 +6,8 @@ import SEO from "@/components/SEO";
 import MarkdownArticle from "@/components/blog/MarkdownArticle";
 import BlogCard from "@/components/blog/BlogCard";
 import MoonLoader from "@/components/MoonLoader";
-import { fetchPostBySlug, getRelated, categoryPath } from "@/lib/blog/posts";
+import { fetchPostBySlug, getRelated, categoryPath, resolveSignImage } from "@/lib/blog/posts";
+
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
