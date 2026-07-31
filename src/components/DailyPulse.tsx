@@ -176,9 +176,9 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className={`group inline-flex items-center gap-2 rounded-sm border px-4 py-1.5 text-[11px] uppercase tracking-[0.35em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold-medium))] ${
+                className={`group inline-flex items-center gap-2 rounded-sm border px-4 py-1.5 text-[11px] uppercase tracking-[0.35em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--lime-accent))] ${
                   verdict.tone === "divergent"
-                    ? "border-[hsl(var(--lilac)/0.55)] text-[hsl(var(--lilac-light))] hover:bg-[hsl(var(--lilac)/0.08)]"
+                    ? "border-[hsl(var(--lime-accent)/0.55)] text-[hsl(var(--lime-accent-light))] hover:bg-[hsl(var(--lime-accent)/0.08)]"
                     : "border-[hsl(var(--gold-medium)/0.6)] text-[hsl(var(--gold-light))] hover:bg-[hsl(var(--gold-medium)/0.08)]"
                 }`}
                 aria-label={`${verdict.label}. ${verdict.tooltip}`}
@@ -186,7 +186,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                 <span
                   className={`inline-block h-1.5 w-1.5 rounded-full ${
                     verdict.tone === "divergent"
-                      ? "bg-[hsl(var(--lilac-light))]"
+                      ? "bg-[hsl(var(--lime-accent-light))]"
                       : "bg-[hsl(var(--gold-light))]"
                   }`}
                 />
