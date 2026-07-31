@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
-import { getLunarIntelligence, getTimeUntilNextSign } from "@/lib/lunarEngine";
+import { safeLunarIntelligence, safeTimeUntilNextSign } from "@/lib/safeLunar";
+import MoonCalculationFallback from "@/components/MoonCalculationFallback";
+import CalculationBoundary from "@/components/CalculationBoundary";
 import { getSignSymbol } from "@/lib/forecastEngine";
 import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -49,8 +51,11 @@ const Blueprint = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   
-  // Unified lunar intelligence
-  const [lunar, setLunar] = useState(() => getLunarIntelligence());
+  // Unified lunar intelligence. Never throws — a failed ephemeris read leaves
+  // `lunar` null and surfaces an informative fallback instead of a blank page.
+  const [lunarState, setLunarState] = useState(() => safeLunarIntelligence());
+  const [retrying, setRetrying] = useState(false);
+  const lunar = lunarState.data;
   
   // Temporary moon sign for users who use the lookup form but don't have a saved profile
   const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
@@ -106,7 +111,7 @@ const Blueprint = () => {
 
   // Update lunar data periodically
   useEffect(() => {
-    const update = () => setLunar(getLunarIntelligence());
+    const update = () => setLunarState(safeLunarIntelligence());
     const interval = setInterval(update, 60000); // every minute
     return () => clearInterval(interval);
   }, []);
@@ -114,13 +119,24 @@ const Blueprint = () => {
   // Update transition timer
   useEffect(() => {
     const updateTimer = () => {
-      const { hours, minutes } = getTimeUntilNextSign();
-      setTimeUntilTransition(`${hours}h ${minutes}m`);
+      const result = safeTimeUntilNextSign();
+      setTimeUntilTransition(result.ok ? result.data : "");
     };
     updateTimer();
     const interval = setInterval(updateTimer, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Manual recalculation after a failed reading.
+  const retryLunar = () => {
+    setRetrying(true);
+    const next = safeLunarIntelligence();
+    setLunarState(next);
+    const timer = safeTimeUntilNextSign();
+    setTimeUntilTransition(timer.ok ? timer.data : "");
+    setRetrying(false);
+  };
+
 
   // Refresh subscription and profile on success
   useEffect(() => {
@@ -227,14 +243,16 @@ const Blueprint = () => {
   };
 
   // Map lunar engine data to CurrentMoonData format for DailyForecast compatibility
-  const moonDataCompat = {
-    sign: lunar.sign.name,
-    symbol: lunar.sign.symbol,
-    element: lunar.sign.element,
-    phase: lunar.phase.name,
-    illumination: lunar.phase.illumination,
-    phaseEmoji: lunar.phase.emoji as string,
-  };
+  const moonDataCompat = lunar
+    ? {
+        sign: lunar.sign.name,
+        symbol: lunar.sign.symbol,
+        element: lunar.sign.element,
+        phase: lunar.phase.name,
+        illumination: lunar.phase.illumination,
+        phaseEmoji: lunar.phase.emoji as string,
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
@@ -347,33 +365,49 @@ const Blueprint = () => {
                   Today's Moon
                 </h2>
               </div>
-              
-              <div className="flex flex-col items-center py-8">
-                <span className="text-6xl text-primary font-display mb-6">{lunar.sign.symbol}</span>
-                <p className="font-display text-3xl text-primary mb-3">
-                  {lunar.sign.name}
-                </p>
-                <p className="font-serif text-lg text-muted-foreground mb-4">
-                  {lunar.phase.name} • {lunar.phase.illumination}%
-                </p>
-                <div className="flex items-center justify-center gap-3 text-cream-muted">
-                  <Clock className="w-5 h-5 text-primary" />
-                  <span className="font-serif text-lg">
-                    Next sign in <span className="text-primary font-display">{timeUntilTransition}</span>
-                  </span>
-                </div>
-              </div>
 
-              <div className="border-t border-primary/10 pt-6 mt-auto">
-                <button
-                  onClick={() => setTodaysMoonModalOpen(true)}
-                  className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--reveal)/0.65)] bg-[hsl(var(--reveal)/0.12)] hover:bg-[hsl(var(--reveal)/0.22)] hover:border-[hsl(var(--reveal-strong)/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(var(--reveal-strong))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
-                >
-                  <span>About Today's Moon Energy</span>
-                  <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
-                </button>
-              </div>
+              {lunar ? (
+                <>
+                  <div className="flex flex-col items-center py-8">
+                    <span className="text-6xl text-primary font-display mb-6">{lunar.sign.symbol}</span>
+                    <p className="font-display text-3xl text-primary mb-3">
+                      {lunar.sign.name}
+                    </p>
+                    <p className="font-serif text-lg text-muted-foreground mb-4">
+                      {lunar.phase.name} • {lunar.phase.illumination}%
+                    </p>
+                    <div className="flex items-center justify-center gap-3 text-cream-muted">
+                      <Clock className="w-5 h-5 text-primary" />
+                      <span className="font-serif text-lg">
+                        Next sign in{" "}
+                        <span className="text-primary font-display">
+                          {timeUntilTransition || "—"}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-primary/10 pt-6 mt-auto">
+                    <button
+                      onClick={() => setTodaysMoonModalOpen(true)}
+                      className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--reveal)/0.65)] bg-[hsl(var(--reveal)/0.12)] hover:bg-[hsl(var(--reveal)/0.22)] hover:border-[hsl(var(--reveal-strong)/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(var(--reveal-strong))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                    >
+                      <span>About Today's Moon Energy</span>
+                      <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <MoonCalculationFallback
+                  bare
+                  title="Today's Moon is unavailable"
+                  message={lunarState.error ?? undefined}
+                  onRetry={retryLunar}
+                  retrying={retrying}
+                />
+              )}
             </GlassmorphismCard>
+
           </div>
 
           {/* Share Your Moon CTA */}
@@ -400,55 +434,72 @@ const Blueprint = () => {
 
 
           {/* Daily Forecast */}
-          {displayedMoonSign && (
+          {displayedMoonSign && moonDataCompat && (
             <div className="mt-12 animate-fade-up stagger-3">
-              <DailyForecast
-                birthMoonSign={displayedMoonSign}
-                currentMoon={moonDataCompat}
+              <CalculationBoundary scope="DailyForecast" title="Today's forecast is unavailable">
+                <DailyForecast
+                  birthMoonSign={displayedMoonSign}
+                  currentMoon={moonDataCompat}
+                />
+              </CalculationBoundary>
+            </div>
+          )}
+
+          {/* Lunar sections — all depend on a successful ephemeris read */}
+          {lunar ? (
+            <CalculationBoundary scope="LunarSections" title="Your lunar readings are unavailable">
+              {/* Daily Ritual */}
+              <div className="mt-12 animate-fade-up stagger-3">
+                <DailyRitual
+                  currentMoonSign={lunar.sign.name}
+                  birthMoonSign={displayedMoonSign || null}
+                  moonPhase={lunar.phase.name}
+                  isPro={isPro}
+                  onUpgradeClick={handleOpenPricing}
+                />
+              </div>
+
+              {/* Emotional Climate Gauge */}
+              <div className="mt-12">
+                <ClimateGauge illumination={lunar.phase.illumination} sign={lunar.sign.name} />
+              </div>
+
+              {/* === LUNAR INTELLIGENCE SECTIONS === */}
+
+              {/* 1. The Great Cycle (Phases) */}
+              <div className="mt-12">
+                <GreatCycleSection lunar={lunar} isSubscriber={userProfile?.is_subscriber ?? false} onUpgradeClick={handleOpenPricing} />
+              </div>
+
+              {/* 2. The Lunar Signature (Signs) */}
+              <div className="mt-12">
+                <LunarSignatureSection
+                  lunar={lunar}
+                  isPro={userProfile?.is_subscriber ?? false}
+                  onUpgradeClick={handleOpenPricing}
+                />
+              </div>
+
+              {/* 3. Between Phases (VoC) */}
+              <div className="mt-12">
+                <VoidIntervalSection
+                  lunar={lunar}
+                  isPro={userProfile?.is_subscriber ?? false}
+                  onUpgradeClick={handleOpenPricing}
+                />
+              </div>
+            </CalculationBoundary>
+          ) : (
+            <div className="mt-12">
+              <MoonCalculationFallback
+                title="Your lunar readings are unavailable"
+                message={lunarState.error ?? undefined}
+                onRetry={retryLunar}
+                retrying={retrying}
               />
             </div>
           )}
 
-          {/* Daily Ritual */}
-          <div className="mt-12 animate-fade-up stagger-3">
-            <DailyRitual
-              currentMoonSign={lunar.sign.name}
-              birthMoonSign={displayedMoonSign || null}
-              moonPhase={lunar.phase.name}
-              isPro={isPro}
-              onUpgradeClick={handleOpenPricing}
-            />
-          </div>
-
-          {/* Emotional Climate Gauge */}
-          <div className="mt-12">
-            <ClimateGauge illumination={lunar.phase.illumination} sign={lunar.sign.name} />
-          </div>
-
-          {/* === LUNAR INTELLIGENCE SECTIONS === */}
-
-          {/* 1. The Great Cycle (Phases) */}
-          <div className="mt-12">
-            <GreatCycleSection lunar={lunar} isSubscriber={userProfile?.is_subscriber ?? false} onUpgradeClick={handleOpenPricing} />
-          </div>
-
-          {/* 2. The Lunar Signature (Signs) */}
-          <div className="mt-12">
-            <LunarSignatureSection
-              lunar={lunar}
-              isPro={userProfile?.is_subscriber ?? false}
-              onUpgradeClick={handleOpenPricing}
-            />
-          </div>
-
-          {/* 3. Between Phases (VoC) */}
-          <div className="mt-12">
-            <VoidIntervalSection
-              lunar={lunar}
-              isPro={userProfile?.is_subscriber ?? false}
-              onUpgradeClick={handleOpenPricing}
-            />
-          </div>
 
           {/* Lunar Return Tracker — Sovereign only */}
           {isPro && displayedMoonSign && (
@@ -494,7 +545,7 @@ const Blueprint = () => {
         moonSign={displayedMoonSign || null}
       />
 
-      {(() => {
+      {lunar && (() => {
         const phaseKey = Object.keys(PHASE_GUIDANCE).find((k) =>
           lunar.phase.name.toLowerCase().includes(k.toLowerCase())
         ) || "New";
@@ -507,7 +558,7 @@ const Blueprint = () => {
             eyebrow="Today's Moon"
             title={`Moon in ${lunar.sign.name}`}
             symbol={lunar.sign.symbol}
-            subtitle={`${lunar.phase.name} • ${lunar.phase.illumination}% illuminated • Next sign in ${timeUntilTransition}`}
+            subtitle={`${lunar.phase.name} • ${lunar.phase.illumination}% illuminated • Next sign in ${timeUntilTransition || "—"}`}
             intro={`Today's lunar weather blends the ${lunar.phase.name} phase with the ${lunar.sign.name} signature. Together they shape the emotional tone of your day across mind, soul, and body.`}
             sections={[
               { label: `Mind · ${lunar.sign.name}`, body: signG.psychological },

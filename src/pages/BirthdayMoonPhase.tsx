@@ -7,6 +7,8 @@ import SEO from "@/components/SEO";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { getCurrentMoon, type CurrentMoonData } from "@/lib/currentMoon";
 import { calculateMoonSignAsync } from "@/lib/moonSign";
+import { CALCULATION_ERROR_MESSAGE } from "@/lib/safeLunar";
+import MoonCalculationFallback from "@/components/MoonCalculationFallback";
 
 const PHASES: { name: string; body: string }[] = [
   { name: "New Moon", body: "The Moon sits between Earth and the Sun, invisible to us. Symbolically tied to beginnings, blank slates, and setting intentions before the cycle builds." },
@@ -62,6 +64,33 @@ const BirthdayMoonPhase = () => {
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastAttempt, setLastAttempt] = useState<Date | null>(null);
+
+  const runCalculation = async (bd: Date) => {
+    setLoading(true);
+    try {
+      const moon = getCurrentMoon(bd);
+      const signResult = await calculateMoonSignAsync(bd);
+      if (!moon?.phase || !signResult?.sign) {
+        throw new Error("Incomplete lunar payload");
+      }
+      setResult({
+        dateLabel: bd.toLocaleDateString(undefined, {
+          year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
+        }),
+        moon,
+        moonSign: signResult.sign,
+        moonSignSymbol: signResult.symbol,
+      });
+    } catch (err) {
+      // Keep the form usable: clear the stale reading, explain, offer a retry.
+      console.error("[BirthdayMoonPhase] calculation failed", err);
+      setResult(null);
+      setError(CALCULATION_ERROR_MESSAGE);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,24 +106,10 @@ const BirthdayMoonPhase = () => {
       return;
     }
     const bd = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-    setLoading(true);
-    try {
-      const moon = getCurrentMoon(bd);
-      const signResult = await calculateMoonSignAsync(bd);
-      setResult({
-        dateLabel: bd.toLocaleDateString(undefined, {
-          year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
-        }),
-        moon,
-        moonSign: signResult.sign,
-        moonSignSymbol: signResult.symbol,
-      });
-    } catch {
-      setError("Something went wrong calculating your birth moon. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    setLastAttempt(bd);
+    await runCalculation(bd);
   };
+
 
   return (
     <PageLayout>
@@ -145,8 +160,21 @@ const BirthdayMoonPhase = () => {
             >
               {loading ? "Reading the Sky…" : "Reveal My Birth Moon →"}
             </button>
-            {error && <p className="text-xs text-red-400 font-serif">{error}</p>}
+            {error && error !== CALCULATION_ERROR_MESSAGE && (
+              <p className="text-xs text-red-400 font-serif">{error}</p>
+            )}
           </form>
+
+          {error === CALCULATION_ERROR_MESSAGE && (
+            <div className="mt-6 pt-4 border-t border-[hsl(var(--gold-medium)/0.25)]">
+              <MoonCalculationFallback
+                bare
+                title="We couldn't calculate this reading"
+                onRetry={lastAttempt ? () => runCalculation(lastAttempt) : undefined}
+                retrying={loading}
+              />
+            </div>
+          )}
 
           {result && (
             <div className="mt-8 pt-6 border-t border-[hsl(var(--gold-medium)/0.25)] text-center space-y-3">
@@ -167,6 +195,7 @@ const BirthdayMoonPhase = () => {
               </p>
             </div>
           )}
+
         </GlassmorphismCard>
 
         {/* Why it matters */}
