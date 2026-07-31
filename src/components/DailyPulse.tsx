@@ -219,13 +219,13 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                 <div className={`font-display text-[11px] tracking-[0.4em] mb-1 ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--gold-medium))]"}`}>
                   {lens.numeral}
                 </div>
-                <div className="text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.5)] mb-2">
+                <div className={`text-[9px] uppercase tracking-[0.3em] mb-2 ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--cream)/0.5)]"}`}>
                   {lens.eyebrow}
                 </div>
-                <h3 className="font-display text-base sm:text-lg tracking-wide text-[hsl(var(--cream))] min-h-[3.5rem] flex items-center justify-center">
+                <h3 className={`font-display text-base sm:text-lg tracking-wide min-h-[3.5rem] flex items-center justify-center ${isOpen ? "text-[hsl(var(--lime-accent-light))]" : "text-[hsl(var(--cream))]"}`}>
                   {lens.title}
                 </h3>
-                <p className="mt-1 text-[12px] italic text-[hsl(var(--cream)/0.6)] leading-snug min-h-[2.5rem]">
+                <p className={`mt-1 text-[12px] leading-snug min-h-[2.5rem] ${isOpen ? "text-[hsl(var(--cream)/0.85)]" : "text-[hsl(var(--cream)/0.6)] italic"}`}>
                   {lens.subtitle}
                 </p>
                 <div className="mt-auto pt-4">
