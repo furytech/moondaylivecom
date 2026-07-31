@@ -545,7 +545,7 @@ const Blueprint = () => {
         moonSign={displayedMoonSign || null}
       />
 
-      {(() => {
+      {lunar && (() => {
         const phaseKey = Object.keys(PHASE_GUIDANCE).find((k) =>
           lunar.phase.name.toLowerCase().includes(k.toLowerCase())
         ) || "New";
