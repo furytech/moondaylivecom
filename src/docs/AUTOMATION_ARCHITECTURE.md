@@ -42,10 +42,36 @@ that file whenever the workflow changes.
 
 ### Known defects (verified 2026-07-31)
 
-1. **`/api/next-ingress` does not exist.** It returns `200 text/html` (the SPA
-   index page), not JSON. So `next_sign`/`current_sign` are always undefined and
-   the Code node silently falls back to **Pisces → Aries, ingress = now**, every
-   run. Every email would describe the same fake transit.
+1. ~~**`/api/next-ingress` does not exist.**~~ **FIXED 2026-07-31.** A real
+   endpoint is now deployed as the `next-ingress` edge function. Point the n8n
+   HTTP Request node at:
+   `GET https://hzlpnmvboqhzthvjlves.supabase.co/functions/v1/next-ingress`
+   (no auth required, 5-minute cache). Response shape:
+
+   ```json
+   {
+     "generated_at": "2026-07-31T12:31:32.285Z",
+     "source": "moon_transitions",
+     "current_sign": "Pisces",
+     "current_element": "Water",
+     "next_sign": "Aries",
+     "next_element": "Fire",
+     "from_sign": "Pisces",
+     "ingress_utc": "2026-08-02T20:36:43.084Z",
+     "ingress_et": "Sunday, August 2, 2026 at 4:36 PM",
+     "hours_until": 56.1,
+     "minutes_until": 3365,
+     "blog_slug": "moon-enters-aries-2026-08-02",
+     "sign_image_url": "https://moondaylive.com/assets/signs/aries.png",
+     "blueprint_url": "https://moondaylive.com/blueprint"
+   }
+   ```
+
+   Data comes from `public.moon_transitions` (seeded daily by
+   `seed-moon-transitions`). If no future row exists, the function computes the
+   ingress live with astronomy-engine, so it can never return fake data.
+   `source` tells you which path was used.
+
 2. **Content is not AI-generated.** `blog_content` and `reddit_content` are
    fixed template literals in the Code node with the sign names interpolated.
    No Gemini/LLM call anywhere in the workflow.
