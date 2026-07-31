@@ -7,6 +7,8 @@ import SEO from "@/components/SEO";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { getCurrentMoon, type CurrentMoonData } from "@/lib/currentMoon";
 import { calculateMoonSignAsync } from "@/lib/moonSign";
+import { CALCULATION_ERROR_MESSAGE } from "@/lib/safeLunar";
+import MoonCalculationFallback from "@/components/MoonCalculationFallback";
 
 const PHASES: { name: string; body: string }[] = [
   { name: "New Moon", body: "The Moon sits between Earth and the Sun, invisible to us. Symbolically tied to beginnings, blank slates, and setting intentions before the cycle builds." },
@@ -62,6 +64,7 @@ const BirthdayMoonPhase = () => {
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastAttempt, setLastAttempt] = useState<Date | null>(null);
 
   const runCalculation = async (bd: Date) => {
     setLoading(true);
