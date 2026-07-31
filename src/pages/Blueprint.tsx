@@ -365,33 +365,49 @@ const Blueprint = () => {
                   Today's Moon
                 </h2>
               </div>
-              
-              <div className="flex flex-col items-center py-8">
-                <span className="text-6xl text-primary font-display mb-6">{lunar.sign.symbol}</span>
-                <p className="font-display text-3xl text-primary mb-3">
-                  {lunar.sign.name}
-                </p>
-                <p className="font-serif text-lg text-muted-foreground mb-4">
-                  {lunar.phase.name} • {lunar.phase.illumination}%
-                </p>
-                <div className="flex items-center justify-center gap-3 text-cream-muted">
-                  <Clock className="w-5 h-5 text-primary" />
-                  <span className="font-serif text-lg">
-                    Next sign in <span className="text-primary font-display">{timeUntilTransition}</span>
-                  </span>
-                </div>
-              </div>
 
-              <div className="border-t border-primary/10 pt-6 mt-auto">
-                <button
-                  onClick={() => setTodaysMoonModalOpen(true)}
-                  className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--reveal)/0.65)] bg-[hsl(var(--reveal)/0.12)] hover:bg-[hsl(var(--reveal)/0.22)] hover:border-[hsl(var(--reveal-strong)/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(var(--reveal-strong))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
-                >
-                  <span>About Today's Moon Energy</span>
-                  <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
-                </button>
-              </div>
+              {lunar ? (
+                <>
+                  <div className="flex flex-col items-center py-8">
+                    <span className="text-6xl text-primary font-display mb-6">{lunar.sign.symbol}</span>
+                    <p className="font-display text-3xl text-primary mb-3">
+                      {lunar.sign.name}
+                    </p>
+                    <p className="font-serif text-lg text-muted-foreground mb-4">
+                      {lunar.phase.name} • {lunar.phase.illumination}%
+                    </p>
+                    <div className="flex items-center justify-center gap-3 text-cream-muted">
+                      <Clock className="w-5 h-5 text-primary" />
+                      <span className="font-serif text-lg">
+                        Next sign in{" "}
+                        <span className="text-primary font-display">
+                          {timeUntilTransition || "—"}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-primary/10 pt-6 mt-auto">
+                    <button
+                      onClick={() => setTodaysMoonModalOpen(true)}
+                      className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--reveal)/0.65)] bg-[hsl(var(--reveal)/0.12)] hover:bg-[hsl(var(--reveal)/0.22)] hover:border-[hsl(var(--reveal-strong)/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(var(--reveal-strong))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                    >
+                      <span>About Today's Moon Energy</span>
+                      <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <MoonCalculationFallback
+                  bare
+                  title="Today's Moon is unavailable"
+                  message={lunarState.error ?? undefined}
+                  onRetry={retryLunar}
+                  retrying={retrying}
+                />
+              )}
             </GlassmorphismCard>
+
           </div>
 
           {/* Share Your Moon CTA */}
