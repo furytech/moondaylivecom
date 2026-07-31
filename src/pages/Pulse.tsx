@@ -25,7 +25,7 @@ export default function Pulse() {
               Begin Here
             </h1>
             <p className="mt-3 text-sm sm:text-base text-[hsl(var(--cream)/0.7)] max-w-xl mx-auto leading-relaxed">
-              A standardized global pulse, anchored to UTC noon — the same reading the world is moving through together.
+              A standardized global pulse on UTC time — the same live reading the world is moving through together.
             </p>
           </header>
 
