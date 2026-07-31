@@ -502,6 +502,51 @@ export type Database = {
         }
         Relationships: []
       }
+      system_errors: {
+        Row: {
+          affects_subscribers: boolean
+          alerted_at: string | null
+          context: Json
+          created_at: string
+          fingerprint: string
+          id: string
+          message: string
+          occurred_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string
+        }
+        Insert: {
+          affects_subscribers?: boolean
+          alerted_at?: string | null
+          context?: Json
+          created_at?: string
+          fingerprint: string
+          id?: string
+          message: string
+          occurred_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source: string
+        }
+        Update: {
+          affects_subscribers?: boolean
+          alerted_at?: string | null
+          context?: Json
+          created_at?: string
+          fingerprint?: string
+          id?: string
+          message?: string
+          occurred_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source?: string
+        }
+        Relationships: []
+      }
       user_natal_profiles: {
         Row: {
           created_at: string
@@ -597,6 +642,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_alert_emails: {
+        Args: never
+        Returns: {
+          email: string
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
