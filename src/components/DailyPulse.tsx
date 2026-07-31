@@ -176,9 +176,9 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className={`group inline-flex items-center gap-2 rounded-sm border px-4 py-1.5 text-[11px] uppercase tracking-[0.35em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold-medium))] ${
+                className={`group inline-flex items-center gap-2 rounded-sm border px-4 py-1.5 text-[11px] uppercase tracking-[0.35em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--lime-accent))] ${
                   verdict.tone === "divergent"
-                    ? "border-[hsl(var(--lilac)/0.55)] text-[hsl(var(--lilac-light))] hover:bg-[hsl(var(--lilac)/0.08)]"
+                    ? "border-[hsl(var(--lime-accent)/0.55)] text-[hsl(var(--lime-accent-light))] hover:bg-[hsl(var(--lime-accent)/0.08)]"
                     : "border-[hsl(var(--gold-medium)/0.6)] text-[hsl(var(--gold-light))] hover:bg-[hsl(var(--gold-medium)/0.08)]"
                 }`}
                 aria-label={`${verdict.label}. ${verdict.tooltip}`}
@@ -186,7 +186,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                 <span
                   className={`inline-block h-1.5 w-1.5 rounded-full ${
                     verdict.tone === "divergent"
-                      ? "bg-[hsl(var(--lilac-light))]"
+                      ? "bg-[hsl(var(--lime-accent-light))]"
                       : "bg-[hsl(var(--gold-light))]"
                   }`}
                 />
@@ -210,9 +210,9 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                 onClick={() => setOpenLens(isOpen ? null : lens.key)}
                 aria-expanded={isOpen}
                 aria-controls={`lens-detail-${lens.key}`}
-                className={`group relative h-full flex flex-col rounded-sm border p-5 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold-medium))] ${
+                className={`group relative h-full flex flex-col rounded-sm border p-5 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--lime-accent))] ${
                   isOpen
-                    ? "border-[hsl(var(--gold-medium)/0.7)] bg-[hsl(var(--navy-dark)/0.85)]"
+                    ? "border-[hsl(var(--lime-accent)/0.7)] bg-[hsl(var(--navy-dark)/0.85)]"
                     : "border-[hsl(var(--gold-medium)/0.3)] bg-[hsl(var(--navy-dark)/0.6)] hover:border-[hsl(var(--gold-medium)/0.55)] hover:bg-[hsl(var(--navy-dark)/0.8)]"
                 }`}
               >
@@ -258,7 +258,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
             id={`lens-detail-${openLens}`}
             role="region"
             aria-label="Alignment details"
-            className="mx-auto max-w-2xl mb-8 rounded-sm border border-[hsl(var(--gold-medium)/0.4)] bg-[hsl(var(--navy-dark)/0.55)] p-5 sm:p-6 text-left animate-fade-in"
+            className="mx-auto max-w-2xl mb-8 rounded-sm border border-[hsl(var(--lime-accent)/0.4)] bg-[hsl(var(--navy-dark)/0.55)] p-5 sm:p-6 text-left animate-fade-in"
           >
             {(() => {
               const lens = LENSES.find((l) => l.key === openLens)!;
@@ -266,33 +266,33 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
               const attr = getLensAttribute(lens.register, sign);
               return (
                 <>
-                  <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--gold-medium))] mb-2 text-center">
+                  <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--lime-accent))] mb-2 text-center">
                     {lens.title} in {sign}
                   </div>
                   <DecoDivider />
-                  <p className="font-display text-[15px] leading-snug text-[hsl(var(--gold-light))] text-center mb-3">
+                  <p className="font-display text-[15px] leading-snug text-[hsl(var(--lime-accent-light))] text-center mb-3">
                     {attr.headline}
                   </p>
                   <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-center">
                     {attr.detail}
                   </p>
-                  <div className="mt-4 mx-auto max-w-md text-center text-[12px] italic text-[hsl(var(--cream)/0.7)] border-t border-[hsl(var(--gold-medium)/0.25)] pt-3">
-                    <span className="not-italic uppercase tracking-[0.3em] text-[10px] text-[hsl(var(--gold-medium))] block mb-1">
+                  <div className="mt-4 mx-auto max-w-md text-center text-[12px] italic text-[hsl(var(--cream)/0.7)] border-t border-[hsl(var(--lime-accent)/0.25)] pt-3">
+                    <span className="not-italic uppercase tracking-[0.3em] text-[10px] text-[hsl(var(--lime-accent))] block mb-1">
                       Practice
                     </span>
                     {attr.practice}
                   </div>
                   <div className="mt-5 grid grid-cols-3 gap-3 text-center text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.55)]">
                     <div>
-                      <div className="text-[hsl(var(--gold-medium))]">Position</div>
+                      <div className="text-[hsl(var(--lime-accent))]">Position</div>
                       <div className="mt-1 tabular-nums">{lens.position(triad)}</div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--gold-medium))]">Element</div>
+                      <div className="text-[hsl(var(--lime-accent))]">Element</div>
                       <div className="mt-1">{SIGN_ELEMENT[sign]}</div>
                     </div>
                     <div>
-                      <div className="text-[hsl(var(--gold-medium))]">Modality</div>
+                      <div className="text-[hsl(var(--lime-accent))]">Modality</div>
                       <div className="mt-1">{SIGN_MODALITY[sign]}</div>
                     </div>
                   </div>

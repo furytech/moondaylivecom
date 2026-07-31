@@ -21,6 +21,10 @@
     --lilac-light: 239 84% 74%;
     --lilac-muted: 239 40% 45%;
 
+    /* Temporary lime accent — testing for DailyPulse lens selection */
+    --lime-accent: 82 85% 45%;
+    --lime-accent-light: 82 90% 55%;
+
     /* Keep gold tokens for backward compat — mapped to indigo tints */
     --gold-deep: 239 70% 58%;
     --gold-medium: 239 84% 67%;
