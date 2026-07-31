@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { reportError, errorText } from '../_shared/errorTracking.ts';
 
 // publish-transit-draft
 // Called by the n8n "Moonday Transit Approval" workflow when the user clicks
