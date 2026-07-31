@@ -256,6 +256,48 @@
           "name": "Gmail account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "win-lo",
+              "leftValue": "={{ $json.hoursUntilIngress }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            },
+            {
+              "id": "win-hi",
+              "leftValue": "={{ $json.hoursUntilIngress }}",
+              "rightValue": 9,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        136,
+        -128
+      ],
+      "id": "a1b2c3d4-0000-4000-8000-000000000001",
+      "name": "In Send Window"
     }
   ],
   "pinData": {},
@@ -286,7 +328,7 @@
       "main": [
         [
           {
-            "node": "Wait",
+            "node": "In Send Window",
             "type": "main",
             "index": 0
           }
@@ -338,6 +380,17 @@
         [
           {
             "node": "Send Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "In Send Window": {
+      "main": [
+        [
+          {
+            "node": "Wait",
             "type": "main",
             "index": 0
           }
