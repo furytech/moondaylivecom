@@ -9,6 +9,7 @@
 
 import { EclipticGeoMoon, AstroTime } from "https://esm.sh/astronomy-engine@2.1.19";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { reportError, errorText } from "../_shared/errorTracking.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
