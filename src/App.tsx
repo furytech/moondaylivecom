@@ -41,6 +41,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import BlogAdmin from "./pages/admin/BlogAdmin";
 import Subscribers from "./pages/admin/Subscribers";
+import SystemErrors from "./pages/admin/SystemErrors";
 
 
 const queryClient = new QueryClient();
