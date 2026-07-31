@@ -1,0 +1,202 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */6 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        -128
+      ],
+      "id": "32fd3152-78ea-4bfa-9d69-d52e4201a064",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "mindglimmer@gmail.com",
+        "subject": "Review or Edit",
+        "message": "=Review your generated content for the upcoming Lunar Transit.\n\n---\n### 📝 Moonday Live Blog Draft\n{{ $('Code in JavaScript').item.json.blog_content }}\n\n<a href=\"https://moondaylive.com/admin/blog?sign={{ $('Code in JavaScript').item.json.nextSign }}\">Edit this Blog Post on Lovable Cloud</a>\n\n---\n### 💬 Reddit Post (r/moondaylive)\n{{ $('Code in JavaScript').item.json.reddit_content }}\n\n<a href=\"https://moondaylive.com/admin/reddit?sign={{ $('Code in JavaScript').item.json.nextSign }}\">Edit this Reddit Draft on Lovable Cloud</a>\n\n---\n### 🖼️ Assigned Zodiac Graphic Asset\nhttps://moondaylive.com/assets/signs/{{ $('Code in JavaScript').item.json.nextSign }}.png",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        -128
+      ],
+      "id": "2b1623b9-3471-4376-a9ea-303214be241d",
+      "name": "Send message and wait for response",
+      "webhookId": "91041479-db79-459f-85b9-7c22210c538a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cOE6db165RgeF8aT",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://moondaylive.com/api/next-ingress",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -160,
+        -128
+      ],
+      "id": "6075f63e-6d66-4b97-be2a-96e4036ab991",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract key lunar transition details from the incoming API payload with safety checks\nconst firstItem = $input.first()?.json || {};\nconst ingressUTC = firstItem.ingress_utc;\nconst nextSign = firstItem.next_sign || 'Aries';\nconst currentSign = firstItem.current_sign || 'Pisces';\n\n// Parse the target ingress timestamp or fallback to current time if missing\nconst ingressTime = ingressUTC ? new Date(ingressUTC) : new Date();\nconst validIngressTime = isNaN(ingressTime.getTime()) ? new Date() : ingressTime;\n\n// Initial target: 1 hour before ingress\nlet postTime = new Date(validIngressTime.getTime() - 60 * 60 * 1000);\n\n// --- DOWNTIME & SLEEP PROTECTION LOGIC ---\n// Convert postTime to local time elements (Knoxville, TN timezone context)\n// Local hour check: Quiet hours are 19:00 (7 PM) through 05:00 (5 AM)\nconst localHour = parseInt(postTime.toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }));\n\n// Check if the target notification falls inside your sleep window (7 PM to 5 AM)\nconst isDuringSleepHours = localHour >= 19 || localHour < 5;\n\nif (isDuringSleepHours) {\n    // If it hits during your rest, shift the approval notification to 6:30 PM \n    // on the evening prior, ensuring you can review it before winding down.\n    postTime.toLocaleString('en-US', { timeZone: 'America/New_York' });\n    \n    // Set to 18:30 (6:30 PM) on the same or previous day depending on the hour\n    if (localHour >= 19) {\n        postTime.setHours(18, 30, 0, 0);\n    } else {\n        // If it's early morning hours (before 5 AM), shift back to 6:30 PM the previous night\n        postTime.setDate(postTime.getDate() - 1);\n        postTime.setHours(18, 30, 0, 0);\n    }\n}\n// -----------------------------------------\n\n// Generate rich blog content\nconst blogDraft = `As the Moon transitions from ${currentSign} into ${nextSign}, we enter a powerful shift in emotional currents and collective energy. This alignment invites us to reflect on how we ground our inner intuitive realizations into focused, intentional momentum. Explore how this dynamic influences your daily rhythm and emotional landscape as we navigate this celestial threshold together.`;\n\n// Generate expanded Reddit content with a value-add CTA link back to the app\nconst redditDraft = `Hey r/moondaylive! 🌙 The Moon is officially shifting from ${currentSign} into ${nextSign}.\\n\\nThis transition brings a fascinating pivot in our collective emotional weather, moving us from the reflective depths into a renewed wave of initiation and drive.\\n\\nHow are you tracking this energy today? Drop your thoughts below!\\n\\n*(Not sure where your natal Moon sits for this transit? Head over to https://moondaylive.com to run an extensive personal evaluation.)*`;\n\n// Return structured workflow data containing the calculated resume time and payload labels\nreturn [{\n  json: {\n    resumeAt: postTime.toISOString(),\n    currentSign,\n    nextSign,\n    ingressUTC: ingressUTC || new Date().toISOString(),\n    label: `Moon ${currentSign} → ${nextSign}`,\n    hoursUntilIngress: ((validIngressTime - Date.now()) / 1000 / 60 / 60).toFixed(2),\n    blog_content: blogDraft, \n    reddit_content: redditDraft\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -128
+      ],
+      "id": "4a6d20e8-f281-43ca-99e6-f6fb66bd38cf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $('Code in JavaScript').item.json.resumeAt }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "a7551047-76dd-4e84-aa8d-27629007e5ed",
+      "name": "Wait",
+      "webhookId": "8f85ff2d-30f3-4992-aa8a-f7162925fbb3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "af33e466-01c0-4579-882d-0c445b23ebe3",
+              "leftValue": "{{ $json.approved }}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        -128
+      ],
+      "id": "f263d0a6-a349-4806-a85d-17640ba1b24e",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e0d6a8ab-dbc1-4fef-8a27-7d88f52e55e9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9757c765b634b0b1c5f603fe07c7095535cc1ebfb861da0df4306040930a942f"
+  },
+  "nodeGroups": [],
+  "id": "JTI8KnOgrO3sluG1",
+  "tags": []
+}
