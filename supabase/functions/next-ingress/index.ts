@@ -184,7 +184,12 @@ Deno.serve(async (req) => {
       },
     });
   } catch (e) {
-    console.error("next-ingress: unhandled error", e);
+    await reportError({
+      source: "next-ingress",
+      severity: "critical",
+      message: `Unhandled failure: ${errorText(e)}`,
+      context: { stack: e instanceof Error ? e.stack?.slice(0, 1500) : undefined },
+    });
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
