@@ -49,8 +49,8 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
     label: String(currentYear - i),
   }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setError("");
 
     if (!birthMonth || !birthDay || !birthYear) {
