@@ -52,7 +52,15 @@ const displayDate = (value?: string | null) => {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString();
+  // Show the viewer's local time plus the absolute UTC instant so transit
+  // times are unambiguous anywhere on the planet.
+  const local = date.toLocaleString(undefined, { timeZoneName: "short" });
+  const utc = date.toLocaleString("en-GB", {
+    timeZone: "UTC",
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+  return `${local} · ${utc} UTC`;
 };
 
 const BlogAdmin = () => {

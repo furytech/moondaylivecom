@@ -107,6 +107,19 @@ Deno.serve(async (req) => {
     const msUntil = ingressAt.getTime() - now.getTime();
     const currentSign = signFromLongitude(moonLongitude(now));
 
+    const fmt = (tz: string, label: string) =>
+      `${ingressAt.toLocaleString("en-US", {
+        timeZone: tz,
+        dateStyle: "medium",
+        timeStyle: "short",
+      })} ${label}`;
+
+    const ingressUtcDisplay = `${ingressAt.toLocaleString("en-GB", {
+      timeZone: "UTC",
+      dateStyle: "medium",
+      timeStyle: "short",
+    })} UTC`;
+
     const payload = {
       generated_at: now.toISOString(),
       source,
@@ -116,11 +129,22 @@ Deno.serve(async (req) => {
       next_element: ELEMENT[ingress.to_sign] ?? null,
       from_sign: ingress.from_sign,
       ingress_utc: ingressAt.toISOString(),
+      // Human-readable renderings. UTC is the canonical/global one; the rest
+      // are convenience conversions for major reader timezones.
+      ingress_utc_display: ingressUtcDisplay,
       ingress_et: ingressAt.toLocaleString("en-US", {
         timeZone: "America/New_York",
         dateStyle: "full",
         timeStyle: "short",
       }),
+      ingress_local: {
+        utc: ingressUtcDisplay,
+        new_york: fmt("America/New_York", "ET"),
+        los_angeles: fmt("America/Los_Angeles", "PT"),
+        london: fmt("Europe/London", "UK"),
+        berlin: fmt("Europe/Berlin", "CET/CEST"),
+        sydney: fmt("Australia/Sydney", "AET"),
+      },
       hours_until: Math.round((msUntil / 3_600_000) * 10) / 10,
       minutes_until: Math.round(msUntil / 60_000),
       blog_slug: `moon-enters-${ingress.to_sign.toLowerCase()}-${ingressAt

@@ -1,0 +1,1 @@
+SELECT cron.unschedule('generate-blog-draft-every-2-days');
