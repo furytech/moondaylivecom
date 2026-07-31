@@ -25,6 +25,7 @@ import LunarReturnCard from "@/components/sovereign/LunarReturnCard";
 import type { ZodiacSign } from "@/lib/sovereignEngine";
 import ClimateGauge from "@/components/ClimateGauge";
 import SovereignUpgradeCTA from "@/components/SovereignUpgradeCTA";
+import FirstRunOnboarding from "@/components/FirstRunOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MoonSignResult } from "@/lib/moonSign";
 
@@ -273,6 +274,8 @@ const Blueprint = () => {
               </p>
             </GlassmorphismCard>
           )}
+
+          <FirstRunOnboarding />
 
           {/* Welcome Header */}
           <div className="text-center mb-4 animate-fade-up stagger-1">
