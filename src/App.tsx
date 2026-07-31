@@ -41,6 +41,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import BlogAdmin from "./pages/admin/BlogAdmin";
 import Subscribers from "./pages/admin/Subscribers";
+import SystemErrors from "./pages/admin/SystemErrors";
 
 
 const queryClient = new QueryClient();
@@ -78,6 +79,12 @@ const App = () => (
                 <Subscribers />
               </ProtectedRoute>
             } />
+            <Route path="/admin/errors" element={
+              <ProtectedRoute>
+                <SystemErrors />
+              </ProtectedRoute>
+            } />
+
             {/* Legacy redirect */}
             <Route path="/portal" element={<Navigate to="/login" replace />} />
             <Route path="/pricing" element={<Pricing />} />

@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
+import { reportError } from '../_shared/errorTracking.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -58,7 +59,12 @@ Deno.serve(async (req) => {
     .order('transition_at', { ascending: true })
 
   if (transitionsError) {
-    console.error('[notify-moon-ingress] Failed to fetch transitions', { error: transitionsError.message })
+    await reportError({
+      source: 'notify-moon-ingress',
+      severity: 'critical',
+      message: `Failed to fetch moon transitions: ${transitionsError.message}`,
+      context: { window: { from: now.toISOString(), to: twoHoursFromNow.toISOString() } },
+    })
     return new Response(
       JSON.stringify({ error: 'Failed to fetch transitions' }),
       {
@@ -170,6 +176,16 @@ Deno.serve(async (req) => {
         errors.push(`send-${userId}-${transitionAt}: ${message}`)
       }
     }
+  }
+
+  // Any per-user failure means a paying member missed their ingress alert.
+  if (errors.length > 0) {
+    await reportError({
+      source: 'notify-moon-ingress',
+      severity: 'critical',
+      message: `${errors.length} Sovereign ingress notification(s) failed`,
+      context: { errors: errors.slice(0, 20), notified: totalNotified },
+    })
   }
 
   return new Response(

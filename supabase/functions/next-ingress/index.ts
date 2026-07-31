@@ -9,6 +9,7 @@
 
 import { EclipticGeoMoon, AstroTime } from "https://esm.sh/astronomy-engine@2.1.19";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { reportError, errorText } from "../_shared/errorTracking.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,15 +89,37 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    if (error) console.error("next-ingress: db read failed", error.message);
+    if (error) {
+      await reportError({
+        source: "next-ingress",
+        severity: "error",
+        message: `moon_transitions read failed: ${error.message}`,
+        context: { now: now.toISOString() },
+      });
+    }
     if (data) ingress = data;
 
     if (!ingress) {
       source = "computed";
       ingress = computeNextIngress(now);
+      // Falling back to live computation means the seeded transit table is
+      // stale — the approval/publish workflow depends on it.
+      await reportError({
+        source: "next-ingress",
+        severity: "error",
+        message: "No future row in moon_transitions — fell back to live computation",
+        context: { now: now.toISOString(), computed: ingress?.transition_at ?? null },
+        throttleMinutes: 180,
+      });
     }
 
     if (!ingress) {
+      await reportError({
+        source: "next-ingress",
+        severity: "critical",
+        message: "No upcoming ingress could be determined (DB empty and computation failed)",
+        context: { now: now.toISOString() },
+      });
       return new Response(
         JSON.stringify({ error: "No upcoming ingress could be determined" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -162,7 +185,12 @@ Deno.serve(async (req) => {
       },
     });
   } catch (e) {
-    console.error("next-ingress: unhandled error", e);
+    await reportError({
+      source: "next-ingress",
+      severity: "critical",
+      message: `Unhandled failure: ${errorText(e)}`,
+      context: { stack: e instanceof Error ? e.stack?.slice(0, 1500) : undefined },
+    });
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
