@@ -216,7 +216,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                     : "border-[hsl(var(--gold-medium)/0.3)] bg-[hsl(var(--navy-dark)/0.6)] hover:border-[hsl(var(--gold-medium)/0.55)] hover:bg-[hsl(var(--navy-dark)/0.8)]"
                 }`}
               >
-                <div className="font-display text-[11px] tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-1">
+                <div className={`font-display text-[11px] tracking-[0.4em] mb-1 ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--gold-medium))]"}`}>
                   {lens.numeral}
                 </div>
                 <div className="text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.5)] mb-2">
@@ -229,17 +229,17 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                   {lens.subtitle}
                 </p>
                 <div className="mt-auto pt-4">
-                  <div className="mb-4 mx-auto h-px w-10 bg-[hsl(var(--gold-medium)/0.5)]" />
-                  <div className="font-display text-lg text-[hsl(var(--gold-light))] tabular-nums">
+                  <div className={`mb-4 mx-auto h-px w-10 ${isOpen ? "bg-[hsl(var(--lime-accent)/0.5)]" : "bg-[hsl(var(--gold-medium)/0.5)]"}`} />
+                  <div className={`font-display text-lg tabular-nums ${isOpen ? "text-[hsl(var(--lime-accent-light))]" : "text-[hsl(var(--gold-light))]"}`}>
                     {sign}
                   </div>
                   <div className="mt-1 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.45)] tabular-nums">
                     {lens.position(triad)}
                   </div>
-                  <div className="mt-1 text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.35)]">
+                  <div className={`mt-1 text-[9px] uppercase tracking-[0.3em] ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--cream)/0.35)]"}`}>
                     {SIGN_ELEMENT[sign]} · {SIGN_MODALITY[sign]}
                   </div>
-                  <div className="mt-3 inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.3em] text-[hsl(var(--gold-medium)/0.8)]">
+                  <div className={`mt-3 inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.3em] ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--gold-medium)/0.8)]"}`}>
                     {isOpen ? "Hide details" : "Expose alignment details"}
                     <ChevronDown
                       size={11}
