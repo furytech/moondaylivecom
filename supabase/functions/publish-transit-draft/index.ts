@@ -176,7 +176,12 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (e: any) {
-    console.error('publish-transit-draft error:', e);
+    await reportError({
+      source: 'publish-transit-draft',
+      severity: 'critical',
+      message: `Transit draft publish failed: ${errorText(e)}`,
+      context: { stack: e instanceof Error ? e.stack?.slice(0, 1500) : undefined },
+    });
     return new Response(
       JSON.stringify({ error: e.message || 'Internal error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
