@@ -79,6 +79,12 @@ const App = () => (
                 <Subscribers />
               </ProtectedRoute>
             } />
+            <Route path="/admin/errors" element={
+              <ProtectedRoute>
+                <SystemErrors />
+              </ProtectedRoute>
+            } />
+
             {/* Legacy redirect */}
             <Route path="/portal" element={<Navigate to="/login" replace />} />
             <Route path="/pricing" element={<Pricing />} />
