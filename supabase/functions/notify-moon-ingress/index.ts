@@ -178,6 +178,16 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Any per-user failure means a paying member missed their ingress alert.
+  if (errors.length > 0) {
+    await reportError({
+      source: 'notify-moon-ingress',
+      severity: 'critical',
+      message: `${errors.length} Sovereign ingress notification(s) failed`,
+      context: { errors: errors.slice(0, 20), notified: totalNotified },
+    })
+  }
+
   return new Response(
     JSON.stringify({
       notified: totalNotified,
