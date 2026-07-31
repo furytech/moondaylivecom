@@ -1,0 +1,31 @@
+// Golden reference data: Moon sign ingresses (tropical, geocentric) computed with
+// the Swiss Ephemeris (pyswisseph 2.10.3.2, swe.calc_ut(jd, swe.MOON)).
+// Window: 2026-08-01 -> 2026-09-30 UTC. Regenerate only from Swiss Ephemeris.
+export const SWISS_EPHEMERIS_INGRESSES: { to_sign: string; transition_at: string }[] = [
+  { to_sign: "Aries", transition_at: "2026-08-02T20:36:47Z" },
+  { to_sign: "Taurus", transition_at: "2026-08-05T02:35:25Z" },
+  { to_sign: "Gemini", transition_at: "2026-08-07T06:07:47Z" },
+  { to_sign: "Cancer", transition_at: "2026-08-09T07:45:40Z" },
+  { to_sign: "Leo", transition_at: "2026-08-11T08:38:09Z" },
+  { to_sign: "Virgo", transition_at: "2026-08-13T10:18:08Z" },
+  { to_sign: "Libra", transition_at: "2026-08-15T14:19:43Z" },
+  { to_sign: "Scorpio", transition_at: "2026-08-17T21:46:03Z" },
+  { to_sign: "Sagittarius", transition_at: "2026-08-20T08:30:08Z" },
+  { to_sign: "Capricorn", transition_at: "2026-08-22T20:59:06Z" },
+  { to_sign: "Aquarius", transition_at: "2026-08-25T09:01:41Z" },
+  { to_sign: "Pisces", transition_at: "2026-08-27T19:03:45Z" },
+  { to_sign: "Aries", transition_at: "2026-08-30T02:37:48Z" },
+  { to_sign: "Taurus", transition_at: "2026-09-01T08:01:18Z" },
+  { to_sign: "Gemini", transition_at: "2026-09-03T11:47:16Z" },
+  { to_sign: "Cancer", transition_at: "2026-09-05T14:30:25Z" },
+  { to_sign: "Leo", transition_at: "2026-09-07T16:49:27Z" },
+  { to_sign: "Virgo", transition_at: "2026-09-09T19:35:04Z" },
+  { to_sign: "Libra", transition_at: "2026-09-11T23:51:43Z" },
+  { to_sign: "Scorpio", transition_at: "2026-09-14T06:43:52Z" },
+  { to_sign: "Sagittarius", transition_at: "2026-09-16T16:41:15Z" },
+  { to_sign: "Capricorn", transition_at: "2026-09-19T04:54:52Z" },
+  { to_sign: "Aquarius", transition_at: "2026-09-21T17:14:25Z" },
+  { to_sign: "Pisces", transition_at: "2026-09-24T03:23:38Z" },
+  { to_sign: "Aries", transition_at: "2026-09-26T10:23:06Z" },
+  { to_sign: "Taurus", transition_at: "2026-09-28T14:40:02Z" },
+];
