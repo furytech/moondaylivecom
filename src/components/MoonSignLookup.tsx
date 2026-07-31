@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { calculateMoonSignAsync, MoonSignResult } from "@/lib/moonSign";
+import { CALCULATION_ERROR_MESSAGE } from "@/lib/safeLunar";
+import MoonCalculationFallback from "@/components/MoonCalculationFallback";
 import MoonLoader from "@/components/MoonLoader";
 import { Calendar, Clock, MapPin, Sparkles } from "lucide-react";
 
@@ -19,6 +21,7 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
   const [birthCity, setBirthCity] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [calcFailed, setCalcFailed] = useState(false);
 
   const months = [
     { value: "1", label: "January" },
