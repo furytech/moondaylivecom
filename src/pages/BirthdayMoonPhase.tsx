@@ -160,8 +160,21 @@ const BirthdayMoonPhase = () => {
             >
               {loading ? "Reading the Sky…" : "Reveal My Birth Moon →"}
             </button>
-            {error && <p className="text-xs text-red-400 font-serif">{error}</p>}
+            {error && error !== CALCULATION_ERROR_MESSAGE && (
+              <p className="text-xs text-red-400 font-serif">{error}</p>
+            )}
           </form>
+
+          {error === CALCULATION_ERROR_MESSAGE && (
+            <div className="mt-6 pt-4 border-t border-[hsl(var(--gold-medium)/0.25)]">
+              <MoonCalculationFallback
+                bare
+                title="We couldn't calculate this reading"
+                onRetry={lastAttempt ? () => runCalculation(lastAttempt) : undefined}
+                retrying={loading}
+              />
+            </div>
+          )}
 
           {result && (
             <div className="mt-8 pt-6 border-t border-[hsl(var(--gold-medium)/0.25)] text-center space-y-3">
@@ -182,6 +195,7 @@ const BirthdayMoonPhase = () => {
               </p>
             </div>
           )}
+
         </GlassmorphismCard>
 
         {/* Why it matters */}
