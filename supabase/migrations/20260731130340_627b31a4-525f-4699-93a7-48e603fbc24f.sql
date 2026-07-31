@@ -1,0 +1,1 @@
+DELETE FROM public.blog_posts WHERE slug = 'moon-enters-taurus-test-e2e';

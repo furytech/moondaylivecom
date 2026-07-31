@@ -1,0 +1,1 @@
+DELETE FROM public.blog_posts WHERE slug = 'test-moon-enters-aries-2026-08-02';
