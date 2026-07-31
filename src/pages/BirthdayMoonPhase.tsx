@@ -63,6 +63,32 @@ const BirthdayMoonPhase = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const runCalculation = async (bd: Date) => {
+    setLoading(true);
+    try {
+      const moon = getCurrentMoon(bd);
+      const signResult = await calculateMoonSignAsync(bd);
+      if (!moon?.phase || !signResult?.sign) {
+        throw new Error("Incomplete lunar payload");
+      }
+      setResult({
+        dateLabel: bd.toLocaleDateString(undefined, {
+          year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
+        }),
+        moon,
+        moonSign: signResult.sign,
+        moonSignSymbol: signResult.symbol,
+      });
+    } catch (err) {
+      // Keep the form usable: clear the stale reading, explain, offer a retry.
+      console.error("[BirthdayMoonPhase] calculation failed", err);
+      setResult(null);
+      setError(CALCULATION_ERROR_MESSAGE);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const onCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -77,24 +103,10 @@ const BirthdayMoonPhase = () => {
       return;
     }
     const bd = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-    setLoading(true);
-    try {
-      const moon = getCurrentMoon(bd);
-      const signResult = await calculateMoonSignAsync(bd);
-      setResult({
-        dateLabel: bd.toLocaleDateString(undefined, {
-          year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
-        }),
-        moon,
-        moonSign: signResult.sign,
-        moonSignSymbol: signResult.symbol,
-      });
-    } catch {
-      setError("Something went wrong calculating your birth moon. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    setLastAttempt(bd);
+    await runCalculation(bd);
   };
+
 
   return (
     <PageLayout>
