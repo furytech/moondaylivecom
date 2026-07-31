@@ -22,25 +22,42 @@ All three are authenticated with an `X-Cron-Secret` header checked against the
 
 ## 2. The n8n workflow (external, DigitalOcean)
 
-> This section is written from screenshots, not introspection. Keep it current
-> by hand, or paste the exported workflow JSON into
-> `src/docs/n8n/moonday-transit-approval.json`.
+Exported JSON committed at `src/docs/n8n/moonday-transit-approval.json`
+(workflow id `JTI8KnOgrO3sluG1`, name "My workflow"). Re-export and overwrite
+that file whenever the workflow changes.
 
 **Node chain:** `Schedule Trigger` → `HTTP Request` → `Code (JavaScript)` →
 `Wait` → `Gmail: Send message and wait for response` → `If`
 
 | Node | What it does |
 |---|---|
-| Schedule Trigger | Fires on a clock (own schedule, unrelated to pg_cron) |
-| HTTP Request | `GET https://moondaylive.com/...` — pulls transit/ingress data from the site |
-| Code (JavaScript) | Builds the blog + Reddit copy payload |
-| Wait | Holds until the pre-transit send window |
-| Gmail (send & wait) | Emails **you** the draft and waits for your approve/reject reply |
-| If | Branches on your answer |
+| Schedule Trigger | Cron `0 */6 * * *` — every 6 hours |
+| HTTP Request | `GET https://moondaylive.com/api/next-ingress` |
+| Code (JavaScript) | Reads `ingress_utc`, `next_sign`, `current_sign`; computes `resumeAt` = 1h pre-ingress, shifted to 18:30 America/New_York if it lands in the 19:00–05:00 quiet window; builds hardcoded `blog_content` and `reddit_content` template strings |
+| Wait | Resumes at `resumeAt` |
+| Gmail (send & wait) | Emails `mindglimmer@gmail.com`, subject "Review or Edit", double approval, with admin edit links |
+| If | Checks `$json.approved == "approve"` — **no nodes connected on either branch** |
 
-**Dependency risk:** the HTTP Request node points at a live endpoint on this
-site. If that route or its JSON shape changes, the workflow fails silently.
-Any change to the endpoint it calls must be noted here.
+**Status: `active: false`. The workflow is not running.**
+
+### Known defects (verified 2026-07-31)
+
+1. **`/api/next-ingress` does not exist.** It returns `200 text/html` (the SPA
+   index page), not JSON. So `next_sign`/`current_sign` are always undefined and
+   the Code node silently falls back to **Pisces → Aries, ingress = now**, every
+   run. Every email would describe the same fake transit.
+2. **Content is not AI-generated.** `blog_content` and `reddit_content` are
+   fixed template literals in the Code node with the sign names interpolated.
+   No Gemini/LLM call anywhere in the workflow.
+3. **`/admin/reddit` does not exist.** Routes are `/admin/blog` and
+   `/admin/subscribers` only. The Reddit edit link 404s.
+4. **`?sign=` is not read.** `/admin/blog` ignores the query param.
+5. **Approval is a dead end.** The `If` node has no outputs wired, and nothing
+   ever writes to `blog_posts`. Approving does nothing.
+6. **Quiet-hours math bug.** `postTime.setHours()` uses the server's local
+   timezone, but `localHour` was computed in America/New_York. On a UTC droplet
+   these disagree by 4–5 hours.
+
 
 ---
 
