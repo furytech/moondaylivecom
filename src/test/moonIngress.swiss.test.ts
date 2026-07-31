@@ -45,7 +45,7 @@ const TOLERANCE_SECONDS = 60;
 
 describe("Moon ingress engine vs Swiss Ephemeris", () => {
   const from = new Date("2026-08-01T00:00:00Z");
-  const to = new Date("2026-09-30T00:00:00Z");
+  const to = new Date("2027-08-01T00:00:00Z");
   const computed = computeTransitions(from, to);
 
   it("finds the same number of ingresses", () => {
