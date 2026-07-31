@@ -51,8 +51,11 @@ const Blueprint = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   
-  // Unified lunar intelligence
-  const [lunar, setLunar] = useState(() => getLunarIntelligence());
+  // Unified lunar intelligence. Never throws — a failed ephemeris read leaves
+  // `lunar` null and surfaces an informative fallback instead of a blank page.
+  const [lunarState, setLunarState] = useState(() => safeLunarIntelligence());
+  const [retrying, setRetrying] = useState(false);
+  const lunar = lunarState.data;
   
   // Temporary moon sign for users who use the lookup form but don't have a saved profile
   const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
