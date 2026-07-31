@@ -62,6 +62,7 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
     }
 
     setLoading(true);
+    setCalcFailed(false);
 
     try {
       const birthDate = new Date(
@@ -71,7 +72,8 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
       );
 
       const result = await calculateMoonSignAsync(birthDate);
-      
+      if (!result?.sign) throw new Error("Incomplete moon sign payload");
+
       onMoonSignCalculated({
         ...result,
         birthDate,
@@ -79,12 +81,15 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
         birthCity: birthCity || undefined,
       });
     } catch (err) {
+      // The form stays filled in and interactive so a retry is one click away.
       console.error("Error calculating moon sign:", err);
-      setError("Failed to calculate moon sign. Please try again.");
+      setCalcFailed(true);
+      setError(CALCULATION_ERROR_MESSAGE);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
