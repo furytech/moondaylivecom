@@ -434,55 +434,72 @@ const Blueprint = () => {
 
 
           {/* Daily Forecast */}
-          {displayedMoonSign && (
+          {displayedMoonSign && moonDataCompat && (
             <div className="mt-12 animate-fade-up stagger-3">
-              <DailyForecast
-                birthMoonSign={displayedMoonSign}
-                currentMoon={moonDataCompat}
+              <CalculationBoundary scope="DailyForecast" title="Today's forecast is unavailable">
+                <DailyForecast
+                  birthMoonSign={displayedMoonSign}
+                  currentMoon={moonDataCompat}
+                />
+              </CalculationBoundary>
+            </div>
+          )}
+
+          {/* Lunar sections — all depend on a successful ephemeris read */}
+          {lunar ? (
+            <CalculationBoundary scope="LunarSections" title="Your lunar readings are unavailable">
+              {/* Daily Ritual */}
+              <div className="mt-12 animate-fade-up stagger-3">
+                <DailyRitual
+                  currentMoonSign={lunar.sign.name}
+                  birthMoonSign={displayedMoonSign || null}
+                  moonPhase={lunar.phase.name}
+                  isPro={isPro}
+                  onUpgradeClick={handleOpenPricing}
+                />
+              </div>
+
+              {/* Emotional Climate Gauge */}
+              <div className="mt-12">
+                <ClimateGauge illumination={lunar.phase.illumination} sign={lunar.sign.name} />
+              </div>
+
+              {/* === LUNAR INTELLIGENCE SECTIONS === */}
+
+              {/* 1. The Great Cycle (Phases) */}
+              <div className="mt-12">
+                <GreatCycleSection lunar={lunar} isSubscriber={userProfile?.is_subscriber ?? false} onUpgradeClick={handleOpenPricing} />
+              </div>
+
+              {/* 2. The Lunar Signature (Signs) */}
+              <div className="mt-12">
+                <LunarSignatureSection
+                  lunar={lunar}
+                  isPro={userProfile?.is_subscriber ?? false}
+                  onUpgradeClick={handleOpenPricing}
+                />
+              </div>
+
+              {/* 3. Between Phases (VoC) */}
+              <div className="mt-12">
+                <VoidIntervalSection
+                  lunar={lunar}
+                  isPro={userProfile?.is_subscriber ?? false}
+                  onUpgradeClick={handleOpenPricing}
+                />
+              </div>
+            </CalculationBoundary>
+          ) : (
+            <div className="mt-12">
+              <MoonCalculationFallback
+                title="Your lunar readings are unavailable"
+                message={lunarState.error ?? undefined}
+                onRetry={retryLunar}
+                retrying={retrying}
               />
             </div>
           )}
 
-          {/* Daily Ritual */}
-          <div className="mt-12 animate-fade-up stagger-3">
-            <DailyRitual
-              currentMoonSign={lunar.sign.name}
-              birthMoonSign={displayedMoonSign || null}
-              moonPhase={lunar.phase.name}
-              isPro={isPro}
-              onUpgradeClick={handleOpenPricing}
-            />
-          </div>
-
-          {/* Emotional Climate Gauge */}
-          <div className="mt-12">
-            <ClimateGauge illumination={lunar.phase.illumination} sign={lunar.sign.name} />
-          </div>
-
-          {/* === LUNAR INTELLIGENCE SECTIONS === */}
-
-          {/* 1. The Great Cycle (Phases) */}
-          <div className="mt-12">
-            <GreatCycleSection lunar={lunar} isSubscriber={userProfile?.is_subscriber ?? false} onUpgradeClick={handleOpenPricing} />
-          </div>
-
-          {/* 2. The Lunar Signature (Signs) */}
-          <div className="mt-12">
-            <LunarSignatureSection
-              lunar={lunar}
-              isPro={userProfile?.is_subscriber ?? false}
-              onUpgradeClick={handleOpenPricing}
-            />
-          </div>
-
-          {/* 3. Between Phases (VoC) */}
-          <div className="mt-12">
-            <VoidIntervalSection
-              lunar={lunar}
-              isPro={userProfile?.is_subscriber ?? false}
-              onUpgradeClick={handleOpenPricing}
-            />
-          </div>
 
           {/* Lunar Return Tracker — Sovereign only */}
           {isPro && displayedMoonSign && (
