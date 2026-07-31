@@ -111,7 +111,7 @@ const Blueprint = () => {
 
   // Update lunar data periodically
   useEffect(() => {
-    const update = () => setLunar(getLunarIntelligence());
+    const update = () => setLunarState(safeLunarIntelligence());
     const interval = setInterval(update, 60000); // every minute
     return () => clearInterval(interval);
   }, []);
@@ -119,13 +119,24 @@ const Blueprint = () => {
   // Update transition timer
   useEffect(() => {
     const updateTimer = () => {
-      const { hours, minutes } = getTimeUntilNextSign();
-      setTimeUntilTransition(`${hours}h ${minutes}m`);
+      const result = safeTimeUntilNextSign();
+      setTimeUntilTransition(result.ok ? result.data : "");
     };
     updateTimer();
     const interval = setInterval(updateTimer, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Manual recalculation after a failed reading.
+  const retryLunar = () => {
+    setRetrying(true);
+    const next = safeLunarIntelligence();
+    setLunarState(next);
+    const timer = safeTimeUntilNextSign();
+    setTimeUntilTransition(timer.ok ? timer.data : "");
+    setRetrying(false);
+  };
+
 
   // Refresh subscription and profile on success
   useEffect(() => {
