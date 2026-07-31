@@ -46,13 +46,25 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 hover-scale-subtle">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden bg-background">
-              <img
-                src={moonLogo}
-                alt="Moonday"
-                className="w-full h-full object-cover"
-              />
+            <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
+              {/* Line-art moon mark — matches the thin-stroke iconography used across the app */}
+              <svg
+                viewBox="0 0 48 48"
+                role="img"
+                aria-label="Moonday"
+                className="w-full h-full text-primary"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="24" cy="24" r="21" className="opacity-40" />
+                <path d="M30.5 32.2A11.2 11.2 0 0 1 21.8 13.6a13.4 13.4 0 1 0 12.9 20.1 11.2 11.2 0 0 1-4.2-1.5Z" />
+                <path d="M33.5 12.5v5M31 15h5" className="opacity-70" />
+              </svg>
             </div>
+
             <span className="font-display text-lg tracking-wider text-foreground hidden sm:block">
               Moonday
             </span>
