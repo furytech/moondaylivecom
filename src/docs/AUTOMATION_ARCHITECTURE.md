@@ -12,7 +12,7 @@ _Last verified: 2026-07-31_
 | Job name | Schedule (UTC) | Calls | Purpose |
 |---|---|---|---|
 | `generate-blog-draft-every-2-days` | `0 12 */2 * *` | `generate-blog-draft` | AI writes a blog draft + a ready-to-paste Reddit post, `status: 'draft'`, `publish_at` ≈ +2.5 days |
-| `auto-publish-blog-posts` | `0 */12 * * *` | `auto-publish-posts` | Flips `approved` → `published` once `publish_at` has passed |
+| `auto-publish-blog-posts` | `0 * * * *` | `auto-publish-posts` | Flips `approved` → `published` once `publish_at` has passed |
 | `notify-moon-ingress` | `*/15 * * * *` | `notify-moon-ingress` | Emails Sovereign members ~2h before a moon sign change |
 
 All three are authenticated with an `X-Cron-Secret` header checked against the
@@ -23,22 +23,27 @@ All three are authenticated with an `X-Cron-Secret` header checked against the
 ## 2. The n8n workflow (external, DigitalOcean)
 
 Exported JSON committed at `src/docs/n8n/moonday-transit-approval.json`
-(workflow id `JTI8KnOgrO3sluG1`, name "My workflow"). Re-export and overwrite
-that file whenever the workflow changes.
+(workflow id `JTI8KnOgrO3sluG1`, name "Moonday Transit Approval"). Re-export and
+overwrite that file whenever the workflow changes.
 
 **Node chain:** `Schedule Trigger` → `HTTP Request` → `Code (JavaScript)` →
-`Wait` → `Gmail: Send message and wait for response` → `If`
+`Wait` → `Gmail: Send message and wait for response` → `If` →
+(`Publish Transit Draft` → `Send Confirmation`) or (`Send Rejection Notice`)
 
 | Node | What it does |
 |---|---|
 | Schedule Trigger | Cron `0 */6 * * *` — every 6 hours |
-| HTTP Request | `GET https://moondaylive.com/api/next-ingress` |
-| Code (JavaScript) | Reads `ingress_utc`, `next_sign`, `current_sign`; computes `resumeAt` = 1h pre-ingress, shifted to 18:30 America/New_York if it lands in the 19:00–05:00 quiet window; builds hardcoded `blog_content` and `reddit_content` template strings |
+| HTTP Request | `GET https://hzlpnmvboqhzthvjlves.supabase.co/functions/v1/next-ingress` |
+| Code (JavaScript) | Reads `ingress_utc`, `next_sign`, `current_sign`; computes `resumeAt` = 2h pre-ingress, shifted to 18:30 America/New_York if it lands in the 19:00–05:00 quiet window; builds `blog_content` and `reddit_content` template strings |
 | Wait | Resumes at `resumeAt` |
-| Gmail (send & wait) | Emails `mindglimmer@gmail.com`, subject "Review or Edit", double approval, with admin edit links |
-| If | Checks `$json.approved == "approve"` — **no nodes connected on either branch** |
+| Gmail (send & wait) | Emails `mindglimmer@gmail.com`, subject "Review or Edit", double approval, with admin edit links; no n8n attribution |
+| If | Checks `{{ $json.data.approved }}` is **true** → true branch runs `Publish Transit Draft`, false branch runs `Send Rejection Notice` |
+| Publish Transit Draft | `POST https://hzlpnmvboqhzthvjlves.supabase.co/functions/v1/publish-transit-draft` with `X-Workflow-Secret: f8309d25-0abb-4071-b655-95c2f3b8e191`; upserts `public.blog_posts` with `status: 'approved'` and `publish_at: ingress_utc` |
+| Send Confirmation | Replies with the public URL and ingress time |
+| Send Rejection Notice | Replies with the ingress time and a manual fallback link |
 
-**Status: `active: false`. The workflow is not running.**
+**Status: `active: false`. The workflow is not running.** Activate it in n8n
+after the import is verified.
 
 ### Known defects (verified 2026-07-31)
 
@@ -74,15 +79,19 @@ that file whenever the workflow changes.
 
 2. **Content is not AI-generated.** `blog_content` and `reddit_content` are
    fixed template literals in the Code node with the sign names interpolated.
-   No Gemini/LLM call anywhere in the workflow.
+   No Gemini/LLM call anywhere in the workflow. (This is acceptable for the
+   transit-only post; the internal Gemini engine handles evergreen content.)
 3. ~~**`/admin/reddit` does not exist.**~~ **FIXED 2026-07-31.** The Reddit edit
    link has been removed from the Gmail node. The email now only links to the
    real `/admin/blog` page.
 4. ~~**`?sign=` is not read.**~~ **FIXED 2026-07-31.** The blog edit link now
    points to `https://moondaylive.com/admin/blog` without the unused query
    parameter.
-5. **Approval is a dead end.** The `If` node has no outputs wired, and nothing
-   ever writes to `blog_posts`. Approving does nothing.
+5. ~~**Approval is a dead end.**~~ **FIXED 2026-07-31.** The `If` node now routes
+   to a real `publish-transit-draft` edge function that upserts `blog_posts`.
+   Approved transit posts are set to `status: 'approved'` with `publish_at` equal
+   to the ingress time, so the existing `auto-publish-posts` cron makes them live
+   automatically at the exact ingress moment.
 6. ~~**Quiet-hours math bug.**~~ **FIXED 2026-07-31.** The Code node now computes
    the 18:30 America/New_York target time using explicit timezone-aware date
    construction instead of `setHours()` on the server's local clock.
@@ -144,4 +153,3 @@ draft ──(you approve in /admin/blog)──► approved ──(auto-publish-p
 - No admin approval email from the Lovable Cloud side (n8n covers this for transits only).
 - No cleanup job for stale drafts.
 - No failure alerting if `generate-blog-draft` errors.
-- n8n workflow JSON is not stored in the repo.
