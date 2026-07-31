@@ -558,7 +558,7 @@ const Blueprint = () => {
             eyebrow="Today's Moon"
             title={`Moon in ${lunar.sign.name}`}
             symbol={lunar.sign.symbol}
-            subtitle={`${lunar.phase.name} • ${lunar.phase.illumination}% illuminated • Next sign in ${timeUntilTransition}`}
+            subtitle={`${lunar.phase.name} • ${lunar.phase.illumination}% illuminated • Next sign in ${timeUntilTransition || "—"}`}
             intro={`Today's lunar weather blends the ${lunar.phase.name} phase with the ${lunar.sign.name} signature. Together they shape the emotional tone of your day across mind, soul, and body.`}
             sections={[
               { label: `Mind · ${lunar.sign.name}`, body: signG.psychological },
