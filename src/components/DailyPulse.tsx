@@ -130,7 +130,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
     if (at) return;
     const refresh = () => setNow(resolveNow());
     const unsub = subscribeTestDate(refresh);
-    const id = setInterval(refresh, 60 * 60 * 1000);
+    const id = setInterval(refresh, 5 * 60 * 1000);
     return () => {
       unsub();
       clearInterval(id);

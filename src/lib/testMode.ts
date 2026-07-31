@@ -36,9 +36,13 @@ export function subscribeTestDate(listener: () => void): () => void {
   };
 }
 
-/** UTC-noon anchor for the public global pulse. */
+/** Anchor for the public global pulse.
+ * Baseline is UTC noon so everyone reads the same day, but once that moment
+ * has passed we track the live sky — otherwise an ingress that happens after
+ * 12:00 UTC (e.g. Moon → Pisces at 12:13 UTC) would show the previous sign
+ * for the rest of the day. */
 export function utcNoon(at: Date = new Date()): Date {
   const d = new Date(at);
   d.setUTCHours(12, 0, 0, 0);
-  return d;
+  return at.getTime() > d.getTime() ? new Date(at) : d;
 }
