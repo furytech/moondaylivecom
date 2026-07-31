@@ -103,7 +103,7 @@ describe("Timezone handling across supported locales", () => {
       for (const ingress of SAMPLE) {
         const offset = zoneOffsetMinutes(timeZone, new Date(ingress.transition_at));
         expect(Math.abs(offset)).toBeLessThanOrEqual(14 * 60);
-        expect(offset % 15, `${timeZone} offset ${offset}`).toBe(0);
+        expect(Math.abs(offset % 15), `${timeZone} offset ${offset}`).toBe(0);
       }
     }
   });
