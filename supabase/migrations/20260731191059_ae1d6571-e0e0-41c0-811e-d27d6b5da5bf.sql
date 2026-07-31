@@ -1,0 +1,2 @@
+REVOKE ALL ON FUNCTION public.sovereign_users_for_ingress(timestamptz, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.sovereign_users_for_ingress(timestamptz, text) TO service_role;
