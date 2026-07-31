@@ -243,14 +243,16 @@ const Blueprint = () => {
   };
 
   // Map lunar engine data to CurrentMoonData format for DailyForecast compatibility
-  const moonDataCompat = {
-    sign: lunar.sign.name,
-    symbol: lunar.sign.symbol,
-    element: lunar.sign.element,
-    phase: lunar.phase.name,
-    illumination: lunar.phase.illumination,
-    phaseEmoji: lunar.phase.emoji as string,
-  };
+  const moonDataCompat = lunar
+    ? {
+        sign: lunar.sign.name,
+        symbol: lunar.sign.symbol,
+        element: lunar.sign.element,
+        phase: lunar.phase.name,
+        illumination: lunar.phase.illumination,
+        phaseEmoji: lunar.phase.emoji as string,
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
