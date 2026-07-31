@@ -174,9 +174,19 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
         />
       </div>
 
-      {error && (
-        <p className="text-destructive text-sm font-serif text-center">{error}</p>
+      {calcFailed ? (
+        <MoonCalculationFallback
+          bare
+          title="We couldn't read the sky just now"
+          onRetry={() => handleSubmit()}
+          retrying={loading}
+        />
+      ) : (
+        error && (
+          <p className="text-destructive text-sm font-serif text-center">{error}</p>
+        )
       )}
+
 
       <button
         type="submit"
