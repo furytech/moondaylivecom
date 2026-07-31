@@ -75,14 +75,17 @@ that file whenever the workflow changes.
 2. **Content is not AI-generated.** `blog_content` and `reddit_content` are
    fixed template literals in the Code node with the sign names interpolated.
    No Gemini/LLM call anywhere in the workflow.
-3. **`/admin/reddit` does not exist.** Routes are `/admin/blog` and
-   `/admin/subscribers` only. The Reddit edit link 404s.
-4. **`?sign=` is not read.** `/admin/blog` ignores the query param.
+3. ~~**`/admin/reddit` does not exist.**~~ **FIXED 2026-07-31.** The Reddit edit
+   link has been removed from the Gmail node. The email now only links to the
+   real `/admin/blog` page.
+4. ~~**`?sign=` is not read.**~~ **FIXED 2026-07-31.** The blog edit link now
+   points to `https://moondaylive.com/admin/blog` without the unused query
+   parameter.
 5. **Approval is a dead end.** The `If` node has no outputs wired, and nothing
    ever writes to `blog_posts`. Approving does nothing.
-6. **Quiet-hours math bug.** `postTime.setHours()` uses the server's local
-   timezone, but `localHour` was computed in America/New_York. On a UTC droplet
-   these disagree by 4–5 hours.
+6. ~~**Quiet-hours math bug.**~~ **FIXED 2026-07-31.** The Code node now computes
+   the 18:30 America/New_York target time using explicit timezone-aware date
+   construction instead of `setHours()` on the server's local clock.
 
 
 ---
