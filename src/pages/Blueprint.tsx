@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
-import { getLunarIntelligence, getTimeUntilNextSign } from "@/lib/lunarEngine";
+import { safeLunarIntelligence, safeTimeUntilNextSign } from "@/lib/safeLunar";
+import MoonCalculationFallback from "@/components/MoonCalculationFallback";
+import CalculationBoundary from "@/components/CalculationBoundary";
 import { getSignSymbol } from "@/lib/forecastEngine";
 import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
