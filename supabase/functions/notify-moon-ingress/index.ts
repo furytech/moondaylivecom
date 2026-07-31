@@ -59,7 +59,12 @@ Deno.serve(async (req) => {
     .order('transition_at', { ascending: true })
 
   if (transitionsError) {
-    console.error('[notify-moon-ingress] Failed to fetch transitions', { error: transitionsError.message })
+    await reportError({
+      source: 'notify-moon-ingress',
+      severity: 'critical',
+      message: `Failed to fetch moon transitions: ${transitionsError.message}`,
+      context: { window: { from: now.toISOString(), to: twoHoursFromNow.toISOString() } },
+    })
     return new Response(
       JSON.stringify({ error: 'Failed to fetch transitions' }),
       {
