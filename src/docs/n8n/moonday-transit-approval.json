@@ -25,8 +25,8 @@
       "parameters": {
         "operation": "sendAndWait",
         "sendTo": "mindglimmer@gmail.com",
-        "subject": "Review or Edit",
-        "message": "=Review your generated content for the upcoming Lunar Transit.\n\n---\n### 📝 Moonday Live Blog Draft\n{{ $('Code in JavaScript').item.json.blog_content }}\n\n<a href=\"https://moondaylive.com/admin/blog?sign={{ $('Code in JavaScript').item.json.nextSign }}\">Edit this Blog Post on Lovable Cloud</a>\n\n---\n### 💬 Reddit Post (r/moondaylive)\n{{ $('Code in JavaScript').item.json.reddit_content }}\n\n<a href=\"https://moondaylive.com/admin/reddit?sign={{ $('Code in JavaScript').item.json.nextSign }}\">Edit this Reddit Draft on Lovable Cloud</a>\n\n---\n### 🖼️ Assigned Zodiac Graphic Asset\nhttps://moondaylive.com/assets/signs/{{ $('Code in JavaScript').item.json.nextSign }}.png",
+        "subject": "Review or Edit: Moon {{ $('Code in JavaScript').item.json.nextSign }} Ingress",
+        "message": "=Review your generated content for the upcoming Lunar Transit.\n\n---\n### 📝 Moonday Live Blog Draft\n{{ $('Code in JavaScript').item.json.blog_content }}\n\n<a href=\"https://moondaylive.com/admin/blog\">Edit this Blog Post on Lovable Cloud</a>\n\n---\n### 💬 Reddit Post (r/moondaylive)\n{{ $('Code in JavaScript').item.json.reddit_content }}\n\n---\n### 🖼️ Assigned Zodiac Graphic Asset\n{{ $('Code in JavaScript').item.json.sign_image_url }}",
         "approvalOptions": {
           "values": {
             "approvalType": "double"
