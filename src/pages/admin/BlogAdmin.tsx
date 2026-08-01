@@ -406,12 +406,14 @@ const BlogAdmin = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Reddit Post (Markdown, for r/moondaylive)</label>
+              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
+                Reddit Post (Markdown, for r/moondaylive)
+              </label>
               <textarea
                 value={editing.reddit_post || ""}
                 onChange={(e) => setField("reddit_post", e.target.value)}
                 rows={6}
-                placeholder="Title line, then blank line, then body. Pasted straight into Reddit."
+                placeholder="Title line, then blank line, then body. The sign image is automatically placed above this text when copied."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
             </div>
