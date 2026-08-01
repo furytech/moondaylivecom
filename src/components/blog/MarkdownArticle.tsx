@@ -39,7 +39,7 @@ const proseComponents: Components = {
     </h3>
   ),
   p: ({ children }) => (
-    <p className="text-slate-300 leading-relaxed text-[1.125rem] my-4">{children}</p>
+    <p className="text-slate-300 leading-relaxed text-[1.125rem] my-4 text-justify hyphens-auto">{children}</p>
   ),
   ul: ({ children }) => (
     <ul className="my-5 space-y-2 text-slate-300 leading-relaxed text-[1.0625rem] list-disc pl-5 marker:text-primary/60">

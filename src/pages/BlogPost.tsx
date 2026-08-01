@@ -157,7 +157,7 @@ const BlogPost = () => {
               </span>
             )}
           </div>
-          <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic">
+          <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic text-justify hyphens-auto">
             {post.excerpt}
           </p>
         </header>
