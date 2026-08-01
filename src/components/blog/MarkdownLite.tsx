@@ -96,7 +96,7 @@ const MarkdownLite = ({ source }: { source: string }) => {
           );
         }
         return (
-          <p key={i} className="text-slate-300 leading-relaxed text-[17px] md:text-[18px] normal-case tracking-normal">
+          <p key={i} className="text-slate-300 leading-relaxed text-[17px] md:text-[18px] normal-case tracking-normal text-justify hyphens-auto">
             {trimmed}
           </p>
         );
