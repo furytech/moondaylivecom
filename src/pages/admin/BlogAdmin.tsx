@@ -271,13 +271,23 @@ const BlogAdmin = () => {
       <div className="w-full max-w-5xl mx-auto py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-display text-2xl md:text-3xl text-foreground">Journal Admin</h1>
-          <button
-            onClick={openNew}
-            className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
-          >
-            + New Post
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleFillSchedule}
+              disabled={filling}
+              className="px-4 py-2 rounded-full border border-primary/40 text-primary text-sm hover:bg-primary/10 transition disabled:opacity-50"
+            >
+              {filling ? "Drafting…" : "Fill Transit Schedule (30d)"}
+            </button>
+            <button
+              onClick={openNew}
+              className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
+            >
+              + New Post
+            </button>
+          </div>
         </div>
+
 
         {message && (
           <div className="mb-6 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
