@@ -515,6 +515,17 @@ const BlogAdmin = () => {
                       >
                         {copiedId === p.id ? "Copied!" : "Copy Reddit Post"}
                       </button>
+                      {signImageUrl(p.zodiac_sign_tag) && (
+                        <a
+                          href={signImageUrl(p.zodiac_sign_tag)!}
+                          download
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Get Image
+                        </a>
+                      )}
                       <button onClick={() => handleDelete(p.id!)} className="text-red-400 hover:underline text-xs">
                         Delete
                       </button>
