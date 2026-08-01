@@ -87,6 +87,7 @@ const BlogAdmin = () => {
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
   const [message, setMessage] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [downloadId, setDownloadId] = useState<string | null>(null);
 
   const handleCopyReddit = async (post: BlogPostRow) => {
     const text = post.reddit_post || "";
@@ -102,6 +103,37 @@ const BlogAdmin = () => {
       setTimeout(() => setCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
     } catch {
       setMessage("Copy failed — browser blocked clipboard access.");
+    }
+  };
+
+  const handleDownloadImage = async (post: BlogPostRow) => {
+    const url = resolveSignImage({
+      imageUrl: post.image_url,
+      zodiacSignTag: post.zodiac_sign_tag,
+      constellationGraphicPath: post.constellation_graphic_path,
+    });
+    if (!url) {
+      setMessage("No sign image available for this post.");
+      return;
+    }
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${post.zodiac_sign_tag || "sign"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+      setDownloadId(post.id || null);
+      setTimeout(() => setDownloadId((cur) => (cur === post.id ? null : cur)), 2000);
+    } catch {
+      // Fallback: open the image in a new tab so the user can save it manually.
+      window.open(url, "_blank", "noopener,noreferrer");
+      setMessage("Image opened in a new tab — right-click and Save As.");
     }
   };
 
@@ -515,16 +547,17 @@ const BlogAdmin = () => {
                       >
                         {copiedId === p.id ? "Copied!" : "Copy Reddit Post"}
                       </button>
-                      {signImageUrl(p.zodiac_sign_tag) && (
-                        <a
-                          href={signImageUrl(p.zodiac_sign_tag)!}
-                          download
-                          target="_blank"
-                          rel="noreferrer"
+                      {resolveSignImage({
+                        imageUrl: p.image_url,
+                        zodiacSignTag: p.zodiac_sign_tag,
+                        constellationGraphicPath: p.constellation_graphic_path,
+                      }) && (
+                        <button
+                          onClick={() => handleDownloadImage(p)}
                           className="text-xs text-primary hover:underline"
                         >
-                          Get Image
-                        </a>
+                          {downloadId === p.id ? "Downloaded!" : "Get Image"}
+                        </button>
                       )}
                       <button onClick={() => handleDelete(p.id!)} className="text-red-400 hover:underline text-xs">
                         Delete
