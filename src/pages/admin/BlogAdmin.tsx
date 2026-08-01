@@ -94,10 +94,10 @@ const BlogAdmin = () => {
       setMessage("No Reddit post drafted for this row yet.");
       return;
     }
-    const signImage = signImageUrl(post.zodiac_sign_tag);
-    const redditWithImage = signImage ? `${text}\n\n![${post.zodiac_sign_tag || "Constellation"} card](${signImage})` : text;
+    // Reddit text posts do not render markdown images — never append one.
+    // Use the "Get Image" button and drag the PNG into Reddit's editor instead.
     try {
-      await navigator.clipboard.writeText(redditWithImage);
+      await navigator.clipboard.writeText(text.trim());
       setCopiedId(post.id || null);
       setTimeout(() => setCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
     } catch {
