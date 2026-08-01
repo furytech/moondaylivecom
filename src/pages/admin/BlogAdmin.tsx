@@ -88,6 +88,33 @@ const BlogAdmin = () => {
   const [message, setMessage] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
+  const [filling, setFilling] = useState(false);
+
+  // Pre-builds drafts for every real Moon ingress in the next 30 days so the
+  // schedule is never empty ahead of a transit.
+  const handleFillSchedule = async () => {
+    setFilling(true);
+    setMessage("Calculating upcoming Moon ingresses and drafting posts…");
+    try {
+      const { data, error } = await supabase.functions.invoke("fill-transit-schedule", {
+        body: { days: 30, limit: 8 },
+      });
+      if (error) throw error;
+      const created = data?.created_count ?? 0;
+      const skipped = data?.skipped?.length ?? 0;
+      setMessage(
+        created > 0
+          ? `Created ${created} transit draft${created === 1 ? "" : "s"} at their real ingress times${skipped ? ` (${skipped} already scheduled)` : ""}.`
+          : `Schedule is already full — ${skipped} upcoming transit${skipped === 1 ? "" : "s"} already have drafts.`,
+      );
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    } finally {
+      setFilling(false);
+    }
+  };
+
 
   const handleCopyReddit = async (post: BlogPostRow) => {
     const text = post.reddit_post || "";
