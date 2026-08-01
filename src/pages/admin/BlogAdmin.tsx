@@ -95,10 +95,23 @@ const BlogAdmin = () => {
       setMessage("No Reddit post drafted for this row yet.");
       return;
     }
-    // Reddit text posts do not render markdown images — never append one.
-    // Use the "Get Image" button and drag the PNG into Reddit's editor instead.
+    // Reddit text posts do not render markdown images inline, but users still
+    // want the image reference above the post body. Prepend it so the artwork
+    // sits at the top of the copied text; they can then drag the file in, or
+    // use this as the image post body with the caption below it.
+    const imageUrl = resolveSignImage({
+      imageUrl: post.image_url,
+      zodiacSignTag: post.zodiac_sign_tag,
+      constellationGraphicPath: post.constellation_graphic_path,
+    });
+    const parts: string[] = [];
+    if (imageUrl) {
+      parts.push(`![${post.zodiac_sign_tag || "Sign"} card](${imageUrl})`);
+      parts.push("");
+    }
+    parts.push(text.trim());
     try {
-      await navigator.clipboard.writeText(text.trim());
+      await navigator.clipboard.writeText(parts.join("\n"));
       setCopiedId(post.id || null);
       setTimeout(() => setCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
     } catch {
