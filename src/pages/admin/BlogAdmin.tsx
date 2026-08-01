@@ -547,16 +547,17 @@ const BlogAdmin = () => {
                       >
                         {copiedId === p.id ? "Copied!" : "Copy Reddit Post"}
                       </button>
-                      {signImageUrl(p.zodiac_sign_tag) && (
-                        <a
-                          href={signImageUrl(p.zodiac_sign_tag)!}
-                          download
-                          target="_blank"
-                          rel="noreferrer"
+                      {resolveSignImage({
+                        imageUrl: p.image_url,
+                        zodiacSignTag: p.zodiac_sign_tag,
+                        constellationGraphicPath: p.constellation_graphic_path,
+                      }) && (
+                        <button
+                          onClick={() => handleDownloadImage(p)}
                           className="text-xs text-primary hover:underline"
                         >
-                          Get Image
-                        </a>
+                          {downloadId === p.id ? "Downloaded!" : "Get Image"}
+                        </button>
                       )}
                       <button onClick={() => handleDelete(p.id!)} className="text-red-400 hover:underline text-xs">
                         Delete
