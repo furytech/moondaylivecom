@@ -88,6 +88,33 @@ const BlogAdmin = () => {
   const [message, setMessage] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
+  const [filling, setFilling] = useState(false);
+
+  // Pre-builds drafts for every real Moon ingress in the next 30 days so the
+  // schedule is never empty ahead of a transit.
+  const handleFillSchedule = async () => {
+    setFilling(true);
+    setMessage("Calculating upcoming Moon ingresses and drafting posts…");
+    try {
+      const { data, error } = await supabase.functions.invoke("fill-transit-schedule", {
+        body: { days: 30, limit: 8 },
+      });
+      if (error) throw error;
+      const created = data?.created_count ?? 0;
+      const skipped = data?.skipped?.length ?? 0;
+      setMessage(
+        created > 0
+          ? `Created ${created} transit draft${created === 1 ? "" : "s"} at their real ingress times${skipped ? ` (${skipped} already scheduled)` : ""}.`
+          : `Schedule is already full — ${skipped} upcoming transit${skipped === 1 ? "" : "s"} already have drafts.`,
+      );
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    } finally {
+      setFilling(false);
+    }
+  };
+
 
   const handleCopyReddit = async (post: BlogPostRow) => {
     const text = post.reddit_post || "";
@@ -244,13 +271,23 @@ const BlogAdmin = () => {
       <div className="w-full max-w-5xl mx-auto py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-display text-2xl md:text-3xl text-foreground">Journal Admin</h1>
-          <button
-            onClick={openNew}
-            className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
-          >
-            + New Post
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleFillSchedule}
+              disabled={filling}
+              className="px-4 py-2 rounded-full border border-primary/40 text-primary text-sm hover:bg-primary/10 transition disabled:opacity-50"
+            >
+              {filling ? "Drafting…" : "Fill Transit Schedule (30d)"}
+            </button>
+            <button
+              onClick={openNew}
+              className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
+            >
+              + New Post
+            </button>
+          </div>
         </div>
+
 
         {message && (
           <div className="mb-6 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
