@@ -11,7 +11,7 @@ import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSign, type TransitionInfo } from "@/lib/moonSign";
+import { calculateMoonSignAsync, type TransitionInfo } from "@/lib/moonSign";
 import { getCombinedTransitionInfo } from "@/lib/moonTransitions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEO from "@/components/SEO";
@@ -167,7 +167,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         }
 
         const birthDate = new Date(`${birthday}T12:00:00`);
-        const moonSignName = calculateMoonSign(birthDate).sign;
+        const moonSignName = (await calculateMoonSignAsync(birthDate)).sign;
         await signUp(email, password, birthday, moonSignName);
         setSignupSuccess(true);
       }
