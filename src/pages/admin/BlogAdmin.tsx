@@ -10,6 +10,7 @@ import {
   deletePost,
   approvePost,
   publishPostNow,
+  unpublishPost,
   BlogPostRow,
   BlogCategory,
   CATEGORIES,
@@ -241,6 +242,17 @@ const BlogAdmin = () => {
     try {
       await publishPostNow(id);
       setMessage("Post published.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  const handleUnpublish = async (id: string) => {
+    if (!confirm("Unpublish this post? It will revert to draft and be hidden from the public blog.")) return;
+    try {
+      await unpublishPost(id);
+      setMessage("Post unpublished and reverted to draft.");
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
@@ -588,6 +600,14 @@ const BlogAdmin = () => {
                           className="text-emerald-400 hover:underline text-xs"
                         >
                           Approve & Publish
+                        </button>
+                      )}
+                      {p.status === "published" && (
+                        <button
+                          onClick={() => handleUnpublish(p.id!)}
+                          className="text-amber-400 hover:underline text-xs"
+                        >
+                          Unpublish
                         </button>
                       )}
                       <button
