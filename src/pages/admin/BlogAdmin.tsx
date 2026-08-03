@@ -10,6 +10,7 @@ import {
   deletePost,
   approvePost,
   publishPostNow,
+  unpublishPost,
   BlogPostRow,
   BlogCategory,
   CATEGORIES,
