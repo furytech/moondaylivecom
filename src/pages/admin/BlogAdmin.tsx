@@ -248,6 +248,17 @@ const BlogAdmin = () => {
     }
   };
 
+  const handleUnpublish = async (id: string) => {
+    if (!confirm("Unpublish this post? It will revert to draft and be hidden from the public blog.")) return;
+    try {
+      await unpublishPost(id);
+      setMessage("Post unpublished and reverted to draft.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this post? This cannot be undone.")) return;
     try {
