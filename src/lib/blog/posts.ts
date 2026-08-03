@@ -235,3 +235,14 @@ export async function publishPostNow(id: string) {
   if (error) throw error;
   return data as BlogPostRow;
 }
+
+export async function unpublishPost(id: string) {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .update({ status: "draft", publish_at: null, published_at: null })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as BlogPostRow;
+}
