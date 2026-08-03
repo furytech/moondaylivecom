@@ -602,6 +602,14 @@ const BlogAdmin = () => {
                           Approve & Publish
                         </button>
                       )}
+                      {p.status === "published" && (
+                        <button
+                          onClick={() => handleUnpublish(p.id!)}
+                          className="text-amber-400 hover:underline text-xs"
+                        >
+                          Unpublish
+                        </button>
+                      )}
                       <button
                         onClick={() => handleCopyReddit(p)}
                         disabled={!p.reddit_post}
