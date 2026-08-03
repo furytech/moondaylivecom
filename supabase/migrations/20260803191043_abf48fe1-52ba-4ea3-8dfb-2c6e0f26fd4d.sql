@@ -1,0 +1,1 @@
+DELETE FROM public.blog_posts WHERE id IN ('7edd7e66-9aa1-4ef7-ba4f-d3ec422b696f','5c5c3c8f-4230-46d1-b7aa-e048c70f65d9') AND status = 'draft';
