@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSign } from "@/lib/moonSign";
+import { calculateMoonSignAsync } from "@/lib/moonSign";
 import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
@@ -97,7 +97,7 @@ const Account = () => {
     setSaving(true);
     try {
       const birthDate = new Date(`${birthday}T12:00:00`);
-      const moon = calculateMoonSign(birthDate);
+      const moon = await calculateMoonSignAsync(birthDate);
 
       const { error } = await supabase
         .from("user_profiles")

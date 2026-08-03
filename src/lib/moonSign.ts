@@ -274,7 +274,7 @@ export async function calculateMoonSignAsync(birthDate: Date): Promise<MoonSignR
   };
 }
 
-// Synchronous wrapper that calculates immediately (for backwards compatibility)
+/** @deprecated Approximate mean-longitude fallback. Use calculateMoonSignAsync for anything user-facing or persisted. */
 // Note: This uses an approximation. For accurate results, use calculateMoonSignAsync
 export function calculateMoonSign(birthDate: Date): MoonSignResult {
   const day = birthDate.getDate();
