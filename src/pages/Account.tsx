@@ -389,6 +389,43 @@ const Account = () => {
                     </div>
                   )}
 
+                  {/* Timezone */}
+                  <div className="flex items-start gap-3">
+                    <Globe className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-display text-xs uppercase tracking-widest text-cream-muted/60 mb-2 flex items-center gap-1.5">
+                        Timezone
+                        <UTCNotice timezone={timezone} />
+                      </p>
+                      <Select
+                        value={timezone}
+                        onValueChange={handleTimezoneChange}
+                        disabled={timezoneSaving}
+                      >
+                        <SelectTrigger className="w-full h-11 rounded-xl bg-background/40 border border-primary/20 text-left">
+                          <SelectValue placeholder="Select your timezone" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-navy-dark border-primary/30 max-h-72">
+                          {TIMEZONE_OPTIONS.map((tz) => (
+                            <SelectItem key={tz.value} value={tz.value}>
+                              {tz.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-cream-muted/60 mt-2 leading-relaxed">
+                        Moon content is calculated and published on{" "}
+                        <span className="text-primary/90">UTC</span>
+                        {timezone !== "UTC" && (
+                          <> — your times display in {zoneAbbreviation(timezone)}</>
+                        )}
+                        .
+                      </p>
+                    </div>
+                  </div>
+
+
+
                   {!profile?.birthday && (
                     <button
                       onClick={handleSaveBirthday}
