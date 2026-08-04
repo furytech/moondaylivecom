@@ -167,9 +167,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           try {
             sessionStorage.setItem(
               "pendingSignup",
-              JSON.stringify({ email, password, birthday })
+              JSON.stringify({ email, password, birthday, timezone })
             );
           } catch { /* ignore */ }
+          cacheTimezone(timezone);
           navigate(
             `/transition-quiz?signA=${transitionInfo.signAtStart}&signB=${transitionInfo.signAtEnd}&birthday=${birthday}`
           );
@@ -178,7 +179,8 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
         const birthDate = new Date(`${birthday}T12:00:00`);
         const moonSignName = (await calculateMoonSignAsync(birthDate)).sign;
-        await signUp(email, password, birthday, moonSignName);
+        await signUp(email, password, birthday, moonSignName, timezone);
+        cacheTimezone(timezone);
         setSignupSuccess(true);
       }
     } catch (err: unknown) {
