@@ -8,7 +8,17 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSignAsync } from "@/lib/moonSign";
-import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell } from "lucide-react";
+import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell, Globe } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TIMEZONE_OPTIONS, detectTimezoneOption, zoneAbbreviation, isValidTimezone } from "@/lib/timezone";
+import { cacheTimezone } from "@/hooks/useUserTimezone";
+import UTCNotice from "@/components/UTCNotice";
 import { Switch } from "@/components/ui/switch";
 
 import SovereignSecurity from "@/components/SovereignSecurity";
@@ -24,6 +34,7 @@ interface ProfileRow {
   subscription_status: string;
   is_subscriber: boolean;
   moon_alert_frequency: string | null;
+  timezone: string | null;
 }
 
 
@@ -40,6 +51,8 @@ const Account = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [alertFrequency, setAlertFrequency] = useState<"all" | "natal">("all");
   const [frequencySaving, setFrequencySaving] = useState(false);
+  const [timezone, setTimezone] = useState<string>("UTC");
+  const [timezoneSaving, setTimezoneSaving] = useState(false);
 
 
   useEffect(() => {
@@ -70,7 +83,7 @@ const Account = () => {
       }
       const { data, error } = await supabase
         .from("user_profiles")
-        .select("email, birthday, moon_sign, subscription_status, is_subscriber, moon_alert_frequency")
+        .select("email, birthday, moon_sign, subscription_status, is_subscriber, moon_alert_frequency, timezone")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -83,6 +96,9 @@ const Account = () => {
         setAlertFrequency(
           data.moon_alert_frequency === "natal" ? "natal" : "all"
         );
+        const saved = data.timezone && isValidTimezone(data.timezone) ? data.timezone : null;
+        setTimezone(saved ?? detectTimezoneOption());
+        if (saved) cacheTimezone(saved);
       }
 
       setLoading(false);
@@ -120,6 +136,7 @@ const Account = () => {
         subscription_status: prev?.subscription_status ?? "free",
         is_subscriber: prev?.is_subscriber ?? false,
         moon_alert_frequency: prev?.moon_alert_frequency ?? "all",
+        timezone: prev?.timezone ?? timezone,
       }));
 
 
@@ -136,6 +153,39 @@ const Account = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTimezoneChange = async (value: string) => {
+    if (!user) return;
+    setTimezoneSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ timezone: value })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setTimezone(value);
+      cacheTimezone(value);
+      setProfile((prev) => (prev ? { ...prev, timezone: value } : prev));
+      toast({
+        title: "Timezone saved",
+        description:
+          value === "UTC"
+            ? "Moon times will be shown in UTC — the same clock we publish on."
+            : `Moon times will be shown in ${zoneAbbreviation(value)}. Content is still published on UTC.`,
+      });
+    } catch (err) {
+      console.error("Timezone save error:", err);
+      toast({
+        title: "Could not save timezone",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setTimezoneSaving(false);
     }
   };
 
