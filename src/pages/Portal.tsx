@@ -47,6 +47,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [birthday, setBirthday] = useState("");
+  const [timezone, setTimezone] = useState<string>(() => detectTimezoneOption());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
