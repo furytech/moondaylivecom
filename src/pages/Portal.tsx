@@ -547,6 +547,45 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                     Used to chart your natal moon sign — saved to your profile.
                   </p>
 
+                  <div className="space-y-2 pt-4">
+                    <label
+                      htmlFor="timezone"
+                      className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1"
+                    >
+                      Your Timezone
+                    </label>
+                    <Select value={timezone} onValueChange={setTimezone}>
+                      <SelectTrigger
+                        id="timezone"
+                        className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                      >
+                        <span className="flex items-center gap-2 truncate">
+                          <Globe className="w-4 h-4 text-lilac/60 shrink-0" />
+                          <SelectValue placeholder="Select your timezone" />
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent className="bg-navy-dark border-lilac/30 max-h-72">
+                        {TIMEZONE_OPTIONS.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground/70 pl-1 pt-1 leading-relaxed">
+                      We publish all moon content on <span className="text-lilac/90">UTC</span>.
+                      {timezone !== "UTC" && (
+                        <>
+                          {" "}Your times will be shown in{" "}
+                          <span className="text-lilac/90">{zoneAbbreviation(timezone)}</span> with a
+                          small marker noting the UTC source.
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+
+
                   {transitionInfo?.isTransitionDay && (
                     <Alert className="mt-3 bg-lilac/5 border-lilac/30 text-left">
                       <SparklesIcon className="w-4 h-4 text-lilac" />
