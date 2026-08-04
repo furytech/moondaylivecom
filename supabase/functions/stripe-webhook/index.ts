@@ -115,7 +115,11 @@ serve(async (req) => {
       }
     }
 
-    if (event.type === "customer.subscription.deleted") {
+    if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId = subscription.customer as string;
 
@@ -129,20 +133,29 @@ serve(async (req) => {
         });
       }
 
+      const active =
+        event.type !== "customer.subscription.deleted" &&
+        (subscription.status === "active" || subscription.status === "trialing");
+
       const { error: updateError } = await supabaseClient
         .from("user_profiles")
         .update({
-          is_subscriber: false,
-          subscription_status: "free",
+          is_subscriber: active,
+          subscription_status: active ? "sovereign" : "free",
         })
         .eq("email", customer.email);
 
       if (updateError) {
-        logStep("ERROR deactivating subscription", { error: updateError.message });
+        logStep("ERROR syncing subscription", { error: updateError.message });
       } else {
-        logStep("Subscription deactivated", { email: customer.email });
+        logStep("Subscription synced", {
+          email: customer.email,
+          status: subscription.status,
+          active,
+        });
       }
     }
+
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
