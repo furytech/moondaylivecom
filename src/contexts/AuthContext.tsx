@@ -19,7 +19,7 @@ interface AuthContextType {
   loading: boolean;
   subscription: SubscriptionStatus;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, birthday?: string, moonSign?: string) => Promise<void>;
+  signUp: (email: string, password: string, birthday?: string, moonSign?: string, timezone?: string) => Promise<void>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
 }
