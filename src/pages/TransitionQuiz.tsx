@@ -1,3 +1,4 @@
+import { detectTimezoneOption } from "@/lib/timezone";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles, Moon, ArrowRight, Eye, EyeOff, MailCheck } from "lucide-react";
@@ -108,7 +109,7 @@ const TransitionQuiz = () => {
   useEffect(() => {
     if (autoSignupAttempted.current) return;
     if (!result || user || signupSuccess) return;
-    let pending: { email?: string; password?: string; birthday?: string } | null = null;
+    let pending: { email?: string; password?: string; birthday?: string; timezone?: string } | null = null;
     try {
       const raw = sessionStorage.getItem("pendingSignup");
       if (raw) pending = JSON.parse(raw);
@@ -125,7 +126,8 @@ const TransitionQuiz = () => {
           pending!.email!,
           pending!.password!,
           pending!.birthday || birthdayParam,
-          result.primarySign
+          result.primarySign,
+          pending!.timezone || detectTimezoneOption()
         );
         setSignupSuccess(true);
       } catch (err) {
@@ -208,7 +210,7 @@ const TransitionQuiz = () => {
     try {
       // Keep pendingMoonSign in localStorage so Portal can apply it after the
       // user clicks the email verification link and lands signed-in.
-      await signUp(signupEmail, signupPassword, birthdayParam, result.primarySign);
+      await signUp(signupEmail, signupPassword, birthdayParam, result.primarySign, detectTimezoneOption());
       setSignupSuccess(true);
     } catch (err) {
       const msg = (err as { message?: string }).message || "Could not create account.";
