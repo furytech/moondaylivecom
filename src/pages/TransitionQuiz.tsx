@@ -108,7 +108,7 @@ const TransitionQuiz = () => {
   useEffect(() => {
     if (autoSignupAttempted.current) return;
     if (!result || user || signupSuccess) return;
-    let pending: { email?: string; password?: string; birthday?: string } | null = null;
+    let pending: { email?: string; password?: string; birthday?: string; timezone?: string } | null = null;
     try {
       const raw = sessionStorage.getItem("pendingSignup");
       if (raw) pending = JSON.parse(raw);
@@ -125,7 +125,8 @@ const TransitionQuiz = () => {
           pending!.email!,
           pending!.password!,
           pending!.birthday || birthdayParam,
-          result.primarySign
+          result.primarySign,
+          pending!.timezone || detectTimezoneOption()
         );
         setSignupSuccess(true);
       } catch (err) {
