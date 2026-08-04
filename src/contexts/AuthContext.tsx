@@ -138,13 +138,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (error) throw error;
   };
 
-  const handleSignUp = async (email: string, password: string, birthday?: string, moonSign?: string) => {
+  const handleSignUp = async (
+    email: string,
+    password: string,
+    birthday?: string,
+    moonSign?: string,
+    timezone?: string
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: birthday ? { birthday, moon_sign: moonSign } : undefined,
+        data: birthday
+          ? { birthday, moon_sign: moonSign, timezone: timezone ?? "UTC" }
+          : timezone
+            ? { timezone }
+            : undefined,
       },
     });
     if (error) throw error;
@@ -155,7 +165,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await supabase
         .from("user_profiles")
         .upsert(
-          { user_id: data.user.id, email, birthday, moon_sign: moonSign ?? null },
+          {
+            user_id: data.user.id,
+            email,
+            birthday,
+            moon_sign: moonSign ?? null,
+            timezone: timezone ?? "UTC",
+          },
           { onConflict: "user_id" }
         );
     }
