@@ -1,3 +1,4 @@
+import UTCNotice from "@/components/UTCNotice";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Calendar, ChevronRight, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -146,6 +147,7 @@ const BlogPost = () => {
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               {formatDate(post.date)}
+              <UTCNotice />
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" />
