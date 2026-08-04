@@ -15,7 +15,16 @@ import { calculateMoonSignAsync, type TransitionInfo } from "@/lib/moonSign";
 import { getCombinedTransitionInfo } from "@/lib/moonTransitions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEO from "@/components/SEO";
-import { Sparkles as SparklesIcon } from "lucide-react";
+import { Sparkles as SparklesIcon, Globe } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TIMEZONE_OPTIONS, detectTimezoneOption, zoneAbbreviation } from "@/lib/timezone";
+import { cacheTimezone } from "@/hooks/useUserTimezone";
 
 interface PortalProps {
   defaultMode?: "login" | "signup";
