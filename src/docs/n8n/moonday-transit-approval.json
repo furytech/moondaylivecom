@@ -298,6 +298,33 @@
       ],
       "id": "a1b2c3d4-0000-4000-8000-000000000001",
       "name": "In Send Window"
+    },
+    {
+      "parameters": {
+        "url": "https://hzlpnmvboqhzthvjlves.supabase.co/functions/v1/next-ingress",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -128
+      ],
+      "id": "recheck-ingress-0001",
+      "name": "Recheck Ingress"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FRESHNESS GUARD - runs immediately before the approval email is sent.\n// A resumed Wait execution can carry a payload that was built hours or days ago.\n// We re-read next-ingress here and refuse to email unless it still matches.\nconst fresh = $input.first()?.json || {};\nconst planned = $('Code in JavaScript').item.json;\n\nif (!fresh.next_sign || !fresh.ingress_utc) {\n  throw new Error('Freshness guard: next-ingress returned no data - aborting.');\n}\nif (new Date(fresh.ingress_utc).getTime() <= Date.now()) {\n  throw new Error('Freshness guard: next ingress is already in the past - aborting.');\n}\nif (fresh.next_sign !== planned.nextSign) {\n  throw new Error(`Freshness guard: stale run. Queued sign ${planned.nextSign} but the sky is now heading into ${fresh.next_sign} - aborting so no wrong-sign email is sent.`);\n}\nif (Math.abs(new Date(fresh.ingress_utc).getTime() - new Date(planned.ingressUTC).getTime()) > 60000) {\n  throw new Error('Freshness guard: ingress time drifted from the queued payload - aborting.');\n}\n\n// Rebuild the human-readable time from the FRESH payload so the email can never\n// render an empty \"at .\" line.\nconst zones = fresh.ingress_local || {};\nconst timeLine = [fresh.ingress_utc_display, zones.new_york, zones.los_angeles, zones.london, zones.sydney].filter(Boolean).join(' \\u2022 ');\nif (!timeLine) {\n  throw new Error('Freshness guard: no readable ingress time - aborting.');\n}\n\nconst blog_content = planned.blog_content.replace(planned.timeLine, timeLine);\nconst reddit_content = planned.reddit_content.replace(planned.timeLine, timeLine);\n\nreturn [{ json: { ...planned, timeLine, ingressUTCDisplay: fresh.ingress_utc_display, blog_content, reddit_content } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -128
+      ],
+      "id": "freshness-guard-0001",
+      "name": "Freshness Guard"
     }
   ],
   "pinData": {},
@@ -339,7 +366,7 @@
       "main": [
         [
           {
-            "node": "Send message and wait for response",
+            "node": "Recheck Ingress",
             "type": "main",
             "index": 0
           }
@@ -391,6 +418,28 @@
         [
           {
             "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recheck Ingress": {
+      "main": [
+        [
+          {
+            "node": "Freshness Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Freshness Guard": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
             "type": "main",
             "index": 0
           }
