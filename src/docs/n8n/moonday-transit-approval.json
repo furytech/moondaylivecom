@@ -50,20 +50,6 @@
     },
     {
       "parameters": {
-        "resume": "specificTime",
-        "dateTime": "={{ $('Code in JavaScript').item.json.resumeAt }}"
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        224,
-        -128
-      ],
-      "id": "a7551047-76dd-4e84-aa8d-27629007e5ed",
-      "name": "Wait"
-    },
-    {
-      "parameters": {
         "operation": "sendAndWait",
         "sendTo": "mindglimmer@gmail.com",
         "subject": "Review or Edit: Moon enters {{ $('Code in JavaScript').item.json.nextSign }} at {{ $('Code in JavaScript').item.json.ingressUTCDisplay }}",
@@ -362,17 +348,6 @@
         ]
       ]
     },
-    "Wait": {
-      "main": [
-        [
-          {
-            "node": "Recheck Ingress",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Send message and wait for response": {
       "main": [
         [
@@ -417,7 +392,7 @@
       "main": [
         [
           {
-            "node": "Wait",
+            "node": "Recheck Ingress",
             "type": "main",
             "index": 0
           }
