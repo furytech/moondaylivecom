@@ -133,15 +133,36 @@ serve(async (req) => {
         });
       }
 
-      const active =
-        event.type !== "customer.subscription.deleted" &&
-        (subscription.status === "active" || subscription.status === "trialing");
+      // Only two outcomes are safe to write:
+      //  - GRANT access for statuses Stripe considers paid/entitled.
+      //  - REVOKE access only for terminal statuses.
+      // Everything in between (past_due, unpaid, incomplete, paused) is a
+      // transient state — Stripe is still retrying or the first invoice has not
+      // settled yet — so we leave the profile untouched rather than locking a
+      // paying member out mid-cycle or racing checkout.session.completed.
+      const GRANT_STATUSES = new Set(["active", "trialing"]);
+      const REVOKE_STATUSES = new Set(["canceled", "incomplete_expired"]);
+
+      const deleted = event.type === "customer.subscription.deleted";
+      const grant = !deleted && GRANT_STATUSES.has(subscription.status);
+      const revoke = deleted || REVOKE_STATUSES.has(subscription.status);
+
+      if (!grant && !revoke) {
+        logStep("Transient subscription status - leaving access unchanged", {
+          email: customer.email,
+          status: subscription.status,
+        });
+        return new Response(JSON.stringify({ received: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
 
       const { error: updateError } = await supabaseClient
         .from("user_profiles")
         .update({
-          is_subscriber: active,
-          subscription_status: active ? "sovereign" : "free",
+          is_subscriber: grant,
+          subscription_status: grant ? "sovereign" : "free",
         })
         .eq("email", customer.email);
 
@@ -151,9 +172,10 @@ serve(async (req) => {
         logStep("Subscription synced", {
           email: customer.email,
           status: subscription.status,
-          active,
+          action: grant ? "granted" : "revoked",
         });
       }
+
     }
 
 
