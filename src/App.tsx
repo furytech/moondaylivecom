@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import BottomTabBar from "@/components/BottomTabBar";
 import DevTierPanel from "@/components/DevTierPanel";
@@ -70,19 +71,19 @@ const App = () => (
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/admin" element={<Navigate to="/admin/blog" replace />} />
             <Route path="/admin/blog" element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <BlogAdmin />
-              </ProtectedRoute>
+              </AdminRoute>
             } />
             <Route path="/admin/subscribers" element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <Subscribers />
-              </ProtectedRoute>
+              </AdminRoute>
             } />
             <Route path="/admin/errors" element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <SystemErrors />
-              </ProtectedRoute>
+              </AdminRoute>
             } />
 
             {/* Legacy redirect */}
