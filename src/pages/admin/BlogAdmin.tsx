@@ -667,6 +667,9 @@ const BlogAdmin = () => {
                     placeholder="https://your-n8n-instance/webhook/moonday-substack"
                     className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
                   />
+                  <p className="text-xs text-cream-muted/60 mt-1">
+                    Production sends route through the backend to avoid mixed-content/CORS issues.
+                  </p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                   <button
