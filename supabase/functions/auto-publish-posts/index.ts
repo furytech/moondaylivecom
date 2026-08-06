@@ -44,13 +44,13 @@ Deno.serve(async (req) => {
     const { data: stale } = await supabase
       .from('blog_posts')
       .select('id, slug, publish_at')
-      .eq('status', 'approved')
+      .in('status', ['approved', 'scheduled'])
       .lte('publish_at', staleCutoff);
 
     const { data, error } = await supabase
       .from('blog_posts')
       .update({ status: 'published', published_at: now })
-      .eq('status', 'approved')
+      .in('status', ['approved', 'scheduled'])
       .lte('publish_at', now)
       .select();
 

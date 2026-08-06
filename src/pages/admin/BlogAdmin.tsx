@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import MoonLoader from "@/components/MoonLoader";
+import ScheduledPublishPicker from "@/components/admin/ScheduledPublishPicker";
 import {
   listAllPosts,
   upsertPost,
@@ -190,6 +191,23 @@ const BlogAdmin = () => {
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     }
+  };
+
+  // Scheduling: the picked instant drives status. Future => scheduled (the
+  // hourly publisher flips it live), now/past => published immediately.
+  const handleScheduleChange = (iso: string | null) => {
+    if (!editing) return;
+    if (!iso) {
+      setEditing({ ...editing, publish_at: null });
+      return;
+    }
+    const isFuture = new Date(iso).getTime() > Date.now();
+    setEditing({
+      ...editing,
+      publish_at: iso,
+      status: isFuture ? "scheduled" : "published",
+      published_at: isFuture ? editing.published_at ?? null : iso,
+    });
   };
 
   // Drafts a Reddit title + body from the blog content currently in the editor.
@@ -447,18 +465,20 @@ const BlogAdmin = () => {
                 >
                   <option value="draft">Draft</option>
                   <option value="approved">Approved</option>
+                  <option value="scheduled">Scheduled</option>
                   <option value="published">Published</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Publish At (scheduled)</label>
-                <input
-                  type="datetime-local"
-                  value={toDatetimeLocalValue(editing.publish_at)}
-                  onChange={(e) => setField("publish_at", fromDatetimeLocalValue(e.target.value))}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+              <div className="md:col-span-2">
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
+                  Scheduled Publish Date &amp; Time
+                </label>
+                <ScheduledPublishPicker
+                  value={editing.publish_at}
+                  onChange={handleScheduleChange}
                 />
               </div>
+
               <div>
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Published At (live date shown)</label>
                 <input
