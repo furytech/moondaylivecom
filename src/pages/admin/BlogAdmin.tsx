@@ -309,8 +309,14 @@ const BlogAdmin = () => {
     }
   };
 
-  const openNew = () => setEditing({ ...defaultPost });
-  const openEdit = (post: BlogPostRow) => setEditing({ ...post });
+  const openNew = () => {
+    setQueued(false);
+    setEditing({ ...defaultPost });
+  };
+  const openEdit = (post: BlogPostRow) => {
+    setQueued(false);
+    setEditing({ ...post });
+  };
 
   const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {
     setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
