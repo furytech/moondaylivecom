@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates";
 export type CtaType = "birthday-calculator" | "dashboard" | "none";
-export type PostStatus = "draft" | "approved" | "published";
+export type PostStatus = "draft" | "approved" | "scheduled" | "published";
 
 export const SITE_URL = "https://moondaylive.com";
 export const SIGNS_PUBLIC_PATH = "/assets/signs";
