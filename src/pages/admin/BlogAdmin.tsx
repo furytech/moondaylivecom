@@ -17,6 +17,7 @@ import {
   SIGNS,
   signImageUrl,
   resolveSignImage,
+  buildRedditDraft,
 } from "@/lib/blog/posts";
 
 const defaultPost: Partial<BlogPostRow> = {
@@ -90,6 +91,8 @@ const BlogAdmin = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
   const [filling, setFilling] = useState(false);
+  const [queueing, setQueueing] = useState(false);
+  const [queued, setQueued] = useState(false);
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
