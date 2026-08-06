@@ -655,6 +655,35 @@ const BlogAdmin = () => {
                 placeholder="Substack copy is generated with the transit draft — or write it here."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
+                    n8n Substack webhook URL
+                  </label>
+                  <input
+                    value={substackHook}
+                    onChange={(e) => {
+                      setSubstackHook(e.target.value);
+                      setSubstackSent(false);
+                    }}
+                    placeholder="https://your-n8n-instance/webhook/moonday-substack"
+                    className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleApproveSubstack}
+                    disabled={substackSending}
+                    className="px-4 py-2 rounded-full bg-accent/90 text-accent-foreground text-sm hover:bg-accent transition disabled:opacity-50"
+                  >
+                    {substackSending ? "Sending…" : "Approve & Send to n8n (Substack)"}
+                  </button>
+                  {substackSent && (
+                    <span className="text-xs text-accent">✓ Sent to n8n — check the workflow run.</span>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="mb-4">
