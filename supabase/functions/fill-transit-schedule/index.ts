@@ -59,25 +59,8 @@ function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 }
 
-async function callAI(prompt: string, system: string): Promise<string> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3.6-flash",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
-  if (!res.ok) throw new Error(`AI gateway ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
-}
+import { generateTransitPackage } from "../_shared/transitContent.ts";
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
