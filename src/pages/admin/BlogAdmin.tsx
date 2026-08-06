@@ -232,8 +232,10 @@ const BlogAdmin = () => {
     setMessage("Substack copy copied to clipboard.");
   };
 
-  // Saves the reviewed Substack copy, then posts it to the configured n8n
-  // webhook. n8n owns the actual Substack delivery — nothing publishes here.
+  // Saves the reviewed Substack copy, then hands it off to the Lovable Cloud
+  // edge function. The edge function forwards the payload to the n8n production
+  // webhook using the backend-configured URL, which avoids the HTTPS→HTTP
+  // mixed-content block that would occur in the browser.
   const handleApproveSubstack = async () => {
     if (!editing) return;
     const body = editing.substack_post?.trim();
@@ -241,41 +243,33 @@ const BlogAdmin = () => {
       setMessage("Draft the Substack copy first — the preview is empty.");
       return;
     }
-    const url = substackHook.trim();
-    if (!url) {
-      setMessage("Add your n8n Substack webhook URL first.");
-      return;
-    }
     setSubstackSending(true);
     setSubstackSent(false);
     try {
       const saved = await upsertPost(editing);
       setEditing(saved);
-      // n8n webhooks rarely send CORS headers; no-cors fires the request
-      // reliably and the workflow's own run history is the receipt.
-      await fetch(url, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source: "moonday-admin",
-          type: "substack",
-          post_id: saved.id,
-          slug: saved.slug,
-          title: saved.title,
-          excerpt: saved.excerpt,
-          zodiac_sign_tag: saved.zodiac_sign_tag,
-          image_url: resolveSignImage({
-            imageUrl: saved.image_url,
-            zodiacSignTag: saved.zodiac_sign_tag,
-            constellationGraphicPath: saved.constellation_graphic_path,
-          }),
-          publish_at: saved.publish_at,
-          substack_post: saved.substack_post,
-          sent_at: new Date().toISOString(),
+      const payload = {
+        source: "moonday-admin",
+        type: "substack",
+        post_id: saved.id,
+        slug: saved.slug,
+        title: saved.title,
+        excerpt: saved.excerpt,
+        zodiac_sign_tag: saved.zodiac_sign_tag,
+        image_url: resolveSignImage({
+          imageUrl: saved.image_url,
+          zodiacSignTag: saved.zodiac_sign_tag,
+          constellationGraphicPath: saved.constellation_graphic_path,
         }),
+        publish_at: saved.publish_at,
+        substack_post: saved.substack_post,
+        sent_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.functions.invoke("substack-approval", {
+        body: payload,
       });
-      localStorage.setItem("moonday.substackWebhook", url);
+      if (error) throw error;
+      localStorage.setItem("moonday.substackWebhook", substackHook);
       setSubstackSent(true);
       setMessage("Substack copy sent to n8n. Check the workflow run for delivery.");
       refetch();
