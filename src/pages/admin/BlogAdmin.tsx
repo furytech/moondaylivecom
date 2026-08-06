@@ -17,6 +17,7 @@ import {
   SIGNS,
   signImageUrl,
   resolveSignImage,
+  buildRedditDraft,
 } from "@/lib/blog/posts";
 
 const defaultPost: Partial<BlogPostRow> = {
@@ -90,6 +91,8 @@ const BlogAdmin = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
   const [filling, setFilling] = useState(false);
+  const [queueing, setQueueing] = useState(false);
+  const [queued, setQueued] = useState(false);
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
@@ -189,6 +192,42 @@ const BlogAdmin = () => {
     }
   };
 
+  // Drafts a Reddit title + body from the blog content currently in the editor.
+  const handleGenerateReddit = () => {
+    if (!editing) return;
+    const { title, body } = buildRedditDraft(editing);
+    setField("reddit_post", `${title}\n\n${body}`);
+    setQueued(false);
+  };
+
+  // Approval hand-off: saves the reviewed Reddit copy and marks the row
+  // approved with a publish time. The scheduled n8n run polls for approved
+  // rows and performs the actual Reddit post — nothing is posted from here.
+  const handleApproveForN8n = async () => {
+    if (!editing) return;
+    if (!editing.reddit_post?.trim()) {
+      setMessage("Draft the Reddit copy first — the preview is empty.");
+      return;
+    }
+    setQueueing(true);
+    try {
+      const saved = await upsertPost({
+        ...editing,
+        status: "approved",
+        publish_at: editing.publish_at || new Date().toISOString(),
+      });
+      setEditing(saved);
+      setQueued(true);
+      setMessage("Approved. The next scheduled n8n run will pick this up for Reddit.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    } finally {
+      setQueueing(false);
+    }
+  };
+
+
   if (checkingAdmin) {
     return (
       <PageLayout>
@@ -270,8 +309,14 @@ const BlogAdmin = () => {
     }
   };
 
-  const openNew = () => setEditing({ ...defaultPost });
-  const openEdit = (post: BlogPostRow) => setEditing({ ...post });
+  const openNew = () => {
+    setQueued(false);
+    setEditing({ ...defaultPost });
+  };
+  const openEdit = (post: BlogPostRow) => {
+    setQueued(false);
+    setEditing({ ...post });
+  };
 
   const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {
     setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -454,18 +499,46 @@ const BlogAdmin = () => {
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
-                Reddit Post (Markdown, for r/moondaylive)
-              </label>
+            {/* Reddit Preview — drafted here, approved here, picked up by the
+                scheduled n8n run. Nothing posts to Reddit from the browser. */}
+            <div className="mb-6 rounded-xl border border-primary/25 bg-primary/5 p-4">
+              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                <h3 className="font-display text-sm uppercase tracking-[0.2em] text-primary">Reddit Preview</h3>
+                <button
+                  type="button"
+                  onClick={handleGenerateReddit}
+                  className="px-3 py-1.5 rounded-full border border-primary/40 text-primary text-xs hover:bg-primary/10 transition"
+                >
+                  Regenerate from post
+                </button>
+              </div>
+              <p className="text-xs text-cream-muted/70 mb-3">
+                Title on the first line, blank line, then the body. The sign image is attached above the text when copied.
+              </p>
               <textarea
                 value={editing.reddit_post || ""}
                 onChange={(e) => setField("reddit_post", e.target.value)}
-                rows={6}
-                placeholder="Title line, then blank line, then body. The sign image is automatically placed above this text when copied."
+                rows={8}
+                placeholder="Click “Regenerate from post” to draft a Reddit title and body from the blog content."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-3 flex items-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleApproveForN8n}
+                  disabled={queueing}
+                  className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+                >
+                  {queueing ? "Queuing…" : "Approve & Send to n8n"}
+                </button>
+                {queued && (
+                  <span className="text-xs text-primary">
+                    ✓ Approved — queued for the next scheduled n8n run.
+                  </span>
+                )}
+              </div>
             </div>
+
             <div className="mb-4">
               <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Keywords (comma separated)</label>
               <input
