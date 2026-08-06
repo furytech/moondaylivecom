@@ -1,0 +1,51 @@
+{
+  "name": "Moonday Error Alert",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [-460, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const e = $json || {};\nconst err = e.error || {};\nconst workflow = e.workflow || {};\nconst execution = e.execution || {};\nconst node = err.node || {};\n\nreturn [{\n  json: {\n    workflow_name: workflow.name || 'Unknown',\n    workflow_id: workflow.id || null,\n    execution_id: e.executionId || execution.id || null,\n    execution_url: e.executionUrl || '',\n    node_name: node.name || err.nodeId || 'Unknown node',\n    error_name: err.name || 'Error',\n    error_message: err.message || 'No message provided',\n    error_stack: err.stack || '',\n    run_mode: e.runMode || '',\n    url: e.url || '',\n    sent_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "format-error",
+      "name": "Format Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-240, 0]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.MOONDAY_ALERT_EMAIL || 'you@example.com' }}",
+        "subject": "Moonday Error Alert: {{ $json.workflow_name }} failed",
+        "emailType": "text",
+        "message": "Workflow: {{ $json.workflow_name }}\nExecution ID: {{ $json.execution_id }}\nFailed node: {{ $json.node_name }}\n\nError: {{ $json.error_name }} — {{ $json.error_message }}\n\n--- Stack trace ---\n{{ $json.error_stack }}\n\nRun mode: {{ $json.run_mode }}\nURL: {{ $json.url }}\nTime: {{ $json.sent_at }}\n",
+        "options": {}
+      },
+      "id": "email-error",
+      "name": "Email Error Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [-20, 0],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [[{ "node": "Format Alert", "type": "main", "index": 0 }]]
+    },
+    "Format Alert": {
+      "main": [[{ "node": "Email Error Alert", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": ["moonday", "error-alert"]
+}
