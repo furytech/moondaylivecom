@@ -210,6 +210,17 @@ const BlogAdmin = () => {
     });
   };
 
+  // Copies the Substack newsletter copy to the clipboard.
+  const handleCopySubstack = async (post: BlogPostRow) => {
+    const text = post.substack_post?.trim();
+    if (!text) {
+      setMessage("No Substack copy on this post yet.");
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    setMessage("Substack copy copied to clipboard.");
+  };
+
   // Drafts a Reddit title + body from the blog content currently in the editor.
   const handleGenerateReddit = () => {
     if (!editing) return;
