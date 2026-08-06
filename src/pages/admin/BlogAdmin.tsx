@@ -94,6 +94,13 @@ const BlogAdmin = () => {
   const [filling, setFilling] = useState(false);
   const [queueing, setQueueing] = useState(false);
   const [queued, setQueued] = useState(false);
+  // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
+  // can be swapped between test and production workflows without a redeploy.
+  const [substackHook, setSubstackHook] = useState(
+    () => localStorage.getItem("moonday.substackWebhook") || "",
+  );
+  const [substackSending, setSubstackSending] = useState(false);
+  const [substackSent, setSubstackSent] = useState(false);
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
