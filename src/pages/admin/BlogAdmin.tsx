@@ -189,6 +189,42 @@ const BlogAdmin = () => {
     }
   };
 
+  // Drafts a Reddit title + body from the blog content currently in the editor.
+  const handleGenerateReddit = () => {
+    if (!editing) return;
+    const { title, body } = buildRedditDraft(editing);
+    setField("reddit_post", `${title}\n\n${body}`);
+    setQueued(false);
+  };
+
+  // Approval hand-off: saves the reviewed Reddit copy and marks the row
+  // approved with a publish time. The scheduled n8n run polls for approved
+  // rows and performs the actual Reddit post — nothing is posted from here.
+  const handleApproveForN8n = async () => {
+    if (!editing) return;
+    if (!editing.reddit_post?.trim()) {
+      setMessage("Draft the Reddit copy first — the preview is empty.");
+      return;
+    }
+    setQueueing(true);
+    try {
+      const saved = await upsertPost({
+        ...editing,
+        status: "approved",
+        publish_at: editing.publish_at || new Date().toISOString(),
+      });
+      setEditing(saved);
+      setQueued(true);
+      setMessage("Approved. The next scheduled n8n run will pick this up for Reddit.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    } finally {
+      setQueueing(false);
+    }
+  };
+
+
   if (checkingAdmin) {
     return (
       <PageLayout>
