@@ -447,18 +447,20 @@ const BlogAdmin = () => {
                 >
                   <option value="draft">Draft</option>
                   <option value="approved">Approved</option>
+                  <option value="scheduled">Scheduled</option>
                   <option value="published">Published</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Publish At (scheduled)</label>
-                <input
-                  type="datetime-local"
-                  value={toDatetimeLocalValue(editing.publish_at)}
-                  onChange={(e) => setField("publish_at", fromDatetimeLocalValue(e.target.value))}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+              <div className="md:col-span-2">
+                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
+                  Scheduled Publish Date &amp; Time
+                </label>
+                <ScheduledPublishPicker
+                  value={editing.publish_at}
+                  onChange={handleScheduleChange}
                 />
               </div>
+
               <div>
                 <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Published At (live date shown)</label>
                 <input
