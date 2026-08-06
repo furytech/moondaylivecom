@@ -96,8 +96,12 @@ const BlogAdmin = () => {
   const [queued, setQueued] = useState(false);
   // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
   // can be swapped between test and production workflows without a redeploy.
+  const DEFAULT_SUBSTACK_HOOK =
+    "http://192.241.153.228:8055/webhook-test/substack-approval";
   const [substackHook, setSubstackHook] = useState(
-    () => localStorage.getItem("moonday.substackWebhook") || "",
+    () =>
+      localStorage.getItem("moonday.substackWebhook") ||
+      DEFAULT_SUBSTACK_HOOK,
   );
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
