@@ -1,5 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -9,6 +11,20 @@ const Navigation = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["nav-admin-check", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: user.id,
+        _role: "admin",
+      });
+      if (error) return false;
+      return !!data;
+    },
+    enabled: !!user?.id,
+  });
 
   const isActive = (path: string) =>
     path === "/blog"
