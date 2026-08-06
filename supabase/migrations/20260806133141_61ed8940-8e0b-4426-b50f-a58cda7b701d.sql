@@ -1,0 +1,1 @@
+ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS substack_post text;

@@ -210,6 +210,17 @@ const BlogAdmin = () => {
     });
   };
 
+  // Copies the Substack newsletter copy to the clipboard.
+  const handleCopySubstack = async (post: Partial<BlogPostRow>) => {
+    const text = post.substack_post?.trim();
+    if (!text) {
+      setMessage("No Substack copy on this post yet.");
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    setMessage("Substack copy copied to clipboard.");
+  };
+
   // Drafts a Reddit title + body from the blog content currently in the editor.
   const handleGenerateReddit = () => {
     if (!editing) return;
@@ -557,6 +568,30 @@ const BlogAdmin = () => {
                   </span>
                 )}
               </div>
+            </div>
+
+            {/* Substack Preview — the long-form newsletter version of this transit. */}
+            <div className="mb-6 rounded-xl border border-accent/25 bg-accent/5 p-4">
+              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                <h3 className="font-display text-sm uppercase tracking-[0.2em] text-accent">Substack Preview</h3>
+                <button
+                  type="button"
+                  onClick={() => handleCopySubstack(editing)}
+                  className="px-3 py-1.5 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
+                >
+                  Copy Substack post
+                </button>
+              </div>
+              <p className="text-xs text-cream-muted/70 mb-3">
+                Journal-style newsletter copy in Markdown. Paste straight into the Substack editor.
+              </p>
+              <textarea
+                value={editing.substack_post || ""}
+                onChange={(e) => setField("substack_post", e.target.value)}
+                rows={10}
+                placeholder="Substack copy is generated with the transit draft — or write it here."
+                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
+              />
             </div>
 
             <div className="mb-4">
