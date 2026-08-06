@@ -1,0 +1,72 @@
+{
+  "name": "Moonday Substack Approval",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "substack-approval",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-substack",
+      "name": "Substack Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-460, 0],
+      "webhookId": "moonday-substack-approval"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize the payload sent by the Moonday admin dashboard\n// (edge function: substack-approval).\nconst p = $json.body || $json;\n\nif (!p || !p.substack_post || !String(p.substack_post).trim()) {\n  throw new Error('Missing substack_post in payload');\n}\n\nconst title = p.title || 'Moonday Transit';\nconst sign = p.zodiac_sign_tag || '';\nconst image = p.image_url || '';\nconst slug = p.slug || '';\n\nconst body = String(p.substack_post).trim();\nconst imageBlock = image ? `![${sign || title}](${image})\\n\\n` : '';\n\nreturn [{\n  json: {\n    post_id: p.post_id || null,\n    slug,\n    title,\n    sign,\n    excerpt: p.excerpt || '',\n    image_url: image,\n    publish_at: p.publish_at || null,\n    sent_at: p.sent_at || new Date().toISOString(),\n    subject: `Substack ready: ${title}`,\n    markdown: imageBlock + body,\n    canonical: slug ? `https://moondaylive.com/blog/${slug}` : 'https://moondaylive.com/blog'\n  }\n}];"
+      },
+      "id": "normalize-substack",
+      "name": "Normalize Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-240, 0]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.MOONDAY_ALERT_EMAIL || 'you@example.com' }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.title }}\n{{ $json.sign }}  |  publish_at: {{ $json.publish_at }}\nCanonical: {{ $json.canonical }}\n\n--- PASTE INTO SUBSTACK BELOW ---\n\n{{ $json.markdown }}\n",
+        "options": {}
+      },
+      "id": "email-substack",
+      "name": "Email Substack Copy",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [-20, 0],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, post_id: $('Normalize Payload').item.json.post_id, slug: $('Normalize Payload').item.json.slug, received_at: $('Normalize Payload').item.json.sent_at }) }}",
+        "options": {}
+      },
+      "id": "respond-substack",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [200, 0]
+    }
+  ],
+  "connections": {
+    "Substack Webhook": {
+      "main": [[{ "node": "Normalize Payload", "type": "main", "index": 0 }]]
+    },
+    "Normalize Payload": {
+      "main": [[{ "node": "Email Substack Copy", "type": "main", "index": 0 }]]
+    },
+    "Email Substack Copy": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": ["moonday", "substack"]
+}
