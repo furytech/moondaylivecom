@@ -454,18 +454,46 @@ const BlogAdmin = () => {
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
-                Reddit Post (Markdown, for r/moondaylive)
-              </label>
+            {/* Reddit Preview — drafted here, approved here, picked up by the
+                scheduled n8n run. Nothing posts to Reddit from the browser. */}
+            <div className="mb-6 rounded-xl border border-primary/25 bg-primary/5 p-4">
+              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                <h3 className="font-display text-sm uppercase tracking-[0.2em] text-primary">Reddit Preview</h3>
+                <button
+                  type="button"
+                  onClick={handleGenerateReddit}
+                  className="px-3 py-1.5 rounded-full border border-primary/40 text-primary text-xs hover:bg-primary/10 transition"
+                >
+                  Regenerate from post
+                </button>
+              </div>
+              <p className="text-xs text-cream-muted/70 mb-3">
+                Title on the first line, blank line, then the body. The sign image is attached above the text when copied.
+              </p>
               <textarea
                 value={editing.reddit_post || ""}
                 onChange={(e) => setField("reddit_post", e.target.value)}
-                rows={6}
-                placeholder="Title line, then blank line, then body. The sign image is automatically placed above this text when copied."
+                rows={8}
+                placeholder="Click “Regenerate from post” to draft a Reddit title and body from the blog content."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-3 flex items-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleApproveForN8n}
+                  disabled={queueing}
+                  className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+                >
+                  {queueing ? "Queuing…" : "Approve & Send to n8n"}
+                </button>
+                {queued && (
+                  <span className="text-xs text-primary">
+                    ✓ Approved — queued for the next scheduled n8n run.
+                  </span>
+                )}
+              </div>
             </div>
+
             <div className="mb-4">
               <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Keywords (comma separated)</label>
               <input
