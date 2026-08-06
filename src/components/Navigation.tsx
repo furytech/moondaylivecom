@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-import { Menu, X } from "lucide-react";
+import { Menu, ShieldCheck, X } from "lucide-react";
 import { useState } from "react";
 
 const Navigation = () => {
@@ -15,9 +15,11 @@ const Navigation = () => {
   const { data: isAdmin } = useQuery({
     queryKey: ["nav-admin-check", user?.id],
     queryFn: async () => {
-      if (!user?.id) return false;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      if (!userId) return false;
       const { data, error } = await supabase.rpc("has_role", {
-        _user_id: user.id,
+        _user_id: userId,
         _role: "admin",
       });
       if (error) return false;
@@ -61,8 +63,9 @@ const Navigation = () => {
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 hover-scale-subtle">
-            <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 hover-scale-subtle">
+              <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
               {/* Line-art moon mark — matches the thin-stroke iconography used across the app */}
               <svg
                 viewBox="0 0 48 48"
@@ -79,12 +82,28 @@ const Navigation = () => {
                 <path d="M30.5 32.2A11.2 11.2 0 0 1 21.8 13.6a13.4 13.4 0 1 0 12.9 20.1 11.2 11.2 0 0 1-4.2-1.5Z" />
                 <path d="M33.5 12.5v5M31 15h5" className="opacity-70" />
               </svg>
-            </div>
+              </div>
 
-            <span className="font-display text-lg tracking-wider text-foreground hidden sm:block">
-              Moonday
-            </span>
-          </Link>
+              <span className="font-display text-lg tracking-wider text-foreground hidden sm:block">
+                Moonday
+              </span>
+            </Link>
+            {isAdmin && (
+              <Link
+                to="/admin/blog"
+                title="Open Journal Admin"
+                aria-label="Open Journal Admin"
+                className={`flex items-center gap-2 border-l border-border/40 pl-3 font-display text-xs tracking-widest uppercase whitespace-nowrap transition-colors ${
+                  location.pathname.startsWith("/admin")
+                    ? "text-white font-bold [text-shadow:0_0_10px_hsl(var(--primary)/0.95)]"
+                    : "text-primary hover:text-primary/80"
+                }`}
+              >
+                <ShieldCheck size={16} aria-hidden="true" />
+                <span className="hidden sm:inline">Journal Admin</span>
+              </Link>
+            )}
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-x-5 xl:gap-x-6 lg:ml-8">
@@ -102,18 +121,6 @@ const Navigation = () => {
                 {link.label}
               </Link>
             ))}
-            {isAdmin && (
-              <Link
-                to="/admin/blog"
-                className={`font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap elegant-hover ${
-                  isActive("/admin/blog")
-                    ? "text-white font-bold [text-shadow:0_0_10px_hsl(var(--primary)/0.95),0_0_22px_hsl(var(--primary)/0.7),0_0_40px_hsl(var(--primary)/0.4)]"
-                    : "text-primary hover:text-primary/80 transition-colors"
-                }`}
-              >
-                Journal Admin
-              </Link>
-            )}
             {user ? (
               <button
                 onClick={handleSignOut}
@@ -169,20 +176,6 @@ const Navigation = () => {
                   {link.label}
                 </Link>
               ))}
-              {isAdmin && (
-                <Link
-                  to="/admin/blog"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`font-display text-sm tracking-widest uppercase py-2 ${
-                    isActive("/admin/blog")
-                      ? "text-white font-bold [text-shadow:0_0_10px_hsl(var(--primary)/0.95),0_0_22px_hsl(var(--primary)/0.6)]"
-                      : "text-primary hover:text-primary/80 transition-colors"
-                  }`}
-                >
-                  Journal Admin
-                </Link>
-              )}
-              
               {user ? (
                 <button
                   onClick={handleSignOut}
