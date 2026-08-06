@@ -94,6 +94,13 @@ const BlogAdmin = () => {
   const [filling, setFilling] = useState(false);
   const [queueing, setQueueing] = useState(false);
   const [queued, setQueued] = useState(false);
+  // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
+  // can be swapped between test and production workflows without a redeploy.
+  const [substackHook, setSubstackHook] = useState(
+    () => localStorage.getItem("moonday.substackWebhook") || "",
+  );
+  const [substackSending, setSubstackSending] = useState(false);
+  const [substackSent, setSubstackSent] = useState(false);
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
@@ -220,6 +227,62 @@ const BlogAdmin = () => {
     await navigator.clipboard.writeText(text);
     setMessage("Substack copy copied to clipboard.");
   };
+
+  // Saves the reviewed Substack copy, then posts it to the configured n8n
+  // webhook. n8n owns the actual Substack delivery — nothing publishes here.
+  const handleApproveSubstack = async () => {
+    if (!editing) return;
+    const body = editing.substack_post?.trim();
+    if (!body) {
+      setMessage("Draft the Substack copy first — the preview is empty.");
+      return;
+    }
+    const url = substackHook.trim();
+    if (!url) {
+      setMessage("Add your n8n Substack webhook URL first.");
+      return;
+    }
+    setSubstackSending(true);
+    setSubstackSent(false);
+    try {
+      const saved = await upsertPost(editing);
+      setEditing(saved);
+      // n8n webhooks rarely send CORS headers; no-cors fires the request
+      // reliably and the workflow's own run history is the receipt.
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "moonday-admin",
+          type: "substack",
+          post_id: saved.id,
+          slug: saved.slug,
+          title: saved.title,
+          excerpt: saved.excerpt,
+          zodiac_sign_tag: saved.zodiac_sign_tag,
+          image_url: resolveSignImage({
+            imageUrl: saved.image_url,
+            zodiacSignTag: saved.zodiac_sign_tag,
+            constellationGraphicPath: saved.constellation_graphic_path,
+          }),
+          publish_at: saved.publish_at,
+          substack_post: saved.substack_post,
+          sent_at: new Date().toISOString(),
+        }),
+      });
+      localStorage.setItem("moonday.substackWebhook", url);
+      setSubstackSent(true);
+      setMessage("Substack copy sent to n8n. Check the workflow run for delivery.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Substack send failed: ${err.message}`);
+    } finally {
+      setSubstackSending(false);
+    }
+  };
+
+
 
   // Drafts a Reddit title + body from the blog content currently in the editor.
   const handleGenerateReddit = () => {
@@ -592,6 +655,35 @@ const BlogAdmin = () => {
                 placeholder="Substack copy is generated with the transit draft — or write it here."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
+                    n8n Substack webhook URL
+                  </label>
+                  <input
+                    value={substackHook}
+                    onChange={(e) => {
+                      setSubstackHook(e.target.value);
+                      setSubstackSent(false);
+                    }}
+                    placeholder="https://your-n8n-instance/webhook/moonday-substack"
+                    className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleApproveSubstack}
+                    disabled={substackSending}
+                    className="px-4 py-2 rounded-full bg-accent/90 text-accent-foreground text-sm hover:bg-accent transition disabled:opacity-50"
+                  >
+                    {substackSending ? "Sending…" : "Approve & Send to n8n (Substack)"}
+                  </button>
+                  {substackSent && (
+                    <span className="text-xs text-accent">✓ Sent to n8n — check the workflow run.</span>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="mb-4">
