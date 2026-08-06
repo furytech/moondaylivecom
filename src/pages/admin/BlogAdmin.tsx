@@ -228,6 +228,62 @@ const BlogAdmin = () => {
     setMessage("Substack copy copied to clipboard.");
   };
 
+  // Saves the reviewed Substack copy, then posts it to the configured n8n
+  // webhook. n8n owns the actual Substack delivery — nothing publishes here.
+  const handleApproveSubstack = async () => {
+    if (!editing) return;
+    const body = editing.substack_post?.trim();
+    if (!body) {
+      setMessage("Draft the Substack copy first — the preview is empty.");
+      return;
+    }
+    const url = substackHook.trim();
+    if (!url) {
+      setMessage("Add your n8n Substack webhook URL first.");
+      return;
+    }
+    setSubstackSending(true);
+    setSubstackSent(false);
+    try {
+      const saved = await upsertPost(editing);
+      setEditing(saved);
+      // n8n webhooks rarely send CORS headers; no-cors fires the request
+      // reliably and the workflow's own run history is the receipt.
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "moonday-admin",
+          type: "substack",
+          post_id: saved.id,
+          slug: saved.slug,
+          title: saved.title,
+          excerpt: saved.excerpt,
+          zodiac_sign_tag: saved.zodiac_sign_tag,
+          image_url: resolveSignImage({
+            imageUrl: saved.image_url,
+            zodiacSignTag: saved.zodiac_sign_tag,
+            constellationGraphicPath: saved.constellation_graphic_path,
+          }),
+          publish_at: saved.publish_at,
+          substack_post: saved.substack_post,
+          sent_at: new Date().toISOString(),
+        }),
+      });
+      localStorage.setItem("moonday.substackWebhook", url);
+      setSubstackSent(true);
+      setMessage("Substack copy sent to n8n. Check the workflow run for delivery.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Substack send failed: ${err.message}`);
+    } finally {
+      setSubstackSending(false);
+    }
+  };
+
+
+
   // Drafts a Reddit title + body from the blog content currently in the editor.
   const handleGenerateReddit = () => {
     if (!editing) return;
