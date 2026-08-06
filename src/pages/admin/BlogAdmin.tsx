@@ -211,7 +211,7 @@ const BlogAdmin = () => {
   };
 
   // Copies the Substack newsletter copy to the clipboard.
-  const handleCopySubstack = async (post: BlogPostRow) => {
+  const handleCopySubstack = async (post: Partial<BlogPostRow>) => {
     const text = post.substack_post?.trim();
     if (!text) {
       setMessage("No Substack copy on this post yet.");
