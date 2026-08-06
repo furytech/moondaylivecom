@@ -169,6 +169,19 @@ const Navigation = () => {
                   {link.label}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  to="/admin/blog"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`font-display text-sm tracking-widest uppercase py-2 ${
+                    isActive("/admin/blog")
+                      ? "text-white font-bold [text-shadow:0_0_10px_hsl(var(--primary)/0.95),0_0_22px_hsl(var(--primary)/0.6)]"
+                      : "text-primary hover:text-primary/80 transition-colors"
+                  }`}
+                >
+                  Journal Admin
+                </Link>
+              )}
               
               {user ? (
                 <button
