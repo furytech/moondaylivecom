@@ -36,6 +36,7 @@ export type Database = {
           reviewed_by: string | null
           slug: string
           status: string
+          substack_post: string | null
           title: string
           updated_at: string
           zodiac_sign_tag: string | null
@@ -61,6 +62,7 @@ export type Database = {
           reviewed_by?: string | null
           slug: string
           status?: string
+          substack_post?: string | null
           title: string
           updated_at?: string
           zodiac_sign_tag?: string | null
@@ -86,6 +88,7 @@ export type Database = {
           reviewed_by?: string | null
           slug?: string
           status?: string
+          substack_post?: string | null
           title?: string
           updated_at?: string
           zodiac_sign_tag?: string | null
