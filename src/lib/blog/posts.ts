@@ -139,11 +139,15 @@ export function postToRow(post: Partial<BlogPost>): Partial<BlogPostRow> {
 }
 
 
+/** Public visibility rule: status must be published AND publish_at must have passed. */
+const liveFilter = () => `publish_at.is.null,publish_at.lte.${new Date().toISOString()}`;
+
 export async function fetchPublishedPosts(): Promise<BlogPost[]> {
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")
     .eq("status", "published")
+    .or(liveFilter())
     .order("published_at", { ascending: false });
   if (error) throw error;
   return (data as BlogPostRow[] || []).map(rowToPost);
@@ -156,7 +160,8 @@ export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
-    .single();
+    .or(liveFilter())
+    .maybeSingle();
   if (error) return null;
   return data ? rowToPost(data as BlogPostRow) : null;
 }
@@ -166,11 +171,45 @@ export async function getRelated(slug: string, category: BlogCategory, limit = 3
     .from("blog_posts")
     .select("*")
     .eq("status", "published")
+    .or(liveFilter())
     .eq("category", category)
     .neq("slug", slug)
     .limit(limit);
   if (error) throw error;
   return (data as BlogPostRow[] || []).map(rowToPost);
+}
+
+/**
+ * Builds a Reddit title + body draft from the blog post so the editor can show
+ * a preview without a round-trip. The scheduled n8n run picks the approved row
+ * up from the database — nothing is posted to Reddit from the browser.
+ */
+export function buildRedditDraft(post: Partial<BlogPostRow>): { title: string; body: string } {
+  const sign = capitalizeSign(post.zodiac_sign_tag);
+  const title = sign
+    ? `Moon in ${sign} — ${post.title || "what shifts now"}`
+    : post.title || "Moonday Live";
+
+  const body = (post.content || "")
+    .replace(/^---[\s\S]*?---\s*/m, "")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_`>]/g, "")
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join("\n\n")
+    .slice(0, 1400);
+
+  const excerpt = (post.excerpt || "").trim();
+  const url = post.slug ? `${SITE_URL}/blog/${categoryPath(post.category || "Guides")}/${post.slug}` : SITE_URL;
+
+  return {
+    title,
+    body: `${body || excerpt}\n\nFull read (no ads, no paywall on transits): ${url}`.trim(),
+  };
 }
 
 // Admin helpers
