@@ -166,6 +166,7 @@ Deno.serve(async (req) => {
         excerpt,
         content,
         reddit_post: redditPost,
+        substack_post: pkg.substack_content,
         keywords: [`moon in ${sign.toLowerCase()}`, "moon transit", "moonday live"],
         read_time: 4,
         author: "Moonday Live Team",
