@@ -102,7 +102,18 @@ const Navigation = () => {
                 {link.label}
               </Link>
             ))}
-            
+            {isAdmin && (
+              <Link
+                to="/admin/blog"
+                className={`font-display text-[13px] xl:text-sm tracking-[0.18em] xl:tracking-widest uppercase whitespace-nowrap elegant-hover ${
+                  isActive("/admin/blog")
+                    ? "text-white font-bold [text-shadow:0_0_10px_hsl(var(--primary)/0.95),0_0_22px_hsl(var(--primary)/0.7),0_0_40px_hsl(var(--primary)/0.4)]"
+                    : "text-primary hover:text-primary/80 transition-colors"
+                }`}
+              >
+                Journal Admin
+              </Link>
+            )}
             {user ? (
               <button
                 onClick={handleSignOut}
