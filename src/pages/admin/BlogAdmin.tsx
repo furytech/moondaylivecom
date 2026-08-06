@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import MoonLoader from "@/components/MoonLoader";
+import ScheduledPublishPicker from "@/components/admin/ScheduledPublishPicker";
 import {
   listAllPosts,
   upsertPost,
@@ -190,6 +191,23 @@ const BlogAdmin = () => {
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     }
+  };
+
+  // Scheduling: the picked instant drives status. Future => scheduled (the
+  // hourly publisher flips it live), now/past => published immediately.
+  const handleScheduleChange = (iso: string | null) => {
+    if (!editing) return;
+    if (!iso) {
+      setEditing({ ...editing, publish_at: null });
+      return;
+    }
+    const isFuture = new Date(iso).getTime() > Date.now();
+    setEditing({
+      ...editing,
+      publish_at: iso,
+      status: isFuture ? "scheduled" : "published",
+      published_at: isFuture ? editing.published_at ?? null : iso,
+    });
   };
 
   // Drafts a Reddit title + body from the blog content currently in the editor.
