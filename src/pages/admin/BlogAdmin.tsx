@@ -264,6 +264,7 @@ const BlogAdmin = () => {
         publish_at: saved.publish_at,
         substack_post: saved.substack_post,
         sent_at: new Date().toISOString(),
+        webhook_url: substackHook.trim() || undefined,
       };
       const { error } = await supabase.functions.invoke("substack-approval", {
         body: payload,

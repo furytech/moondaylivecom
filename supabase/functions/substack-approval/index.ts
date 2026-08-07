@@ -57,20 +57,43 @@ Deno.serve(async (req) => {
     );
   }
 
-  if (!N8N_WEBHOOK_URL) {
-    return new Response(
-      JSON.stringify({ error: 'Substack webhook not configured' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
-  }
-
   try {
     const payload = await req.json();
 
-    const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+    // Admins may override the destination from the dashboard; fall back to the
+    // configured secret when the field is empty.
+    const { webhook_url: overrideUrl, ...forwardPayload } = payload ?? {};
+    let targetUrl = N8N_WEBHOOK_URL;
+    if (typeof overrideUrl === 'string' && overrideUrl.trim()) {
+      let parsed: URL;
+      try {
+        parsed = new URL(overrideUrl.trim());
+      } catch {
+        return new Response(
+          JSON.stringify({ error: 'Invalid webhook URL' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        return new Response(
+          JSON.stringify({ error: 'Webhook URL must use http or https' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      targetUrl = parsed.toString();
+    }
+
+    if (!targetUrl) {
+      return new Response(
+        JSON.stringify({ error: 'Substack webhook not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const n8nResponse = await fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(forwardPayload),
     });
 
     const n8nBody = await n8nResponse.text();
