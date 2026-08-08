@@ -407,6 +407,9 @@ const BlogAdmin = () => {
   const openEdit = (post: BlogPostRow) => {
     setQueued(false);
     setEditing({ ...post });
+    // The editor panel renders above the table; scroll to it so clicking Edit
+    // never looks like a no-op when the list is scrolled down.
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   };
 
   const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {

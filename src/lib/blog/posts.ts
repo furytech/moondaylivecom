@@ -276,10 +276,12 @@ export async function publishPostNow(id: string) {
   return data as BlogPostRow;
 }
 
+/** Reverts a post to draft. The scheduled publish time is preserved so the
+ *  post stays findable and can simply be re-approved. */
 export async function unpublishPost(id: string) {
   const { data, error } = await supabase
     .from("blog_posts")
-    .update({ status: "draft", publish_at: null, published_at: null })
+    .update({ status: "draft", published_at: null })
     .eq("id", id)
     .select()
     .single();
