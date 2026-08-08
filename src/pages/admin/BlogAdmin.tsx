@@ -456,6 +456,44 @@ const BlogAdmin = () => {
     setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
+  // Review queue = everything not yet live, soonest scheduled instant first.
+  const counts = {
+    queue: posts.filter((p) => p.status !== "published").length,
+    all: posts.length,
+    draft: posts.filter((p) => p.status === "draft").length,
+    approved: posts.filter((p) => p.status === "approved").length,
+    scheduled: posts.filter((p) => p.status === "scheduled").length,
+    published: posts.filter((p) => p.status === "published").length,
+  };
+
+  const sortKey = (p: BlogPostRow) => {
+    const t = new Date(p.publish_at || p.published_at || p.created_at || 0).getTime();
+    return Number.isNaN(t) ? 0 : t;
+  };
+
+  const visiblePosts = [...posts]
+    .filter((p) =>
+      statusFilter === "all"
+        ? true
+        : statusFilter === "queue"
+        ? p.status !== "published"
+        : p.status === statusFilter,
+    )
+    .sort((a, b) =>
+      statusFilter === "published" ? sortKey(b) - sortKey(a) : sortKey(a) - sortKey(b),
+    );
+
+  const FILTERS: { key: typeof statusFilter; label: string }[] = [
+    { key: "queue", label: "Review queue" },
+    { key: "draft", label: "Drafts" },
+    { key: "approved", label: "Approved" },
+    { key: "scheduled", label: "Scheduled" },
+    { key: "published", label: "Published" },
+    { key: "all", label: "All" },
+  ];
+
+
+
   return (
     <PageLayout>
       <SEO title="Journal Admin — Moonday Live" description="Manage and approve Journal posts for Moonday Live." canonical="https://moondaylive.com/admin/blog" />
