@@ -28,8 +28,28 @@ import {
   resolveSignImage,
   buildRedditDraft,
   buildSubstackDraft,
+  scheduleChannel,
+  ChannelStatus,
 
 } from "@/lib/blog/posts";
+
+/** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns. */
+const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) => {
+  const s = status || "draft";
+  const cls =
+    s === "scheduled"
+      ? "bg-yellow-400/15 text-yellow-300 font-semibold"
+      : s === "sent" || s === "published"
+      ? "bg-emerald-500/15 text-emerald-400"
+      : s === "approved"
+      ? "bg-primary/15 text-primary"
+      : "bg-cream-muted/10 text-cream-muted";
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls}`}>
+      {s === "scheduled" ? "SCHEDULED" : s}
+    </span>
+  );
+};
 
 const defaultPost: Partial<BlogPostRow> = {
   slug: "",
