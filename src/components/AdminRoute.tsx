@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import ProtectedRoute from "./ProtectedRoute";
 import PageLayout from "./PageLayout";
 import MoonLoader from "./MoonLoader";
 
@@ -8,16 +8,15 @@ import MoonLoader from "./MoonLoader";
  * Route-level admin gate. Verifies the signed-in identity against the
  * server-side `has_role(uid, 'admin')` check — never client storage.
  */
-const AdminGate = ({ children }: { children: React.ReactNode }) => {
-  const { data: isAdmin, isLoading } = useQuery({
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-route-check"],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
       const uid = session.session?.user?.id;
-      if (!uid) return false;
-      const { data, error } = await supabase.rpc("has_role", { _user_id: uid, _role: "admin" });
-      if (error) return false;
-      return !!data;
+      if (!uid) return { signedIn: false, isAdmin: false };
+      const { data: role, error } = await supabase.rpc("has_role", { _user_id: uid, _role: "admin" });
+      return { signedIn: true, isAdmin: !error && !!role };
     },
   });
 
@@ -31,7 +30,11 @@ const AdminGate = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!isAdmin) {
+  if (!data?.signedIn) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  if (!data.isAdmin) {
     return (
       <PageLayout>
         <div className="max-w-2xl mx-auto py-20 text-center">
@@ -47,10 +50,5 @@ const AdminGate = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const AdminRoute = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute>
-    <AdminGate>{children}</AdminGate>
-  </ProtectedRoute>
-);
-
 export default AdminRoute;
+

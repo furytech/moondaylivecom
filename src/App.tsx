@@ -41,6 +41,7 @@ import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import BlogAdmin from "./pages/admin/BlogAdmin";
+import AdminLogin from "./pages/admin/AdminLogin";
 import Subscribers from "./pages/admin/Subscribers";
 import SystemErrors from "./pages/admin/SystemErrors";
 
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/blog/:category/:slug" element={<BlogPost />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/admin" element={<Navigate to="/admin/blog" replace />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/blog" element={
               <AdminRoute>
                 <BlogAdmin />
