@@ -390,6 +390,36 @@ const BlogAdmin = () => {
     }
   };
 
+  // Re-queue an unpublished/draft post for a future instant without opening
+  // the full editor — the hourly publisher takes it live at that time.
+  const handleReschedule = async (p: BlogPostRow) => {
+    const current = toDatetimeLocalValue(p.publish_at) || toDatetimeLocalValue(new Date().toISOString());
+    const entered = window.prompt(
+      "Repost at (your local time, YYYY-MM-DDTHH:MM):",
+      current,
+    );
+    if (!entered) return;
+    const iso = fromDatetimeLocalValue(entered.trim());
+    if (!iso) {
+      setMessage("Couldn't read that date — use the format 2026-08-09T07:45.");
+      return;
+    }
+    try {
+      if (new Date(iso).getTime() <= Date.now()) {
+        await publishPostNow(p.id!);
+        setMessage("That time has passed — published live now.");
+      } else {
+        await schedulePost(p.id!, iso);
+        setMessage(`Scheduled to repost ${displayDate(iso)}.`);
+      }
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this post? This cannot be undone.")) return;
     try {
