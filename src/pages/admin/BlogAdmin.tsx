@@ -12,6 +12,7 @@ import {
   approvePost,
   publishPostNow,
   unpublishPost,
+  schedulePost,
   BlogPostRow,
   BlogCategory,
   CATEGORIES,
