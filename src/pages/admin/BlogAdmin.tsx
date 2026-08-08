@@ -931,12 +931,13 @@ const BlogAdmin = () => {
                       )}
                       {p.status !== "published" && (
                         <button
-                          onClick={() => handleReschedule(p)}
+                          onClick={() => openReschedule(p)}
                           className="text-sky-400 hover:underline text-xs"
                         >
-                          Reschedule
+                          Schedule
                         </button>
                       )}
+
                       {p.status === "published" && (
                         <button
                           onClick={() => handleUnpublish(p.id!)}
