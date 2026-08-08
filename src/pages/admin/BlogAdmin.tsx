@@ -484,7 +484,15 @@ const BlogAdmin = () => {
   };
   const openEdit = (post: BlogPostRow) => {
     setQueued(false);
-    setEditing({ ...post });
+    setSubstackSent(false);
+    // Auto-populate the Substack editor so the newsletter is always ready to
+    // review. Generated long-form copy wins; older rows fall back to a draft
+    // derived from the article body.
+    setEditing({
+      ...post,
+      substack_post: post.substack_post?.trim() ? post.substack_post : buildSubstackDraft(post),
+      reddit_post: post.reddit_post?.trim() ? post.reddit_post : buildRedditDraftText(post),
+    });
     // The editor panel renders above the table; scroll to it so clicking Edit
     // never looks like a no-op when the list is scrolled down.
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
