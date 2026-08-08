@@ -276,6 +276,18 @@ export async function publishPostNow(id: string) {
   return data as BlogPostRow;
 }
 
+/** Re-queues a post for a future instant. The hourly publisher makes it live. */
+export async function schedulePost(id: string, publishAtIso: string) {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .update({ status: "scheduled", publish_at: publishAtIso, published_at: null })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as BlogPostRow;
+}
+
 /** Reverts a post to draft. The scheduled publish time is preserved so the
  *  post stays findable and can simply be re-approved. */
 export async function unpublishPost(id: string) {
