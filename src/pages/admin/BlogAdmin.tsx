@@ -28,8 +28,28 @@ import {
   resolveSignImage,
   buildRedditDraft,
   buildSubstackDraft,
+  scheduleChannel,
+  ChannelStatus,
 
 } from "@/lib/blog/posts";
+
+/** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns. */
+const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) => {
+  const s = status || "draft";
+  const cls =
+    s === "scheduled"
+      ? "bg-yellow-400/15 text-yellow-300 font-semibold"
+      : s === "sent" || s === "published"
+      ? "bg-emerald-500/15 text-emerald-400"
+      : s === "approved"
+      ? "bg-primary/15 text-primary"
+      : "bg-cream-muted/10 text-cream-muted";
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls}`}>
+      {s === "scheduled" ? "SCHEDULED" : s}
+    </span>
+  );
+};
 
 const defaultPost: Partial<BlogPostRow> = {
   slug: "",
@@ -264,7 +284,15 @@ const BlogAdmin = () => {
     setSubstackSending(true);
     setSubstackSent(false);
     try {
-      const saved = await upsertPost(editing);
+      // A future scheduled time keeps the edition queued for n8n; otherwise it
+      // is handed over for immediate sending.
+      const scheduledIso = editing.substack_scheduled_at || null;
+      const isQueued = !!scheduledIso && new Date(scheduledIso).getTime() > Date.now();
+      const saved = await upsertPost({
+        ...editing,
+        substack_status: isQueued ? "scheduled" : "sent",
+        substack_sent_at: isQueued ? null : new Date().toISOString(),
+      });
       setEditing(saved);
       const payload = {
         source: "moonday-admin",
@@ -281,6 +309,8 @@ const BlogAdmin = () => {
         }),
         publish_at: saved.publish_at,
         substack_post: saved.substack_post,
+        substack_status: saved.substack_status,
+        scheduled_at: saved.substack_scheduled_at ?? null,
         sent_at: new Date().toISOString(),
         webhook_url: substackHook.trim() || undefined,
       };
@@ -329,14 +359,21 @@ const BlogAdmin = () => {
     }
     setQueueing(true);
     try {
+      const scheduledIso = editing.reddit_scheduled_at || null;
+      const isQueued = !!scheduledIso && new Date(scheduledIso).getTime() > Date.now();
       const saved = await upsertPost({
         ...editing,
         status: "approved",
         publish_at: editing.publish_at || new Date().toISOString(),
+        reddit_status: isQueued ? "scheduled" : "approved",
       });
       setEditing(saved);
       setQueued(true);
-      setMessage("Approved. The next scheduled n8n run will pick this up for Reddit.");
+      setMessage(
+        isQueued
+          ? `Approved. Reddit edition queued for ${displayDate(scheduledIso)}.`
+          : "Approved. The next scheduled n8n run will pick this up for Reddit.",
+      );
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
@@ -464,7 +501,20 @@ const BlogAdmin = () => {
   };
   const openEdit = (post: BlogPostRow) => {
     setQueued(false);
-    setEditing({ ...post });
+    setSubstackSent(false);
+    // Auto-populate the Substack editor so the newsletter is always ready to
+    // review. Generated long-form copy wins; older rows fall back to a draft
+    // derived from the article body.
+    setEditing({
+      ...post,
+      substack_post: post.substack_post?.trim() ? post.substack_post : buildSubstackDraft(post),
+      reddit_post: post.reddit_post?.trim()
+        ? post.reddit_post
+        : (() => {
+            const d = buildRedditDraft(post);
+            return `${d.title}\n\n${d.body}`;
+          })(),
+    });
     // The editor panel renders above the table; scroll to it so clicking Edit
     // never looks like a no-op when the list is scrolled down.
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
@@ -714,7 +764,33 @@ const BlogAdmin = () => {
                 placeholder="Click “Regenerate from post” to draft a Reddit title and body from the blog content."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs uppercase tracking-wider text-cream-muted">
+                    Reddit scheduled time
+                  </label>
+                  <ChannelBadge status={editing.reddit_status} />
+                </div>
+                <ScheduledPublishPicker
+                  value={editing.reddit_scheduled_at ?? null}
+                  onChange={(iso) => {
+                    setEditing((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            reddit_scheduled_at: iso,
+                            reddit_status: iso ? "scheduled" : "draft",
+                          }
+                        : prev,
+                    );
+                  }}
+                />
+                <p className="text-xs text-cream-muted/60">
+                  n8n polls this timestamp and posts to Reddit at that instant.
+                </p>
+              </div>
               <div className="mt-3 flex items-center gap-3 flex-wrap">
+
                 <button
                   type="button"
                   onClick={handleApproveForN8n}
@@ -754,16 +830,43 @@ const BlogAdmin = () => {
               </div>
 
               <p className="text-xs text-cream-muted/70 mb-3">
-                Journal-style newsletter copy in Markdown. Paste straight into the Substack editor.
+                Long-form macro newsletter in Markdown — distinct from the website article. Paste straight into the Substack editor.
               </p>
               <textarea
                 value={editing.substack_post || ""}
                 onChange={(e) => setField("substack_post", e.target.value)}
-                rows={10}
+                rows={14}
                 placeholder="Substack copy is generated with the transit draft — or write it here."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs uppercase tracking-wider text-cream-muted">
+                    Substack scheduled time
+                  </label>
+                  <ChannelBadge status={editing.substack_status} />
+                </div>
+                <ScheduledPublishPicker
+                  value={editing.substack_scheduled_at ?? null}
+                  onChange={(iso) => {
+                    setEditing((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            substack_scheduled_at: iso,
+                            substack_status: iso ? "scheduled" : "draft",
+                          }
+                        : prev,
+                    );
+                    setSubstackSent(false);
+                  }}
+                />
+                <p className="text-xs text-cream-muted/60">
+                  n8n reads this timestamp and sends the newsletter at that instant.
+                </p>
+              </div>
               <div className="mt-3 space-y-3">
+
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
                     n8n Substack webhook URL
@@ -907,7 +1010,9 @@ const BlogAdmin = () => {
                 <tr>
                   <th className="px-4 py-3">Title</th>
                   <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Blog</th>
+                  <th className="px-4 py-3">Reddit</th>
+                  <th className="px-4 py-3">Substack</th>
                   <th className="px-4 py-3">Scheduled</th>
                   <th className="px-4 py-3">Live Date</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -916,7 +1021,7 @@ const BlogAdmin = () => {
               <tbody>
                 {visiblePosts.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-cream-muted">
+                    <td colSpan={8} className="px-4 py-8 text-center text-cream-muted">
                       Nothing here yet.
                     </td>
                   </tr>
@@ -927,17 +1032,23 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-foreground">{p.title}</td>
                     <td className="px-4 py-3 text-cream-muted">{p.category}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${
-                          p.status === "published"
-                            ? "bg-emerald-500/15 text-emerald-400"
-                            : p.status === "approved"
-                            ? "bg-primary/15 text-primary"
-                            : "bg-cream-muted/10 text-cream-muted"
-                        }`}
-                      >
-                        {p.status}
-                      </span>
+                      <ChannelBadge status={p.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <ChannelBadge status={p.reddit_status} />
+                      {p.reddit_scheduled_at && (
+                        <div className="text-[11px] text-cream-muted/70 mt-1">
+                          {displayDate(p.reddit_scheduled_at)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <ChannelBadge status={p.substack_status} />
+                      {p.substack_scheduled_at && (
+                        <div className="text-[11px] text-cream-muted/70 mt-1">
+                          {displayDate(p.substack_scheduled_at)}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.publish_at)}
@@ -945,6 +1056,7 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.published_at)}
                     </td>
+
                     <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                       <button onClick={() => openEdit(p)} className="text-primary hover:underline text-xs">
                         Edit

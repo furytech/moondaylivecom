@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates";
 export type CtaType = "birthday-calculator" | "dashboard" | "none";
 export type PostStatus = "draft" | "approved" | "scheduled" | "published";
+/** Per-channel lifecycle for Reddit / Substack editions of a post. */
+export type ChannelStatus = "draft" | "approved" | "scheduled" | "sent";
 
 export const SITE_URL = "https://moondaylive.com";
 export const SIGNS_PUBLIC_PATH = "/assets/signs";
@@ -59,6 +61,12 @@ export interface BlogPostRow {
   meta_description?: string;
   reddit_post?: string;
   substack_post?: string;
+  reddit_status?: ChannelStatus;
+  reddit_scheduled_at?: string | null;
+  reddit_posted_at?: string | null;
+  substack_status?: ChannelStatus;
+  substack_scheduled_at?: string | null;
+  substack_sent_at?: string | null;
   zodiac_sign_tag?: string;
   constellation_graphic_path?: string;
   reviewedBy?: string;
@@ -281,6 +289,27 @@ export async function schedulePost(id: string, publishAtIso: string) {
   const { data, error } = await supabase
     .from("blog_posts")
     .update({ status: "scheduled", publish_at: publishAtIso, published_at: null })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as BlogPostRow;
+}
+
+/** Queues (or clears) a channel edition for a future instant. n8n polls these
+ *  columns the same way the blog publisher polls `publish_at`. */
+export async function scheduleChannel(
+  id: string,
+  channel: "reddit" | "substack",
+  scheduledAtIso: string | null,
+) {
+  const patch =
+    channel === "reddit"
+      ? { reddit_status: scheduledAtIso ? "scheduled" : "draft", reddit_scheduled_at: scheduledAtIso }
+      : { substack_status: scheduledAtIso ? "scheduled" : "draft", substack_scheduled_at: scheduledAtIso };
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .update(patch as any)
     .eq("id", id)
     .select()
     .single();
