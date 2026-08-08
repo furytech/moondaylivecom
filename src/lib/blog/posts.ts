@@ -296,6 +296,27 @@ export async function schedulePost(id: string, publishAtIso: string) {
   return data as BlogPostRow;
 }
 
+/** Queues (or clears) a channel edition for a future instant. n8n polls these
+ *  columns the same way the blog publisher polls `publish_at`. */
+export async function scheduleChannel(
+  id: string,
+  channel: "reddit" | "substack",
+  scheduledAtIso: string | null,
+) {
+  const patch =
+    channel === "reddit"
+      ? { reddit_status: scheduledAtIso ? "scheduled" : "draft", reddit_scheduled_at: scheduledAtIso }
+      : { substack_status: scheduledAtIso ? "scheduled" : "draft", substack_scheduled_at: scheduledAtIso };
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .update(patch as any)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as BlogPostRow;
+}
+
 /** Reverts a post to draft. The scheduled publish time is preserved so the
  *  post stays findable and can simply be re-approved. */
 export async function unpublishPost(id: string) {
