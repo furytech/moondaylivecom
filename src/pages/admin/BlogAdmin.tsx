@@ -284,7 +284,15 @@ const BlogAdmin = () => {
     setSubstackSending(true);
     setSubstackSent(false);
     try {
-      const saved = await upsertPost(editing);
+      // A future scheduled time keeps the edition queued for n8n; otherwise it
+      // is handed over for immediate sending.
+      const scheduledIso = editing.substack_scheduled_at || null;
+      const isQueued = !!scheduledIso && new Date(scheduledIso).getTime() > Date.now();
+      const saved = await upsertPost({
+        ...editing,
+        substack_status: isQueued ? "scheduled" : "sent",
+        substack_sent_at: isQueued ? null : new Date().toISOString(),
+      });
       setEditing(saved);
       const payload = {
         source: "moonday-admin",
@@ -301,6 +309,8 @@ const BlogAdmin = () => {
         }),
         publish_at: saved.publish_at,
         substack_post: saved.substack_post,
+        substack_status: saved.substack_status,
+        scheduled_at: saved.substack_scheduled_at ?? null,
         sent_at: new Date().toISOString(),
         webhook_url: substackHook.trim() || undefined,
       };
