@@ -858,6 +858,14 @@ const BlogAdmin = () => {
                           Approve & Publish
                         </button>
                       )}
+                      {p.status !== "published" && (
+                        <button
+                          onClick={() => handleReschedule(p)}
+                          className="text-sky-400 hover:underline text-xs"
+                        >
+                          Reschedule
+                        </button>
+                      )}
                       {p.status === "published" && (
                         <button
                           onClick={() => handleUnpublish(p.id!)}
