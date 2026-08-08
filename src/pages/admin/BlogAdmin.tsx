@@ -813,16 +813,43 @@ const BlogAdmin = () => {
               </div>
 
               <p className="text-xs text-cream-muted/70 mb-3">
-                Journal-style newsletter copy in Markdown. Paste straight into the Substack editor.
+                Long-form macro newsletter in Markdown — distinct from the website article. Paste straight into the Substack editor.
               </p>
               <textarea
                 value={editing.substack_post || ""}
                 onChange={(e) => setField("substack_post", e.target.value)}
-                rows={10}
+                rows={14}
                 placeholder="Substack copy is generated with the transit draft — or write it here."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs uppercase tracking-wider text-cream-muted">
+                    Substack scheduled time
+                  </label>
+                  <ChannelBadge status={editing.substack_status} />
+                </div>
+                <ScheduledPublishPicker
+                  value={editing.substack_scheduled_at ?? null}
+                  onChange={(iso) => {
+                    setEditing((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            substack_scheduled_at: iso,
+                            substack_status: iso ? "scheduled" : "draft",
+                          }
+                        : prev,
+                    );
+                    setSubstackSent(false);
+                  }}
+                />
+                <p className="text-xs text-cream-muted/60">
+                  n8n reads this timestamp and sends the newsletter at that instant.
+                </p>
+              </div>
               <div className="mt-3 space-y-3">
+
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
                     n8n Substack webhook URL
