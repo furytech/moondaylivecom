@@ -142,6 +142,11 @@ Deno.serve(async (req) => {
       status: "draft",
       // Publish at the REAL ingress instant (UTC).
       publish_at: next.transition_at,
+      // Unified pipeline: Reddit and Substack editions ride the same instant.
+      reddit_status: "scheduled",
+      reddit_scheduled_at: next.transition_at,
+      substack_status: "scheduled",
+      substack_scheduled_at: next.transition_at,
       cta_type: "birthday-calculator",
       zodiac_sign_tag: sign,
       image_url: `https://moondaylive.com/assets/signs/${sign}.png`,
