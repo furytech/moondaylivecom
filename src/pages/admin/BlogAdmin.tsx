@@ -939,9 +939,13 @@ const BlogAdmin = () => {
                       {p.status !== "published" && (
                         <button
                           onClick={() => openReschedule(p)}
-                          className="text-sky-400 hover:underline text-xs"
+                          className={`hover:underline text-xs ${
+                            p.status === "scheduled"
+                              ? "text-yellow-300 font-semibold"
+                              : "text-sky-400"
+                          }`}
                         >
-                          Schedule
+                          {p.status === "scheduled" ? "SCHEDULED" : "Schedule"}
                         </button>
                       )}
 
