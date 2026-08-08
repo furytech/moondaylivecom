@@ -398,33 +398,34 @@ const BlogAdmin = () => {
     }
   };
 
-  // Re-queue an unpublished/draft post for a future instant without opening
-  // the full editor — the hourly publisher takes it live at that time.
-  const handleReschedule = async (p: BlogPostRow) => {
-    const current = toDatetimeLocalValue(p.publish_at) || toDatetimeLocalValue(new Date().toISOString());
-    const entered = window.prompt(
-      "Repost at (your local time, YYYY-MM-DDTHH:MM):",
-      current,
-    );
-    if (!entered) return;
-    const iso = fromDatetimeLocalValue(entered.trim());
-    if (!iso) {
-      setMessage("Couldn't read that date — use the format 2026-08-09T07:45.");
-      return;
-    }
+  // Opens the reschedule dialog for a row, seeded with its current schedule.
+  const openReschedule = (p: BlogPostRow) => {
+    setRescheduleTarget(p);
+    setRescheduleIso(p.publish_at || null);
+  };
+
+  // Re-queue a post for a future instant without opening the full editor —
+  // the hourly publisher takes it live at that time.
+  const confirmReschedule = async () => {
+    if (!rescheduleTarget || !rescheduleIso) return;
+    setRescheduling(true);
     try {
-      if (new Date(iso).getTime() <= Date.now()) {
-        await publishPostNow(p.id!);
+      if (new Date(rescheduleIso).getTime() <= Date.now()) {
+        await publishPostNow(rescheduleTarget.id!);
         setMessage("That time has passed — published live now.");
       } else {
-        await schedulePost(p.id!, iso);
-        setMessage(`Scheduled to repost ${displayDate(iso)}.`);
+        await schedulePost(rescheduleTarget.id!, rescheduleIso);
+        setMessage(`Scheduled for ${displayDate(rescheduleIso)}.`);
       }
+      setRescheduleTarget(null);
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
+    } finally {
+      setRescheduling(false);
     }
   };
+
 
 
 
