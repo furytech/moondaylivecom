@@ -303,10 +303,16 @@ export async function scheduleChannel(
   channel: "reddit" | "substack",
   scheduledAtIso: string | null,
 ) {
+  // When unscheduling (null) we only flip the status back to draft and keep the
+  // stored time, so the row still renders exactly as it did before scheduling.
   const patch =
     channel === "reddit"
-      ? { reddit_status: scheduledAtIso ? "scheduled" : "draft", reddit_scheduled_at: scheduledAtIso }
-      : { substack_status: scheduledAtIso ? "scheduled" : "draft", substack_scheduled_at: scheduledAtIso };
+      ? scheduledAtIso
+        ? { reddit_status: "scheduled", reddit_scheduled_at: scheduledAtIso }
+        : { reddit_status: "draft" }
+      : scheduledAtIso
+        ? { substack_status: "scheduled", substack_scheduled_at: scheduledAtIso }
+        : { substack_status: "draft" };
   const { data, error } = await supabase
     .from("blog_posts")
     .update(patch as any)
