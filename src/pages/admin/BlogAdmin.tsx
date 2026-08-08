@@ -27,6 +27,8 @@ import {
   signImageUrl,
   resolveSignImage,
   buildRedditDraft,
+  buildSubstackDraft,
+
 } from "@/lib/blog/posts";
 
 const defaultPost: Partial<BlogPostRow> = {
