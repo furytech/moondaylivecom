@@ -58,6 +58,7 @@ export interface BlogPostRow {
   meta_title?: string;
   meta_description?: string;
   reddit_post?: string;
+  substack_post?: string;
   reddit_status?: ChannelStatus;
   reddit_scheduled_at?: string | null;
   reddit_posted_at?: string | null;
