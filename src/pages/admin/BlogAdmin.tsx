@@ -1073,10 +1073,16 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-foreground">{p.title}</td>
                     <td className="px-4 py-3 text-cream-muted">{p.category}</td>
                     <td className="px-4 py-3">
-                      <ChannelBadge status={p.status} />
+                      <ChannelBadge
+                        status={p.status}
+                        onUnschedule={() => handleUnscheduleBlog(p.id!)}
+                      />
                     </td>
                     <td className="px-4 py-3">
-                      <ChannelBadge status={p.reddit_status} />
+                      <ChannelBadge
+                        status={p.reddit_status}
+                        onUnschedule={() => handleUnscheduleChannel(p.id!, "reddit")}
+                      />
                       {p.reddit_scheduled_at && (
                         <div className="text-[11px] text-cream-muted/70 mt-1">
                           {displayDate(p.reddit_scheduled_at)}
@@ -1084,13 +1090,17 @@ const BlogAdmin = () => {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <ChannelBadge status={p.substack_status} />
+                      <ChannelBadge
+                        status={p.substack_status}
+                        onUnschedule={() => handleUnscheduleChannel(p.id!, "substack")}
+                      />
                       {p.substack_scheduled_at && (
                         <div className="text-[11px] text-cream-muted/70 mt-1">
                           {displayDate(p.substack_scheduled_at)}
                         </div>
                       )}
                     </td>
+
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.publish_at)}
                     </td>
