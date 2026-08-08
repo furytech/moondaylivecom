@@ -491,7 +491,12 @@ const BlogAdmin = () => {
     setEditing({
       ...post,
       substack_post: post.substack_post?.trim() ? post.substack_post : buildSubstackDraft(post),
-      reddit_post: post.reddit_post?.trim() ? post.reddit_post : buildRedditDraftText(post),
+      reddit_post: post.reddit_post?.trim()
+        ? post.reddit_post
+        : (() => {
+            const d = buildRedditDraft(post);
+            return `${d.title}\n\n${d.body}`;
+          })(),
     });
     // The editor panel renders above the table; scroll to it so clicking Edit
     // never looks like a no-op when the list is scrolled down.
