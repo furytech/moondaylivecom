@@ -33,10 +33,16 @@ export type Database = {
           published_at: string | null
           read_time: number
           reddit_post: string | null
+          reddit_posted_at: string | null
+          reddit_scheduled_at: string | null
+          reddit_status: string
           reviewed_by: string | null
           slug: string
           status: string
           substack_post: string | null
+          substack_scheduled_at: string | null
+          substack_sent_at: string | null
+          substack_status: string
           title: string
           updated_at: string
           zodiac_sign_tag: string | null
@@ -59,10 +65,16 @@ export type Database = {
           published_at?: string | null
           read_time?: number
           reddit_post?: string | null
+          reddit_posted_at?: string | null
+          reddit_scheduled_at?: string | null
+          reddit_status?: string
           reviewed_by?: string | null
           slug: string
           status?: string
           substack_post?: string | null
+          substack_scheduled_at?: string | null
+          substack_sent_at?: string | null
+          substack_status?: string
           title: string
           updated_at?: string
           zodiac_sign_tag?: string | null
@@ -85,10 +97,16 @@ export type Database = {
           published_at?: string | null
           read_time?: number
           reddit_post?: string | null
+          reddit_posted_at?: string | null
+          reddit_scheduled_at?: string | null
+          reddit_status?: string
           reviewed_by?: string | null
           slug?: string
           status?: string
           substack_post?: string | null
+          substack_scheduled_at?: string | null
+          substack_sent_at?: string | null
+          substack_status?: string
           title?: string
           updated_at?: string
           zodiac_sign_tag?: string | null
