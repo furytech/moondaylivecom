@@ -852,6 +852,22 @@ const BlogAdmin = () => {
           </div>
         )}
 
+        <div className="mb-4 flex flex-wrap gap-2">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setStatusFilter(f.key)}
+              className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                statusFilter === f.key
+                  ? "border-primary/60 bg-primary/15 text-primary"
+                  : "border-border/40 text-cream-muted hover:text-foreground"
+              }`}
+            >
+              {f.label} ({counts[f.key]})
+            </button>
+          ))}
+        </div>
+
         {loadingPosts ? (
           <div className="py-12 flex justify-center">
             <MoonLoader size="md" text="Loading posts..." />
@@ -870,7 +886,15 @@ const BlogAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {posts.map((p) => (
+                {visiblePosts.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-cream-muted">
+                      Nothing here yet.
+                    </td>
+                  </tr>
+                )}
+                {visiblePosts.map((p) => (
+
                   <tr key={p.id} className="border-b border-border/30 last:border-0">
                     <td className="px-4 py-3 text-foreground">{p.title}</td>
                     <td className="px-4 py-3 text-cream-muted">{p.category}</td>
