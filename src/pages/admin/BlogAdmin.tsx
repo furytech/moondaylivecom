@@ -106,6 +106,14 @@ const BlogAdmin = () => {
   );
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
+  // Review queue: filter the table by status and sort by the scheduled instant
+  // so the next thing going live is always on top.
+  const [statusFilter, setStatusFilter] = useState<"queue" | "all" | "draft" | "approved" | "scheduled" | "published">("queue");
+  // Reschedule dialog state (replaces the old window.prompt flow).
+  const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
+  const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
+  const [rescheduling, setRescheduling] = useState(false);
+
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
