@@ -33,8 +33,15 @@ import {
 
 } from "@/lib/blog/posts";
 
-/** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns. */
-const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) => {
+/** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns.
+ *  When scheduled it is clickable and retracts the post back to draft. */
+const ChannelBadge = ({
+  status,
+  onUnschedule,
+}: {
+  status?: ChannelStatus | string | null;
+  onUnschedule?: () => void;
+}) => {
   const s = status || "draft";
   const cls =
     s === "scheduled"
@@ -44,12 +51,20 @@ const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) =>
       : s === "approved"
       ? "bg-primary/15 text-primary"
       : "bg-cream-muted/10 text-cream-muted";
+  const clickable = s === "scheduled" && !!onUnschedule;
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls}`}>
+    <span
+      onClick={clickable ? onUnschedule : undefined}
+      title={clickable ? "Click to unschedule and revert to draft" : undefined}
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls} ${
+        clickable ? "cursor-pointer hover:bg-yellow-400/25" : ""
+      }`}
+    >
       {s === "scheduled" ? "SCHEDULED" : s}
     </span>
   );
 };
+
 
 const defaultPost: Partial<BlogPostRow> = {
   slug: "",
@@ -452,6 +467,32 @@ const BlogAdmin = () => {
       setMessage(`Error: ${err.message}`);
     }
   };
+
+  /** Retracts a scheduled blog post back to draft (keeps the time for re-use). */
+  const handleUnscheduleBlog = async (id: string) => {
+    if (!confirm("Unschedule this post? It reverts to draft and will not auto-publish.")) return;
+    try {
+      await unpublishPost(id);
+      setMessage("Blog post unscheduled — back in Drafts.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  /** Retracts a scheduled Reddit or Substack edition back to draft. */
+  const handleUnscheduleChannel = async (id: string, channel: "reddit" | "substack") => {
+    const label = channel === "reddit" ? "Reddit" : "Substack";
+    if (!confirm(`Unschedule the ${label} edition? n8n will no longer pick it up.`)) return;
+    try {
+      await scheduleChannel(id, channel, null);
+      setMessage(`${label} edition unscheduled — back to draft.`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
 
   // Opens the reschedule dialog for a row, seeded with its current schedule.
   const openReschedule = (p: BlogPostRow) => {
@@ -1032,10 +1073,16 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-foreground">{p.title}</td>
                     <td className="px-4 py-3 text-cream-muted">{p.category}</td>
                     <td className="px-4 py-3">
-                      <ChannelBadge status={p.status} />
+                      <ChannelBadge
+                        status={p.status}
+                        onUnschedule={() => handleUnscheduleBlog(p.id!)}
+                      />
                     </td>
                     <td className="px-4 py-3">
-                      <ChannelBadge status={p.reddit_status} />
+                      <ChannelBadge
+                        status={p.reddit_status}
+                        onUnschedule={() => handleUnscheduleChannel(p.id!, "reddit")}
+                      />
                       {p.reddit_scheduled_at && (
                         <div className="text-[11px] text-cream-muted/70 mt-1">
                           {displayDate(p.reddit_scheduled_at)}
@@ -1043,13 +1090,17 @@ const BlogAdmin = () => {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <ChannelBadge status={p.substack_status} />
+                      <ChannelBadge
+                        status={p.substack_status}
+                        onUnschedule={() => handleUnscheduleChannel(p.id!, "substack")}
+                      />
                       {p.substack_scheduled_at && (
                         <div className="text-[11px] text-cream-muted/70 mt-1">
                           {displayDate(p.substack_scheduled_at)}
                         </div>
                       )}
                     </td>
+
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.publish_at)}
                     </td>
@@ -1071,7 +1122,16 @@ const BlogAdmin = () => {
                       )}
                       {p.status !== "published" && (
                         <button
-                          onClick={() => openReschedule(p)}
+                          onClick={() =>
+                            p.status === "scheduled"
+                              ? handleUnscheduleBlog(p.id!)
+                              : openReschedule(p)
+                          }
+                          title={
+                            p.status === "scheduled"
+                              ? "Click to unschedule and revert to draft"
+                              : "Schedule this post"
+                          }
                           className={`hover:underline text-xs ${
                             p.status === "scheduled"
                               ? "text-yellow-300 font-semibold"
@@ -1081,6 +1141,15 @@ const BlogAdmin = () => {
                           {p.status === "scheduled" ? "SCHEDULED" : "Schedule"}
                         </button>
                       )}
+                      {p.status === "scheduled" && (
+                        <button
+                          onClick={() => openReschedule(p)}
+                          className="text-sky-400 hover:underline text-xs"
+                        >
+                          Reschedule
+                        </button>
+                      )}
+
 
                       {p.status === "published" && (
                         <button
