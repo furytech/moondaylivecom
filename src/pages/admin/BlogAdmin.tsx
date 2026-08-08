@@ -735,14 +735,24 @@ const BlogAdmin = () => {
             <div className="mb-6 rounded-xl border border-accent/25 bg-accent/5 p-4">
               <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
                 <h3 className="font-display text-sm uppercase tracking-[0.2em] text-accent">Substack Preview</h3>
-                <button
-                  type="button"
-                  onClick={() => handleCopySubstack(editing)}
-                  className="px-3 py-1.5 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
-                >
-                  Copy Substack post
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleGenerateSubstack}
+                    className="px-3 py-1.5 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
+                  >
+                    Regenerate from post
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCopySubstack(editing)}
+                    className="px-3 py-1.5 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
+                  >
+                    Copy Substack post
+                  </button>
+                </div>
               </div>
+
               <p className="text-xs text-cream-muted/70 mb-3">
                 Journal-style newsletter copy in Markdown. Paste straight into the Substack editor.
               </p>
