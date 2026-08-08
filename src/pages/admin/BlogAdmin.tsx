@@ -33,8 +33,15 @@ import {
 
 } from "@/lib/blog/posts";
 
-/** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns. */
-const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) => {
+/** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns.
+ *  When scheduled it is clickable and retracts the post back to draft. */
+const ChannelBadge = ({
+  status,
+  onUnschedule,
+}: {
+  status?: ChannelStatus | string | null;
+  onUnschedule?: () => void;
+}) => {
   const s = status || "draft";
   const cls =
     s === "scheduled"
@@ -44,12 +51,20 @@ const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) =>
       : s === "approved"
       ? "bg-primary/15 text-primary"
       : "bg-cream-muted/10 text-cream-muted";
+  const clickable = s === "scheduled" && !!onUnschedule;
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls}`}>
+    <span
+      onClick={clickable ? onUnschedule : undefined}
+      title={clickable ? "Click to unschedule and revert to draft" : undefined}
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls} ${
+        clickable ? "cursor-pointer hover:bg-yellow-400/25" : ""
+      }`}
+    >
       {s === "scheduled" ? "SCHEDULED" : s}
     </span>
   );
 };
+
 
 const defaultPost: Partial<BlogPostRow> = {
   slug: "",
