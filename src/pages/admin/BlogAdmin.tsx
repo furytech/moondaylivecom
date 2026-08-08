@@ -468,6 +468,32 @@ const BlogAdmin = () => {
     }
   };
 
+  /** Retracts a scheduled blog post back to draft (keeps the time for re-use). */
+  const handleUnscheduleBlog = async (id: string) => {
+    if (!confirm("Unschedule this post? It reverts to draft and will not auto-publish.")) return;
+    try {
+      await unpublishPost(id);
+      setMessage("Blog post unscheduled — back in Drafts.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  /** Retracts a scheduled Reddit or Substack edition back to draft. */
+  const handleUnscheduleChannel = async (id: string, channel: "reddit" | "substack") => {
+    const label = channel === "reddit" ? "Reddit" : "Substack";
+    if (!confirm(`Unschedule the ${label} edition? n8n will no longer pick it up.`)) return;
+    try {
+      await scheduleChannel(id, channel, null);
+      setMessage(`${label} edition unscheduled — back to draft.`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+
   // Opens the reschedule dialog for a row, seeded with its current schedule.
   const openReschedule = (p: BlogPostRow) => {
     setRescheduleTarget(p);
