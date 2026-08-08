@@ -44,7 +44,7 @@ Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly 
 
 "substack_content": A standalone, long-form newsletter edition of AT LEAST 800 words in Markdown. This is NOT a summary or restatement of "blog_content" — it must be a completely distinct reading experience with its own title (H1), its own structure, and its own examples. Anyone who read the website article should still find this worth reading.
   Editorial focus — the macro astro-climate:
-  a) Read the world weather, not the individual. What does this specific ${"$"}{}Moon shift do to the collective mood: the pace of conversations, what people have patience for, what the culture leans toward or recoils from over these ~2.5 days.
+  a) Read the world weather, not the individual. What does this specific Moon shift do to the collective mood: the pace of conversations, what people have patience for, what the culture leans toward or recoils from over these ~2.5 days.
   b) Societal and cultural pacing — how public discourse, work rhythms, media cycles, group decisions and social dynamics tend to tilt under this atmosphere. Concrete and observational, never political, never predictive about real events, never naming real people or organizations.
   c) The undercurrent — the quieter social dynamic underneath the surface mood, and what it asks of a room, a team, a family, a timeline.
   Use H2 sections with sentence-case headings. Keep the dry, warm, human voice.
