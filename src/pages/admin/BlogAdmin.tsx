@@ -1010,7 +1010,9 @@ const BlogAdmin = () => {
                 <tr>
                   <th className="px-4 py-3">Title</th>
                   <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Blog</th>
+                  <th className="px-4 py-3">Reddit</th>
+                  <th className="px-4 py-3">Substack</th>
                   <th className="px-4 py-3">Scheduled</th>
                   <th className="px-4 py-3">Live Date</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -1019,7 +1021,7 @@ const BlogAdmin = () => {
               <tbody>
                 {visiblePosts.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-cream-muted">
+                    <td colSpan={8} className="px-4 py-8 text-center text-cream-muted">
                       Nothing here yet.
                     </td>
                   </tr>
@@ -1030,17 +1032,23 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-foreground">{p.title}</td>
                     <td className="px-4 py-3 text-cream-muted">{p.category}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${
-                          p.status === "published"
-                            ? "bg-emerald-500/15 text-emerald-400"
-                            : p.status === "approved"
-                            ? "bg-primary/15 text-primary"
-                            : "bg-cream-muted/10 text-cream-muted"
-                        }`}
-                      >
-                        {p.status}
-                      </span>
+                      <ChannelBadge status={p.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <ChannelBadge status={p.reddit_status} />
+                      {p.reddit_scheduled_at && (
+                        <div className="text-[11px] text-cream-muted/70 mt-1">
+                          {displayDate(p.reddit_scheduled_at)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <ChannelBadge status={p.substack_status} />
+                      {p.substack_scheduled_at && (
+                        <div className="text-[11px] text-cream-muted/70 mt-1">
+                          {displayDate(p.substack_scheduled_at)}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.publish_at)}
@@ -1048,6 +1056,7 @@ const BlogAdmin = () => {
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.published_at)}
                     </td>
+
                     <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                       <button onClick={() => openEdit(p)} className="text-primary hover:underline text-xs">
                         Edit
