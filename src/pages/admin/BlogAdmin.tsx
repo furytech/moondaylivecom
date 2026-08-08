@@ -977,7 +977,38 @@ const BlogAdmin = () => {
             </table>
           </div>
         )}
+
+        <Dialog open={!!rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display text-lg">Schedule publication</DialogTitle>
+              <DialogDescription className="text-cream-muted">
+                {rescheduleTarget?.title}
+              </DialogDescription>
+            </DialogHeader>
+            <ScheduledPublishPicker value={rescheduleIso} onChange={setRescheduleIso} />
+            {rescheduleIso && (
+              <p className="text-xs text-cream-muted">Goes live: {displayDate(rescheduleIso)}</p>
+            )}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setRescheduleTarget(null)}
+                className="px-4 py-2 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReschedule}
+                disabled={!rescheduleIso || rescheduling}
+                className="px-5 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+              >
+                {rescheduling ? "Saving…" : "Confirm schedule"}
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
+
     </PageLayout>
   );
 };
