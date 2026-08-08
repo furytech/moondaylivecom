@@ -300,3 +300,32 @@ export async function unpublishPost(id: string) {
   if (error) throw error;
   return data as BlogPostRow;
 }
+
+/**
+ * Builds a Substack newsletter draft from the blog post so older rows (created
+ * before the Substack column existed) can still be reviewed and edited here.
+ */
+export function buildSubstackDraft(post: Partial<BlogPostRow>): string {
+  const sign = capitalizeSign(post.zodiac_sign_tag);
+  const title = post.title || "Moonday Live";
+  const image = post.image_url || (sign ? signImageUrl(sign) : null);
+  const url = post.slug
+    ? `${SITE_URL}/blog/${categoryPath(post.category || "Guides")}/${post.slug}`
+    : SITE_URL;
+
+  const body = (post.content || "")
+    .replace(/^---[\s\S]*?---\s*/m, "")
+    .replace(/^#\s+.*$/m, "")
+    .trim();
+
+  return [
+    `# ${title}`,
+    image ? `![${sign || title}](${image})` : "",
+    post.excerpt?.trim() || "",
+    body,
+    `---`,
+    `Read the full transit on [Moonday Live](${url}). For entertainment and reflection only.`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
