@@ -359,14 +359,21 @@ const BlogAdmin = () => {
     }
     setQueueing(true);
     try {
+      const scheduledIso = editing.reddit_scheduled_at || null;
+      const isQueued = !!scheduledIso && new Date(scheduledIso).getTime() > Date.now();
       const saved = await upsertPost({
         ...editing,
         status: "approved",
         publish_at: editing.publish_at || new Date().toISOString(),
+        reddit_status: isQueued ? "scheduled" : "approved",
       });
       setEditing(saved);
       setQueued(true);
-      setMessage("Approved. The next scheduled n8n run will pick this up for Reddit.");
+      setMessage(
+        isQueued
+          ? `Approved. Reddit edition queued for ${displayDate(scheduledIso)}.`
+          : "Approved. The next scheduled n8n run will pick this up for Reddit.",
+      );
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
