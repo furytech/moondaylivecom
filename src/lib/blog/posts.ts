@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates";
 export type CtaType = "birthday-calculator" | "dashboard" | "none";
 export type PostStatus = "draft" | "approved" | "scheduled" | "published";
+/** Per-channel lifecycle for Reddit / Substack editions of a post. */
+export type ChannelStatus = "draft" | "approved" | "scheduled" | "sent";
 
 export const SITE_URL = "https://moondaylive.com";
 export const SIGNS_PUBLIC_PATH = "/assets/signs";
