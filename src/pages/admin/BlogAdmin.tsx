@@ -1122,7 +1122,16 @@ const BlogAdmin = () => {
                       )}
                       {p.status !== "published" && (
                         <button
-                          onClick={() => openReschedule(p)}
+                          onClick={() =>
+                            p.status === "scheduled"
+                              ? handleUnscheduleBlog(p.id!)
+                              : openReschedule(p)
+                          }
+                          title={
+                            p.status === "scheduled"
+                              ? "Click to unschedule and revert to draft"
+                              : "Schedule this post"
+                          }
                           className={`hover:underline text-xs ${
                             p.status === "scheduled"
                               ? "text-yellow-300 font-semibold"
@@ -1132,6 +1141,15 @@ const BlogAdmin = () => {
                           {p.status === "scheduled" ? "SCHEDULED" : "Schedule"}
                         </button>
                       )}
+                      {p.status === "scheduled" && (
+                        <button
+                          onClick={() => openReschedule(p)}
+                          className="text-sky-400 hover:underline text-xs"
+                        >
+                          Reschedule
+                        </button>
+                      )}
+
 
                       {p.status === "published" && (
                         <button
