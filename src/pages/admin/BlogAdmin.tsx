@@ -307,6 +307,15 @@ const BlogAdmin = () => {
     setQueued(false);
   };
 
+  // Rebuilds the Substack copy from the blog body — used for posts drafted
+  // before the Substack column existed, or after the article was edited.
+  const handleGenerateSubstack = () => {
+    if (!editing) return;
+    setField("substack_post", buildSubstackDraft(editing));
+    setSubstackSent(false);
+  };
+
+
   // Approval hand-off: saves the reviewed Reddit copy and marks the row
   // approved with a publish time. The scheduled n8n run polls for approved
   // rows and performs the actual Reddit post — nothing is posted from here.
