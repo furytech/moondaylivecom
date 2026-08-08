@@ -6,6 +6,13 @@ import SEO from "@/components/SEO";
 import MoonLoader from "@/components/MoonLoader";
 import ScheduledPublishPicker from "@/components/admin/ScheduledPublishPicker";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   listAllPosts,
   upsertPost,
   deletePost,
@@ -106,6 +113,14 @@ const BlogAdmin = () => {
   );
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
+  // Review queue: filter the table by status and sort by the scheduled instant
+  // so the next thing going live is always on top.
+  const [statusFilter, setStatusFilter] = useState<"queue" | "all" | "draft" | "approved" | "scheduled" | "published">("queue");
+  // Reschedule dialog state (replaces the old window.prompt flow).
+  const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
+  const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
+  const [rescheduling, setRescheduling] = useState(false);
+
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
@@ -390,33 +405,34 @@ const BlogAdmin = () => {
     }
   };
 
-  // Re-queue an unpublished/draft post for a future instant without opening
-  // the full editor — the hourly publisher takes it live at that time.
-  const handleReschedule = async (p: BlogPostRow) => {
-    const current = toDatetimeLocalValue(p.publish_at) || toDatetimeLocalValue(new Date().toISOString());
-    const entered = window.prompt(
-      "Repost at (your local time, YYYY-MM-DDTHH:MM):",
-      current,
-    );
-    if (!entered) return;
-    const iso = fromDatetimeLocalValue(entered.trim());
-    if (!iso) {
-      setMessage("Couldn't read that date — use the format 2026-08-09T07:45.");
-      return;
-    }
+  // Opens the reschedule dialog for a row, seeded with its current schedule.
+  const openReschedule = (p: BlogPostRow) => {
+    setRescheduleTarget(p);
+    setRescheduleIso(p.publish_at || null);
+  };
+
+  // Re-queue a post for a future instant without opening the full editor —
+  // the hourly publisher takes it live at that time.
+  const confirmReschedule = async () => {
+    if (!rescheduleTarget || !rescheduleIso) return;
+    setRescheduling(true);
     try {
-      if (new Date(iso).getTime() <= Date.now()) {
-        await publishPostNow(p.id!);
+      if (new Date(rescheduleIso).getTime() <= Date.now()) {
+        await publishPostNow(rescheduleTarget.id!);
         setMessage("That time has passed — published live now.");
       } else {
-        await schedulePost(p.id!, iso);
-        setMessage(`Scheduled to repost ${displayDate(iso)}.`);
+        await schedulePost(rescheduleTarget.id!, rescheduleIso);
+        setMessage(`Scheduled for ${displayDate(rescheduleIso)}.`);
       }
+      setRescheduleTarget(null);
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
+    } finally {
+      setRescheduling(false);
     }
   };
+
 
 
 
@@ -446,6 +462,44 @@ const BlogAdmin = () => {
   const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {
     setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
+
+  // Review queue = everything not yet live, soonest scheduled instant first.
+  const counts = {
+    queue: posts.filter((p) => p.status !== "published").length,
+    all: posts.length,
+    draft: posts.filter((p) => p.status === "draft").length,
+    approved: posts.filter((p) => p.status === "approved").length,
+    scheduled: posts.filter((p) => p.status === "scheduled").length,
+    published: posts.filter((p) => p.status === "published").length,
+  };
+
+  const sortKey = (p: BlogPostRow) => {
+    const t = new Date(p.publish_at || p.published_at || p.created_at || 0).getTime();
+    return Number.isNaN(t) ? 0 : t;
+  };
+
+  const visiblePosts = [...posts]
+    .filter((p) =>
+      statusFilter === "all"
+        ? true
+        : statusFilter === "queue"
+        ? p.status !== "published"
+        : p.status === statusFilter,
+    )
+    .sort((a, b) =>
+      statusFilter === "published" ? sortKey(b) - sortKey(a) : sortKey(a) - sortKey(b),
+    );
+
+  const FILTERS: { key: typeof statusFilter; label: string }[] = [
+    { key: "queue", label: "Review queue" },
+    { key: "draft", label: "Drafts" },
+    { key: "approved", label: "Approved" },
+    { key: "scheduled", label: "Scheduled" },
+    { key: "published", label: "Published" },
+    { key: "all", label: "All" },
+  ];
+
+
 
   return (
     <PageLayout>
@@ -805,6 +859,22 @@ const BlogAdmin = () => {
           </div>
         )}
 
+        <div className="mb-4 flex flex-wrap gap-2">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setStatusFilter(f.key)}
+              className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                statusFilter === f.key
+                  ? "border-primary/60 bg-primary/15 text-primary"
+                  : "border-border/40 text-cream-muted hover:text-foreground"
+              }`}
+            >
+              {f.label} ({counts[f.key]})
+            </button>
+          ))}
+        </div>
+
         {loadingPosts ? (
           <div className="py-12 flex justify-center">
             <MoonLoader size="md" text="Loading posts..." />
@@ -823,7 +893,15 @@ const BlogAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {posts.map((p) => (
+                {visiblePosts.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-cream-muted">
+                      Nothing here yet.
+                    </td>
+                  </tr>
+                )}
+                {visiblePosts.map((p) => (
+
                   <tr key={p.id} className="border-b border-border/30 last:border-0">
                     <td className="px-4 py-3 text-foreground">{p.title}</td>
                     <td className="px-4 py-3 text-cream-muted">{p.category}</td>
@@ -860,12 +938,13 @@ const BlogAdmin = () => {
                       )}
                       {p.status !== "published" && (
                         <button
-                          onClick={() => handleReschedule(p)}
+                          onClick={() => openReschedule(p)}
                           className="text-sky-400 hover:underline text-xs"
                         >
-                          Reschedule
+                          Schedule
                         </button>
                       )}
+
                       {p.status === "published" && (
                         <button
                           onClick={() => handleUnpublish(p.id!)}
@@ -905,7 +984,38 @@ const BlogAdmin = () => {
             </table>
           </div>
         )}
+
+        <Dialog open={!!rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display text-lg">Schedule publication</DialogTitle>
+              <DialogDescription className="text-cream-muted">
+                {rescheduleTarget?.title}
+              </DialogDescription>
+            </DialogHeader>
+            <ScheduledPublishPicker value={rescheduleIso} onChange={setRescheduleIso} />
+            {rescheduleIso && (
+              <p className="text-xs text-cream-muted">Goes live: {displayDate(rescheduleIso)}</p>
+            )}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setRescheduleTarget(null)}
+                className="px-4 py-2 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReschedule}
+                disabled={!rescheduleIso || rescheduling}
+                className="px-5 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+              >
+                {rescheduling ? "Saving…" : "Confirm schedule"}
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
+
     </PageLayout>
   );
 };
