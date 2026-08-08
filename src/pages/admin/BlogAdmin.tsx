@@ -747,7 +747,33 @@ const BlogAdmin = () => {
                 placeholder="Click “Regenerate from post” to draft a Reddit title and body from the blog content."
                 className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
               />
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs uppercase tracking-wider text-cream-muted">
+                    Reddit scheduled time
+                  </label>
+                  <ChannelBadge status={editing.reddit_status} />
+                </div>
+                <ScheduledPublishPicker
+                  value={editing.reddit_scheduled_at ?? null}
+                  onChange={(iso) => {
+                    setEditing((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            reddit_scheduled_at: iso,
+                            reddit_status: iso ? "scheduled" : "draft",
+                          }
+                        : prev,
+                    );
+                  }}
+                />
+                <p className="text-xs text-cream-muted/60">
+                  n8n polls this timestamp and posts to Reddit at that instant.
+                </p>
+              </div>
               <div className="mt-3 flex items-center gap-3 flex-wrap">
+
                 <button
                   type="button"
                   onClick={handleApproveForN8n}
