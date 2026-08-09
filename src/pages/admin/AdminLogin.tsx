@@ -46,10 +46,13 @@ const AdminLogin = () => {
     const ok = await checkAdmin();
     if (!ok) {
       await supabase.auth.signOut();
+      queryClient.removeQueries({ queryKey: ["admin-route-check"] });
       setError("This account does not have administrator access.");
       setLoading(false);
       return;
     }
+    // Drop the stale "not signed in" gate result so AdminRoute re-checks.
+    queryClient.setQueryData(["admin-route-check"], { signedIn: true, isAdmin: true });
     navigate("/admin/blog", { replace: true });
   };
 
