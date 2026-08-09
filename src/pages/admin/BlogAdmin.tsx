@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Search, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
