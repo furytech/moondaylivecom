@@ -9,7 +9,7 @@ import MoonLoader from "./MoonLoader";
  * server-side `has_role(uid, 'admin')` check — never client storage.
  */
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isFetching } = useQuery({
     queryKey: ["admin-route-check"],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -18,9 +18,11 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
       const { data: role, error } = await supabase.rpc("has_role", { _user_id: uid, _role: "admin" });
       return { signedIn: true, isAdmin: !error && !!role };
     },
+    gcTime: 0,
+    refetchOnMount: "always",
   });
 
-  if (isLoading) {
+  if (isPending || isFetching) {
     return (
       <PageLayout>
         <div className="py-20 flex justify-center">
