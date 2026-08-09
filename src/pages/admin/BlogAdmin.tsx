@@ -584,6 +584,24 @@ const BlogAdmin = () => {
     return Number.isNaN(t) ? 0 : t;
   };
 
+  const matchesSearch = (p: BlogPostRow) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    const hay = [
+      p.title,
+      p.excerpt,
+      p.slug,
+      p.category,
+      p.zodiac_sign_tag,
+      Array.isArray(p.keywords) ? p.keywords.join(" ") : "",
+      p.content,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return hay.includes(q);
+  };
+
   const visiblePosts = [...posts]
     .filter((p) =>
       statusFilter === "all"
@@ -592,8 +610,9 @@ const BlogAdmin = () => {
         ? p.status !== "published"
         : p.status === statusFilter,
     )
+    .filter(matchesSearch)
     .sort((a, b) =>
-      statusFilter === "published" ? sortKey(b) - sortKey(a) : sortKey(a) - sortKey(b),
+      sortDirection === "asc" ? sortKey(a) - sortKey(b) : sortKey(b) - sortKey(a),
     );
 
   const FILTERS: { key: typeof statusFilter; label: string }[] = [
