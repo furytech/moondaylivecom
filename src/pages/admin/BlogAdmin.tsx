@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Search, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
@@ -153,6 +154,9 @@ const BlogAdmin = () => {
   // Review queue: filter the table by status and sort by the scheduled instant
   // so the next thing going live is always on top.
   const [statusFilter, setStatusFilter] = useState<"queue" | "all" | "draft" | "approved" | "scheduled" | "published">("queue");
+  // Search and sort controls for the post table.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   // Reschedule dialog state (replaces the old window.prompt flow).
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
@@ -580,6 +584,24 @@ const BlogAdmin = () => {
     return Number.isNaN(t) ? 0 : t;
   };
 
+  const matchesSearch = (p: BlogPostRow) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    const hay = [
+      p.title,
+      p.excerpt,
+      p.slug,
+      p.category,
+      p.zodiac_sign_tag,
+      Array.isArray(p.keywords) ? p.keywords.join(" ") : "",
+      p.content,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return hay.includes(q);
+  };
+
   const visiblePosts = [...posts]
     .filter((p) =>
       statusFilter === "all"
@@ -588,8 +610,9 @@ const BlogAdmin = () => {
         ? p.status !== "published"
         : p.status === statusFilter,
     )
+    .filter(matchesSearch)
     .sort((a, b) =>
-      statusFilter === "published" ? sortKey(b) - sortKey(a) : sortKey(a) - sortKey(b),
+      sortDirection === "asc" ? sortKey(a) - sortKey(b) : sortKey(b) - sortKey(a),
     );
 
   const FILTERS: { key: typeof statusFilter; label: string }[] = [
@@ -1023,6 +1046,28 @@ const BlogAdmin = () => {
             </div>
           </div>
         )}
+
+        <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+          <div className="relative max-w-md w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cream-muted" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search posts by title, sign, keyword..."
+              aria-label="Search posts"
+              className="w-full h-10 pl-10 pr-4 rounded-full bg-background/70 border border-border/50 text-foreground placeholder:text-cream-muted/60 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition text-sm"
+            />
+          </div>
+          <button
+            onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-border/50 text-cream-muted text-xs hover:text-foreground hover:border-primary/40 transition"
+            aria-label="Toggle sort direction"
+          >
+            <ArrowUpDown className="w-3.5 h-3.5" />
+            {sortDirection === "asc" ? "Oldest first" : "Newest first"}
+          </button>
+        </div>
 
         <div className="mb-4 flex flex-wrap gap-2">
           {FILTERS.map((f) => (
