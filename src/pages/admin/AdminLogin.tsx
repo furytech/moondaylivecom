@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const checkAdmin = async () => {
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,10 +46,13 @@ const AdminLogin = () => {
     const ok = await checkAdmin();
     if (!ok) {
       await supabase.auth.signOut();
+      queryClient.removeQueries({ queryKey: ["admin-route-check"] });
       setError("This account does not have administrator access.");
       setLoading(false);
       return;
     }
+    // Drop the stale "not signed in" gate result so AdminRoute re-checks.
+    queryClient.setQueryData(["admin-route-check"], { signedIn: true, isAdmin: true });
     navigate("/admin/blog", { replace: true });
   };
 
