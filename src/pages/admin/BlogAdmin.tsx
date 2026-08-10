@@ -30,6 +30,7 @@ import {
   buildRedditDraft,
   buildSubstackDraft,
   scheduleChannel,
+  setChannelSent,
   ChannelStatus,
 
 } from "@/lib/blog/posts";
@@ -218,6 +219,28 @@ const BlogAdmin = () => {
       setMessage("Copy failed — browser blocked clipboard access.");
     }
   };
+
+  // Manual posting hand-off: flags a channel as sent (or reverts it) so the
+  // table reflects what has actually gone out on Reddit / Substack.
+  const handleToggleChannelSent = async (
+    post: BlogPostRow,
+    channel: "reddit" | "substack",
+  ) => {
+    const isSent = (channel === "reddit" ? post.reddit_status : post.substack_status) === "sent";
+    try {
+      await setChannelSent(post.id!, channel, !isSent);
+      setMessage(
+        isSent
+          ? `${channel === "reddit" ? "Reddit" : "Substack"} edition reverted to draft.`
+          : `Marked as posted on ${channel === "reddit" ? "Reddit" : "Substack"}.`,
+      );
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+
 
   const handleDownloadImage = async (post: BlogPostRow) => {
     const url = resolveSignImage({
@@ -1133,6 +1156,12 @@ const BlogAdmin = () => {
                           {displayDate(p.reddit_scheduled_at)}
                         </div>
                       )}
+                      <button
+                        onClick={() => handleToggleChannelSent(p, "reddit")}
+                        className="block mt-1 text-[11px] text-sky-400 hover:underline"
+                      >
+                        {p.reddit_status === "sent" ? "Undo posted" : "Mark posted"}
+                      </button>
                     </td>
                     <td className="px-4 py-3">
                       <ChannelBadge
@@ -1144,7 +1173,14 @@ const BlogAdmin = () => {
                           {displayDate(p.substack_scheduled_at)}
                         </div>
                       )}
+                      <button
+                        onClick={() => handleToggleChannelSent(p, "substack")}
+                        className="block mt-1 text-[11px] text-sky-400 hover:underline"
+                      >
+                        {p.substack_status === "sent" ? "Undo posted" : "Mark posted"}
+                      </button>
                     </td>
+
 
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.publish_at)}

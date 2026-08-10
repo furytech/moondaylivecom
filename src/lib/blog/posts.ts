@@ -323,6 +323,32 @@ export async function scheduleChannel(
   return data as BlogPostRow;
 }
 
+/** Manually flags a channel edition as sent (or back to draft) after the post
+ *  was published by hand on Reddit / Substack. */
+export async function setChannelSent(
+  id: string,
+  channel: "reddit" | "substack",
+  sent: boolean,
+) {
+  const now = new Date().toISOString();
+  const patch =
+    channel === "reddit"
+      ? sent
+        ? { reddit_status: "sent", reddit_posted_at: now }
+        : { reddit_status: "draft", reddit_posted_at: null }
+      : sent
+        ? { substack_status: "sent", substack_sent_at: now }
+        : { substack_status: "draft", substack_sent_at: null };
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .update(patch as any)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as BlogPostRow;
+}
+
 /** Reverts a post to draft. The scheduled publish time is preserved so the
  *  post stays findable and can simply be re-approved. */
 export async function unpublishPost(id: string) {
