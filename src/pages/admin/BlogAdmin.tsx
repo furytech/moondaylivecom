@@ -362,7 +362,7 @@ const BlogAdmin = () => {
       if (error) throw error;
       localStorage.setItem("moonday.substackWebhook", substackHook);
       setSubstackSent(true);
-      setMessage("Substack copy sent to n8n. Check the workflow run for delivery.");
+      setMessage("Substack draft sent — check your Substack dashboard to review and publish.");
       refetch();
     } catch (err: any) {
       setMessage(`Substack send failed: ${err.message}`);
