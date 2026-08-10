@@ -79,6 +79,59 @@ export function getCurrentMoon(date: Date = new Date()): CurrentMoonData {
   };
 }
 
+export interface NextMoonData {
+  sign: string;
+  symbol: string;
+  element: string;
+  ingressAt: Date;
+  hoursAway: number;
+}
+
+export function getNextMoonSign(date: Date = new Date()): NextMoonData {
+  const startTime = new AstroTime(date);
+  const startLon = norm360(EclipticGeoMoon(startTime).lon);
+  const startIndex = Math.floor(startLon / 30) % 12;
+  const nextIndex = (startIndex + 1) % 12;
+  const targetLon = nextIndex * 30; // 0°, 30°, 60° ...
+
+  // Walk forward in 30-minute steps until the Moon crosses the next boundary.
+  // The Moon moves ~0.5° per hour, so 30-minute resolution is safe.
+  let stepMinutes = 30;
+  let cursor = new Date(date.getTime() + stepMinutes * 60 * 1000);
+  let ingressTime = new AstroTime(cursor);
+  let ingressLon = norm360(EclipticGeoMoon(ingressTime).lon);
+
+  while (Math.floor(ingressLon / 30) % 12 !== nextIndex) {
+    cursor = new Date(cursor.getTime() + stepMinutes * 60 * 1000);
+    ingressTime = new AstroTime(cursor);
+    ingressLon = norm360(EclipticGeoMoon(ingressTime).lon);
+  }
+
+  // Now refine to ~1-minute precision by stepping back and bisecting.
+  let lo = new Date(cursor.getTime() - stepMinutes * 60 * 1000);
+  let hi = cursor;
+  for (let i = 0; i < 12; i++) {
+    const mid = new Date((lo.getTime() + hi.getTime()) / 2);
+    const midLon = norm360(EclipticGeoMoon(new AstroTime(mid)).lon);
+    if (Math.floor(midLon / 30) % 12 === nextIndex) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+
+  const ingressAt = new Date((lo.getTime() + hi.getTime()) / 2);
+  const hoursAway = Math.max(0, (ingressAt.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+  return {
+    sign: moonSigns[nextIndex].sign,
+    symbol: moonSigns[nextIndex].symbol,
+    element: moonSigns[nextIndex].element,
+    ingressAt,
+    hoursAway,
+  };
+}
+
 export function getMoonMessage(moonData: CurrentMoonData): string {
   const messages: Record<string, string> = {
     Aries: "Bold energy ignites your inner fire. Take action on your desires.",

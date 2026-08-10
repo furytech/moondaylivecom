@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCurrentMoon } from "@/lib/currentMoon";
+import { getCurrentMoon, getNextMoonSign } from "@/lib/currentMoon";
 import { Moon, Sparkles, Compass } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
@@ -30,6 +30,8 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const moonData = getCurrentMoon();
+  const nextMoon = useMemo(() => getNextMoonSign(), []);
+
   const { data: posts = [] } = useQuery({
     queryKey: ["home-blog-posts"],
     queryFn: fetchPublishedPosts,
@@ -158,9 +160,21 @@ const Index = () => {
               </div>
             </div>
 
-            <p className="text-lilac text-base md:text-lg tracking-[0.3em] uppercase mb-6 animate-fade-up stagger-1">
-              {moonData.symbol} Moon in {moonData.sign} · Tonight
-            </p>
+            <div className="mb-6 animate-fade-up stagger-1">
+              <p className="text-lilac text-base md:text-lg tracking-[0.25em] uppercase mb-1">
+                {moonData.symbol} Current Moon — {moonData.sign}
+              </p>
+              <p className="text-lilac/70 text-sm md:text-base tracking-[0.25em] uppercase mb-3">
+                Next Moon in {nextMoon.sign}
+              </p>
+              <button
+                onClick={() => navigate("/signup")}
+                className="text-xs md:text-sm tracking-[0.15em] uppercase text-cream/80 hover:text-lilac border-b border-lilac/40 hover:border-lilac pb-0.5 transition-colors duration-300"
+              >
+                Discover what it means for you →
+              </button>
+            </div>
+
 
             <h1 className="font-display text-4xl md:text-6xl font-semibold tracking-tight leading-[1.1] mb-6 animate-fade-up stagger-2">
               Stop wondering why
