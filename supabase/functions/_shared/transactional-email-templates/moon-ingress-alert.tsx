@@ -145,10 +145,7 @@ const Email = ({ toSign, fromSign, transitionTime, natalMoonSign, userName }: Pr
           </Section>
 
           <Text style={footer}>
-            Moonday Live · Entertainment astrology only.{' '}
-            <Link href="https://moondaylive.com/unsubscribe" style={{ color: brandLilac }}>
-              Unsubscribe
-            </Link>
+            Moonday Live · Entertainment astrology only.
           </Text>
         </Container>
       </Body>
