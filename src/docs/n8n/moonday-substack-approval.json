@@ -27,11 +27,14 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $env.MOONDAY_ALERT_EMAIL || 'you@example.com' }}",
-        "subject": "={{ $json.subject }}",
+        "sendTo": "={{ $env.SUBSTACK_POST_EMAIL }}",
+        "subject": "={{ $json.title }}",
         "emailType": "text",
-        "message": "={{ $json.title }}\n{{ $json.sign }}  |  publish_at: {{ $json.publish_at }}\nCanonical: {{ $json.canonical }}\n\n--- PASTE INTO SUBSTACK BELOW ---\n\n{{ $json.markdown }}\n",
-        "options": {}
+        "message": "={{ $json.markdown }}\n\n---\nRead more: {{ $json.canonical }}",
+        "options": {
+          "appendAttribution": false,
+          "bcc": "={{ $env.MOONDAY_ALERT_EMAIL }}"
+        }
       },
       "id": "email-substack",
       "name": "Email Substack Copy",
