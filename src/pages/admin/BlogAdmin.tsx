@@ -220,6 +220,28 @@ const BlogAdmin = () => {
     }
   };
 
+  // Manual posting hand-off: flags a channel as sent (or reverts it) so the
+  // table reflects what has actually gone out on Reddit / Substack.
+  const handleToggleChannelSent = async (
+    post: BlogPostRow,
+    channel: "reddit" | "substack",
+  ) => {
+    const isSent = (channel === "reddit" ? post.reddit_status : post.substack_status) === "sent";
+    try {
+      await setChannelSent(post.id!, channel, !isSent);
+      setMessage(
+        isSent
+          ? `${channel === "reddit" ? "Reddit" : "Substack"} edition reverted to draft.`
+          : `Marked as posted on ${channel === "reddit" ? "Reddit" : "Substack"}.`,
+      );
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+
+
   const handleDownloadImage = async (post: BlogPostRow) => {
     const url = resolveSignImage({
       imageUrl: post.image_url,
