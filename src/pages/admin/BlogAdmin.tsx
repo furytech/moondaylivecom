@@ -1156,6 +1156,12 @@ const BlogAdmin = () => {
                           {displayDate(p.reddit_scheduled_at)}
                         </div>
                       )}
+                      <button
+                        onClick={() => handleToggleChannelSent(p, "reddit")}
+                        className="block mt-1 text-[11px] text-sky-400 hover:underline"
+                      >
+                        {p.reddit_status === "sent" ? "Undo posted" : "Mark posted"}
+                      </button>
                     </td>
                     <td className="px-4 py-3">
                       <ChannelBadge
@@ -1167,7 +1173,14 @@ const BlogAdmin = () => {
                           {displayDate(p.substack_scheduled_at)}
                         </div>
                       )}
+                      <button
+                        onClick={() => handleToggleChannelSent(p, "substack")}
+                        className="block mt-1 text-[11px] text-sky-400 hover:underline"
+                      >
+                        {p.substack_status === "sent" ? "Undo posted" : "Mark posted"}
+                      </button>
                     </td>
+
 
                     <td className="px-4 py-3 text-cream-muted">
                       {displayDate(p.publish_at)}
