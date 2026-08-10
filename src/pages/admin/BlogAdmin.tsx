@@ -362,7 +362,7 @@ const BlogAdmin = () => {
       if (error) throw error;
       localStorage.setItem("moonday.substackWebhook", substackHook);
       setSubstackSent(true);
-      setMessage("Substack copy sent to n8n. Check the workflow run for delivery.");
+      setMessage("Substack draft sent — check your Substack dashboard to review and publish.");
       refetch();
     } catch (err: any) {
       setMessage(`Substack send failed: ${err.message}`);
@@ -978,10 +978,10 @@ const BlogAdmin = () => {
                     disabled={substackSending}
                     className="px-4 py-2 rounded-full bg-accent/90 text-accent-foreground text-sm hover:bg-accent transition disabled:opacity-50"
                   >
-                    {substackSending ? "Sending…" : "Approve & Send to n8n (Substack)"}
+                    {substackSending ? "Sending…" : "Approve & Send to Substack"}
                   </button>
                   {substackSent && (
-                    <span className="text-xs text-accent">✓ Sent to n8n — check the workflow run.</span>
+                    <span className="text-xs text-accent">✓ Draft sent — check Substack.</span>
                   )}
                 </div>
               </div>
