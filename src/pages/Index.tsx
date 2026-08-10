@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCurrentMoon } from "@/lib/currentMoon";
+import { getCurrentMoon, getNextMoonSign } from "@/lib/currentMoon";
 import { Moon, Sparkles, Compass } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
