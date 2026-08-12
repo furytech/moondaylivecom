@@ -159,7 +159,7 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
-        title="Moon Sign Horoscope & Daily Forecast — Pricing | Moonday Live"
+        title="Moon Sign Horoscope & Daily Forecast Pricing | Moonday Live"
         description="Unlock precise astrology without a birth time. Get your daily moon sign horoscope, full Lunar Library, and personal blueprint. Sovereign Tier from $9.99/month."
         canonical="https://moondaylive.com/pricing"
       />

@@ -114,7 +114,7 @@ const BirthdayMoonPhase = () => {
   return (
     <PageLayout>
       <SEO
-        title="What Moon Phase Was I Born Under? Free Birthday Moon Calculator"
+        title="What Moon Phase Was I Born Under? Free Moon Calculator"
         description="Find the exact moon phase and moon sign on the day you were born. Enter your birth date for an instant, personalized lunar reading — free, no signup."
         canonical={CANONICAL}
       />
