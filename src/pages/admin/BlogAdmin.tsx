@@ -34,6 +34,7 @@ import {
   ChannelStatus,
 
 } from "@/lib/blog/posts";
+import { markdownToHtml, markdownToPlainText } from "@/lib/blog/markdownToHtml";
 
 /** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns.
  *  When scheduled it is clickable and retracts the post back to draft. */
@@ -301,15 +302,28 @@ const BlogAdmin = () => {
     });
   };
 
-  // Copies the Substack newsletter copy to the clipboard.
+  // Copies the Substack newsletter copy as rich text so the editor renders
+  // real headings/links instead of raw Markdown hash marks.
   const handleCopySubstack = async (post: Partial<BlogPostRow>) => {
     const text = post.substack_post?.trim();
     if (!text) {
       setMessage("No Substack copy on this post yet.");
       return;
     }
-    await navigator.clipboard.writeText(text);
-    setMessage("Substack copy copied to clipboard.");
+    const html = markdownToHtml(text);
+    const plain = markdownToPlainText(text);
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([plain], { type: "text/plain" }),
+        }),
+      ]);
+      setMessage("Substack copy copied as formatted text — paste straight in.");
+    } catch {
+      await navigator.clipboard.writeText(plain);
+      setMessage("Substack copy copied as plain text.");
+    }
   };
 
   // Saves the reviewed Substack copy, then hands it off to the Lovable Cloud
