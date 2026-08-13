@@ -157,7 +157,7 @@ const BlogAdmin = () => {
   const [substackSent, setSubstackSent] = useState(false);
   // Review queue: filter the table by status and sort by the scheduled instant
   // so the next thing going live is always on top.
-  const [statusFilter, setStatusFilter] = useState<"queue" | "all" | "draft" | "approved" | "scheduled" | "published">("queue");
+  const [statusFilter, setStatusFilter] = useState<"queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed">("queue");
   // Search and sort controls for the post table.
   const [searchQuery, setSearchQuery] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
