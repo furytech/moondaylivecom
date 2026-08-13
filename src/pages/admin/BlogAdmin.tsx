@@ -1127,164 +1127,25 @@ const BlogAdmin = () => {
             <MoonLoader size="md" text="Loading posts..." />
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-border/40 bg-background/60">
-            <table className="w-full text-sm text-left">
-              <thead className="border-b border-border/40 text-cream-muted text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="px-4 py-3">Title</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Blog</th>
-                  <th className="px-4 py-3">Reddit</th>
-                  <th className="px-4 py-3">Substack</th>
-                  <th className="px-4 py-3">Scheduled</th>
-                  <th className="px-4 py-3">Live Date</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visiblePosts.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-cream-muted">
-                      Nothing here yet.
-                    </td>
-                  </tr>
-                )}
-                {visiblePosts.map((p) => (
-
-                  <tr key={p.id} className="border-b border-border/30 last:border-0">
-                    <td className="px-4 py-3 text-foreground">{p.title}</td>
-                    <td className="px-4 py-3 text-cream-muted">{p.category}</td>
-                    <td className="px-4 py-3">
-                      <ChannelBadge
-                        status={p.status}
-                        onUnschedule={() => handleUnscheduleBlog(p.id!)}
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <ChannelBadge
-                        status={p.reddit_status}
-                        onUnschedule={() => handleUnscheduleChannel(p.id!, "reddit")}
-                      />
-                      {p.reddit_scheduled_at && (
-                        <div className="text-[11px] text-cream-muted/70 mt-1">
-                          {displayDate(p.reddit_scheduled_at)}
-                        </div>
-                      )}
-                      <button
-                        onClick={() => handleToggleChannelSent(p, "reddit")}
-                        className="block mt-1 text-[11px] text-sky-400 hover:underline"
-                      >
-                        {p.reddit_status === "sent" ? "Undo posted" : "Mark posted"}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ChannelBadge
-                        status={p.substack_status}
-                        onUnschedule={() => handleUnscheduleChannel(p.id!, "substack")}
-                      />
-                      {p.substack_scheduled_at && (
-                        <div className="text-[11px] text-cream-muted/70 mt-1">
-                          {displayDate(p.substack_scheduled_at)}
-                        </div>
-                      )}
-                      <button
-                        onClick={() => handleToggleChannelSent(p, "substack")}
-                        className="block mt-1 text-[11px] text-sky-400 hover:underline"
-                      >
-                        {p.substack_status === "sent" ? "Undo posted" : "Mark posted"}
-                      </button>
-                    </td>
-
-
-                    <td className="px-4 py-3 text-cream-muted">
-                      {displayDate(p.publish_at)}
-                    </td>
-                    <td className="px-4 py-3 text-cream-muted">
-                      {displayDate(p.published_at)}
-                    </td>
-
-                    <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                      <button onClick={() => openEdit(p)} className="text-primary hover:underline text-xs">
-                        Edit
-                      </button>
-                      {p.status !== "published" && (
-                        <button
-                          onClick={() => handleApproveAndPublish(p.id!)}
-                          className="text-emerald-400 hover:underline text-xs"
-                        >
-                          Approve & Publish
-                        </button>
-                      )}
-                      {p.status !== "published" && (
-                        <button
-                          onClick={() =>
-                            p.status === "scheduled"
-                              ? handleUnscheduleBlog(p.id!)
-                              : openReschedule(p)
-                          }
-                          title={
-                            p.status === "scheduled"
-                              ? "Click to unschedule and revert to draft"
-                              : "Schedule this post"
-                          }
-                          className={`hover:underline text-xs ${
-                            p.status === "scheduled"
-                              ? "text-yellow-300 font-semibold"
-                              : "text-sky-400"
-                          }`}
-                        >
-                          {p.status === "scheduled" ? "SCHEDULED" : "Schedule"}
-                        </button>
-                      )}
-                      {p.status === "scheduled" && (
-                        <button
-                          onClick={() => openReschedule(p)}
-                          className="text-sky-400 hover:underline text-xs"
-                        >
-                          Reschedule
-                        </button>
-                      )}
-
-
-                      {p.status === "published" && (
-                        <button
-                          onClick={() => handleUnpublish(p.id!)}
-                          className="text-amber-400 hover:underline text-xs"
-                        >
-                          Unpublish
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleCopyReddit(p)}
-                        disabled={!p.reddit_post}
-                        className={`text-xs hover:underline ${
-                          p.reddit_post ? "text-primary" : "text-cream-muted/40 cursor-not-allowed"
-                        }`}
-                      >
-                        {copiedId === p.id ? "Copied!" : "Copy Reddit Post"}
-                      </button>
-                      {resolveSignImage({
-                        imageUrl: p.image_url,
-                        zodiacSignTag: p.zodiac_sign_tag,
-                        constellationGraphicPath: p.constellation_graphic_path,
-                      }) && (
-                        <button
-                          onClick={() => handleDownloadImage(p)}
-                          className="text-xs text-primary hover:underline"
-                        >
-                          {downloadId === p.id ? "Downloaded!" : "Get Image"}
-                        </button>
-                      )}
-                      <button onClick={() => handleDelete(p.id!)} className="text-red-400 hover:underline text-xs">
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ChannelMatrix
+            posts={visiblePosts}
+            displayDate={displayDate}
+            copiedId={copiedId}
+            downloadId={downloadId}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            onDownloadImage={handleDownloadImage}
+            onPublishNow={handleApproveAndPublish}
+            onSchedule={openReschedule}
+            onUnscheduleBlog={handleUnscheduleBlog}
+            onUnpublish={handleUnpublish}
+            onUnscheduleChannel={handleUnscheduleChannel}
+            onToggleSent={handleToggleChannelSent}
+            onCopyReddit={handleCopyReddit}
+            onCopySubstack={handleCopySubstack}
+          />
         )}
+
 
         <Dialog open={!!rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)}>
           <DialogContent className="sm:max-w-md">
