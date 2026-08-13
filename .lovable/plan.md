@@ -1,89 +1,75 @@
-## 3-Node Matrix Database Plan
+# Onboarding Your Astrologer: Admin Access + Sovereign Access
 
-Additive-only migration. No existing table, RLS policy, auth setting, or subscription logic is touched. Only new tables and one new role enum are created.
+## 30,000 Feet
 
-### Node 1 — `cosmic_weather` (The Container + The Trigger)
-Stores each Sun/Moon transit tick that will drive forecast generation.
+Two separate doors, two separate keys:
 
-Columns:
-- `id` uuid PK (default `gen_random_uuid()`)
-- `trigger_timestamp` timestamptz not null
-- `sun_sign_tropical` text
-- `sun_sign_sidereal` text
-- `moon_sign_tropical` text
-- `moon_sign_sidereal` text
-- `moon_sign_draconic` text
-- `is_processed` boolean not null default false
-- `created_at`, `updated_at` timestamptz (standard)
-
-Access:
-- Authenticated users: read
-- Admins: full write
-- Anon: no access (respects "Sovereign-only" content posture; public reads can be added later if we surface it on marketing pages)
-
-### Node 2 — `content_drafts` (Generated payloads awaiting review)
-Columns:
-- `id` uuid PK
-- `cosmic_weather_id` uuid FK → `cosmic_weather(id)` on delete cascade
-- `status` text not null default `'pending_review'`
-- `app_atmospheric_text` text
-- `app_experiential_text` text
-- `reddit_payload` jsonb
-- `substack_payload` jsonb
-- `created_at`, `updated_at` timestamptz
-
-Access:
-- Admins only (read + write). No end-user exposure until curated content is copied elsewhere.
-
-### Node 3 — `user_natal_profiles` (The Receptor)
-Kept intentionally minimal per the Honest Chart Doctrine (moon-only for Free; no birth time collected). Lives alongside `user_profiles`; does not replace it.
-
-Columns:
-- `user_id` uuid PK, FK → `auth.users(id)` on delete cascade
-- `natal_moon_tropical` text
-- `natal_moon_sidereal` text
-- `created_at`, `updated_at` timestamptz
-
-Access:
-- Each authenticated user: select / insert / update their own row (`auth.uid() = user_id`)
-- Admins: read all (for content targeting)
-- No delete from client
-
-### Admin role
-No `user_roles` table exists yet. This migration adds the standard secure pattern:
-- `app_role` enum with value `admin`
-- `public.user_roles(user_id, role)` table with RLS
-- `public.has_role(_user_id uuid, _role app_role)` security-definer function
-
-Admin grants are assigned manually via SQL — not from the client. This is the only "structural" addition beyond the three requested tables, and it's required to express "administrators can write" safely (never store roles on `user_profiles`).
-
-### GRANTs (mandatory on every new public table)
-```sql
-GRANT SELECT ON public.cosmic_weather TO authenticated;
-GRANT ALL    ON public.cosmic_weather TO service_role;
-
-GRANT SELECT, INSERT, UPDATE ON public.content_drafts TO authenticated; -- gated by RLS to admins
-GRANT ALL    ON public.content_drafts TO service_role;
-
-GRANT SELECT, INSERT, UPDATE ON public.user_natal_profiles TO authenticated;
-GRANT ALL    ON public.user_natal_profiles TO service_role;
-
-GRANT SELECT ON public.user_roles TO authenticated;
-GRANT ALL    ON public.user_roles TO service_role;
+```text
+   DOOR 1 — Admin (Journal)          DOOR 2 — Sovereign (Member)
+   /admin/login                      /pricing -> Stripe checkout
+   role = admin in user_roles        100%-off forever coupon
+   edit + schedule posts             full member experience
 ```
 
-### Triggers
-`updated_at` auto-touch via the existing `public.update_updated_at_column()` function on all three new tables.
+They are independent: giving him admin does NOT give him Sovereign, and
+Sovereign does not give him admin. He needs both, and both hang off the
+same account/email.
 
-### What will NOT change
-- `user_profiles`, `daily_forecasts`, `moon_*`, `mfa_backup_codes` — untouched
-- Auth settings, Stripe/subscription flow, `AuthContext`, edge functions — untouched
-- No frontend UI changes in this step; wiring the Matrix dashboard comes in a follow-up once tables exist and the Composio cron can populate `cosmic_weather`
+## 10,000 Feet — The Five Puzzle Pieces
 
-### Docs
-Append a short "3-Node Matrix Schema" section to `docs/manual.md` describing the three tables and the admin role pattern.
+1. Account exists — he signs up normally at the site with his email.
+2. Admin role — we grant `admin` to his user ID in the roles table.
+3. Sovereign access — he checks out with the forever 100%-off coupon.
+4. Verify — confirm admin panel loads and his profile shows Sovereign.
+5. Hand-off — send him a short instruction note with both steps.
 
-### Delivery
-One migration call containing: enum + `user_roles` + `has_role` + three tables + GRANTs + RLS + policies + `updated_at` triggers. Then a small edit to `docs/manual.md`. No code touching existing components.
+## Ground Level — The Detailed Steps
 
-Approve and I'll run the migration.
+### Piece 1: He creates the account (his action)
+- Go to the site, Sign Up, enter email + password + birthday.
+- Confirm the verification email.
+- Reason we don't create it for him: the password should be his, and the
+  birthday drives his personal moon data.
+
+### Piece 2: Grant admin (my action, ~1 minute)
+- Look up his user ID by email.
+- Insert a row granting the `admin` role for that user.
+- Nothing is hardcoded and no client-side flag is used — the gate checks
+  the server-side role function on every visit.
+- Result: `/admin/login` accepts him and the Journal admin loads.
+
+### Piece 3: Sovereign via coupon (his action, my instructions)
+- Do we need a coupon? Yes — Stripe checkout always runs, so the clean
+  way to give lifetime access is a 100%-off forever coupon rather than
+  editing the database (subscription state re-syncs from Stripe and would
+  overwrite a manual edit).
+- Existing forever coupon: `TsGOsFVS` (case-sensitive, 100% off forever).
+  I will confirm it is still active and, if it has usage limits, create a
+  fresh single-use forever coupon reserved for him.
+- He goes to Pricing, starts Sovereign checkout, clicks "Add promotion
+  code", enters the code, and completes checkout. Total shows $0.00.
+- A real card may still be requested by Stripe for verification; it is
+  never charged while the coupon is applied.
+
+### Piece 4: Verification (my action)
+- Confirm the admin role row exists and the role check returns true.
+- Confirm his subscription record reads active/Sovereign after checkout.
+- Confirm the Journal admin screens render for his account.
+
+### Piece 5: Hand-off note
+- A short copy-paste message for him: sign-up link, the coupon code,
+  where the admin login lives, and what he can safely edit.
+
+## Technical Notes
+
+- Admin gating is unchanged: `AdminRoute` calls the server-side
+  `has_role(uid, 'admin')` check; roles live in the dedicated roles table,
+  never on the profile record.
+- No schema changes and no new code are required for admin access — this
+  is a data grant plus verification.
+- No changes to the Stripe integration; only a coupon is used.
+
+## What I Need From You
+
+- His email address (the exact one he will sign up with).
+- Confirmation of when he has finished signing up, so I can grant the role.
