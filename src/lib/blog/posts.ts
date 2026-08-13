@@ -379,10 +379,16 @@ export function buildSubstackDraft(post: Partial<BlogPostRow>): string {
     .replace(/^#\s+.*$/m, "")
     .trim();
 
+  // Skip the excerpt when it just restates the title (avoids a duplicate
+  // headline sitting under the image in the newsletter).
+  const excerpt = post.excerpt?.trim() || "";
+  const normalize = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const intro = excerpt && normalize(excerpt) !== normalize(title) ? excerpt : "";
+
   return [
     `# ${title}`,
     image ? `![${sign || title}](${image})` : "",
-    post.excerpt?.trim() || "",
+    intro,
     body,
     `---`,
     `Read the full transit on [Moonday Live](${url}). For entertainment and reflection only.`,
