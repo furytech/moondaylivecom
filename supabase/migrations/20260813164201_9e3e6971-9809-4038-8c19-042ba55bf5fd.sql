@@ -1,0 +1,1 @@
+UPDATE public.blog_posts SET excerpt = 'The Moon shifts into Virgo today, trading Leo''s spotlight for quiet order — here is what to feel, notice, and release during this transit.' WHERE slug = 'the-moon-enters-virgo-what-to-feel-notice-and-release-2026-08-13';
