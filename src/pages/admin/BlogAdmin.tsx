@@ -608,10 +608,14 @@ const BlogAdmin = () => {
     setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
+  // A post "needs attention" when any of its three channels missed its instant.
+  const hasMissed = (p: BlogPostRow) => countMissed([p]) > 0;
+
   // Review queue = everything not yet live, soonest scheduled instant first.
   const counts = {
     queue: posts.filter((p) => p.status !== "published").length,
     all: posts.length,
+    missed: posts.filter(hasMissed).length,
     draft: posts.filter((p) => p.status === "draft").length,
     approved: posts.filter((p) => p.status === "approved").length,
     scheduled: posts.filter((p) => p.status === "scheduled").length,
@@ -647,6 +651,8 @@ const BlogAdmin = () => {
         ? true
         : statusFilter === "queue"
         ? p.status !== "published"
+        : statusFilter === "missed"
+        ? hasMissed(p)
         : p.status === statusFilter,
     )
     .filter(matchesSearch)
@@ -656,12 +662,14 @@ const BlogAdmin = () => {
 
   const FILTERS: { key: typeof statusFilter; label: string }[] = [
     { key: "queue", label: "Review queue" },
+    { key: "missed", label: "Not sent" },
     { key: "draft", label: "Drafts" },
     { key: "approved", label: "Approved" },
     { key: "scheduled", label: "Scheduled" },
     { key: "published", label: "Published" },
     { key: "all", label: "All" },
   ];
+
 
 
 
