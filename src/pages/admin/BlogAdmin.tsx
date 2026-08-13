@@ -1086,6 +1086,22 @@ const BlogAdmin = () => {
           </div>
         )}
 
+        {countMissed(posts) > 0 && (
+          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 flex items-center justify-between gap-3">
+            <span>
+              {countMissed(posts)} channel {countMissed(posts) === 1 ? "post" : "posts"} did not go
+              out on time.
+            </span>
+            <button
+              onClick={() => setStatusFilter("missed")}
+              className="text-xs underline hover:no-underline whitespace-nowrap"
+            >
+              Show them
+            </button>
+          </div>
+        )}
+
+
         <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
           <div className="relative max-w-md w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cream-muted" />
