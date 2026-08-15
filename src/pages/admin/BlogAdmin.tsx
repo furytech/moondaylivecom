@@ -1122,14 +1122,6 @@ const BlogAdmin = () => {
               className="w-full h-10 pl-10 pr-4 rounded-full bg-background/70 border border-border/50 text-foreground placeholder:text-cream-muted/60 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition text-sm"
             />
           </div>
-          <button
-            onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-border/50 text-cream-muted text-xs hover:text-foreground hover:border-primary/40 transition"
-            aria-label="Toggle sort direction"
-          >
-            <ArrowUpDown className="w-3.5 h-3.5" />
-            {sortDirection === "asc" ? "Oldest first" : "Newest first"}
-          </button>
         </div>
 
         <div className="mb-4 flex flex-wrap gap-2">
