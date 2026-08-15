@@ -269,23 +269,17 @@ export async function schedulePost(id: string, publishAtIso: string) {
   return data as BlogPostRow;
 }
 
-/** Queues (or clears) a channel edition for a future instant. n8n polls these
- *  columns the same way the blog publisher polls `publish_at`. */
+/** Queues (or clears) the Substack edition for a future instant. */
 export async function scheduleChannel(
   id: string,
-  channel: "reddit" | "substack",
+  channel: "substack",
   scheduledAtIso: string | null,
 ) {
   // When unscheduling (null) we only flip the status back to draft and keep the
   // stored time, so the row still renders exactly as it did before scheduling.
-  const patch =
-    channel === "reddit"
-      ? scheduledAtIso
-        ? { reddit_status: "scheduled", reddit_scheduled_at: scheduledAtIso }
-        : { reddit_status: "draft" }
-      : scheduledAtIso
-        ? { substack_status: "scheduled", substack_scheduled_at: scheduledAtIso }
-        : { substack_status: "draft" };
+  const patch = scheduledAtIso
+    ? { substack_status: "scheduled", substack_scheduled_at: scheduledAtIso }
+    : { substack_status: "draft" };
   const { data, error } = await supabase
     .from("blog_posts")
     .update(patch as any)
@@ -296,22 +290,17 @@ export async function scheduleChannel(
   return data as BlogPostRow;
 }
 
-/** Manually flags a channel edition as sent (or back to draft) after the post
- *  was published by hand on Reddit / Substack. */
+/** Manually flags the Substack edition as sent (or back to draft) after the
+ *  newsletter was published by hand. */
 export async function setChannelSent(
   id: string,
-  channel: "reddit" | "substack",
+  channel: "substack",
   sent: boolean,
 ) {
   const now = new Date().toISOString();
-  const patch =
-    channel === "reddit"
-      ? sent
-        ? { reddit_status: "sent", reddit_posted_at: now }
-        : { reddit_status: "draft", reddit_posted_at: null }
-      : sent
-        ? { substack_status: "sent", substack_sent_at: now }
-        : { substack_status: "draft", substack_sent_at: null };
+  const patch = sent
+    ? { substack_status: "sent", substack_sent_at: now }
+    : { substack_status: "draft", substack_sent_at: null };
   const { data, error } = await supabase
     .from("blog_posts")
     .update(patch as any)
@@ -321,6 +310,7 @@ export async function setChannelSent(
   if (error) throw error;
   return data as BlogPostRow;
 }
+
 
 /** Reverts a post to draft. The scheduled publish time is preserved so the
  *  post stays findable and can simply be re-approved. */
