@@ -188,38 +188,11 @@ export async function getRelated(slug: string, category: BlogCategory, limit = 3
   return (data as BlogPostRow[] || []).map(rowToPost);
 }
 
-/**
- * Builds a Reddit title + body draft from the blog post so the editor can show
- * a preview without a round-trip. The scheduled n8n run picks the approved row
- * up from the database — nothing is posted to Reddit from the browser.
- */
-export function buildRedditDraft(post: Partial<BlogPostRow>): { title: string; body: string } {
-  const sign = capitalizeSign(post.zodiac_sign_tag);
-  const title = sign
-    ? `Moon in ${sign} — ${post.title || "what shifts now"}`
-    : post.title || "Moonday Live";
+/* Reddit was removed from the publishing pipeline. The `reddit_*` columns on
+ * `blog_posts` are intentionally left in place so historical copy is not
+ * destroyed and the channel can be revived without a migration. Nothing in the
+ * app reads or writes them any more. */
 
-  const body = (post.content || "")
-    .replace(/^---[\s\S]*?---\s*/m, "")
-    .replace(/^#{1,6}\s*/gm, "")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/[*_`>]/g, "")
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .slice(0, 3)
-    .join("\n\n")
-    .slice(0, 1400);
-
-  const excerpt = (post.excerpt || "").trim();
-  const url = post.slug ? `${SITE_URL}/blog/${categoryPath(post.category || "Guides")}/${post.slug}` : SITE_URL;
-
-  return {
-    title,
-    body: `${body || excerpt}\n\nFull read (no ads, no paywall on transits): ${url}`.trim(),
-  };
-}
 
 // Admin helpers
 export async function listAllPosts(): Promise<BlogPostRow[]> {
@@ -296,23 +269,17 @@ export async function schedulePost(id: string, publishAtIso: string) {
   return data as BlogPostRow;
 }
 
-/** Queues (or clears) a channel edition for a future instant. n8n polls these
- *  columns the same way the blog publisher polls `publish_at`. */
+/** Queues (or clears) the Substack edition for a future instant. */
 export async function scheduleChannel(
   id: string,
-  channel: "reddit" | "substack",
+  channel: "substack",
   scheduledAtIso: string | null,
 ) {
   // When unscheduling (null) we only flip the status back to draft and keep the
   // stored time, so the row still renders exactly as it did before scheduling.
-  const patch =
-    channel === "reddit"
-      ? scheduledAtIso
-        ? { reddit_status: "scheduled", reddit_scheduled_at: scheduledAtIso }
-        : { reddit_status: "draft" }
-      : scheduledAtIso
-        ? { substack_status: "scheduled", substack_scheduled_at: scheduledAtIso }
-        : { substack_status: "draft" };
+  const patch = scheduledAtIso
+    ? { substack_status: "scheduled", substack_scheduled_at: scheduledAtIso }
+    : { substack_status: "draft" };
   const { data, error } = await supabase
     .from("blog_posts")
     .update(patch as any)
@@ -323,22 +290,17 @@ export async function scheduleChannel(
   return data as BlogPostRow;
 }
 
-/** Manually flags a channel edition as sent (or back to draft) after the post
- *  was published by hand on Reddit / Substack. */
+/** Manually flags the Substack edition as sent (or back to draft) after the
+ *  newsletter was published by hand. */
 export async function setChannelSent(
   id: string,
-  channel: "reddit" | "substack",
+  channel: "substack",
   sent: boolean,
 ) {
   const now = new Date().toISOString();
-  const patch =
-    channel === "reddit"
-      ? sent
-        ? { reddit_status: "sent", reddit_posted_at: now }
-        : { reddit_status: "draft", reddit_posted_at: null }
-      : sent
-        ? { substack_status: "sent", substack_sent_at: now }
-        : { substack_status: "draft", substack_sent_at: null };
+  const patch = sent
+    ? { substack_status: "sent", substack_sent_at: now }
+    : { substack_status: "draft", substack_sent_at: null };
   const { data, error } = await supabase
     .from("blog_posts")
     .update(patch as any)
@@ -348,6 +310,7 @@ export async function setChannelSent(
   if (error) throw error;
   return data as BlogPostRow;
 }
+
 
 /** Reverts a post to draft. The scheduled publish time is preserved so the
  *  post stays findable and can simply be re-approved. */

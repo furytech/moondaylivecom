@@ -1,23 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ArrowUpDown } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Search, ArrowUpDown, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import MoonLoader from "@/components/MoonLoader";
 import ScheduledPublishPicker from "@/components/admin/ScheduledPublishPicker";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import ResponsiveModal from "@/components/ui/responsive-modal";
 import {
   listAllPosts,
   upsertPost,
   deletePost,
-  approvePost,
   publishPostNow,
   unpublishPost,
   schedulePost,
@@ -27,26 +21,16 @@ import {
   SIGNS,
   signImageUrl,
   resolveSignImage,
-  buildRedditDraft,
   buildSubstackDraft,
   scheduleChannel,
   setChannelSent,
   ChannelStatus,
-
 } from "@/lib/blog/posts";
 import { markdownToHtml, markdownToPlainText } from "@/lib/blog/markdownToHtml";
 import ChannelMatrix, { countMissed } from "@/components/admin/ChannelMatrix";
 
-
-/** Yellow SCHEDULED pill shared by the Blog, Reddit and Substack columns.
- *  When scheduled it is clickable and retracts the post back to draft. */
-const ChannelBadge = ({
-  status,
-  onUnschedule,
-}: {
-  status?: ChannelStatus | string | null;
-  onUnschedule?: () => void;
-}) => {
+/** Yellow SCHEDULED pill used inside the editor's Substack panel. */
+const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) => {
   const s = status || "draft";
   const cls =
     s === "scheduled"
@@ -56,20 +40,12 @@ const ChannelBadge = ({
       : s === "approved"
       ? "bg-primary/15 text-primary"
       : "bg-cream-muted/10 text-cream-muted";
-  const clickable = s === "scheduled" && !!onUnschedule;
   return (
-    <span
-      onClick={clickable ? onUnschedule : undefined}
-      title={clickable ? "Click to unschedule and revert to draft" : undefined}
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls} ${
-        clickable ? "cursor-pointer hover:bg-yellow-400/25" : ""
-      }`}
-    >
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs ${cls}`}>
       {s === "scheduled" ? "SCHEDULED" : s}
     </span>
   );
 };
-
 
 const defaultPost: Partial<BlogPostRow> = {
   slug: "",
@@ -89,12 +65,10 @@ const defaultPost: Partial<BlogPostRow> = {
   image_url: "",
 };
 
-
 const toDatetimeLocalValue = (value?: string | null) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
   return localDate.toISOString().slice(0, 16);
 };
@@ -116,7 +90,13 @@ const displayDate = (value?: string | null) => {
   return `${utc} UTC · ${local}`;
 };
 
+const FIELD =
+  "w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none";
+const LABEL = "block text-xs uppercase tracking-wider text-cream-muted mb-1";
+
 const BlogAdmin = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { data: isAdmin, isLoading: checkingAdmin } = useQuery({
     queryKey: ["admin-check"],
     queryFn: async () => {
@@ -139,33 +119,56 @@ const BlogAdmin = () => {
 
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
   const [message, setMessage] = useState("");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [substackCopiedId, setSubstackCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
   const [filling, setFilling] = useState(false);
-  const [queueing, setQueueing] = useState(false);
-  const [queued, setQueued] = useState(false);
+  const [telegramTesting, setTelegramTesting] = useState(false);
   // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
   // can be swapped between test and production workflows without a redeploy.
-  const DEFAULT_SUBSTACK_HOOK =
-    "http://192.241.153.228:8055/webhook/substack-approval";
+  const DEFAULT_SUBSTACK_HOOK = "http://192.241.153.228:8055/webhook/substack-approval";
   const [substackHook, setSubstackHook] = useState(
-    () =>
-      localStorage.getItem("moonday.substackWebhook") ||
-      DEFAULT_SUBSTACK_HOOK,
+    () => localStorage.getItem("moonday.substackWebhook") || DEFAULT_SUBSTACK_HOOK,
   );
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
-  // Review queue: filter the table by status and sort by the scheduled instant
-  // so the next thing going live is always on top.
-  const [statusFilter, setStatusFilter] = useState<"queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed">("queue");
-  // Search and sort controls for the post table.
+  const [statusFilter, setStatusFilter] = useState<
+    "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
+  >("queue");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  // Reschedule dialog state (replaces the old window.prompt flow).
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
 
+  const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {
+    setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  const openEdit = (post: BlogPostRow) => {
+    setSubstackSent(false);
+    // Auto-populate the Substack editor so the newsletter is always ready to
+    // review. Generated long-form copy wins; older rows fall back to a draft
+    // derived from the article body.
+    setEditing({
+      ...post,
+      substack_post: post.substack_post?.trim() ? post.substack_post : buildSubstackDraft(post),
+    });
+  };
+
+  // Telegram deep links land here as /admin/blog?post=<id>. Open that post's
+  // editor as soon as the list has loaded, then drop the param so a refresh
+  // does not reopen it.
+  useEffect(() => {
+    const wanted = searchParams.get("post");
+    if (!wanted || editing || posts.length === 0) return;
+    const match = posts.find((p) => p.id === wanted);
+    if (match) {
+      openEdit(match);
+      searchParams.delete("post");
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts, searchParams]);
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
@@ -192,58 +195,42 @@ const BlogAdmin = () => {
     }
   };
 
-
-  const handleCopyReddit = async (post: BlogPostRow) => {
-    const text = post.reddit_post || "";
-    if (!text) {
-      setMessage("No Reddit post drafted for this row yet.");
-      return;
-    }
-    // Reddit text posts do not render markdown images inline, but users still
-    // want the image reference above the post body. Prepend it so the artwork
-    // sits at the top of the copied text; they can then drag the file in, or
-    // use this as the image post body with the caption below it.
-    const imageUrl = resolveSignImage({
-      imageUrl: post.image_url,
-      zodiacSignTag: post.zodiac_sign_tag,
-      constellationGraphicPath: post.constellation_graphic_path,
-    });
-    const parts: string[] = [];
-    if (imageUrl) {
-      parts.push(`![${post.zodiac_sign_tag || "Sign"} card](${imageUrl})`);
-      parts.push("");
-    }
-    parts.push(text.trim());
+  // Confirms the Telegram bot can actually reach you, without waiting for a
+  // real transit to fire.
+  const handleTestTelegram = async () => {
+    setTelegramTesting(true);
+    setMessage("Pinging Telegram…");
     try {
-      await navigator.clipboard.writeText(parts.join("\n"));
-      setCopiedId(post.id || null);
-      setTimeout(() => setCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
-    } catch {
-      setMessage("Copy failed — browser blocked clipboard access.");
+      const { data, error } = await supabase.functions.invoke("telegram-notify", {
+        body: { kind: "test" },
+      });
+      if (error) throw error;
+      setMessage(
+        data?.sent
+          ? "Telegram test sent — check your chat with the bot."
+          : `Telegram did not send: ${data?.error || "unknown reason"}`,
+      );
+    } catch (err: any) {
+      setMessage(`Telegram test failed: ${err.message}`);
+    } finally {
+      setTelegramTesting(false);
     }
   };
 
-  // Manual posting hand-off: flags a channel as sent (or reverts it) so the
-  // table reflects what has actually gone out on Reddit / Substack.
-  const handleToggleChannelSent = async (
-    post: BlogPostRow,
-    channel: "reddit" | "substack",
-  ) => {
-    const isSent = (channel === "reddit" ? post.reddit_status : post.substack_status) === "sent";
+  // Manual posting hand-off: flags Substack as sent (or reverts it) so the
+  // matrix reflects what has actually gone out.
+  const handleToggleChannelSent = async (post: BlogPostRow, channel: "substack") => {
+    const isSent = post.substack_status === "sent";
     try {
       await setChannelSent(post.id!, channel, !isSent);
       setMessage(
-        isSent
-          ? `${channel === "reddit" ? "Reddit" : "Substack"} edition reverted to draft.`
-          : `Marked as posted on ${channel === "reddit" ? "Reddit" : "Substack"}.`,
+        isSent ? "Substack edition reverted to draft." : "Marked as posted on Substack.",
       );
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     }
   };
-
-
 
   const handleDownloadImage = async (post: BlogPostRow) => {
     const url = resolveSignImage({
@@ -270,12 +257,10 @@ const BlogAdmin = () => {
       setDownloadId(post.id || null);
       setTimeout(() => setDownloadId((cur) => (cur === post.id ? null : cur)), 2000);
     } catch {
-      // Fallback: open the image in a new tab so the user can save it manually.
       window.open(url, "_blank", "noopener,noreferrer");
       setMessage("Image opened in a new tab — right-click and Save As.");
     }
   };
-
 
   const handleApproveAndPublish = async (id: string) => {
     try {
@@ -326,12 +311,13 @@ const BlogAdmin = () => {
       await navigator.clipboard.writeText(plain);
       setMessage("Substack copy copied as plain text.");
     }
+    setSubstackCopiedId(post.id || null);
+    setTimeout(() => setSubstackCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
 
-  // Saves the reviewed Substack copy, then hands it off to the Lovable Cloud
-  // edge function. The edge function forwards the payload to the n8n production
-  // webhook using the backend-configured URL, which avoids the HTTPS→HTTP
-  // mixed-content block that would occur in the browser.
+  // Saves the reviewed Substack copy, then hands it off to the backend edge
+  // function, which forwards it to the n8n webhook (avoiding the HTTPS→HTTP
+  // mixed-content block that would occur in the browser).
   const handleApproveSubstack = async () => {
     if (!editing) return;
     const body = editing.substack_post?.trim();
@@ -342,8 +328,6 @@ const BlogAdmin = () => {
     setSubstackSending(true);
     setSubstackSent(false);
     try {
-      // A future scheduled time keeps the edition queued for n8n; otherwise it
-      // is handed over for immediate sending.
       const scheduledIso = editing.substack_scheduled_at || null;
       const isQueued = !!scheduledIso && new Date(scheduledIso).getTime() > Date.now();
       const saved = await upsertPost({
@@ -372,9 +356,7 @@ const BlogAdmin = () => {
         sent_at: new Date().toISOString(),
         webhook_url: substackHook.trim() || undefined,
       };
-      const { error } = await supabase.functions.invoke("substack-approval", {
-        body: payload,
-      });
+      const { error } = await supabase.functions.invoke("substack-approval", { body: payload });
       if (error) throw error;
       localStorage.setItem("moonday.substackWebhook", substackHook);
       setSubstackSent(true);
@@ -387,16 +369,6 @@ const BlogAdmin = () => {
     }
   };
 
-
-
-  // Drafts a Reddit title + body from the blog content currently in the editor.
-  const handleGenerateReddit = () => {
-    if (!editing) return;
-    const { title, body } = buildRedditDraft(editing);
-    setField("reddit_post", `${title}\n\n${body}`);
-    setQueued(false);
-  };
-
   // Rebuilds the Substack copy from the blog body — used for posts drafted
   // before the Substack column existed, or after the article was edited.
   const handleGenerateSubstack = () => {
@@ -405,41 +377,91 @@ const BlogAdmin = () => {
     setSubstackSent(false);
   };
 
-
-  // Approval hand-off: saves the reviewed Reddit copy and marks the row
-  // approved with a publish time. The scheduled n8n run polls for approved
-  // rows and performs the actual Reddit post — nothing is posted from here.
-  const handleApproveForN8n = async () => {
+  const handleSave = async () => {
     if (!editing) return;
-    if (!editing.reddit_post?.trim()) {
-      setMessage("Draft the Reddit copy first — the preview is empty.");
-      return;
-    }
-    setQueueing(true);
     try {
-      const scheduledIso = editing.reddit_scheduled_at || null;
-      const isQueued = !!scheduledIso && new Date(scheduledIso).getTime() > Date.now();
-      const saved = await upsertPost({
-        ...editing,
-        status: "approved",
-        publish_at: editing.publish_at || new Date().toISOString(),
-        reddit_status: isQueued ? "scheduled" : "approved",
-      });
-      setEditing(saved);
-      setQueued(true);
-      setMessage(
-        isQueued
-          ? `Approved. Reddit edition queued for ${displayDate(scheduledIso)}.`
-          : "Approved. The next scheduled n8n run will pick this up for Reddit.",
-      );
+      await upsertPost(editing);
+      setEditing(null);
+      setMessage("Saved.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  const handleUnpublish = async (id: string) => {
+    if (!confirm("Unpublish this post? It will revert to draft and be hidden from the public blog."))
+      return;
+    try {
+      await unpublishPost(id);
+      setMessage("Post unpublished and reverted to draft.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  /** Retracts a scheduled blog post back to draft (keeps the time for re-use). */
+  const handleUnscheduleBlog = async (id: string) => {
+    if (!confirm("Unschedule this post? It reverts to draft and will not auto-publish.")) return;
+    try {
+      await unpublishPost(id);
+      setMessage("Blog post unscheduled — back in Drafts.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  /** Retracts a scheduled Substack edition back to draft. */
+  const handleUnscheduleChannel = async (id: string, channel: "substack") => {
+    if (!confirm("Unschedule the Substack edition? It reverts to draft.")) return;
+    try {
+      await scheduleChannel(id, channel, null);
+      setMessage("Substack edition unscheduled — back to draft.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  const openReschedule = (p: BlogPostRow) => {
+    setRescheduleTarget(p);
+    setRescheduleIso(p.publish_at || null);
+  };
+
+  const confirmReschedule = async () => {
+    if (!rescheduleTarget || !rescheduleIso) return;
+    setRescheduling(true);
+    try {
+      if (new Date(rescheduleIso).getTime() <= Date.now()) {
+        await publishPostNow(rescheduleTarget.id!);
+        setMessage("That time has passed — published live now.");
+      } else {
+        await schedulePost(rescheduleTarget.id!, rescheduleIso);
+        setMessage(`Scheduled for ${displayDate(rescheduleIso)}.`);
+      }
+      setRescheduleTarget(null);
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     } finally {
-      setQueueing(false);
+      setRescheduling(false);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this post? This cannot be undone.")) return;
+    try {
+      await deletePost(id);
+      setMessage("Deleted.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  const openNew = () => setEditing({ ...defaultPost });
 
   if (checkingAdmin) {
     return (
@@ -468,150 +490,9 @@ const BlogAdmin = () => {
     );
   }
 
-  const handleSave = async () => {
-    if (!editing) return;
-    try {
-      await upsertPost(editing);
-      setEditing(null);
-      setMessage("Saved.");
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    }
-  };
-
-  const handleApprove = async (id: string) => {
-    try {
-      await approvePost(id);
-      setMessage("Post approved and scheduled.");
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    }
-  };
-
-  const handlePublishNow = async (id: string) => {
-    try {
-      await publishPostNow(id);
-      setMessage("Post published.");
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    }
-  };
-
-  const handleUnpublish = async (id: string) => {
-    if (!confirm("Unpublish this post? It will revert to draft and be hidden from the public blog.")) return;
-    try {
-      await unpublishPost(id);
-      setMessage("Post unpublished and reverted to draft.");
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    }
-  };
-
-  /** Retracts a scheduled blog post back to draft (keeps the time for re-use). */
-  const handleUnscheduleBlog = async (id: string) => {
-    if (!confirm("Unschedule this post? It reverts to draft and will not auto-publish.")) return;
-    try {
-      await unpublishPost(id);
-      setMessage("Blog post unscheduled — back in Drafts.");
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    }
-  };
-
-  /** Retracts a scheduled Reddit or Substack edition back to draft. */
-  const handleUnscheduleChannel = async (id: string, channel: "reddit" | "substack") => {
-    const label = channel === "reddit" ? "Reddit" : "Substack";
-    if (!confirm(`Unschedule the ${label} edition? n8n will no longer pick it up.`)) return;
-    try {
-      await scheduleChannel(id, channel, null);
-      setMessage(`${label} edition unscheduled — back to draft.`);
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    }
-  };
-
-
-  // Opens the reschedule dialog for a row, seeded with its current schedule.
-  const openReschedule = (p: BlogPostRow) => {
-    setRescheduleTarget(p);
-    setRescheduleIso(p.publish_at || null);
-  };
-
-  // Re-queue a post for a future instant without opening the full editor —
-  // the hourly publisher takes it live at that time.
-  const confirmReschedule = async () => {
-    if (!rescheduleTarget || !rescheduleIso) return;
-    setRescheduling(true);
-    try {
-      if (new Date(rescheduleIso).getTime() <= Date.now()) {
-        await publishPostNow(rescheduleTarget.id!);
-        setMessage("That time has passed — published live now.");
-      } else {
-        await schedulePost(rescheduleTarget.id!, rescheduleIso);
-        setMessage(`Scheduled for ${displayDate(rescheduleIso)}.`);
-      }
-      setRescheduleTarget(null);
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    } finally {
-      setRescheduling(false);
-    }
-  };
-
-
-
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this post? This cannot be undone.")) return;
-    try {
-      await deletePost(id);
-      setMessage("Deleted.");
-      refetch();
-    } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
-    }
-  };
-
-  const openNew = () => {
-    setQueued(false);
-    setEditing({ ...defaultPost });
-  };
-  const openEdit = (post: BlogPostRow) => {
-    setQueued(false);
-    setSubstackSent(false);
-    // Auto-populate the Substack editor so the newsletter is always ready to
-    // review. Generated long-form copy wins; older rows fall back to a draft
-    // derived from the article body.
-    setEditing({
-      ...post,
-      substack_post: post.substack_post?.trim() ? post.substack_post : buildSubstackDraft(post),
-      reddit_post: post.reddit_post?.trim()
-        ? post.reddit_post
-        : (() => {
-            const d = buildRedditDraft(post);
-            return `${d.title}\n\n${d.body}`;
-          })(),
-    });
-    // The editor panel renders above the table; scroll to it so clicking Edit
-    // never looks like a no-op when the list is scrolled down.
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-  };
-
-  const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {
-    setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
-  };
-
-  // A post "needs attention" when any of its three channels missed its instant.
+  // A post "needs attention" when a channel missed its instant.
   const hasMissed = (p: BlogPostRow) => countMissed([p]) > 0;
 
-  // Review queue = everything not yet live, soonest scheduled instant first.
   const counts = {
     queue: posts.filter((p) => p.status !== "published").length,
     all: posts.length,
@@ -656,9 +537,7 @@ const BlogAdmin = () => {
         : p.status === statusFilter,
     )
     .filter(matchesSearch)
-    .sort((a, b) =>
-      sortDirection === "asc" ? sortKey(a) - sortKey(b) : sortKey(b) - sortKey(a),
-    );
+    .sort((a, b) => (sortDirection === "asc" ? sortKey(a) - sortKey(b) : sortKey(b) - sortKey(a)));
 
   const FILTERS: { key: typeof statusFilter; label: string }[] = [
     { key: "approved", label: "Approved" },
@@ -670,32 +549,48 @@ const BlogAdmin = () => {
     { key: "all", label: "All" },
   ];
 
-
-
+  const signImagePreview = editing
+    ? resolveSignImage({
+        imageUrl: editing.image_url,
+        zodiacSignTag: editing.zodiac_sign_tag,
+        constellationGraphicPath: editing.constellation_graphic_path,
+      })
+    : null;
 
   return (
     <PageLayout>
-      <SEO title="Journal Admin — Moonday Live" description="Manage and approve Journal posts for Moonday Live." canonical="https://moondaylive.com/admin/blog" />
-      <div className="w-full max-w-5xl mx-auto py-8">
-        <div className="flex items-center justify-between mb-8">
+      <SEO
+        title="Journal Admin — Moonday Live"
+        description="Manage and approve Journal posts for Moonday Live."
+        canonical="https://moondaylive.com/admin/blog"
+      />
+      <div className="w-full max-w-5xl mx-auto py-8 px-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <h1 className="font-display text-2xl md:text-3xl text-foreground">Journal Admin</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleTestTelegram}
+              disabled={telegramTesting}
+              className="inline-flex items-center gap-2 min-h-[44px] sm:min-h-0 px-4 py-2 rounded-full border border-sky-400/40 text-sky-400 text-sm hover:bg-sky-400/10 transition disabled:opacity-50"
+            >
+              <Send className="w-3.5 h-3.5" />
+              {telegramTesting ? "Pinging…" : "Test Telegram"}
+            </button>
             <button
               onClick={handleFillSchedule}
               disabled={filling}
-              className="px-4 py-2 rounded-full border border-primary/40 text-primary text-sm hover:bg-primary/10 transition disabled:opacity-50"
+              className="min-h-[44px] sm:min-h-0 px-4 py-2 rounded-full border border-primary/40 text-primary text-sm hover:bg-primary/10 transition disabled:opacity-50"
             >
               {filling ? "Drafting…" : "Fill Transit Schedule (30d)"}
             </button>
             <button
               onClick={openNew}
-              className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
+              className="min-h-[44px] sm:min-h-0 px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
             >
               + New Post
             </button>
           </div>
         </div>
-
 
         {message && (
           <div className="mb-6 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
@@ -703,399 +598,8 @@ const BlogAdmin = () => {
           </div>
         )}
 
-        {editing && (
-          <div className="mb-10 rounded-xl border border-border/40 bg-background/70 p-6 backdrop-blur">
-            <h2 className="font-display text-lg text-foreground mb-4">
-              {editing.id ? "Edit Post" : "New Post"}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Slug</label>
-                <input
-                  value={editing.slug || ""}
-                  onChange={(e) => setField("slug", e.target.value)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                  placeholder="unified-daily-moon-tracker"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Title</label>
-                <input
-                  value={editing.title || ""}
-                  onChange={(e) => setField("title", e.target.value)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Category</label>
-                <select
-                  value={editing.category || "Guides"}
-                  onChange={(e) => setField("category", e.target.value as BlogCategory)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Zodiac Sign Tag</label>
-                <select
-                  value={editing.zodiac_sign_tag || ""}
-                  onChange={(e) => {
-                    const sign = e.target.value;
-                    setEditing((prev) => {
-                      if (!prev) return prev;
-                      const img = sign ? signImageUrl(sign) : "";
-                      const graphic = sign ? `/assets/signs/${sign}.png` : "";
-                      return { ...prev, zodiac_sign_tag: sign, image_url: img, constellation_graphic_path: graphic };
-                    });
-                  }}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                >
-                  <option value="">— None —</option>
-                  {SIGNS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Author</label>
-                <input
-                  value={editing.author || ""}
-                  onChange={(e) => setField("author", e.target.value)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Reviewed By</label>
-                <input
-                  value={editing.reviewed_by || ""}
-                  onChange={(e) => setField("reviewed_by", e.target.value)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                  placeholder="Astrologer who reviewed this post"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Read Time (min)</label>
-                <input
-                  type="number"
-                  value={editing.read_time || 4}
-                  onChange={(e) => setField("read_time", Number(e.target.value))}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Status</label>
-                <select
-                  value={editing.status || "draft"}
-                  onChange={(e) => setField("status", e.target.value as any)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="approved">Approved</option>
-                  <option value="scheduled">Scheduled</option>
-                  <option value="published">Published</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
-                  Scheduled Publish Date &amp; Time
-                </label>
-                <ScheduledPublishPicker
-                  value={editing.publish_at}
-                  onChange={handleScheduleChange}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Published At (live date shown)</label>
-                <input
-                  type="datetime-local"
-                  value={toDatetimeLocalValue(editing.published_at)}
-                  onChange={(e) => setField("published_at", fromDatetimeLocalValue(e.target.value))}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">CTA Type</label>
-                <select
-                  value={editing.cta_type || "none"}
-                  onChange={(e) => setField("cta_type", e.target.value as any)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                >
-                  <option value="none">None</option>
-                  <option value="birthday-calculator">Birthday Calculator</option>
-                  <option value="dashboard">Dashboard</option>
-                </select>
-              </div>
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Excerpt</label>
-              <textarea
-                value={editing.excerpt || ""}
-                onChange={(e) => setField("excerpt", e.target.value)}
-                rows={2}
-                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Content (Markdown)</label>
-              <textarea
-                value={editing.content || ""}
-                onChange={(e) => setField("content", e.target.value)}
-                rows={12}
-                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
-              />
-            </div>
-            {/* Reddit Preview — drafted here, approved here, picked up by the
-                scheduled n8n run. Nothing posts to Reddit from the browser. */}
-            <div className="mb-6 rounded-xl border border-primary/25 bg-primary/5 p-4">
-              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-                <h3 className="font-display text-sm uppercase tracking-[0.2em] text-primary">Reddit Preview</h3>
-                <button
-                  type="button"
-                  onClick={handleGenerateReddit}
-                  className="px-3 py-1.5 rounded-full border border-primary/40 text-primary text-xs hover:bg-primary/10 transition"
-                >
-                  Regenerate from post
-                </button>
-              </div>
-              <p className="text-xs text-cream-muted/70 mb-3">
-                Title on the first line, blank line, then the body. The sign image is attached above the text when copied.
-              </p>
-              <textarea
-                value={editing.reddit_post || ""}
-                onChange={(e) => setField("reddit_post", e.target.value)}
-                rows={8}
-                placeholder="Click “Regenerate from post” to draft a Reddit title and body from the blog content."
-                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
-              />
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <label className="text-xs uppercase tracking-wider text-cream-muted">
-                    Reddit scheduled time
-                  </label>
-                  <ChannelBadge status={editing.reddit_status} />
-                </div>
-                <ScheduledPublishPicker
-                  value={editing.reddit_scheduled_at ?? null}
-                  onChange={(iso) => {
-                    setEditing((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            reddit_scheduled_at: iso,
-                            reddit_status: iso ? "scheduled" : "draft",
-                          }
-                        : prev,
-                    );
-                  }}
-                />
-                <p className="text-xs text-cream-muted/60">
-                  n8n polls this timestamp and posts to Reddit at that instant.
-                </p>
-              </div>
-              <div className="mt-3 flex items-center gap-3 flex-wrap">
-
-                <button
-                  type="button"
-                  onClick={handleApproveForN8n}
-                  disabled={queueing}
-                  className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
-                >
-                  {queueing ? "Queuing…" : "Approve & Send to n8n"}
-                </button>
-                {queued && (
-                  <span className="text-xs text-primary">
-                    ✓ Approved — queued for the next scheduled n8n run.
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Substack Preview — the long-form newsletter version of this transit. */}
-            <div className="mb-6 rounded-xl border border-accent/25 bg-accent/5 p-4">
-              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-                <h3 className="font-display text-sm uppercase tracking-[0.2em] text-accent">Substack Preview</h3>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleGenerateSubstack}
-                    className="px-3 py-1.5 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
-                  >
-                    Regenerate from post
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopySubstack(editing)}
-                    className="px-3 py-1.5 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
-                  >
-                    Copy Substack post
-                  </button>
-                </div>
-              </div>
-
-              <p className="text-xs text-cream-muted/70 mb-3">
-                Long-form macro newsletter in Markdown — distinct from the website article. Paste straight into the Substack editor.
-              </p>
-              <textarea
-                value={editing.substack_post || ""}
-                onChange={(e) => setField("substack_post", e.target.value)}
-                rows={14}
-                placeholder="Substack copy is generated with the transit draft — or write it here."
-                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground font-mono focus:border-primary/60 focus:outline-none"
-              />
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <label className="text-xs uppercase tracking-wider text-cream-muted">
-                    Substack scheduled time
-                  </label>
-                  <ChannelBadge status={editing.substack_status} />
-                </div>
-                <ScheduledPublishPicker
-                  value={editing.substack_scheduled_at ?? null}
-                  onChange={(iso) => {
-                    setEditing((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            substack_scheduled_at: iso,
-                            substack_status: iso ? "scheduled" : "draft",
-                          }
-                        : prev,
-                    );
-                    setSubstackSent(false);
-                  }}
-                />
-                <p className="text-xs text-cream-muted/60">
-                  n8n reads this timestamp and sends the newsletter at that instant.
-                </p>
-              </div>
-              <div className="mt-3 space-y-3">
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">
-                    n8n Substack webhook URL
-                  </label>
-                  <input
-                    value={substackHook}
-                    onChange={(e) => {
-                      setSubstackHook(e.target.value);
-                      setSubstackSent(false);
-                    }}
-                    placeholder="https://your-n8n-instance/webhook/moonday-substack"
-                    className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                  />
-                  <p className="text-xs text-cream-muted/60 mt-1">
-                    Production sends route through the backend to avoid mixed-content/CORS issues.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleApproveSubstack}
-                    disabled={substackSending}
-                    className="px-4 py-2 rounded-full bg-accent/90 text-accent-foreground text-sm hover:bg-accent transition disabled:opacity-50"
-                  >
-                    {substackSending ? "Sending…" : "Approve & Send to Substack"}
-                  </button>
-                  {substackSent && (
-                    <span className="text-xs text-accent">✓ Draft sent — check Substack.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Keywords (comma separated)</label>
-              <input
-                value={Array.isArray(editing.keywords) ? editing.keywords.join(", ") : ""}
-                onChange={(e) =>
-                  setField(
-                    "keywords",
-                    e.target.value
-                      .split(",")
-                      .map((k) => k.trim())
-                      .filter(Boolean)
-                  )
-                }
-                className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-              />
-            </div>
-            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Image URL</label>
-                <input
-                  value={editing.image_url || ""}
-                  onChange={(e) => setField("image_url", e.target.value)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                  placeholder="https://..."
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-cream-muted mb-1">Constellation Path</label>
-                <input
-                  value={editing.constellation_graphic_path || ""}
-                  onChange={(e) => setField("constellation_graphic_path", e.target.value)}
-                  className="w-full rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm text-foreground focus:border-primary/60 focus:outline-none"
-                  placeholder="/assets/signs/Sign.png"
-                />
-              </div>
-            </div>
-            {resolveSignImage({
-              imageUrl: editing.image_url,
-              zodiacSignTag: editing.zodiac_sign_tag,
-              constellationGraphicPath: editing.constellation_graphic_path,
-            }) && (
-              <div className="mb-4 rounded-xl border border-border/40 bg-[#0a0f1a] p-4 flex items-center justify-center">
-                <img
-                  src={resolveSignImage({
-                    imageUrl: editing.image_url,
-                    zodiacSignTag: editing.zodiac_sign_tag,
-                    constellationGraphicPath: editing.constellation_graphic_path,
-                  })!}
-                  alt="Sign card preview"
-                  className="max-h-40 object-contain"
-                />
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 mb-6">
-              <input
-                id="featured"
-                type="checkbox"
-                checked={!!editing.featured}
-                onChange={(e) => setField("featured", e.target.checked)}
-                className="rounded border-border/50 bg-background/60"
-              />
-              <label htmlFor="featured" className="text-sm text-cream-muted">
-                Featured post
-              </label>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handleSave}
-                className="px-5 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
-              >
-                Save Post
-              </button>
-              <button
-                onClick={() => setEditing(null)}
-                className="px-5 py-2 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
         {countMissed(posts) > 0 && (
-          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 flex items-center justify-between gap-3">
+          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 flex flex-wrap items-center justify-between gap-3">
             <span>
               {countMissed(posts)} channel {countMissed(posts) === 1 ? "post" : "posts"} did not go
               out on time.
@@ -1109,9 +613,8 @@ const BlogAdmin = () => {
           </div>
         )}
 
-
-        <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
-          <div className="relative max-w-md w-full">
+        <div className="mb-4">
+          <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cream-muted" />
             <input
               type="search"
@@ -1119,33 +622,37 @@ const BlogAdmin = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search posts by title, sign, keyword..."
               aria-label="Search posts"
-              className="w-full h-10 pl-10 pr-4 rounded-full bg-background/70 border border-border/50 text-foreground placeholder:text-cream-muted/60 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition text-sm"
+              className="w-full h-11 pl-10 pr-4 rounded-full bg-background/70 border border-border/50 text-foreground placeholder:text-cream-muted/60 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition text-sm"
             />
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap gap-2">
-          <button
-            onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/40 text-cream-muted text-xs hover:text-foreground transition"
-            aria-label="Toggle sort direction"
-          >
-            <ArrowUpDown className="w-3.5 h-3.5" />
-            {sortDirection === "asc" ? "Oldest first" : "Newest first"}
-          </button>
-          {FILTERS.map((f) => (
+        {/* Horizontally scrollable on narrow screens so every filter stays
+            reachable instead of wrapping into a wall of chips. */}
+        <div className="mb-4 -mx-1 px-1 overflow-x-auto sm:overflow-visible">
+          <div className="flex gap-2 sm:flex-wrap w-max sm:w-auto pb-1">
             <button
-              key={f.key}
-              onClick={() => setStatusFilter(f.key)}
-              className={`px-3 py-1.5 rounded-full text-xs border transition ${
-                statusFilter === f.key
-                  ? "border-primary/60 bg-primary/15 text-primary"
-                  : "border-border/40 text-cream-muted hover:text-foreground"
-              }`}
+              onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
+              className="inline-flex items-center gap-2 shrink-0 px-3 py-2 rounded-full border border-border/40 text-cream-muted text-xs hover:text-foreground transition"
+              aria-label="Toggle sort direction"
             >
-              {f.label} ({counts[f.key]})
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              {sortDirection === "asc" ? "Oldest first" : "Newest first"}
             </button>
-          ))}
+            {FILTERS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={`shrink-0 px-3 py-2 rounded-full text-xs border transition ${
+                  statusFilter === f.key
+                    ? "border-primary/60 bg-primary/15 text-primary"
+                    : "border-border/40 text-cream-muted hover:text-foreground"
+                }`}
+              >
+                {f.label} ({counts[f.key]})
+              </button>
+            ))}
+          </div>
         </div>
 
         {loadingPosts ? (
@@ -1156,7 +663,7 @@ const BlogAdmin = () => {
           <ChannelMatrix
             posts={visiblePosts}
             displayDate={displayDate}
-            copiedId={copiedId}
+            substackCopiedId={substackCopiedId}
             downloadId={downloadId}
             onEdit={openEdit}
             onDelete={handleDelete}
@@ -1167,43 +674,365 @@ const BlogAdmin = () => {
             onUnpublish={handleUnpublish}
             onUnscheduleChannel={handleUnscheduleChannel}
             onToggleSent={handleToggleChannelSent}
-            onCopyReddit={handleCopyReddit}
             onCopySubstack={handleCopySubstack}
           />
         )}
 
+        {/* Post editor — dialog on desktop, full-height drawer on mobile. */}
+        <ResponsiveModal
+          open={!!editing}
+          onOpenChange={(open) => !open && setEditing(null)}
+          title={editing?.id ? "Edit Post" : "New Post"}
+          description={editing?.title || undefined}
+          className="sm:max-w-3xl"
+          footer={
+            <div className="flex gap-3">
+              <button
+                onClick={handleSave}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"
+              >
+                Save Post
+              </button>
+              <button
+                onClick={() => setEditing(null)}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
+              >
+                Cancel
+              </button>
+            </div>
+          }
+        >
+          {editing && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className={LABEL}>Slug</label>
+                  <input
+                    value={editing.slug || ""}
+                    onChange={(e) => setField("slug", e.target.value)}
+                    className={FIELD}
+                    placeholder="unified-daily-moon-tracker"
+                  />
+                </div>
+                <div>
+                  <label className={LABEL}>Title</label>
+                  <input
+                    value={editing.title || ""}
+                    onChange={(e) => setField("title", e.target.value)}
+                    className={FIELD}
+                  />
+                </div>
+                <div>
+                  <label className={LABEL}>Category</label>
+                  <select
+                    value={editing.category || "Guides"}
+                    onChange={(e) => setField("category", e.target.value as BlogCategory)}
+                    className={FIELD}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={LABEL}>Zodiac Sign Tag</label>
+                  <select
+                    value={editing.zodiac_sign_tag || ""}
+                    onChange={(e) => {
+                      const sign = e.target.value;
+                      setEditing((prev) => {
+                        if (!prev) return prev;
+                        const img = sign ? signImageUrl(sign) : "";
+                        const graphic = sign ? `/assets/signs/${sign}.png` : "";
+                        return {
+                          ...prev,
+                          zodiac_sign_tag: sign,
+                          image_url: img,
+                          constellation_graphic_path: graphic,
+                        };
+                      });
+                    }}
+                    className={FIELD}
+                  >
+                    <option value="">— None —</option>
+                    {SIGNS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={LABEL}>Author</label>
+                  <input
+                    value={editing.author || ""}
+                    onChange={(e) => setField("author", e.target.value)}
+                    className={FIELD}
+                  />
+                </div>
+                <div>
+                  <label className={LABEL}>Reviewed By</label>
+                  <input
+                    value={editing.reviewed_by || ""}
+                    onChange={(e) => setField("reviewed_by", e.target.value)}
+                    className={FIELD}
+                    placeholder="Astrologer who reviewed this post"
+                  />
+                </div>
+                <div>
+                  <label className={LABEL}>Read Time (min)</label>
+                  <input
+                    type="number"
+                    value={editing.read_time || 4}
+                    onChange={(e) => setField("read_time", Number(e.target.value))}
+                    className={FIELD}
+                  />
+                </div>
+                <div>
+                  <label className={LABEL}>Status</label>
+                  <select
+                    value={editing.status || "draft"}
+                    onChange={(e) => setField("status", e.target.value as any)}
+                    className={FIELD}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="approved">Approved</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="published">Published</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className={LABEL}>Scheduled Publish Date &amp; Time</label>
+                  <ScheduledPublishPicker value={editing.publish_at} onChange={handleScheduleChange} />
+                </div>
+                <div>
+                  <label className={LABEL}>Published At (live date shown)</label>
+                  <input
+                    type="datetime-local"
+                    value={toDatetimeLocalValue(editing.published_at)}
+                    onChange={(e) => setField("published_at", fromDatetimeLocalValue(e.target.value))}
+                    className={FIELD}
+                  />
+                </div>
+                <div>
+                  <label className={LABEL}>CTA Type</label>
+                  <select
+                    value={editing.cta_type || "none"}
+                    onChange={(e) => setField("cta_type", e.target.value as any)}
+                    className={FIELD}
+                  >
+                    <option value="none">None</option>
+                    <option value="birthday-calculator">Birthday Calculator</option>
+                    <option value="dashboard">Dashboard</option>
+                  </select>
+                </div>
+              </div>
 
-        <Dialog open={!!rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="font-display text-lg">Schedule publication</DialogTitle>
-              <DialogDescription className="text-cream-muted">
-                {rescheduleTarget?.title}
-              </DialogDescription>
-            </DialogHeader>
-            <ScheduledPublishPicker value={rescheduleIso} onChange={setRescheduleIso} />
-            {rescheduleIso && (
-              <p className="text-xs text-cream-muted">Goes live: {displayDate(rescheduleIso)}</p>
-            )}
-            <div className="flex justify-end gap-3 pt-2">
+              <div className="mb-4">
+                <label className={LABEL}>Excerpt</label>
+                <textarea
+                  value={editing.excerpt || ""}
+                  onChange={(e) => setField("excerpt", e.target.value)}
+                  rows={2}
+                  className={FIELD}
+                />
+              </div>
+              <div className="mb-4">
+                <label className={LABEL}>Content (Markdown)</label>
+                <textarea
+                  value={editing.content || ""}
+                  onChange={(e) => setField("content", e.target.value)}
+                  rows={12}
+                  className={`${FIELD} font-mono`}
+                />
+              </div>
+
+              {/* Substack Preview — the long-form newsletter version. */}
+              <div className="mb-6 rounded-xl border border-accent/25 bg-accent/5 p-4">
+                <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                  <h3 className="font-display text-sm uppercase tracking-[0.2em] text-accent">
+                    Substack Preview
+                  </h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleGenerateSubstack}
+                      className="min-h-[40px] px-3 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
+                    >
+                      Regenerate from post
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCopySubstack(editing)}
+                      className="min-h-[40px] px-3 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
+                    >
+                      Copy Substack post
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-cream-muted/70 mb-3">
+                  Long-form macro newsletter in Markdown — distinct from the website article. Paste
+                  straight into the Substack editor.
+                </p>
+                <textarea
+                  value={editing.substack_post || ""}
+                  onChange={(e) => setField("substack_post", e.target.value)}
+                  rows={14}
+                  placeholder="Substack copy is generated with the transit draft — or write it here."
+                  className={`${FIELD} font-mono`}
+                />
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <label className="text-xs uppercase tracking-wider text-cream-muted">
+                      Substack scheduled time
+                    </label>
+                    <ChannelBadge status={editing.substack_status} />
+                  </div>
+                  <ScheduledPublishPicker
+                    value={editing.substack_scheduled_at ?? null}
+                    onChange={(iso) => {
+                      setEditing((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              substack_scheduled_at: iso,
+                              substack_status: iso ? "scheduled" : "draft",
+                            }
+                          : prev,
+                      );
+                      setSubstackSent(false);
+                    }}
+                  />
+                  <p className="text-xs text-cream-muted/60">
+                    Telegram nudges you at this instant with the newsletter ready to paste.
+                  </p>
+                </div>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <label className={LABEL}>n8n Substack webhook URL</label>
+                    <input
+                      value={substackHook}
+                      onChange={(e) => {
+                        setSubstackHook(e.target.value);
+                        setSubstackSent(false);
+                      }}
+                      placeholder="https://your-n8n-instance/webhook/moonday-substack"
+                      className={FIELD}
+                    />
+                    <p className="text-xs text-cream-muted/60 mt-1">
+                      Production sends route through the backend to avoid mixed-content/CORS issues.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleApproveSubstack}
+                      disabled={substackSending}
+                      className="min-h-[44px] px-4 rounded-full bg-accent/90 text-accent-foreground text-sm hover:bg-accent transition disabled:opacity-50"
+                    >
+                      {substackSending ? "Sending…" : "Approve & Send to Substack"}
+                    </button>
+                    {substackSent && (
+                      <span className="text-xs text-accent">✓ Draft sent — check Substack.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className={LABEL}>Keywords (comma separated)</label>
+                <input
+                  value={Array.isArray(editing.keywords) ? editing.keywords.join(", ") : ""}
+                  onChange={(e) =>
+                    setField(
+                      "keywords",
+                      e.target.value
+                        .split(",")
+                        .map((k) => k.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                  className={FIELD}
+                />
+              </div>
+              <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={LABEL}>Image URL</label>
+                  <input
+                    value={editing.image_url || ""}
+                    onChange={(e) => setField("image_url", e.target.value)}
+                    className={FIELD}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div>
+                  <label className={LABEL}>Constellation Path</label>
+                  <input
+                    value={editing.constellation_graphic_path || ""}
+                    onChange={(e) => setField("constellation_graphic_path", e.target.value)}
+                    className={FIELD}
+                    placeholder="/assets/signs/Sign.png"
+                  />
+                </div>
+              </div>
+              {signImagePreview && (
+                <div className="mb-4 rounded-xl border border-border/40 bg-[#0a0f1a] p-4 flex items-center justify-center">
+                  <img
+                    src={signImagePreview}
+                    alt="Sign card preview"
+                    className="max-h-40 object-contain"
+                  />
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <input
+                  id="featured"
+                  type="checkbox"
+                  checked={!!editing.featured}
+                  onChange={(e) => setField("featured", e.target.checked)}
+                  className="w-5 h-5 rounded border-border/50 bg-background/60"
+                />
+                <label htmlFor="featured" className="text-sm text-cream-muted">
+                  Featured post
+                </label>
+              </div>
+            </>
+          )}
+        </ResponsiveModal>
+
+        {/* Schedule picker — same responsive shell. */}
+        <ResponsiveModal
+          open={!!rescheduleTarget}
+          onOpenChange={(open) => !open && setRescheduleTarget(null)}
+          title="Schedule publication"
+          description={rescheduleTarget?.title}
+          className="sm:max-w-md"
+          footer={
+            <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setRescheduleTarget(null)}
-                className="px-4 py-2 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
+                className="flex-1 sm:flex-none min-h-[44px] px-4 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmReschedule}
                 disabled={!rescheduleIso || rescheduling}
-                className="px-5 py-2 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
               >
                 {rescheduling ? "Saving…" : "Confirm schedule"}
               </button>
             </div>
-          </DialogContent>
-        </Dialog>
+          }
+        >
+          <ScheduledPublishPicker value={rescheduleIso} onChange={setRescheduleIso} />
+          {rescheduleIso && (
+            <p className="text-xs text-cream-muted mt-3">Goes live: {displayDate(rescheduleIso)}</p>
+          )}
+        </ResponsiveModal>
       </div>
-
     </PageLayout>
   );
 };
