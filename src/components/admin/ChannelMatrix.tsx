@@ -1,21 +1,25 @@
-import { BlogPostRow, ChannelStatus } from "@/lib/blog/posts";
+import { BlogPostRow } from "@/lib/blog/posts";
 
 /**
  * Channel-first view of the publishing schedule.
  *
  * The old layout was one row per post with a column per channel, which made it
  * impossible to see at a glance whether a given channel actually went out.
- * Here each transit is a block, and inside it the rows are the three outlets we
- * publish to — Blog, Substack, Reddit — with their own UTC instant, status and
- * remedy action.
+ * Here each transit is a block, and inside it the rows are the outlets we
+ * actually publish to — Blog and Substack — with their own UTC instant, status
+ * and remedy action.
+ *
+ * Below the tablet breakpoint the table collapses into stacked cards with
+ * full-width tap targets, so every desktop control stays reachable on a phone.
  */
 
-export type Channel = "blog" | "substack" | "reddit";
+export type Channel = "blog" | "substack";
+
+export const CHANNELS: Channel[] = ["blog", "substack"];
 
 const CHANNEL_LABEL: Record<Channel, string> = {
   blog: "Moonday Blog",
   substack: "Substack",
-  reddit: "Reddit",
 };
 
 /** A channel is "missed" when its instant has passed but it never went out. */
@@ -36,16 +40,6 @@ export const channelState = (post: BlogPostRow, channel: Channel) => {
       when: status === "published" ? post.published_at || post.publish_at : post.publish_at || null,
     };
   }
-  if (channel === "reddit") {
-    const status = (post.reddit_status || "draft") as string;
-    return {
-      status,
-      when:
-        status === "sent"
-          ? post.reddit_posted_at || post.reddit_scheduled_at || null
-          : post.reddit_scheduled_at || post.publish_at || null,
-    };
-  }
   const status = (post.substack_status || "draft") as string;
   return {
     status,
@@ -56,13 +50,12 @@ export const channelState = (post: BlogPostRow, channel: Channel) => {
   };
 };
 
-
 /** Count of channel deliveries that should have gone out but did not. */
 export const countMissed = (posts: BlogPostRow[]) =>
   posts.reduce((total, p) => {
     return (
       total +
-      (["blog", "substack", "reddit"] as Channel[]).filter((c) => {
+      CHANNELS.filter((c) => {
         const { status, when } = channelState(p, c);
         return isMissed(status, when);
       }).length
@@ -91,7 +84,7 @@ const StatusPill = ({
   return (
     <span
       onClick={onClick}
-      title={onClick ? "Click to unschedule and revert to draft" : undefined}
+      title={onClick ? "Tap to unschedule and revert to draft" : undefined}
       className={`inline-flex rounded-full px-2.5 py-0.5 text-xs uppercase tracking-wide ${cls} ${
         onClick ? "cursor-pointer hover:opacity-80" : ""
       }`}
@@ -101,6 +94,25 @@ const StatusPill = ({
   );
 };
 
+type Tone = "primary" | "sky" | "emerald" | "amber" | "red";
+
+const TONES: Record<Tone, string> = {
+  primary: "text-primary",
+  sky: "text-sky-400",
+  emerald: "text-emerald-400",
+  amber: "text-amber-400",
+  red: "text-red-400",
+};
+
+const BORDER_TONES: Record<Tone, string> = {
+  primary: "border-primary/40 text-primary hover:bg-primary/10",
+  sky: "border-sky-400/40 text-sky-400 hover:bg-sky-400/10",
+  emerald: "border-emerald-400/40 text-emerald-400 hover:bg-emerald-400/10",
+  amber: "border-amber-400/40 text-amber-400 hover:bg-amber-400/10",
+  red: "border-red-400/40 text-red-400 hover:bg-red-400/10",
+};
+
+/** Inline text link — desktop density. */
 const LinkBtn = ({
   children,
   onClick,
@@ -109,33 +121,48 @@ const LinkBtn = ({
 }: {
   children: React.ReactNode;
   onClick: () => void;
-  tone?: "primary" | "sky" | "emerald" | "amber" | "red";
+  tone?: Tone;
   disabled?: boolean;
-}) => {
-  const tones: Record<string, string> = {
-    primary: "text-primary",
-    sky: "text-sky-400",
-    emerald: "text-emerald-400",
-    amber: "text-amber-400",
-    red: "text-red-400",
-  };
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`text-xs hover:underline ${
-        disabled ? "text-cream-muted/40 cursor-not-allowed" : tones[tone]
-      }`}
-    >
-      {children}
-    </button>
-  );
-};
+}) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`text-xs hover:underline ${
+      disabled ? "text-cream-muted/40 cursor-not-allowed" : TONES[tone]
+    }`}
+  >
+    {children}
+  </button>
+);
+
+/** Pill button — mobile tap target, min 44px tall. */
+const TapBtn = ({
+  children,
+  onClick,
+  tone = "primary",
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  tone?: Tone;
+  disabled?: boolean;
+}) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`min-h-[44px] flex-1 min-w-[8rem] rounded-full border px-4 text-xs transition ${
+      disabled
+        ? "border-border/30 text-cream-muted/40 cursor-not-allowed"
+        : BORDER_TONES[tone]
+    }`}
+  >
+    {children}
+  </button>
+);
 
 export interface ChannelMatrixProps {
   posts: BlogPostRow[];
   displayDate: (value?: string | null) => string;
-  copiedId: string | null;
   substackCopiedId?: string | null;
   downloadId: string | null;
   onEdit: (post: BlogPostRow) => void;
@@ -145,16 +172,14 @@ export interface ChannelMatrixProps {
   onSchedule: (post: BlogPostRow) => void;
   onUnscheduleBlog: (id: string) => void;
   onUnpublish: (id: string) => void;
-  onUnscheduleChannel: (id: string, channel: "reddit" | "substack") => void;
-  onToggleSent: (post: BlogPostRow, channel: "reddit" | "substack") => void;
-  onCopyReddit: (post: BlogPostRow) => void;
+  onUnscheduleChannel: (id: string, channel: "substack") => void;
+  onToggleSent: (post: BlogPostRow, channel: "substack") => void;
   onCopySubstack: (post: BlogPostRow) => void;
 }
 
 const ChannelMatrix = ({
   posts,
   displayDate,
-  copiedId,
   substackCopiedId,
   downloadId,
   onEdit,
@@ -166,7 +191,6 @@ const ChannelMatrix = ({
   onUnpublish,
   onUnscheduleChannel,
   onToggleSent,
-  onCopyReddit,
   onCopySubstack,
 }: ChannelMatrixProps) => {
   if (posts.length === 0) {
@@ -177,13 +201,54 @@ const ChannelMatrix = ({
     );
   }
 
+  /** Shared action set, rendered with either inline links or tap pills. */
+  const actions = (p: BlogPostRow, c: Channel, status: string) => {
+    if (c === "blog") {
+      return [
+        p.status !== "published" && {
+          key: "publish",
+          tone: "emerald" as Tone,
+          label: "Publish now",
+          onClick: () => onPublishNow(p.id!),
+        },
+        {
+          key: "schedule",
+          tone: "sky" as Tone,
+          label: p.status === "scheduled" ? "Reschedule" : "Schedule",
+          onClick: () => onSchedule(p),
+        },
+        p.status === "published" && {
+          key: "unpublish",
+          tone: "amber" as Tone,
+          label: "Unpublish",
+          onClick: () => onUnpublish(p.id!),
+        },
+      ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void }[];
+    }
+    return [
+      {
+        key: "copy",
+        tone: "primary" as Tone,
+        label: substackCopiedId === p.id ? "Copied!" : "Copy newsletter",
+        onClick: () => onCopySubstack(p),
+        disabled: !p.substack_post,
+      },
+      {
+        key: "sent",
+        tone: "sky" as Tone,
+        label: status === "sent" ? "Undo posted" : "Mark posted",
+        onClick: () => onToggleSent(p, "substack"),
+      },
+    ] as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
+  };
+
   return (
     <div className="space-y-4">
       {posts.map((p) => {
         const sign = p.zodiac_sign_tag
           ? p.zodiac_sign_tag.charAt(0).toUpperCase() + p.zodiac_sign_tag.slice(1)
           : null;
-        const missedHere = (["blog", "substack", "reddit"] as Channel[]).some((c) => {
+        const missedHere = CHANNELS.some((c) => {
           const { status, when } = channelState(p, c);
           return isMissed(status, when);
         });
@@ -206,7 +271,8 @@ const ChannelMatrix = ({
                   {displayDate(p.publish_at || p.published_at)}
                 </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
+              {/* Desktop: inline links. Mobile: full tap targets below. */}
+              <div className="hidden md:flex items-center gap-3 shrink-0">
                 <LinkBtn onClick={() => onEdit(p)}>Edit</LinkBtn>
                 <LinkBtn onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
@@ -215,10 +281,19 @@ const ChannelMatrix = ({
                   Delete
                 </LinkBtn>
               </div>
+              <div className="flex md:hidden w-full gap-2">
+                <TapBtn onClick={() => onEdit(p)}>Edit</TapBtn>
+                <TapBtn tone="sky" onClick={() => onDownloadImage(p)}>
+                  {downloadId === p.id ? "Downloaded!" : "Get Image"}
+                </TapBtn>
+                <TapBtn tone="red" onClick={() => onDelete(p.id!)}>
+                  Delete
+                </TapBtn>
+              </div>
             </div>
 
-            {/* Channels as rows */}
-            <table className="w-full text-sm text-left">
+            {/* Desktop: channels as table rows */}
+            <table className="hidden md:table w-full text-sm text-left">
               <thead className="text-cream-muted text-[10px] uppercase tracking-wider">
                 <tr>
                   <th className="px-4 py-2 font-normal">Channel</th>
@@ -228,7 +303,7 @@ const ChannelMatrix = ({
                 </tr>
               </thead>
               <tbody>
-                {(["blog", "substack", "reddit"] as Channel[]).map((c) => {
+                {CHANNELS.map((c) => {
                   const { status, when } = channelState(p, c);
                   const missed = isMissed(status, when);
                   return (
@@ -244,64 +319,68 @@ const ChannelMatrix = ({
                             status === "scheduled"
                               ? c === "blog"
                                 ? () => onUnscheduleBlog(p.id!)
-                                : () => onUnscheduleChannel(p.id!, c)
+                                : () => onUnscheduleChannel(p.id!, "substack")
                               : undefined
                           }
                         />
                       </td>
-                      <td className="px-4 py-2.5 text-cream-muted text-xs">
-                        {displayDate(when)}
-                      </td>
+                      <td className="px-4 py-2.5 text-cream-muted text-xs">{displayDate(when)}</td>
                       <td className="px-4 py-2.5 text-right space-x-3 whitespace-nowrap">
-                        {c === "blog" && (
-                          <>
-                            {p.status !== "published" && (
-                              <LinkBtn tone="emerald" onClick={() => onPublishNow(p.id!)}>
-                                Publish now
-                              </LinkBtn>
-                            )}
-                            <LinkBtn tone="sky" onClick={() => onSchedule(p)}>
-                              {p.status === "scheduled" ? "Reschedule" : "Schedule"}
-                            </LinkBtn>
-                            {p.status === "published" && (
-                              <LinkBtn tone="amber" onClick={() => onUnpublish(p.id!)}>
-                                Unpublish
-                              </LinkBtn>
-                            )}
-                          </>
-                        )}
-                        {c === "reddit" && (
-                          <>
-                            <LinkBtn
-                              onClick={() => onCopyReddit(p)}
-                              disabled={!p.reddit_post}
-                            >
-                              {copiedId === p.id ? "Copied!" : "Copy post"}
-                            </LinkBtn>
-                            <LinkBtn tone="sky" onClick={() => onToggleSent(p, "reddit")}>
-                              {status === "sent" ? "Undo posted" : "Mark posted"}
-                            </LinkBtn>
-                          </>
-                        )}
-                        {c === "substack" && (
-                          <>
-                            <LinkBtn
-                              onClick={() => onCopySubstack(p)}
-                              disabled={!p.substack_post}
-                            >
-                              {substackCopiedId === p.id ? "Copied!" : "Copy newsletter"}
-                            </LinkBtn>
-                            <LinkBtn tone="sky" onClick={() => onToggleSent(p, "substack")}>
-                              {status === "sent" ? "Undo posted" : "Mark posted"}
-                            </LinkBtn>
-                          </>
-                        )}
+                        {actions(p, c, status).map((a) => (
+                          <LinkBtn
+                            key={a.key}
+                            tone={a.tone}
+                            onClick={a.onClick}
+                            disabled={(a as any).disabled}
+                          >
+                            {a.label}
+                          </LinkBtn>
+                        ))}
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+
+            {/* Mobile: channels as stacked cards */}
+            <div className="md:hidden divide-y divide-border/20">
+              {CHANNELS.map((c) => {
+                const { status, when } = channelState(p, c);
+                const missed = isMissed(status, when);
+                return (
+                  <div key={c} className="px-4 py-3 space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-foreground text-sm">{CHANNEL_LABEL[c]}</span>
+                      <StatusPill
+                        status={status}
+                        missed={missed}
+                        onClick={
+                          status === "scheduled"
+                            ? c === "blog"
+                              ? () => onUnscheduleBlog(p.id!)
+                              : () => onUnscheduleChannel(p.id!, "substack")
+                            : undefined
+                        }
+                      />
+                    </div>
+                    <div className="text-[11px] text-cream-muted">{displayDate(when)}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {actions(p, c, status).map((a) => (
+                        <TapBtn
+                          key={a.key}
+                          tone={a.tone}
+                          onClick={a.onClick}
+                          disabled={(a as any).disabled}
+                        >
+                          {a.label}
+                        </TapBtn>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
       })}
