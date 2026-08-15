@@ -27,14 +27,35 @@ export const isMissed = (status: string | null | undefined, when: string | null 
 };
 
 export const channelState = (post: BlogPostRow, channel: Channel) => {
+  // Always report the instant that actually matters: once something is live/sent
+  // we show when it went out, not when it was originally slated to go out.
   if (channel === "blog") {
-    return { status: (post.status || "draft") as string, when: post.publish_at || post.published_at || null };
+    const status = (post.status || "draft") as string;
+    return {
+      status,
+      when: status === "published" ? post.published_at || post.publish_at : post.publish_at || null,
+    };
   }
   if (channel === "reddit") {
-    return { status: (post.reddit_status || "draft") as string, when: post.reddit_scheduled_at || post.publish_at || null };
+    const status = (post.reddit_status || "draft") as string;
+    return {
+      status,
+      when:
+        status === "sent"
+          ? post.reddit_posted_at || post.reddit_scheduled_at || null
+          : post.reddit_scheduled_at || post.publish_at || null,
+    };
   }
-  return { status: (post.substack_status || "draft") as string, when: post.substack_scheduled_at || post.publish_at || null };
+  const status = (post.substack_status || "draft") as string;
+  return {
+    status,
+    when:
+      status === "sent"
+        ? post.substack_sent_at || post.substack_scheduled_at || null
+        : post.substack_scheduled_at || post.publish_at || null,
+  };
 };
+
 
 /** Count of channel deliveries that should have gone out but did not. */
 export const countMissed = (posts: BlogPostRow[]) =>
