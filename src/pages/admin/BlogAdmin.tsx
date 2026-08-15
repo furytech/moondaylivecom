@@ -1127,11 +1127,7 @@ const BlogAdmin = () => {
         <div className="mb-4 flex flex-wrap gap-2">
           <button
             onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs border transition ${
-              sortDirection === "desc"
-                ? "border-border/40 text-cream-muted hover:text-foreground"
-                : "border-border/40 text-cream-muted hover:text-foreground"
-            }`}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/40 text-cream-muted text-xs hover:text-foreground transition"
             aria-label="Toggle sort direction"
           >
             <ArrowUpDown className="w-3.5 h-3.5" />
