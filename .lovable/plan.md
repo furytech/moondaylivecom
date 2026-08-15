@@ -1,64 +1,61 @@
-# Content Engine Autonomy
-
-Goal: you stop babysitting the journal admin. The system posts what it can, tells you what it can't, and never shows you a status it can't back up.
+# Journal Automation: Telegram In, Twilio & Reddit Out
 
 ## 30,000 feet
 
-Today the blog publishes itself. Reddit and Substack do not — they have scheduler fields that nothing reads, which is why the dashboard looked like it was lying. Four moves fix that:
+Three moves, in order:
 
-```text
-  TRANSIT DRAFT CREATED (already automated, daily 06:00 UTC)
-            |
-            v
-  BLOG AUTO-PUBLISHES  ---> RSS FEED ---> SUBSTACK auto-imports
-     (already working)      (NEW)          (no clicks, ever)
-            |
-            v
-  REDDIT DISPATCHER (NEW cron) ---> posts to r/moondaylive via API
-            |                        flips status to SENT itself
-            v
-  IF ANYTHING FAILS OR STALLS ---> SMS to your phone (NEW)
-            |
-            v
-  ADMIN DASHBOARD = read-only truth, works on your phone (NEW)
-```
+1. **Subtract** — strip Reddit and Twilio out of the publishing pipeline so the admin dashboard stops reporting on channels we don't actually run.
+2. **Replace** — a free Telegram bot becomes the notification spine: it pings you when a post publishes or needs approval, with a tap-through link straight to the right row in the journal admin.
+3. **Polish** — rebuild the journal admin so every control that exists on desktop also exists, and is thumb-friendly, on a phone.
 
-## The four puzzle pieces
+After this, the channel picture is: **Moonday Blog** (automated) and **Substack** (manual copy-paste, nudged by Telegram). Nothing else claims to be scheduled.
 
-### 1. Reddit: real posting, not a decoy
-- Store your Reddit script-app credentials as backend secrets.
-- New `post-to-reddit` edge function: authenticates, submits the post to r/moondaylive, writes the returned permalink back to the row, sets status to `sent` with the true timestamp.
-- New cron every 10 minutes picks up any row whose Reddit time has passed and is still unsent, then dispatches it.
-- Failures are recorded and retried up to 3 times before raising an alert.
-- New column stores the live Reddit permalink so the dashboard can link straight to the posted thread.
+---
 
-### 2. Substack: RSS auto-import
-- New public RSS feed of published journal posts (full content, so Substack imports the whole piece, not a teaser).
-- Admin gets a "Copy RSS feed URL" button; you paste it once into Substack's import setting and never think about it again.
-- Because Substack now mirrors the blog automatically, the Substack row stops being a scheduled task. It becomes a mirror indicator: "auto-imports from RSS" with a link, no NOT SENT nagging.
-- The manual copy-newsletter button stays for one-off pieces that are not blog posts.
+## Puzzle piece 1 — Remove Reddit and Twilio
 
-### 3. SMS alerts as an alternative to email
-- Store Twilio credentials as backend secrets.
-- New `send-sms-alert` edge function.
-- New notification preferences: choose Email, SMS, or Both, and enter your mobile number, from a new section of the admin dashboard.
-- Wired to the three moments that matter: a draft is waiting for approval, a Reddit post failed, and a post is overdue. Nothing else — no noise.
+- Delete the Reddit row from the Channel Matrix, the Reddit editor panel, Reddit copy/mark-posted actions, and the Reddit draft builder.
+- Drop Reddit from draft generation (`transitContent`, `generate-blog-draft`, `fill-transit-schedule`, `publish-transit-draft`) so new drafts no longer carry Reddit copy.
+- Remove Reddit from the "not sent" / missed-delivery accounting — no more false alarms.
+- No Twilio code was ever written, so this is only about dropping it from the plan and docs. No SMS credentials will be requested.
+- **Database columns stay in place** (`reddit_post`, `reddit_status`, `reddit_scheduled_at`, `reddit_posted_at`). They go dormant rather than deleted, so historical Reddit copy isn't destroyed and the decision is reversible.
 
-### 4. Journal admin: full mobile parity
-- The channel matrix becomes card-based on small screens instead of a table that overflows.
-- Filter chips and the sort toggle collapse into a drawer on mobile; all filters stay reachable.
-- Edit and schedule screens become bottom sheets on mobile, dialogs on desktop — same fields, same power.
-- Every action target sized for thumbs; the existing dark styling and current button designs are preserved exactly.
+## Puzzle piece 2 — Telegram notification bot
 
-## What I need from you
+**What you do once (2 minutes, free, no billing):**
+1. In Telegram, message `@BotFather` → `/newbot` → name it *Moonday Live* → it hands you a bot token.
+2. Message your new bot once (say "hi") so it's allowed to message you back.
+3. Connect it here, and save your admin chat ID.
 
-- **Reddit**: client ID, client secret, username, password from your script app at reddit.com → preferences → apps. I will request these as secrets when I get there.
-- **Twilio**: account SID, auth token, and your Twilio phone number.
-- **Substack**: after I ship, one paste of the RSS URL into your publication's import setting. I will show you exactly where to click.
+**What gets built:**
+- A `telegram-notify` backend function that sends a formatted message through the Telegram connector.
+- Two triggers:
+  - **Published** — when the hourly publisher takes a post live, you get "🌙 Moon in Libra is live" with a link to the post.
+  - **Needs approval** — when a draft is created for an upcoming transit, or a Substack edition is due, you get a nudge with a deep link to `/admin/blog?post=<id>` that opens straight into that post's editor.
+- A **Test Telegram** button in the journal admin so you can confirm delivery without waiting for a transit.
+- Failures are logged to the existing `system_errors` table, so a silent bot surfaces on `/admin/errors`.
+
+## Puzzle piece 3 — Mobile parity for the journal admin
+
+- The post editor moves into a **responsive shell**: modal dialog on desktop, bottom drawer on mobile — full height, scrollable, with a sticky Save/Cancel bar always in reach.
+- The Channel Matrix table collapses into **stacked cards** below the tablet breakpoint: channel name, status pill, UTC time, and actions as full-width tap targets (min 44px), not cramped text links.
+- The filter chips and search bar become a horizontally scrollable strip so all filters stay reachable without wrapping into a wall.
+- The schedule picker and Substack preview get the same drawer treatment.
+- Everything keeps the existing dark UI, current button styles, and the deep-navy/lilac tokens — no new visual language.
+
+---
 
 ## Technical notes
 
-- Reddit uses the OAuth2 password grant for script apps; token is fetched per dispatch, never stored.
-- The RSS feed is served by an edge function and cached, so Substack polling costs nothing.
-- The dispatcher is idempotent — a row already marked sent is skipped, so a double cron fire cannot double-post.
-- Substack scheduling columns are retired from the UI only; existing data is left untouched.
+- Telegram goes through the Lovable connector gateway; the bot token is never in app code. Admin chat ID stored as a backend secret.
+- New function: `supabase/functions/telegram-notify/index.ts`, invoked server-side from `auto-publish-posts` and `fill-transit-schedule`.
+- New component: `src/components/ui/responsive-modal.tsx` — a Dialog/Drawer switch driven by the existing `useIsMobile` hook, reused by the editor, scheduler and Substack preview.
+- `ChannelMatrix.tsx` gains a card layout branch; `Channel` type narrows to `"blog" | "substack"`.
+- `BlogAdmin.tsx` reads a `?post=` query param on mount to open the editor for the linked post.
+- No schema migration is required.
+
+## Deliberately not doing
+
+- No Reddit API posting, now or in this pass.
+- No SMS. Telegram fully replaces it.
+- No destructive database changes.
