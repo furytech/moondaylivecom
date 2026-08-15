@@ -12,7 +12,6 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
  *   { kind: "published" | "approval" | "missed", post_id, title, channel?, when? }
  */
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
 const ADMIN_BASE = "https://moondaylive.com/admin/blog";
 
 const escapeHtml = (value: string) =>
@@ -30,14 +29,13 @@ Deno.serve(async (req) => {
     });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const TELEGRAM_API_KEY = Deno.env.get("TELEGRAM_API_KEY");
+    const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
     const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
 
     // Notifications are a convenience layer — never let a missing connector
     // break the caller (publishing must succeed even if Telegram is down).
-    if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) {
-      return json({ sent: false, error: "Telegram connector is not linked yet." });
+    if (!TELEGRAM_BOT_TOKEN) {
+      return json({ sent: false, error: "Telegram bot token is not configured." });
     }
     if (!TELEGRAM_CHAT_ID) {
       return json({
@@ -68,11 +66,9 @@ Deno.serve(async (req) => {
         text = `✅ <b>Moonday Live</b>\nTelegram notifications are wired up.\n<a href="${ADMIN_BASE}">Journal Admin</a>`;
     }
 
-    const response = await fetch(`${GATEWAY_URL}/sendMessage`, {
+    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "X-Connection-Api-Key": TELEGRAM_API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -85,7 +81,7 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const details = await response.text();
-      console.error(`Telegram gateway failed [${response.status}]: ${details}`);
+      console.error(`Telegram API failed [${response.status}]: ${details}`);
       return json({ sent: false, status: response.status, error: details });
     }
 
