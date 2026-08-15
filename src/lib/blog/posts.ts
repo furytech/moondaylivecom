@@ -188,38 +188,11 @@ export async function getRelated(slug: string, category: BlogCategory, limit = 3
   return (data as BlogPostRow[] || []).map(rowToPost);
 }
 
-/**
- * Builds a Reddit title + body draft from the blog post so the editor can show
- * a preview without a round-trip. The scheduled n8n run picks the approved row
- * up from the database — nothing is posted to Reddit from the browser.
- */
-export function buildRedditDraft(post: Partial<BlogPostRow>): { title: string; body: string } {
-  const sign = capitalizeSign(post.zodiac_sign_tag);
-  const title = sign
-    ? `Moon in ${sign} — ${post.title || "what shifts now"}`
-    : post.title || "Moonday Live";
+/* Reddit was removed from the publishing pipeline. The `reddit_*` columns on
+ * `blog_posts` are intentionally left in place so historical copy is not
+ * destroyed and the channel can be revived without a migration. Nothing in the
+ * app reads or writes them any more. */
 
-  const body = (post.content || "")
-    .replace(/^---[\s\S]*?---\s*/m, "")
-    .replace(/^#{1,6}\s*/gm, "")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/[*_`>]/g, "")
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .slice(0, 3)
-    .join("\n\n")
-    .slice(0, 1400);
-
-  const excerpt = (post.excerpt || "").trim();
-  const url = post.slug ? `${SITE_URL}/blog/${categoryPath(post.category || "Guides")}/${post.slug}` : SITE_URL;
-
-  return {
-    title,
-    body: `${body || excerpt}\n\nFull read (no ads, no paywall on transits): ${url}`.trim(),
-  };
-}
 
 // Admin helpers
 export async function listAllPosts(): Promise<BlogPostRow[]> {
