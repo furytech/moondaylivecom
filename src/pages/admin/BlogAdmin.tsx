@@ -157,18 +157,26 @@ const BlogAdmin = () => {
 
   // Telegram deep links land here as /admin/blog?post=<id>. Open that post's
   // editor as soon as the list has loaded, then drop the param so a refresh
-  // does not reopen it.
+  // does not reopen it. We also widen the filter/search so the row is visible
+  // in the table behind the editor (e.g. an already-published transit).
   useEffect(() => {
     const wanted = searchParams.get("post");
     if (!wanted || editing || posts.length === 0) return;
     const match = posts.find((p) => p.id === wanted);
     if (match) {
+      setStatusFilter("all");
+      setSearchQuery("");
       openEdit(match);
+      searchParams.delete("post");
+      setSearchParams(searchParams, { replace: true });
+    } else {
+      setMessage("That post is no longer in the Journal — it may have been deleted.");
       searchParams.delete("post");
       setSearchParams(searchParams, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, searchParams]);
+
 
   // Pre-builds drafts for every real Moon ingress in the next 30 days so the
   // schedule is never empty ahead of a transit.
