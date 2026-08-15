@@ -661,11 +661,11 @@ const BlogAdmin = () => {
     );
 
   const FILTERS: { key: typeof statusFilter; label: string }[] = [
-    { key: "queue", label: "Review queue" },
-    { key: "missed", label: "Not sent" },
-    { key: "draft", label: "Drafts" },
     { key: "approved", label: "Approved" },
     { key: "scheduled", label: "Scheduled" },
+    { key: "draft", label: "Drafts" },
+    { key: "queue", label: "Review queue" },
+    { key: "missed", label: "Not sent" },
     { key: "published", label: "Published" },
     { key: "all", label: "All" },
   ];
