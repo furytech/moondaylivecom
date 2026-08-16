@@ -324,7 +324,17 @@ const ChannelMatrix = ({
                 <div className="text-foreground font-display text-base">
                   {sign ? `Moon in ${sign}` : p.category}
                 </div>
-                <div className="text-xs text-cream-muted mt-0.5 break-words">{p.title}</div>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  <ApprovalPill
+                    status={p.status || "draft"}
+                    deadline={new Date(p.publish_at || p.published_at || Date.now())}
+                  />
+                  <DeadlineBadge
+                    status={p.status || "draft"}
+                    deadline={new Date(p.publish_at || p.published_at || Date.now())}
+                  />
+                </div>
+                <div className="text-xs text-cream-muted mt-1.5 break-words">{p.title}</div>
                 <div className="text-[11px] text-cream-muted/80 mt-1">
                   {displayDate(p.publish_at || p.published_at)}
                 </div>
