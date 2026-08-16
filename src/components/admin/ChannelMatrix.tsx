@@ -281,7 +281,7 @@ const ChannelMatrix = ({
                   Delete
                 </LinkBtn>
               </div>
-              <div className="flex md:hidden w-full gap-2">
+              <div className="flex flex-wrap md:hidden w-full gap-2">
                 <TapBtn onClick={() => onEdit(p)}>Edit</TapBtn>
                 <TapBtn tone="sky" onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
