@@ -68,5 +68,7 @@ export async function buildGenerationSources(
     traditionalBrief: formatTraditionalBrief(ctx),
     doctrine,
     guest,
+    guestContributionId: guest?.contributionId ?? null,
   };
 }
+
