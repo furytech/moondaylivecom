@@ -315,7 +315,7 @@ export async function setChannelSent(
         ? { substack_status: "sent", substack_sent_at: now }
         : { substack_status: "draft", substack_sent_at: null }
       : sent
-        ? { reddit_status: "posted", reddit_posted_at: now }
+        ? { reddit_status: "sent", reddit_posted_at: now }
         : { reddit_status: "draft", reddit_posted_at: null };
   const { data, error } = await supabase
     .from("blog_posts")

@@ -975,12 +975,12 @@ const BlogAdmin = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        const posted = editing.reddit_status === "posted";
+                        const posted = editing.reddit_status === "sent";
                         setEditing((prev) =>
                           prev
                             ? {
                                 ...prev,
-                                reddit_status: posted ? "draft" : "posted",
+                                reddit_status: posted ? "draft" : "sent",
                                 reddit_posted_at: posted ? null : new Date().toISOString(),
                               }
                             : prev,
@@ -988,7 +988,7 @@ const BlogAdmin = () => {
                       }}
                       className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition"
                     >
-                      {editing.reddit_status === "posted" ? "Mark not posted" : "Mark posted"}
+                      {editing.reddit_status === "sent" ? "Mark not posted" : "Mark posted"}
                     </button>
                   </div>
                 </div>
