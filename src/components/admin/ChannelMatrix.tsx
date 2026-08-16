@@ -62,6 +62,25 @@ export const countMissed = (posts: BlogPostRow[]) =>
     );
   }, 0);
 
+/** Formats a deadline relative to now. */
+const relativeTime = (ms: number) => {
+  const abs = Math.abs(ms);
+  const s = Math.floor(abs / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  const mo = Math.floor(d / 30);
+  const y = Math.floor(d / 365);
+
+  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  if (y > 0) return rtf.format(ms > 0 ? y : -y, "year");
+  if (mo > 0) return rtf.format(ms > 0 ? mo : -mo, "month");
+  if (d > 0) return rtf.format(ms > 0 ? d : -d, "day");
+  if (h > 0) return rtf.format(ms > 0 ? h : -h, "hour");
+  if (m > 0) return rtf.format(ms > 0 ? m : -m, "minute");
+  return rtf.format(ms > 0 ? s : -s, "second");
+};
+
 const StatusPill = ({
   status,
   missed,
@@ -90,6 +109,45 @@ const StatusPill = ({
       }`}
     >
       {label}
+    </span>
+  );
+};
+
+/** Top-level approval state for the post card. */
+const ApprovalPill = ({ status, deadline }: { status: string; deadline: Date }) => {
+  const now = Date.now();
+  const due = deadline.getTime();
+  const overdue = due < now && status !== "published" && status !== "sent";
+  const label = status === "draft" ? "Pending approval" : status;
+  const cls = overdue
+    ? "bg-red-500/15 text-red-300 font-semibold"
+    : status === "draft" || status === "approved"
+    ? "bg-amber-400/15 text-amber-300 font-semibold"
+    : status === "scheduled"
+    ? "bg-yellow-400/15 text-yellow-300 font-semibold"
+    : "bg-emerald-500/15 text-emerald-400";
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs uppercase tracking-wide ${cls}`}
+      title={deadline.toISOString()}
+    >
+      {label}
+    </span>
+  );
+};
+
+const DeadlineBadge = ({ status, deadline }: { status: string; deadline: Date }) => {
+  const now = Date.now();
+  const due = deadline.getTime();
+  const isPast = due < now;
+  if (status === "published" || status === "sent") {
+    return <span className="text-xs text-emerald-400">{relativeTime(due - now)}</span>;
+  }
+  const cls = isPast ? "text-red-300" : "text-cream-muted";
+  const prefix = isPast ? "Overdue" : status === "scheduled" ? "Publishing" : "Due";
+  return (
+    <span className={`text-xs ${cls}`} title={deadline.toISOString()}>
+      {prefix} {relativeTime(due - now)}
     </span>
   );
 };
