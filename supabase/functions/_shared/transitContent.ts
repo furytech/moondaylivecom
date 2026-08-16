@@ -85,15 +85,22 @@ ${sources.doctrine?.length ? sources.doctrine.map((d) => `- ${d}`).join("\n") : 
 ${guestBlock(sources.guest)}
 
 
+CHANNEL SEPARATION (hard requirement — violating this makes the output unusable):
+The three pieces go to three different audiences and MUST read like three different writers had three different mornings.
+- No shared opening line, opening image, or opening move. Compare your three first sentences before answering: if any two rhyme in structure or share a phrase, rewrite them.
+- Do NOT repeat the ingress timestamp sentence ("On <date>, at precisely <time> UTC, the Moon...") in more than one piece. Only the blog may state the exact UTC instant. Substack refers to the shift by feel and by day. Reddit doesn't quote timestamps at all.
+- Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence.
+- Audience tuning: blog = search-led reader who wants a clear, useful explainer. Substack = subscriber who already gets it and wants an essay about the culture-wide weather. Reddit = a skeptical, low-patience feed reader who hates marketing and smells AI instantly.
+
 Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly three keys:
 
-"blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. Three structured sections, each an H2:
+"blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. This is the only piece allowed to name the exact ingress instant. Three structured sections, each an H2:
   a) Astronomical baseline and atmospheric resonance — what the shift actually feels like emotionally and mentally over the next ~2.5 days.
   b) Practical heads-up — underappreciated friction points to watch for, phrased constructively (over-analysis, emotional withdrawal, the urge to reorganize your entire life at 2am).
   c) Grounded guidance — simple, practical ways to navigate the shift, including one small ritual.
   Close with a soft, quiet invitation to explore their Personal Portrait on MoondayLive.com, written like a friend sharing a find.
 
-"substack_content": A standalone, long-form newsletter edition of AT LEAST 800 words in Markdown. This is NOT a summary or restatement of "blog_content" — it must be a completely distinct reading experience with its own title (H1), its own structure, and its own examples. Anyone who read the website article should still find this worth reading.
+"substack_content": A standalone, long-form newsletter edition of AT LEAST 800 words in Markdown. This is NOT a summary or restatement of "blog_content" — it must be a completely distinct reading experience with its own title (H1), its own structure, and its own examples. Open somewhere else entirely: an observation, a scene, a small confession, a question — never with the date or the ingress announcement. Anyone who read the website article should still find this worth reading.
   Editorial focus — the macro astro-climate:
   a) Read the world weather, not the individual. What does this specific Moon shift do to the collective mood: the pace of conversations, what people have patience for, what the culture leans toward or recoils from over these ~2.5 days.
   b) Societal and cultural pacing — how public discourse, work rhythms, media cycles, group decisions and social dynamics tend to tilt under this atmosphere. Concrete and observational, never political, never predictive about real events, never naming real people or organizations.
@@ -101,7 +108,7 @@ Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly 
   Use H2 sections with sentence-case headings. Keep the dry, warm, human voice.
   CTA — read this carefully: end every edition with a warm, conversational invitation that PIVOTS from the macro world-weather to the reader's own micro/personal picture, pointing them to MoondayLive.com to explore their Personal Portrait. You MUST invent a fresh CTA every single time: vary its length, its structure, its opening move, its angle and its rhythm. Sometimes a single offhand line, sometimes a short paragraph, sometimes a question, sometimes a small confession, sometimes an aside mid-thought before signing off. Never reuse a template, never open the CTA the same way twice, never use sales language, urgency, pricing or the phrase "sign up". It should read like a person who happens to have built the thing mentioning it because it's genuinely relevant right now. Zero AI footprint.
 
-"reddit_content": A ~100-word casual, low-noise atmospheric check-in for r/moondaylive. Plain title line first (no "Title:" prefix, no markdown heading), blank line, then the body. Conversational, minimal formatting, no links, no sales language, ends with one genuine open question and a light, offhand mention that Moonday Live is where you track this stuff.`;
+"reddit_content": A ~100-word casual, low-noise atmospheric check-in for r/moondaylive. Plain title line first (no "Title:" prefix, no markdown heading, no colon-subtitle formula, and NOT the blog title), blank line, then the body. Written like a normal person typing into a text box: lowercase-friendly, no headings, no bullet lists, no bold, no em-dash-heavy prose, no timestamps, no links, no sales language. Lead with a plain observation or a mildly self-deprecating aside — never with the ingress announcement. Ends with one genuine open question and, at most, a light offhand mention that Moonday Live is where you track this stuff.`;
 }
 
 export async function generateTransitPackage(opts: {

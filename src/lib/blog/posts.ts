@@ -305,13 +305,18 @@ export async function scheduleChannel(
  *  newsletter was published by hand. */
 export async function setChannelSent(
   id: string,
-  channel: "substack",
+  channel: "substack" | "reddit",
   sent: boolean,
 ) {
   const now = new Date().toISOString();
-  const patch = sent
-    ? { substack_status: "sent", substack_sent_at: now }
-    : { substack_status: "draft", substack_sent_at: null };
+  const patch =
+    channel === "substack"
+      ? sent
+        ? { substack_status: "sent", substack_sent_at: now }
+        : { substack_status: "draft", substack_sent_at: null }
+      : sent
+        ? { reddit_status: "sent", reddit_posted_at: now }
+        : { reddit_status: "draft", reddit_posted_at: null };
   const { data, error } = await supabase
     .from("blog_posts")
     .update(patch as any)
