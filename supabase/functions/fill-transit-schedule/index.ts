@@ -60,6 +60,8 @@ function slugify(s: string) {
 }
 
 import { generateTransitPackage } from "../_shared/transitContent.ts";
+import { notifyTelegram } from "../_shared/telegram.ts";
+
 
 
 Deno.serve(async (req) => {

@@ -69,6 +69,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Ping the owner once per post that went live, with a deep link into the
+    // editor so the Substack/Reddit hand-off can happen from a phone.
+    for (const post of data ?? []) {
+      await notifyTelegram({
+        kind: 'published',
+        post_id: post.id,
+        title: post.title,
+        channel: 'Moonday Live blog',
+      });
+    }
+
     if (stale && stale.length > 0) {
       await reportError({
         source: 'auto-publish-posts',
@@ -77,7 +88,16 @@ Deno.serve(async (req) => {
         context: { overdue: stale.slice(0, 20) },
         throttleMinutes: 120,
       });
+      for (const post of stale.slice(0, 5)) {
+        await notifyTelegram({
+          kind: 'missed',
+          post_id: post.id,
+          title: post.slug,
+          channel: 'Scheduled publish overdue',
+        });
+      }
     }
+
 
     return new Response(
       JSON.stringify({ published: data?.length || 0, posts: data }),
