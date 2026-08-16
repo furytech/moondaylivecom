@@ -148,13 +148,10 @@ const BlogAdmin = () => {
 
   const openEdit = (post: BlogPostRow) => {
     setSubstackSent(false);
-    // Auto-populate the Substack editor so the newsletter is always ready to
-    // review. Generated long-form copy wins; older rows fall back to a draft
-    // derived from the article body.
-    setEditing({
-      ...post,
-      substack_post: post.substack_post?.trim() ? post.substack_post : buildSubstackDraft(post),
-    });
+    // Show the stored newsletter as-is. We deliberately no longer derive it
+    // from the article body — that produced a Substack edition identical to the
+    // blog post. Empty rows use "Regenerate newsletter" instead.
+    setEditing({ ...post });
   };
 
   // Telegram deep links land here as /admin/blog?post=<id>. Open that post's
