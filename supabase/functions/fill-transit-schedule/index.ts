@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
         content.replace(/[#*_>`\[\]]/g, "").split("\n").find((l) => l.trim().length > 40)?.slice(0, 180) ??
         `The Moon moves into ${sign}. Here's what to notice.`;
 
-      const { error } = await supabase.from("blog_posts").insert({
+      const { data: inserted, error } = await supabase.from("blog_posts").insert({
         slug,
         title,
         category: "Transits",
@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
         zodiac_sign_tag: sign,
         image_url: `https://moondaylive.com/assets/signs/${sign}.png`,
         constellation_graphic_path: `/assets/signs/${sign}.png`,
-      });
+      }).select("id").single();
 
       if (error) {
         // Unique slug collision or similar — treat as already handled.
@@ -195,7 +195,17 @@ Deno.serve(async (req) => {
 
       taken.add(key);
       created.push({ sign, ingress_utc: ing.transition_at, slug });
+
+      // A fresh draft needs eyes on it before the ingress — deep link straight
+      // to this post's editor.
+      await notifyTelegram({
+        kind: "approval",
+        post_id: inserted?.id,
+        title,
+        when: `${ing.transition_at.slice(0, 16).replace("T", " ")} UTC`,
+      });
     }
+
 
     return new Response(
       JSON.stringify({
