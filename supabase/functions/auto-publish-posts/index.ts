@@ -1,6 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { reportError, errorText } from '../_shared/errorTracking.ts';
+import { notifyTelegram } from '../_shared/telegram.ts';
+
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
