@@ -62,6 +62,7 @@ function slugify(s: string) {
 }
 
 import { generateTransitPackage } from "../_shared/transitContent.ts";
+import { buildGenerationSources } from "../_shared/generationSources.ts";
 
 
 Deno.serve(async (req) => {
@@ -112,12 +113,17 @@ Deno.serve(async (req) => {
     const title = `The Moon Enters ${sign}: What to Feel, Notice, and Release`;
     const slug = `${slugify(title)}-${next.transition_at.slice(0, 10)}`;
 
+    // Vetted inputs only: deterministic chart condition, Hellenistic doctrine,
+    // and (when accepted for this window) the guest astrologer's own words.
+    const sources = await buildGenerationSources(supabase, next.transition_at);
+
     const pkg = await generateTransitPackage({
       apiKey: LOVABLE_API_KEY,
       fromSign: next.from_sign,
       toSign: sign,
       transitionAtUtc: next.transition_at,
       title,
+      sources,
     });
 
     const content = pkg.blog_content;
@@ -139,6 +145,9 @@ Deno.serve(async (req) => {
       read_time: 4,
       author: "Moonday Live Team",
       reviewed_by: "Moonday Live Astrologer",
+      guest_contribution_id: sources.guestContributionId ?? null,
+      guest_display_name: sources.guest?.displayName ?? null,
+      guest_bio: sources.guest?.bio ?? null,
       status: "draft",
       // Publish at the REAL ingress instant (UTC).
       publish_at: next.transition_at,
