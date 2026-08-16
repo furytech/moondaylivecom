@@ -108,7 +108,20 @@ Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly 
   Use H2 sections with sentence-case headings. Keep the dry, warm, human voice.
   CTA — read this carefully: end every edition with a warm, conversational invitation that PIVOTS from the macro world-weather to the reader's own micro/personal picture, pointing them to MoondayLive.com to explore their Personal Portrait. You MUST invent a fresh CTA every single time: vary its length, its structure, its opening move, its angle and its rhythm. Sometimes a single offhand line, sometimes a short paragraph, sometimes a question, sometimes a small confession, sometimes an aside mid-thought before signing off. Never reuse a template, never open the CTA the same way twice, never use sales language, urgency, pricing or the phrase "sign up". It should read like a person who happens to have built the thing mentioning it because it's genuinely relevant right now. Zero AI footprint.
 
-"reddit_content": A ~100-word casual, low-noise atmospheric check-in for r/moondaylive. Plain title line first (no "Title:" prefix, no markdown heading, no colon-subtitle formula, and NOT the blog title), blank line, then the body. Written like a normal person typing into a text box: lowercase-friendly, no headings, no bullet lists, no bold, no em-dash-heavy prose, no timestamps, no links, no sales language. Lead with a plain observation or a mildly self-deprecating aside — never with the ingress announcement. Ends with one genuine open question and, at most, a light offhand mention that Moonday Live is where you track this stuff.`;
+"reddit_content": A short, TL;DR-first self-post for r/moondaylive. Reddit is not a blog: people scan, downvote anything that smells like marketing or AI, and reward plain speech plus a real question.
+  Hard format (follow exactly):
+  Line 1 — the post title: 6-12 words, lowercase-leaning, plain, observation or curiosity led. No "The Moon Enters X:" formula, no colon-subtitle, no markdown heading, no "Title:" prefix, and NOT the blog title.
+  Line 2 — blank.
+  Line 3 — "TL;DR: " then ONE sentence (max ~25 words) saying what the shift is and what it feels like, in normal words.
+  Line 4 — blank.
+  Then 2-4 short sentences of body, ~60-90 words total, broken where a person would break lines.
+  Then a blank line and one genuine open question to the sub.
+  Reddit composition rules (non-negotiable):
+  - No headings, no bold, no bullet lists, no em dashes, no timestamps, no dates, no UTC, no links, no CTA, no brand pitch, no "join us".
+  - At most ONE offhand mention that Moonday Live is where you track this, only if it reads like a person mentioning their own project. Leaving it out entirely is fine and usually better.
+  - No jargon dumping (no "cadent", "domicile", "sect light") — say it the way you'd say it out loud.
+  - Never open with the ingress announcement, and never reuse a sentence, image or opening move from the blog or substack pieces.
+  - Total length including the title: under 140 words. If it runs longer, cut it.`;
 }
 
 export async function generateTransitPackage(opts: {
