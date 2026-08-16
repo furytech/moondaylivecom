@@ -122,6 +122,7 @@ const BlogAdmin = () => {
   const [substackCopiedId, setSubstackCopiedId] = useState<string | null>(null);
   const [redditCopiedId, setRedditCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState<"substack" | "reddit" | null>(null);
   const [filling, setFilling] = useState(false);
   const [telegramTesting, setTelegramTesting] = useState(false);
   // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
