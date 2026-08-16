@@ -24,6 +24,9 @@ export type Database = {
           cta_type: string
           excerpt: string | null
           featured: boolean
+          guest_bio: string | null
+          guest_contribution_id: string | null
+          guest_display_name: string | null
           id: string
           image_url: string | null
           keywords: string[] | null
@@ -56,6 +59,9 @@ export type Database = {
           cta_type?: string
           excerpt?: string | null
           featured?: boolean
+          guest_bio?: string | null
+          guest_contribution_id?: string | null
+          guest_display_name?: string | null
           id?: string
           image_url?: string | null
           keywords?: string[] | null
@@ -88,6 +94,9 @@ export type Database = {
           cta_type?: string
           excerpt?: string | null
           featured?: boolean
+          guest_bio?: string | null
+          guest_contribution_id?: string | null
+          guest_display_name?: string | null
           id?: string
           image_url?: string | null
           keywords?: string[] | null
@@ -111,7 +120,15 @@ export type Database = {
           updated_at?: string
           zodiac_sign_tag?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_guest_contribution_id_fkey"
+            columns: ["guest_contribution_id"]
+            isOneToOne: false
+            referencedRelation: "guest_contributions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       content_drafts: {
         Row: {
@@ -250,6 +267,51 @@ export type Database = {
         }
         Relationships: []
       }
+      doctrine_entries: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          keywords: string[]
+          meaning: string
+          qualifier: string | null
+          source: string | null
+          subject: string
+          tradition: string
+          updated_at: string
+          updated_by: string | null
+          vetted: boolean
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          keywords?: string[]
+          meaning: string
+          qualifier?: string | null
+          source?: string | null
+          subject: string
+          tradition?: string
+          updated_at?: string
+          updated_by?: string | null
+          vetted?: boolean
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          keywords?: string[]
+          meaning?: string
+          qualifier?: string | null
+          source?: string | null
+          subject?: string
+          tradition?: string
+          updated_at?: string
+          updated_by?: string | null
+          vetted?: boolean
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -336,6 +398,105 @@ export type Database = {
           used_at?: string | null
         }
         Relationships: []
+      }
+      guest_astrologers: {
+        Row: {
+          approved: boolean
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          credentials: string | null
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          credentials?: string | null
+          display_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved?: boolean
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          credentials?: string | null
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      guest_contributions: {
+        Row: {
+          admin_notes: string | null
+          audio_path: string | null
+          blog_post_id: string | null
+          created_at: string
+          guest_id: string
+          id: string
+          input_mode: string
+          raw_text: string | null
+          status: string
+          transcript: string | null
+          transit_at: string | null
+          transit_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          audio_path?: string | null
+          blog_post_id?: string | null
+          created_at?: string
+          guest_id: string
+          id?: string
+          input_mode?: string
+          raw_text?: string | null
+          status?: string
+          transcript?: string | null
+          transit_at?: string | null
+          transit_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          audio_path?: string | null
+          blog_post_id?: string | null
+          created_at?: string
+          guest_id?: string
+          id?: string
+          input_mode?: string
+          raw_text?: string | null
+          status?: string
+          transcript?: string | null
+          transit_at?: string | null
+          transit_label?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_contributions_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_contributions_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guest_astrologers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mfa_backup_codes: {
         Row: {

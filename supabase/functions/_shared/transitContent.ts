@@ -21,11 +21,52 @@ Voice rules:
 - Every piece ends with a soft CTA to join Moonday Live worded like a note from a friend who found something they're excited about — an invitation, never a sales pitch. No pricing, no urgency, no "sign up now".
 - Include one quiet, legal-safe line noting this is for entertainment and reflection.`;
 
+export interface GuestVoice {
+  displayName: string;
+  bio?: string | null;
+  /** The astrologer's own words — transcript or typed text. Never paraphrased away. */
+  text: string;
+}
+
+export interface GenerationSources {
+  /** Deterministic traditional condition of the sky, from formatTraditionalBrief(). */
+  traditionalBrief?: string;
+  /** Vetted doctrine lines the model must reason from instead of free-associating. */
+  doctrine?: string[];
+  guest?: GuestVoice | null;
+}
+
+const DOCTRINE_RULES = `Doctrinal discipline (non-negotiable):
+- You are writing in the TRADITIONAL / HELLENISTIC idiom. Use only the seven visible planets, whole-sign houses, essential dignity, sect, and the five Ptolemaic aspects.
+- Never assign modern rulerships (no Uranus/Neptune/Pluto as sign lords) and never invent psychological archetypes.
+- Saturn is a boundary-setter and time-lord, not a punisher. Read it through sect: of the sect by day it structures; contrary to the sect by night it bites. Never write Saturn as generic doom.
+- Every astrological claim you make must be traceable to the CHART CONDITION or the VETTED DOCTRINE supplied below. If the material does not support a claim, leave it out.
+- You may describe how something feels; you may not predict events, outcomes, health, money or legal matters.`;
+
+function guestBlock(guest?: GuestVoice | null): string {
+  if (!guest?.text?.trim()) return "";
+  return `
+GUEST ASTROLOGER — this week's contributor is ${guest.displayName}${guest.bio ? ` (${guest.bio})` : ""}.
+Their own words follow between the markers. Treat them as the authority for this edition:
+
+<<<GUEST
+${guest.text.trim()}
+GUEST>>>
+
+Guest handling rules:
+- Build the piece AROUND their take. Do not contradict it, water it down, or restate it in your own voice as if it were yours.
+- Quote at least one substantial passage of their words verbatim as a Markdown blockquote, lightly cleaned of filler ("um", false starts) only.
+- Open the piece by naming them: this week Moonday Live has a guest astrologer, and this is their reading.
+- Attribute clearly: their interpretations are theirs; the house/dignity framing is the engine's.
+`;
+}
+
 export function buildTransitPrompt(
   fromSign: string,
   toSign: string,
   transitionAtUtc: string,
   title: string,
+  sources: GenerationSources = {},
 ): string {
   return `Write a complete lunar transit package for the upcoming shift.
 
@@ -33,6 +74,16 @@ Current Sign: ${fromSign}
 Next Sign: ${toSign}
 Exact ingress: ${transitionAtUtc} UTC
 Transit Title: "${title}"
+
+${DOCTRINE_RULES}
+
+CHART CONDITION (computed from the ephemeris — treat as fact):
+${sources.traditionalBrief ?? "(not supplied — keep astrological specifics to the Moon's sign change only)"}
+
+VETTED DOCTRINE (approved by our astrologer — quote its sense, not its wording):
+${sources.doctrine?.length ? sources.doctrine.map((d) => `- ${d}`).join("\n") : "(none supplied)"}
+${guestBlock(sources.guest)}
+
 
 Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly three keys:
 
@@ -60,6 +111,7 @@ export async function generateTransitPackage(opts: {
   transitionAtUtc: string;
   title: string;
   model?: string;
+  sources?: GenerationSources;
 }): Promise<TransitPackage> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -79,9 +131,11 @@ export async function generateTransitPackage(opts: {
             opts.toSign,
             opts.transitionAtUtc,
             opts.title,
+            opts.sources ?? {},
           ),
         },
       ],
+
     }),
   });
 
