@@ -159,10 +159,24 @@ const BlogPost = () => {
               </span>
             )}
           </div>
+          {post.guestDisplayName && (
+            <div className="mt-5 rounded-xl border border-primary/30 bg-primary/[0.06] px-5 py-4 text-center">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary/80 mb-1.5">
+                Guest Astrologer
+              </p>
+              <p className="text-sm text-foreground">
+                This week we have a guest astrologer — {post.guestDisplayName}'s take on this transit.
+              </p>
+              {post.guestBio && (
+                <p className="mt-1 text-xs text-cream-muted/80">{post.guestBio}</p>
+              )}
+            </div>
+          )}
           <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic text-justify hyphens-auto">
             {post.excerpt}
           </p>
         </header>
+
 
         {/* Body */}
         <MarkdownArticle source={post.content} ctaType={post.ctaType} />
