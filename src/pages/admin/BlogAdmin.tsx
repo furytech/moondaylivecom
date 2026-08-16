@@ -910,10 +910,11 @@ const BlogAdmin = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
                       type="button"
-                      onClick={handleGenerateSubstack}
-                      className="min-h-[40px] px-3 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
+                      onClick={() => handleRegenerateChannel("substack")}
+                      disabled={regenerating !== null}
+                      className="min-h-[40px] px-3 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition disabled:opacity-50"
                     >
-                      Regenerate from post
+                      {regenerating === "substack" ? "Regenerating…" : "Regenerate newsletter"}
                     </button>
                     <button
                       type="button"
