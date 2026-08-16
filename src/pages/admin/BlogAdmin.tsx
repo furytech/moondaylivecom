@@ -1004,6 +1004,14 @@ const BlogAdmin = () => {
                     <ChannelBadge status={editing.reddit_status} />
                     <button
                       type="button"
+                      onClick={() => handleRegenerateChannel("reddit")}
+                      disabled={regenerating !== null}
+                      className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition disabled:opacity-50"
+                    >
+                      {regenerating === "reddit" ? "Regenerating…" : "Regenerate Reddit post"}
+                    </button>
+                    <button
+                      type="button"
                       onClick={async () => {
                         const text = editing.reddit_post?.trim();
                         if (!text) {
