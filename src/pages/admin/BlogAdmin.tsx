@@ -21,7 +21,6 @@ import {
   SIGNS,
   signImageUrl,
   resolveSignImage,
-  buildSubstackDraft,
   scheduleChannel,
   setChannelSent,
   ChannelStatus,
@@ -122,6 +121,7 @@ const BlogAdmin = () => {
   const [substackCopiedId, setSubstackCopiedId] = useState<string | null>(null);
   const [redditCopiedId, setRedditCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState<"substack" | "reddit" | null>(null);
   const [filling, setFilling] = useState(false);
   const [telegramTesting, setTelegramTesting] = useState(false);
   // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
@@ -147,13 +147,10 @@ const BlogAdmin = () => {
 
   const openEdit = (post: BlogPostRow) => {
     setSubstackSent(false);
-    // Auto-populate the Substack editor so the newsletter is always ready to
-    // review. Generated long-form copy wins; older rows fall back to a draft
-    // derived from the article body.
-    setEditing({
-      ...post,
-      substack_post: post.substack_post?.trim() ? post.substack_post : buildSubstackDraft(post),
-    });
+    // Show the stored newsletter as-is. We deliberately no longer derive it
+    // from the article body — that produced a Substack edition identical to the
+    // blog post. Empty rows use "Regenerate newsletter" instead.
+    setEditing({ ...post });
   };
 
   // Telegram deep links land here as /admin/blog?post=<id>. Open that post's
@@ -391,12 +388,39 @@ const BlogAdmin = () => {
     }
   };
 
-  // Rebuilds the Substack copy from the blog body — used for posts drafted
-  // before the Substack column existed, or after the article was edited.
-  const handleGenerateSubstack = () => {
-    if (!editing) return;
-    setField("substack_post", buildSubstackDraft(editing));
-    setSubstackSent(false);
+  // Regenerates channel copy with the AI generator so each platform gets a
+  // genuinely distinct piece (the old behaviour just re-wrapped the blog body,
+  // which is why Substack read identically to the website article).
+  const handleRegenerateChannel = async (channel: "substack" | "reddit") => {
+    if (!editing?.id) {
+      setMessage("Save the post first, then regenerate.");
+      return;
+    }
+    setRegenerating(channel);
+    setMessage(`Regenerating the ${channel === "reddit" ? "Reddit" : "Substack"} edition…`);
+    try {
+      const { data, error } = await supabase.functions.invoke("regenerate-channel-copy", {
+        body: { post_id: editing.id, channels: [channel] },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setEditing((prev) =>
+        prev
+          ? {
+              ...prev,
+              substack_post: data?.substack_post ?? prev.substack_post,
+              reddit_post: data?.reddit_post ?? prev.reddit_post,
+            }
+          : prev,
+      );
+      setSubstackSent(false);
+      setMessage(`${channel === "reddit" ? "Reddit" : "Substack"} copy regenerated.`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Regeneration failed: ${err.message}`);
+    } finally {
+      setRegenerating(null);
+    }
   };
 
   const handleSave = async () => {
@@ -882,10 +906,11 @@ const BlogAdmin = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
                       type="button"
-                      onClick={handleGenerateSubstack}
-                      className="min-h-[40px] px-3 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition"
+                      onClick={() => handleRegenerateChannel("substack")}
+                      disabled={regenerating !== null}
+                      className="min-h-[40px] px-3 rounded-full border border-accent/40 text-accent text-xs hover:bg-accent/10 transition disabled:opacity-50"
                     >
-                      Regenerate from post
+                      {regenerating === "substack" ? "Regenerating…" : "Regenerate newsletter"}
                     </button>
                     <button
                       type="button"
@@ -973,6 +998,14 @@ const BlogAdmin = () => {
                   </h3>
                   <div className="flex items-center gap-2 flex-wrap">
                     <ChannelBadge status={editing.reddit_status} />
+                    <button
+                      type="button"
+                      onClick={() => handleRegenerateChannel("reddit")}
+                      disabled={regenerating !== null}
+                      className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition disabled:opacity-50"
+                    >
+                      {regenerating === "reddit" ? "Regenerating…" : "Regenerate Reddit post"}
+                    </button>
                     <button
                       type="button"
                       onClick={async () => {
