@@ -90,6 +90,17 @@ const App = () => (
                 <SystemErrors />
               </AdminRoute>
             } />
+            <Route path="/admin/guests" element={
+              <AdminRoute>
+                <GuestDesk />
+              </AdminRoute>
+            } />
+            <Route path="/guest" element={
+              <ProtectedRoute>
+                <GuestStudio />
+              </ProtectedRoute>
+            } />
+
 
             {/* Legacy redirect */}
             <Route path="/portal" element={<Navigate to="/login" replace />} />
