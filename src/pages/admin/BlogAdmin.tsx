@@ -391,12 +391,39 @@ const BlogAdmin = () => {
     }
   };
 
-  // Rebuilds the Substack copy from the blog body — used for posts drafted
-  // before the Substack column existed, or after the article was edited.
-  const handleGenerateSubstack = () => {
-    if (!editing) return;
-    setField("substack_post", buildSubstackDraft(editing));
-    setSubstackSent(false);
+  // Regenerates channel copy with the AI generator so each platform gets a
+  // genuinely distinct piece (the old behaviour just re-wrapped the blog body,
+  // which is why Substack read identically to the website article).
+  const handleRegenerateChannel = async (channel: "substack" | "reddit") => {
+    if (!editing?.id) {
+      setMessage("Save the post first, then regenerate.");
+      return;
+    }
+    setRegenerating(channel);
+    setMessage(`Regenerating the ${channel === "reddit" ? "Reddit" : "Substack"} edition…`);
+    try {
+      const { data, error } = await supabase.functions.invoke("regenerate-channel-copy", {
+        body: { post_id: editing.id, channels: [channel] },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setEditing((prev) =>
+        prev
+          ? {
+              ...prev,
+              substack_post: data?.substack_post ?? prev.substack_post,
+              reddit_post: data?.reddit_post ?? prev.reddit_post,
+            }
+          : prev,
+      );
+      setSubstackSent(false);
+      setMessage(`${channel === "reddit" ? "Reddit" : "Substack"} copy regenerated.`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Regeneration failed: ${err.message}`);
+    } finally {
+      setRegenerating(null);
+    }
   };
 
   const handleSave = async () => {
