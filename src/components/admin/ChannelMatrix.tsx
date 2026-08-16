@@ -13,13 +13,14 @@ import { BlogPostRow } from "@/lib/blog/posts";
  * full-width tap targets, so every desktop control stays reachable on a phone.
  */
 
-export type Channel = "blog" | "substack";
+export type Channel = "blog" | "substack" | "reddit";
 
-export const CHANNELS: Channel[] = ["blog", "substack"];
+export const CHANNELS: Channel[] = ["blog", "substack", "reddit"];
 
 const CHANNEL_LABEL: Record<Channel, string> = {
   blog: "Moonday Blog",
   substack: "Substack",
+  reddit: "Reddit",
 };
 
 /** A channel is "missed" when its instant has passed but it never went out. */
@@ -38,6 +39,13 @@ export const channelState = (post: BlogPostRow, channel: Channel) => {
     return {
       status,
       when: status === "published" ? post.published_at || post.publish_at : post.publish_at || null,
+    };
+  }
+  if (channel === "reddit") {
+    const rStatus = (post.reddit_status || "draft") as string;
+    return {
+      status: rStatus,
+      when: rStatus === "sent" ? post.reddit_posted_at || post.reddit_scheduled_at || null : post.reddit_scheduled_at || post.publish_at || null,
     };
   }
   const status = (post.substack_status || "draft") as string;
@@ -222,6 +230,7 @@ export interface ChannelMatrixProps {
   posts: BlogPostRow[];
   displayDate: (value?: string | null) => string;
   substackCopiedId?: string | null;
+  redditCopiedId?: string | null;
   downloadId: string | null;
   onEdit: (post: BlogPostRow) => void;
   onDelete: (id: string) => void;
@@ -231,14 +240,16 @@ export interface ChannelMatrixProps {
   onUnscheduleBlog: (id: string) => void;
   onUnpublish: (id: string) => void;
   onUnscheduleChannel: (id: string, channel: "substack") => void;
-  onToggleSent: (post: BlogPostRow, channel: "substack") => void;
+  onToggleSent: (post: BlogPostRow, channel: "substack" | "reddit") => void;
   onCopySubstack: (post: BlogPostRow) => void;
+  onCopyReddit: (post: BlogPostRow) => void;
 }
 
 const ChannelMatrix = ({
   posts,
   displayDate,
   substackCopiedId,
+  redditCopiedId,
   downloadId,
   onEdit,
   onDelete,
@@ -250,6 +261,7 @@ const ChannelMatrix = ({
   onUnscheduleChannel,
   onToggleSent,
   onCopySubstack,
+  onCopyReddit,
 }: ChannelMatrixProps) => {
   if (posts.length === 0) {
     return (
@@ -282,6 +294,23 @@ const ChannelMatrix = ({
           onClick: () => onUnpublish(p.id!),
         },
       ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void }[];
+    }
+    if (c === "reddit") {
+      return [
+        {
+          key: "copy",
+          tone: "primary" as Tone,
+          label: redditCopiedId === p.id ? "Copied!" : "Copy Reddit post",
+          onClick: () => onCopyReddit(p),
+          disabled: !p.reddit_post,
+        },
+        {
+          key: "sent",
+          tone: "sky" as Tone,
+          label: status === "sent" ? "Undo posted" : "Mark posted",
+          onClick: () => onToggleSent(p, "reddit"),
+        },
+      ] as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
     }
     return [
       {
@@ -387,7 +416,9 @@ const ChannelMatrix = ({
                             status === "scheduled"
                               ? c === "blog"
                                 ? () => onUnscheduleBlog(p.id!)
-                                : () => onUnscheduleChannel(p.id!, "substack")
+                                : c === "substack"
+                                ? () => onUnscheduleChannel(p.id!, "substack")
+                                : undefined
                               : undefined
                           }
                         />
@@ -427,7 +458,9 @@ const ChannelMatrix = ({
                           status === "scheduled"
                             ? c === "blog"
                               ? () => onUnscheduleBlog(p.id!)
-                              : () => onUnscheduleChannel(p.id!, "substack")
+                              : c === "substack"
+                              ? () => onUnscheduleChannel(p.id!, "substack")
+                              : undefined
                             : undefined
                         }
                       />
