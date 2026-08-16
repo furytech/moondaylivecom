@@ -29,7 +29,7 @@ export async function loadDoctrine(supabase: Client, limit = 60): Promise<string
 export async function loadGuestVoice(
   supabase: Client,
   transitAtIso: string,
-): Promise<GuestVoice | null> {
+): Promise<(GuestVoice & { contributionId: string }) | null> {
   const windowStart = new Date(new Date(transitAtIso).getTime() - 7 * 24 * 3600 * 1000).toISOString();
   const windowEnd = new Date(new Date(transitAtIso).getTime() + 3 * 24 * 3600 * 1000).toISOString();
 
@@ -50,8 +50,9 @@ export async function loadGuestVoice(
   const text = (row.transcript || row.raw_text || "").trim();
   if (!text) return null;
 
-  return { displayName: guest.display_name, bio: guest.bio, text };
+  return { contributionId: row.id, displayName: guest.display_name, bio: guest.bio, text };
 }
+
 
 export async function buildGenerationSources(
   supabase: Client,
