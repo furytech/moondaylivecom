@@ -949,6 +949,63 @@ const BlogAdmin = () => {
                 </div>
               </div>
 
+              {/* Reddit copy — deliberately its own voice, not the blog intro. */}
+              <div className="mb-6 rounded-xl border border-border/40 bg-background/40 p-4">
+                <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                  <h3 className="font-display text-sm uppercase tracking-[0.2em] text-cream-muted">
+                    Reddit Post
+                  </h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <ChannelBadge status={editing.reddit_status} />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const text = editing.reddit_post?.trim();
+                        if (!text) {
+                          setMessage("No Reddit copy on this post yet.");
+                          return;
+                        }
+                        await navigator.clipboard.writeText(text);
+                        setMessage("Reddit copy copied — title on line one, body below.");
+                      }}
+                      className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition"
+                    >
+                      Copy Reddit post
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const posted = editing.reddit_status === "posted";
+                        setEditing((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                reddit_status: posted ? "draft" : "posted",
+                                reddit_posted_at: posted ? null : new Date().toISOString(),
+                              }
+                            : prev,
+                        );
+                      }}
+                      className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition"
+                    >
+                      {editing.reddit_status === "posted" ? "Mark not posted" : "Mark posted"}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-cream-muted/70 mb-3">
+                  First line is the Reddit title, blank line, then the body. Written for the feed —
+                  it should not share an opening with the article or the newsletter.
+                </p>
+                <textarea
+                  value={editing.reddit_post || ""}
+                  onChange={(e) => setField("reddit_post", e.target.value)}
+                  rows={8}
+                  placeholder="Reddit copy is generated with the transit draft — or write it here."
+                  className={`${FIELD} font-mono`}
+                />
+              </div>
+
+
               <div className="mb-4">
                 <label className={LABEL}>Keywords (comma separated)</label>
                 <input
