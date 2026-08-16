@@ -120,6 +120,7 @@ const BlogAdmin = () => {
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
   const [message, setMessage] = useState("");
   const [substackCopiedId, setSubstackCopiedId] = useState<string | null>(null);
+  const [redditCopiedId, setRedditCopiedId] = useState<string | null>(null);
   const [downloadId, setDownloadId] = useState<string | null>(null);
   const [filling, setFilling] = useState(false);
   const [telegramTesting, setTelegramTesting] = useState(false);
@@ -227,13 +228,13 @@ const BlogAdmin = () => {
 
   // Manual posting hand-off: flags Substack as sent (or reverts it) so the
   // matrix reflects what has actually gone out.
-  const handleToggleChannelSent = async (post: BlogPostRow, channel: "substack") => {
-    const isSent = post.substack_status === "sent";
+  const handleToggleChannelSent = async (post: BlogPostRow, channel: "substack" | "reddit") => {
+    const isSent =
+      channel === "reddit" ? post.reddit_status === "sent" : post.substack_status === "sent";
+    const label = channel === "reddit" ? "Reddit post" : "Substack edition";
     try {
       await setChannelSent(post.id!, channel, !isSent);
-      setMessage(
-        isSent ? "Substack edition reverted to draft." : "Marked as posted on Substack.",
-      );
+      setMessage(isSent ? `${label} reverted to draft.` : `Marked as posted on ${channel === "reddit" ? "Reddit" : "Substack"}.`);
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
@@ -321,6 +322,19 @@ const BlogAdmin = () => {
     }
     setSubstackCopiedId(post.id || null);
     setTimeout(() => setSubstackCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
+  };
+
+  // Reddit is plain-text only — copy it verbatim, no Markdown conversion.
+  const handleCopyReddit = async (post: Partial<BlogPostRow>) => {
+    const text = post.reddit_post?.trim();
+    if (!text) {
+      setMessage("No Reddit copy on this post yet.");
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    setMessage("Reddit post copied.");
+    setRedditCopiedId(post.id || null);
+    setTimeout(() => setRedditCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
 
   // Saves the reviewed Substack copy, then hands it off to the backend edge
@@ -672,6 +686,7 @@ const BlogAdmin = () => {
             posts={visiblePosts}
             displayDate={displayDate}
             substackCopiedId={substackCopiedId}
+            redditCopiedId={redditCopiedId}
             downloadId={downloadId}
             onEdit={openEdit}
             onDelete={handleDelete}
@@ -683,6 +698,7 @@ const BlogAdmin = () => {
             onUnscheduleChannel={handleUnscheduleChannel}
             onToggleSent={handleToggleChannelSent}
             onCopySubstack={handleCopySubstack}
+            onCopyReddit={handleCopyReddit}
           />
         )}
 
