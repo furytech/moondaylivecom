@@ -132,8 +132,11 @@ export function rowToPost(row: BlogPostRow): BlogPost {
     content: row.content || "",
     zodiacSignTag,
     constellationGraphicPath,
+    guestDisplayName: row.guest_display_name ?? null,
+    guestBio: row.guest_bio ?? null,
   };
 }
+
 
 export function postToRow(post: Partial<BlogPost>): Partial<BlogPostRow> {
   const row: Partial<BlogPostRow> = {};
