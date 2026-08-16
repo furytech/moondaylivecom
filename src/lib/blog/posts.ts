@@ -32,7 +32,11 @@ export interface BlogPost {
   content: string;
   zodiacSignTag?: string;
   constellationGraphicPath?: string;
+  /** Guest astrologer attribution, when this edition has a guest voice. */
+  guestDisplayName?: string | null;
+  guestBio?: string | null;
 }
+
 
 export interface BlogPostRow {
   id?: string;
@@ -70,7 +74,11 @@ export interface BlogPostRow {
   zodiac_sign_tag?: string;
   constellation_graphic_path?: string;
   reviewedBy?: string;
+  guest_contribution_id?: string | null;
+  guest_display_name?: string | null;
+  guest_bio?: string | null;
 }
+
 
 export const CATEGORIES: BlogCategory[] = ["Guides", "Transits", "Features", "Product Updates"];
 
@@ -124,8 +132,11 @@ export function rowToPost(row: BlogPostRow): BlogPost {
     content: row.content || "",
     zodiacSignTag,
     constellationGraphicPath,
+    guestDisplayName: row.guest_display_name ?? null,
+    guestBio: row.guest_bio ?? null,
   };
 }
+
 
 export function postToRow(post: Partial<BlogPost>): Partial<BlogPostRow> {
   const row: Partial<BlogPostRow> = {};

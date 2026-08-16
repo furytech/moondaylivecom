@@ -44,6 +44,9 @@ import BlogAdmin from "./pages/admin/BlogAdmin";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Subscribers from "./pages/admin/Subscribers";
 import SystemErrors from "./pages/admin/SystemErrors";
+import GuestDesk from "./pages/admin/GuestDesk";
+import GuestStudio from "./pages/GuestStudio";
+
 
 
 const queryClient = new QueryClient();
@@ -87,6 +90,17 @@ const App = () => (
                 <SystemErrors />
               </AdminRoute>
             } />
+            <Route path="/admin/guests" element={
+              <AdminRoute>
+                <GuestDesk />
+              </AdminRoute>
+            } />
+            <Route path="/guest" element={
+              <ProtectedRoute>
+                <GuestStudio />
+              </ProtectedRoute>
+            } />
+
 
             {/* Legacy redirect */}
             <Route path="/portal" element={<Navigate to="/login" replace />} />
