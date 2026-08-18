@@ -45,6 +45,8 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import Subscribers from "./pages/admin/Subscribers";
 import SystemErrors from "./pages/admin/SystemErrors";
 import GuestDesk from "./pages/admin/GuestDesk";
+import GuestApplications from "./pages/admin/GuestApplications";
+
 import GuestStudio from "./pages/GuestStudio";
 
 
@@ -95,6 +97,12 @@ const App = () => (
                 <GuestDesk />
               </AdminRoute>
             } />
+            <Route path="/admin/guest-applications" element={
+              <AdminRoute>
+                <GuestApplications />
+              </AdminRoute>
+            } />
+
             <Route path="/guest" element={
               <ProtectedRoute>
                 <GuestStudio />
