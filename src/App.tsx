@@ -95,6 +95,12 @@ const App = () => (
                 <GuestDesk />
               </AdminRoute>
             } />
+            <Route path="/admin/guest-applications" element={
+              <AdminRoute>
+                <GuestApplications />
+              </AdminRoute>
+            } />
+
             <Route path="/guest" element={
               <ProtectedRoute>
                 <GuestStudio />
