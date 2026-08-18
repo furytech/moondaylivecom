@@ -63,7 +63,14 @@ const GuestDesk = () => {
           <p className="mt-2 text-sm text-cream-muted/85">
             Approve contributors, then accept the readings that should shape an edition.
           </p>
+          <Link
+            to="/admin/guest-applications"
+            className="mt-2 inline-block text-xs text-primary hover:underline"
+          >
+            Open the applications queue
+          </Link>
         </header>
+
 
         {message && (
           <p className="rounded-lg border border-primary/30 bg-primary/[0.06] px-4 py-2.5 text-sm text-center text-foreground">
