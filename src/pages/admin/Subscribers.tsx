@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
@@ -23,6 +25,8 @@ const fmt = (v?: string | null) => {
 };
 
 const Subscribers = () => {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const { data: isAdmin, isLoading: checkingAdmin } = useQuery({
     queryKey: ["admin-check"],
     queryFn: async () => {
@@ -59,6 +63,27 @@ const Subscribers = () => {
   }
 
   const rows = data ?? [];
+
+  const handleDelete = async (row: SubscriberRow) => {
+    const label = row.email ?? row.user_id;
+    if (!window.confirm(`Permanently delete ${label}? This removes their account and data.`)) return;
+    setDeletingId(row.user_id);
+    setNotice(null);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: row.user_id },
+      });
+      const errMsg = (res as { error?: string } | null)?.error;
+      if (error || errMsg) throw new Error(errMsg ?? (error as Error).message);
+      setNotice(`Deleted ${label}.`);
+      refetch();
+    } catch (err) {
+      setNotice(`Could not delete ${label}: ${(err as Error).message}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const sovereignCount = rows.filter((r) => r.stripe_active).length;
 
   return (
@@ -81,6 +106,12 @@ const Subscribers = () => {
           </button>
         </div>
 
+        {notice && (
+          <p className="mb-4 rounded border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/80">
+            {notice}
+          </p>
+        )}
+
         {isLoading && <MoonLoader />}
         {error && (
           <div className="text-red-400 text-sm border border-red-400/30 rounded p-4">
@@ -99,6 +130,7 @@ const Subscribers = () => {
                   <th className="px-4 py-3">Period Start</th>
                   <th className="px-4 py-3">Period End</th>
                   <th className="px-4 py-3">Joined</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,11 +154,26 @@ const Subscribers = () => {
                     <td className="px-4 py-3">{fmt(r.current_period_start)}</td>
                     <td className="px-4 py-3">{fmt(r.current_period_end)}</td>
                     <td className="px-4 py-3">{fmt(r.created_at)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleDelete(r)}
+                        disabled={deletingId === r.user_id}
+                        aria-label={`Delete ${r.email ?? "user"}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-red-400/40 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+                      >
+                        {deletingId === r.user_id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-white/50">
+                    <td colSpan={7} className="px-4 py-8 text-center text-white/50">
                       No subscribers yet.
                     </td>
                   </tr>
