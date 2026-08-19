@@ -5,8 +5,8 @@ import { notifyTelegram } from '../_shared/telegram.ts';
 import { publishPostToReddit } from '../_shared/redditPublish.ts';
 
 // reddit-auto-post
-// Publishes one transit post to Reddit: sign image as the submission, the
-// generated Reddit copy as the OP comment. Callable two ways:
+// Hands one transit post to the Reddit approval webhook, which owns the actual
+// posting. Callable two ways:
 //   - by auto-publish-posts, right after a post goes live (service role)
 //   - by an admin from the Journal dashboard, to retry a failure
 
@@ -63,10 +63,10 @@ Deno.serve(async (req) => {
       kind: 'published',
       post_id: postId,
       title: result.title,
-      channel: `Reddit — live${result.permalink ? `: ${result.permalink}` : ''}`,
+      channel: `Reddit — sent to the approval webhook${result.permalink ? `: ${result.permalink}` : ''}`,
     });
 
-    return json({ ok: true, permalink: result.permalink, commented: result.commented }, 200);
+    return json({ ok: true, permalink: result.permalink }, 200);
   } catch (e) {
     await reportError({
       source: 'reddit-auto-post',
