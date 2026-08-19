@@ -1173,6 +1173,31 @@ const BlogAdmin = () => {
                   placeholder="Reddit copy is generated with the transit draft — or write it here."
                   className={`${FIELD} font-mono`}
                 />
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <label className="text-xs uppercase tracking-wider text-cream-muted">
+                      Reddit scheduled time
+                    </label>
+                    <ChannelBadge status={editing.reddit_status} />
+                  </div>
+                  <ScheduledPublishPicker
+                    value={editing.reddit_scheduled_at ?? null}
+                    onChange={(iso) =>
+                      setEditing((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              reddit_scheduled_at: iso,
+                              reddit_status: iso ? "scheduled" : "draft",
+                            }
+                          : prev,
+                      )
+                    }
+                  />
+                  <p className="text-xs text-cream-muted/60">
+                    At this instant the post is sent to the Reddit approval webhook automatically.
+                  </p>
+                </div>
               </div>
 
 
@@ -1238,6 +1263,38 @@ const BlogAdmin = () => {
         </ResponsiveModal>
 
         {/* Schedule picker — same responsive shell. */}
+        {/* Reddit scheduling — same flow as the blog's reschedule dialog. */}
+        <ResponsiveModal
+          open={!!redditScheduleTarget}
+          onOpenChange={(open) => !open && setRedditScheduleTarget(null)}
+          title="Schedule Reddit post"
+          description={redditScheduleTarget?.title}
+          footer={
+            <div className="flex gap-3">
+              <button
+                onClick={confirmRedditSchedule}
+                disabled={!redditScheduleIso}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+              >
+                Confirm schedule
+              </button>
+              <button
+                onClick={() => setRedditScheduleTarget(null)}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
+              >
+                Cancel
+              </button>
+            </div>
+          }
+        >
+          <ScheduledPublishPicker value={redditScheduleIso} onChange={setRedditScheduleIso} />
+          {redditScheduleIso && (
+            <p className="text-xs text-cream-muted mt-3">
+              Sent to the approval webhook: {displayDate(redditScheduleIso)}
+            </p>
+          )}
+        </ResponsiveModal>
+
         <ResponsiveModal
           open={!!rescheduleTarget}
           onOpenChange={(open) => !open && setRescheduleTarget(null)}
