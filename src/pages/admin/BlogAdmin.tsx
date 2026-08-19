@@ -143,6 +143,9 @@ const BlogAdmin = () => {
   const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
   const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
   const [redditSendingId, setRedditSendingId] = useState<string | null>(null);
+  const [substackScheduleTarget, setSubstackScheduleTarget] = useState<BlogPostRow | null>(null);
+  const [substackScheduleIso, setSubstackScheduleIso] = useState<string | null>(null);
+  const [substackSendingId, setSubstackSendingId] = useState<string | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
