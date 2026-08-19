@@ -125,12 +125,16 @@ export async function sendSubstackDraft(
     }
   }
 
-  if (sentAny) {
-    await supabase
-      .from('blog_posts')
-      .update({ substack_bridge_sent_at: new Date().toISOString() })
-      .eq('id', post.id)
-  }
+  // Stamp the outcome either way so the channel audit can show a real reason
+  // instead of a silent gap.
+  await supabase
+    .from('blog_posts')
+    .update(
+      sentAny
+        ? { substack_bridge_sent_at: new Date().toISOString(), substack_error: null }
+        : { substack_error: 'The formatted draft email could not be delivered.' },
+    )
+    .eq('id', post.id)
 
   return { sent: sentAny, recipients: recipients.length }
 }
