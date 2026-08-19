@@ -1353,6 +1353,39 @@ const BlogAdmin = () => {
           )}
         </ResponsiveModal>
 
+        {/* Substack scheduling — identical controls to Reddit. */}
+        <ResponsiveModal
+          open={!!substackScheduleTarget}
+          onOpenChange={(open) => !open && setSubstackScheduleTarget(null)}
+          title="Schedule Substack edition"
+          description={substackScheduleTarget?.title}
+          footer={
+            <div className="flex gap-3">
+              <button
+                onClick={confirmSubstackSchedule}
+                disabled={!substackScheduleIso}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+              >
+                Confirm schedule
+              </button>
+              <button
+                onClick={() => setSubstackScheduleTarget(null)}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
+              >
+                Cancel
+              </button>
+            </div>
+          }
+        >
+          <ScheduledPublishPicker value={substackScheduleIso} onChange={setSubstackScheduleIso} />
+          {substackScheduleIso && (
+            <p className="text-xs text-cream-muted mt-3">
+              Sent to the n8n webhook: {displayDate(substackScheduleIso)}
+            </p>
+          )}
+        </ResponsiveModal>
+
+
         <ResponsiveModal
           open={!!rescheduleTarget}
           onOpenChange={(open) => !open && setRescheduleTarget(null)}
