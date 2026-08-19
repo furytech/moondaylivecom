@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { reportError, errorText } from '../_shared/errorTracking.ts';
 import { notifyTelegram } from '../_shared/telegram.ts';
+import { sendSubstackDraft } from '../_shared/substackBridge.ts';
 
 
 const supabase = createClient(
@@ -71,6 +72,7 @@ Deno.serve(async (req) => {
 
     // Ping the owner once per post that went live, with a deep link into the
     // editor so the Substack/Reddit hand-off can happen from a phone.
+    let substackDrafted = 0;
     for (const post of data ?? []) {
       await notifyTelegram({
         kind: 'published',
@@ -78,6 +80,20 @@ Deno.serve(async (req) => {
         title: post.title,
         channel: 'Moonday Live blog',
       });
+
+      // Email-to-draft bridge: the moment a transit post goes live, its
+      // newsletter edition lands in the editor's inbox pre-formatted, so the
+      // Substack hand-off is a paste instead of a rebuild.
+      const bridge = await sendSubstackDraft(supabase, post);
+      if (bridge.sent) {
+        substackDrafted += 1;
+        await notifyTelegram({
+          kind: 'published',
+          post_id: post.id,
+          title: post.title,
+          channel: 'Substack draft emailed — ready to paste',
+        });
+      }
     }
 
     if (stale && stale.length > 0) {
@@ -100,7 +116,7 @@ Deno.serve(async (req) => {
 
 
     return new Response(
-      JSON.stringify({ published: data?.length || 0, posts: data }),
+      JSON.stringify({ published: data?.length || 0, substack_drafted: substackDrafted, posts: data }),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

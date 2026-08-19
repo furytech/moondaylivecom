@@ -132,6 +132,9 @@ const BlogAdmin = () => {
   );
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
+  // Email-to-draft bridge (manual rerun; it also fires automatically on publish).
+  const [bridgeSending, setBridgeSending] = useState(false);
+  const [bridgeSent, setBridgeSent] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
     "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
   >("queue");
@@ -391,6 +394,37 @@ const BlogAdmin = () => {
   // Regenerates channel copy with the AI generator so each platform gets a
   // genuinely distinct piece (the old behaviour just re-wrapped the blog body,
   // which is why Substack read identically to the website article).
+
+  // Email-to-draft bridge. Sends the current saved edition to the admin inbox
+  // pre-formatted so Substack is a paste, not a rebuild. Runs automatically on
+  // publish; this button is for reruns after an edit.
+  const handleEmailSubstackDraft = async () => {
+    if (!editing?.id) {
+      setMessage("Save the post first, then email the draft.");
+      return;
+    }
+    setBridgeSending(true);
+    setBridgeSent(false);
+    setMessage("Emailing the formatted Substack draft…");
+    try {
+      const { data, error } = await supabase.functions.invoke("substack-bridge-send", {
+        body: { post_id: editing.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setBridgeSent(true);
+      setEditing((prev) =>
+        prev ? { ...prev, substack_bridge_sent_at: new Date().toISOString() } : prev,
+      );
+      setMessage("Formatted draft sent to your inbox.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Could not email the draft: ${err.message}`);
+    } finally {
+      setBridgeSending(false);
+    }
+  };
+
   const handleRegenerateChannel = async (channel: "substack" | "reddit") => {
     if (!editing?.id) {
       setMessage("Save the post first, then regenerate.");
@@ -987,6 +1021,35 @@ const BlogAdmin = () => {
                       <span className="text-xs text-accent">✓ Draft sent — check Substack.</span>
                     )}
                   </div>
+                </div>
+
+                {/* Email-to-draft bridge: fires automatically on publish, this
+                    is the manual rerun after an edit. */}
+                <div className="mt-4 rounded-lg border border-accent/20 bg-background/40 p-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleEmailSubstackDraft}
+                      disabled={bridgeSending || !editing.substack_post?.trim()}
+                      className="min-h-[44px] px-4 rounded-full border border-accent/40 text-accent text-sm hover:bg-accent/10 transition disabled:opacity-50"
+                    >
+                      {bridgeSending ? "Emailing…" : "Email me the formatted draft"}
+                    </button>
+                    {bridgeSent && (
+                      <span className="text-xs text-accent">✓ Sent — paste it into Substack.</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-cream-muted/60 mt-2">
+                    Sends this edition to your inbox with headings and emphasis already
+                    applied — select all, paste into Substack, hit send. This happens
+                    automatically the moment the post publishes.
+                    {editing.substack_bridge_sent_at && (
+                      <>
+                        {" "}Last sent{" "}
+                        {new Date(editing.substack_bridge_sent_at).toLocaleString()}.
+                      </>
+                    )}
+                  </p>
                 </div>
               </div>
 

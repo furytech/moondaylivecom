@@ -71,6 +71,8 @@ export interface BlogPostRow {
   substack_status?: ChannelStatus;
   substack_scheduled_at?: string | null;
   substack_sent_at?: string | null;
+  /** Last time the formatted edition was emailed by the Substack draft bridge. */
+  substack_bridge_sent_at?: string | null;
   zodiac_sign_tag?: string;
   constellation_graphic_path?: string;
   reviewedBy?: string;
