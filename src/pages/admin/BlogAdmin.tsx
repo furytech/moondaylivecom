@@ -988,6 +988,35 @@ const BlogAdmin = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Email-to-draft bridge: fires automatically on publish, this
+                    is the manual rerun after an edit. */}
+                <div className="mt-4 rounded-lg border border-accent/20 bg-background/40 p-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleEmailSubstackDraft}
+                      disabled={bridgeSending || !editing.substack_post?.trim()}
+                      className="min-h-[44px] px-4 rounded-full border border-accent/40 text-accent text-sm hover:bg-accent/10 transition disabled:opacity-50"
+                    >
+                      {bridgeSending ? "Emailing…" : "Email me the formatted draft"}
+                    </button>
+                    {bridgeSent && (
+                      <span className="text-xs text-accent">✓ Sent — paste it into Substack.</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-cream-muted/60 mt-2">
+                    Sends this edition to your inbox with headings and emphasis already
+                    applied — select all, paste into Substack, hit send. This happens
+                    automatically the moment the post publishes.
+                    {editing.substack_bridge_sent_at && (
+                      <>
+                        {" "}Last sent{" "}
+                        {new Date(editing.substack_bridge_sent_at).toLocaleString()}.
+                      </>
+                    )}
+                  </p>
+                </div>
               </div>
 
               {/* Reddit copy — deliberately its own voice, not the blog intro. */}
