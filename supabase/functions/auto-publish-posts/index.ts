@@ -120,6 +120,35 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Reddit editions queued for a future instant: dispatch the moment that
+    // instant arrives, exactly like the blog's own scheduled publisher.
+    const { data: dueReddit } = await supabase
+      .from('blog_posts')
+      .select('id, title')
+      .eq('reddit_status', 'scheduled')
+      .lte('reddit_scheduled_at', now);
+
+    for (const post of dueReddit ?? []) {
+      const reddit = await publishPostToReddit(supabase, post.id);
+      if (reddit.ok) {
+        redditPosted += 1;
+        await notifyTelegram({
+          kind: 'published',
+          post_id: post.id,
+          title: post.title,
+          channel: `Reddit — sent to the approval webhook${reddit.permalink ? `: ${reddit.permalink}` : ''}`,
+        });
+      } else if (!reddit.skipped) {
+        redditFailed += 1;
+        await notifyTelegram({
+          kind: 'missed',
+          post_id: post.id,
+          title: post.title,
+          channel: `Reddit failed — ${reddit.reason ?? 'unknown error'}`,
+        });
+      }
+    }
+
     if (stale && stale.length > 0) {
       await reportError({
         source: 'auto-publish-posts',
