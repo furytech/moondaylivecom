@@ -119,6 +119,26 @@ Deno.serve(async (req) => {
           channel: 'Substack draft emailed — ready to paste',
         });
       }
+
+      // Substack hands off to its own n8n webhook, same shape as Reddit.
+      const substack = await publishPostToSubstack(supabase, post.id);
+      if (substack.ok) {
+        substackPosted += 1;
+        await notifyTelegram({
+          kind: 'published',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack — sent to the n8n webhook${substack.url ? `: ${substack.url}` : ''}`,
+        });
+      } else if (!substack.skipped) {
+        substackFailed += 1;
+        await notifyTelegram({
+          kind: 'missed',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack failed — ${substack.reason ?? 'unknown error'}`,
+        });
+      }
     }
 
     // Reddit editions queued for a future instant: dispatch the moment that
@@ -146,6 +166,34 @@ Deno.serve(async (req) => {
           post_id: post.id,
           title: post.title,
           channel: `Reddit failed — ${reddit.reason ?? 'unknown error'}`,
+        });
+      }
+    }
+
+    // Substack editions queued for a future instant.
+    const { data: dueSubstack } = await supabase
+      .from('blog_posts')
+      .select('id, title')
+      .eq('substack_status', 'scheduled')
+      .lte('substack_scheduled_at', now);
+
+    for (const post of dueSubstack ?? []) {
+      const substack = await publishPostToSubstack(supabase, post.id);
+      if (substack.ok) {
+        substackPosted += 1;
+        await notifyTelegram({
+          kind: 'published',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack — sent to the n8n webhook${substack.url ? `: ${substack.url}` : ''}`,
+        });
+      } else if (!substack.skipped) {
+        substackFailed += 1;
+        await notifyTelegram({
+          kind: 'missed',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack failed — ${substack.reason ?? 'unknown error'}`,
         });
       }
     }
