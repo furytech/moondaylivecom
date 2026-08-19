@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
 
 
     return new Response(
-      JSON.stringify({ published: data?.length || 0, substack_drafted: substackDrafted, reddit_posted: redditPosted, reddit_failed: redditFailed, posts: data }),
+      JSON.stringify({ published: data?.length || 0, substack_drafted: substackDrafted, reddit_posted: redditPosted, reddit_failed: redditFailed, substack_posted: substackPosted, substack_failed: substackFailed, posts: data }),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
