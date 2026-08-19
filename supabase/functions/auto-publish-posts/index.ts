@@ -87,8 +87,8 @@ Deno.serve(async (req) => {
       // Email-to-draft bridge: the moment a transit post goes live, its
       // newsletter edition lands in the editor's inbox pre-formatted, so the
       // Substack hand-off is a paste instead of a rebuild.
-      // Reddit publishes itself: sign image as the submission, generated copy
-      // as the OP comment. Failures are stamped on the row for the audit page.
+      // Reddit hands off to the approval webhook. Failures are stamped on the
+      // row so the audit page can show them.
       const reddit = await publishPostToReddit(supabase, post.id);
       if (reddit.ok) {
         redditPosted += 1;
@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
           kind: 'published',
           post_id: post.id,
           title: post.title,
-          channel: `Reddit — live${reddit.permalink ? `: ${reddit.permalink}` : ''}`,
+          channel: `Reddit — sent to the approval webhook${reddit.permalink ? `: ${reddit.permalink}` : ''}`,
         });
       } else if (!reddit.skipped) {
         redditFailed += 1;

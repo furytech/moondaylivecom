@@ -206,10 +206,8 @@ export async function getRelated(slug: string, category: BlogCategory, limit = 3
   return (data as BlogPostRow[] || []).map(rowToPost);
 }
 
-/* Reddit was removed from the publishing pipeline. The `reddit_*` columns on
- * `blog_posts` are intentionally left in place so historical copy is not
- * destroyed and the channel can be revived without a migration. Nothing in the
- * app reads or writes them any more. */
+/* Reddit publishes through the approval webhook pipeline: the `reddit-auto-post`
+ * edge function POSTs the finished payload and the webhook owns the posting. */
 
 
 // Admin helpers
@@ -287,17 +285,22 @@ export async function schedulePost(id: string, publishAtIso: string) {
   return data as BlogPostRow;
 }
 
-/** Queues (or clears) the Substack edition for a future instant. */
+/** Queues (or clears) a channel edition for a future instant. */
 export async function scheduleChannel(
   id: string,
-  channel: "substack",
+  channel: "substack" | "reddit",
   scheduledAtIso: string | null,
 ) {
   // When unscheduling (null) we only flip the status back to draft and keep the
   // stored time, so the row still renders exactly as it did before scheduling.
-  const patch = scheduledAtIso
-    ? { substack_status: "scheduled", substack_scheduled_at: scheduledAtIso }
-    : { substack_status: "draft" };
+  const patch =
+    channel === "reddit"
+      ? scheduledAtIso
+        ? { reddit_status: "scheduled", reddit_scheduled_at: scheduledAtIso }
+        : { reddit_status: "draft" }
+      : scheduledAtIso
+        ? { substack_status: "scheduled", substack_scheduled_at: scheduledAtIso }
+        : { substack_status: "draft" };
   const { data, error } = await supabase
     .from("blog_posts")
     .update(patch as any)
