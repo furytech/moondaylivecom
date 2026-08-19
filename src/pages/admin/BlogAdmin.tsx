@@ -126,10 +126,13 @@ const BlogAdmin = () => {
   const [telegramTesting, setTelegramTesting] = useState(false);
   // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
   // can be swapped between test and production workflows without a redeploy.
-  const DEFAULT_SUBSTACK_HOOK = "http://192.241.153.228:8055/webhook/substack-approval";
-  const [substackHook, setSubstackHook] = useState(
-    () => localStorage.getItem("moonday.substackWebhook") || DEFAULT_SUBSTACK_HOOK,
-  );
+  const DEFAULT_SUBSTACK_HOOK = "http://192.241.153.228:8055/webhook/substack-post";
+  const [substackHook, setSubstackHook] = useState(() => {
+    const stored = localStorage.getItem("moonday.substackWebhook");
+    // Migrate the retired /substack-approval path to the live /substack-post one.
+    if (!stored || stored.includes("/webhook/substack-approval")) return DEFAULT_SUBSTACK_HOOK;
+    return stored;
+  });
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
   // Email-to-draft bridge (manual rerun; it also fires automatically on publish).
