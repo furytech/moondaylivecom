@@ -867,6 +867,9 @@ const BlogAdmin = () => {
             onScheduleReddit={openRedditSchedule}
             onSendRedditNow={handleSendRedditNow}
             redditSendingId={redditSendingId}
+            onScheduleSubstack={openSubstackSchedule}
+            onSendSubstackNow={handleSendSubstackNow}
+            substackSendingId={substackSendingId}
             onToggleSent={handleToggleChannelSent}
             onCopySubstack={handleCopySubstack}
             onCopyReddit={handleCopyReddit}
