@@ -82,11 +82,14 @@ export async function publishPostToReddit(
   const scheduledAt =
     post.reddit_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
 
+  // Flat payload — no nested wrappers — so n8n can map fields directly.
   const payload = {
     post_id: post.id,
+    slug: post.slug ?? null,
     title,
     body: copy,
     content: copy,
+    status: 'publish',
     scheduled_time: scheduledAt,
     scheduled_at: scheduledAt,
     subreddit: Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim() || null,
