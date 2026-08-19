@@ -243,6 +243,9 @@ export interface ChannelMatrixProps {
   onScheduleReddit: (post: BlogPostRow) => void;
   onSendRedditNow: (post: BlogPostRow) => void;
   redditSendingId?: string | null;
+  onScheduleSubstack: (post: BlogPostRow) => void;
+  onSendSubstackNow: (post: BlogPostRow) => void;
+  substackSendingId?: string | null;
   onToggleSent: (post: BlogPostRow, channel: "substack" | "reddit") => void;
   onCopySubstack: (post: BlogPostRow) => void;
   onCopyReddit: (post: BlogPostRow) => void;
