@@ -126,10 +126,13 @@ const BlogAdmin = () => {
   const [telegramTesting, setTelegramTesting] = useState(false);
   // Substack hand-off. The n8n webhook URL is a per-browser admin setting so it
   // can be swapped between test and production workflows without a redeploy.
-  const DEFAULT_SUBSTACK_HOOK = "http://192.241.153.228:8055/webhook/substack-approval";
-  const [substackHook, setSubstackHook] = useState(
-    () => localStorage.getItem("moonday.substackWebhook") || DEFAULT_SUBSTACK_HOOK,
-  );
+  const DEFAULT_SUBSTACK_HOOK = "http://192.241.153.228:8055/webhook/substack-post";
+  const [substackHook, setSubstackHook] = useState(() => {
+    const stored = localStorage.getItem("moonday.substackWebhook");
+    // Migrate the retired /substack-approval path to the live /substack-post one.
+    if (!stored || stored.includes("/webhook/substack-approval")) return DEFAULT_SUBSTACK_HOOK;
+    return stored;
+  });
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
   // Email-to-draft bridge (manual rerun; it also fires automatically on publish).
@@ -143,6 +146,9 @@ const BlogAdmin = () => {
   const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
   const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
   const [redditSendingId, setRedditSendingId] = useState<string | null>(null);
+  const [substackScheduleTarget, setSubstackScheduleTarget] = useState<BlogPostRow | null>(null);
+  const [substackScheduleIso, setSubstackScheduleIso] = useState<string | null>(null);
+  const [substackSendingId, setSubstackSendingId] = useState<string | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
@@ -560,6 +566,58 @@ const BlogAdmin = () => {
     }
   };
 
+  /** Queues the Substack edition; the hourly dispatcher fires the webhook. */
+  const openSubstackSchedule = (p: BlogPostRow) => {
+    setSubstackScheduleTarget(p);
+    setSubstackScheduleIso(p.substack_scheduled_at || p.publish_at || null);
+  };
+
+  /** Sends the Substack payload to the n8n webhook right now. */
+  const handleSendSubstackNow = async (post: BlogPostRow) => {
+    if (!post.substack_post?.trim()) {
+      setMessage("No newsletter copy on this post yet.");
+      return;
+    }
+    setSubstackSendingId(post.id || null);
+    setMessage("Sending the Substack edition to the n8n webhook…");
+    try {
+      const { data, error } = await supabase.functions.invoke("substack-auto-post", {
+        body: { post_id: post.id, force: true },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setMessage(
+        data?.skipped
+          ? `Substack dispatch skipped: ${data.reason}`
+          : "Substack edition sent to the n8n webhook.",
+      );
+      refetch();
+    } catch (err: any) {
+      setMessage(`Substack dispatch failed: ${err.message}`);
+    } finally {
+      setSubstackSendingId(null);
+    }
+  };
+
+  const confirmSubstackSchedule = async () => {
+    if (!substackScheduleTarget || !substackScheduleIso) return;
+    try {
+      if (new Date(substackScheduleIso).getTime() <= Date.now()) {
+        const target = substackScheduleTarget;
+        setSubstackScheduleTarget(null);
+        await handleSendSubstackNow(target);
+        return;
+      }
+      await scheduleChannel(substackScheduleTarget.id!, "substack", substackScheduleIso);
+      setMessage(`Substack edition queued for ${displayDate(substackScheduleIso)}.`);
+      setSubstackScheduleTarget(null);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+
   const openReschedule = (p: BlogPostRow) => {
     setRescheduleTarget(p);
     setRescheduleIso(p.publish_at || null);
@@ -812,6 +870,9 @@ const BlogAdmin = () => {
             onScheduleReddit={openRedditSchedule}
             onSendRedditNow={handleSendRedditNow}
             redditSendingId={redditSendingId}
+            onScheduleSubstack={openSubstackSchedule}
+            onSendSubstackNow={handleSendSubstackNow}
+            substackSendingId={substackSendingId}
             onToggleSent={handleToggleChannelSent}
             onCopySubstack={handleCopySubstack}
             onCopyReddit={handleCopyReddit}
@@ -1294,6 +1355,39 @@ const BlogAdmin = () => {
             </p>
           )}
         </ResponsiveModal>
+
+        {/* Substack scheduling — identical controls to Reddit. */}
+        <ResponsiveModal
+          open={!!substackScheduleTarget}
+          onOpenChange={(open) => !open && setSubstackScheduleTarget(null)}
+          title="Schedule Substack edition"
+          description={substackScheduleTarget?.title}
+          footer={
+            <div className="flex gap-3">
+              <button
+                onClick={confirmSubstackSchedule}
+                disabled={!substackScheduleIso}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition disabled:opacity-50"
+              >
+                Confirm schedule
+              </button>
+              <button
+                onClick={() => setSubstackScheduleTarget(null)}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full border border-border/50 text-cream-muted text-sm hover:text-foreground transition"
+              >
+                Cancel
+              </button>
+            </div>
+          }
+        >
+          <ScheduledPublishPicker value={substackScheduleIso} onChange={setSubstackScheduleIso} />
+          {substackScheduleIso && (
+            <p className="text-xs text-cream-muted mt-3">
+              Sent to the n8n webhook: {displayDate(substackScheduleIso)}
+            </p>
+          )}
+        </ResponsiveModal>
+
 
         <ResponsiveModal
           open={!!rescheduleTarget}

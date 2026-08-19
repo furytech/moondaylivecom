@@ -1,0 +1,1 @@
+UPDATE public.blog_posts SET substack_status = 'draft', substack_sent_at = NULL WHERE id = 'ce3baf23-7f7c-4dca-ba71-18f318d20915';

@@ -2,14 +2,14 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportError, errorText } from './errorTracking.ts'
 
 /**
- * Reddit hand-off, webhook edition.
+ * Substack hand-off, webhook edition.
  *
- * Reddit is no longer posted to directly with OAuth credentials. Instead every
- * dispatch — automatic on publish, scheduled, or a manual admin retry — POSTs
- * the finished payload to the approval webhook, which owns the actual posting.
+ * Mirrors the Reddit pipeline exactly: every dispatch — automatic on publish,
+ * scheduled, or a manual admin send — POSTs a flat payload to the n8n webhook,
+ * which owns the actual delivery to Substack. Outcomes are stamped on the post
+ * row so the channel audit page can say what happened and when.
  *
- * Every outcome, success or failure, is written back onto the post row so the
- * channel audit page can say exactly what happened and when.
+ * Plain HTTP on the default endpoint is intentional (internal n8n box).
  */
 
 type Client = ReturnType<typeof createClient>
@@ -17,37 +17,36 @@ type Client = ReturnType<typeof createClient>
 const SITE_URL = 'https://moondaylive.com'
 
 const WEBHOOK_URL =
-  Deno.env.get('REDDIT_WEBHOOK_URL')?.trim() ||
-  'http://192.241.153.228:8055/webhook/reddit-approval'
+  Deno.env.get('SUBSTACK_WEBHOOK_URL')?.trim() ||
+  'http://192.241.153.228:8055/webhook/substack-post'
 
-export interface PublishOutcome {
+export interface SubstackOutcome {
   ok: boolean
   skipped?: boolean
   reason?: string
-  permalink?: string
   title?: string
+  url?: string
 }
 
 async function recordFailure(supabase: Client, postId: string, message: string) {
   await supabase
     .from('blog_posts')
     .update({
-      reddit_status: 'failed',
-      reddit_error: message.slice(0, 500),
-      reddit_attempted_at: new Date().toISOString(),
+      substack_status: 'failed',
+      substack_error: message.slice(0, 500),
     })
     .eq('id', postId)
 }
 
-export async function publishPostToReddit(
+export async function publishPostToSubstack(
   supabase: Client,
   postId: string,
   opts: { force?: boolean } = {},
-): Promise<PublishOutcome> {
+): Promise<SubstackOutcome> {
   const { data: post, error } = await supabase
     .from('blog_posts')
     .select(
-      'id, slug, title, category, reddit_post, reddit_status, reddit_scheduled_at, publish_at, published_at, image_url, constellation_graphic_path, zodiac_sign_tag',
+      'id, slug, title, excerpt, category, substack_post, substack_status, substack_scheduled_at, publish_at, published_at, image_url, constellation_graphic_path, zodiac_sign_tag',
     )
     .eq('id', postId)
     .maybeSingle()
@@ -55,17 +54,17 @@ export async function publishPostToReddit(
   if (error) return { ok: false, reason: error.message }
   if (!post) return { ok: false, reason: 'Post not found' }
 
-  if (post.reddit_status === 'sent' && !opts.force) {
+  if (post.substack_status === 'sent' && !opts.force) {
     return { ok: false, skipped: true, reason: 'already_sent' }
   }
 
-  const copy = post.reddit_post?.trim()
+  const copy = post.substack_post?.trim()
   if (!copy) {
-    return { ok: false, skipped: true, reason: 'no_reddit_copy' }
+    return { ok: false, skipped: true, reason: 'no_substack_copy' }
   }
 
   const title = post.title?.trim() || `The Moon enters ${post.zodiac_sign_tag ?? 'a new sign'}`
-  const postUrl = post.slug
+  const sourceUrl = post.slug
     ? post.category
       ? `${SITE_URL}/blog/${post.category}/${post.slug}`
       : `${SITE_URL}/blog/${post.slug}`
@@ -77,10 +76,8 @@ export async function publishPostToReddit(
       ? `${SITE_URL}${post.constellation_graphic_path.startsWith('/') ? '' : '/'}${post.constellation_graphic_path}`
       : null)
 
-  // The scheduled instant is what the operator picked for Reddit; fall back to
-  // the blog's instant so the webhook always receives a concrete time.
   const scheduledAt =
-    post.reddit_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
+    post.substack_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
 
   // Flat payload — no nested wrappers — so n8n can map fields directly.
   const payload = {
@@ -89,13 +86,15 @@ export async function publishPostToReddit(
     title,
     body: copy,
     content: copy,
+    excerpt: post.excerpt ?? null,
+    subject: title,
     status: 'publish',
     scheduled_time: scheduledAt,
     scheduled_at: scheduledAt,
-    subreddit: Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim() || null,
     zodiac_sign: post.zodiac_sign_tag ?? null,
     image_url: imageUrl,
-    source_url: postUrl,
+    source_url: sourceUrl,
+    canonical: sourceUrl,
   }
 
   try {
@@ -107,38 +106,36 @@ export async function publishPostToReddit(
 
     const raw = await res.text().catch(() => '')
     if (!res.ok) {
-      throw new Error(`Reddit webhook returned ${res.status}${raw ? `: ${raw.slice(0, 200)}` : ''}`)
+      throw new Error(
+        `Substack webhook returned ${res.status}${raw ? `: ${raw.slice(0, 200)}` : ''}`,
+      )
     }
 
-    // The webhook may echo back the live thread; take it when offered.
-    let permalink: string | null = null
+    let url: string | null = null
     try {
       const parsed = raw ? JSON.parse(raw) : null
-      permalink = parsed?.permalink || parsed?.url || null
+      url = parsed?.url || parsed?.permalink || null
     } catch {
-      permalink = null
+      url = null
     }
 
-    const now = new Date().toISOString()
     await supabase
       .from('blog_posts')
       .update({
-        reddit_status: 'sent',
-        reddit_posted_at: now,
-        reddit_attempted_at: now,
-        reddit_permalink: permalink,
-        reddit_error: null,
+        substack_status: 'sent',
+        substack_sent_at: new Date().toISOString(),
+        substack_error: null,
       })
       .eq('id', postId)
 
-    return { ok: true, permalink: permalink ?? undefined, title }
+    return { ok: true, title, url: url ?? undefined }
   } catch (e) {
     const message = errorText(e)
     await recordFailure(supabase, postId, message)
     await reportError({
-      source: 'reddit-auto-post',
+      source: 'substack-auto-post',
       severity: 'error',
-      message: `Reddit webhook dispatch failed for "${title}": ${message}`,
+      message: `Substack webhook dispatch failed for "${title}": ${message}`,
       context: { postId, webhook: WEBHOOK_URL },
       throttleMinutes: 30,
     })

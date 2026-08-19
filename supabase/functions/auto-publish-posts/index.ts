@@ -4,6 +4,7 @@ import { reportError, errorText } from '../_shared/errorTracking.ts';
 import { notifyTelegram } from '../_shared/telegram.ts';
 import { sendSubstackDraft } from '../_shared/substackBridge.ts';
 import { publishPostToReddit } from '../_shared/redditPublish.ts';
+import { publishPostToSubstack } from '../_shared/substackPublish.ts';
 
 
 const supabase = createClient(
@@ -76,6 +77,8 @@ Deno.serve(async (req) => {
     let substackDrafted = 0;
     let redditPosted = 0;
     let redditFailed = 0;
+    let substackPosted = 0;
+    let substackFailed = 0;
     for (const post of data ?? []) {
       await notifyTelegram({
         kind: 'published',
@@ -118,6 +121,26 @@ Deno.serve(async (req) => {
           channel: 'Substack draft emailed — ready to paste',
         });
       }
+
+      // Substack hands off to its own n8n webhook, same shape as Reddit.
+      const substack = await publishPostToSubstack(supabase, post.id);
+      if (substack.ok) {
+        substackPosted += 1;
+        await notifyTelegram({
+          kind: 'published',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack — sent to the n8n webhook${substack.url ? `: ${substack.url}` : ''}`,
+        });
+      } else if (!substack.skipped) {
+        substackFailed += 1;
+        await notifyTelegram({
+          kind: 'missed',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack failed — ${substack.reason ?? 'unknown error'}`,
+        });
+      }
     }
 
     // Reddit editions queued for a future instant: dispatch the moment that
@@ -149,6 +172,34 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Substack editions queued for a future instant.
+    const { data: dueSubstack } = await supabase
+      .from('blog_posts')
+      .select('id, title')
+      .eq('substack_status', 'scheduled')
+      .lte('substack_scheduled_at', now);
+
+    for (const post of dueSubstack ?? []) {
+      const substack = await publishPostToSubstack(supabase, post.id);
+      if (substack.ok) {
+        substackPosted += 1;
+        await notifyTelegram({
+          kind: 'published',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack — sent to the n8n webhook${substack.url ? `: ${substack.url}` : ''}`,
+        });
+      } else if (!substack.skipped) {
+        substackFailed += 1;
+        await notifyTelegram({
+          kind: 'missed',
+          post_id: post.id,
+          title: post.title,
+          channel: `Substack failed — ${substack.reason ?? 'unknown error'}`,
+        });
+      }
+    }
+
     if (stale && stale.length > 0) {
       await reportError({
         source: 'auto-publish-posts',
@@ -169,7 +220,7 @@ Deno.serve(async (req) => {
 
 
     return new Response(
-      JSON.stringify({ published: data?.length || 0, substack_drafted: substackDrafted, reddit_posted: redditPosted, reddit_failed: redditFailed, posts: data }),
+      JSON.stringify({ published: data?.length || 0, substack_drafted: substackDrafted, reddit_posted: redditPosted, reddit_failed: redditFailed, substack_posted: substackPosted, substack_failed: substackFailed, posts: data }),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
