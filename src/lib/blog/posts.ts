@@ -73,6 +73,11 @@ export interface BlogPostRow {
   substack_sent_at?: string | null;
   /** Last time the formatted edition was emailed by the Substack draft bridge. */
   substack_bridge_sent_at?: string | null;
+  substack_error?: string | null;
+  /** Reddit auto-post outcome, surfaced on the channel audit page. */
+  reddit_error?: string | null;
+  reddit_permalink?: string | null;
+  reddit_attempted_at?: string | null;
   zodiac_sign_tag?: string;
   constellation_graphic_path?: string;
   reviewedBy?: string;

@@ -44,6 +44,7 @@ import BlogAdmin from "./pages/admin/BlogAdmin";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Subscribers from "./pages/admin/Subscribers";
 import SystemErrors from "./pages/admin/SystemErrors";
+import ChannelAudit from "./pages/admin/ChannelAudit";
 import GuestDesk from "./pages/admin/GuestDesk";
 import GuestApplications from "./pages/admin/GuestApplications";
 
@@ -85,6 +86,11 @@ const App = () => (
             <Route path="/admin/subscribers" element={
               <AdminRoute>
                 <Subscribers />
+              </AdminRoute>
+            } />
+            <Route path="/admin/channel-audit" element={
+              <AdminRoute>
+                <ChannelAudit />
               </AdminRoute>
             } />
             <Route path="/admin/errors" element={
