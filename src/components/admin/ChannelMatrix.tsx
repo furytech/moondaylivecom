@@ -333,6 +333,20 @@ const ChannelMatrix = ({
       ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
     }
     return [
+      status !== "sent" && {
+        key: "send",
+        tone: "emerald" as Tone,
+        label: substackSendingId === p.id ? "Sending…" : "Publish now",
+        onClick: () => onSendSubstackNow(p),
+        disabled: !p.substack_post || substackSendingId === p.id,
+      },
+      {
+        key: "schedule",
+        tone: "sky" as Tone,
+        label: status === "scheduled" ? "Reschedule" : "Schedule",
+        onClick: () => onScheduleSubstack(p),
+        disabled: !p.substack_post,
+      },
       {
         key: "copy",
         tone: "primary" as Tone,
@@ -346,7 +360,7 @@ const ChannelMatrix = ({
         label: status === "sent" ? "Undo posted" : "Mark posted",
         onClick: () => onToggleSent(p, "substack"),
       },
-    ] as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
+    ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
   };
 
   return (
