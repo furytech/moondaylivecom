@@ -394,6 +394,37 @@ const BlogAdmin = () => {
   // Regenerates channel copy with the AI generator so each platform gets a
   // genuinely distinct piece (the old behaviour just re-wrapped the blog body,
   // which is why Substack read identically to the website article).
+
+  // Email-to-draft bridge. Sends the current saved edition to the admin inbox
+  // pre-formatted so Substack is a paste, not a rebuild. Runs automatically on
+  // publish; this button is for reruns after an edit.
+  const handleEmailSubstackDraft = async () => {
+    if (!editing?.id) {
+      setMessage("Save the post first, then email the draft.");
+      return;
+    }
+    setBridgeSending(true);
+    setBridgeSent(false);
+    setMessage("Emailing the formatted Substack draft…");
+    try {
+      const { data, error } = await supabase.functions.invoke("substack-bridge-send", {
+        body: { post_id: editing.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setBridgeSent(true);
+      setEditing((prev) =>
+        prev ? { ...prev, substack_bridge_sent_at: new Date().toISOString() } : prev,
+      );
+      setMessage("Formatted draft sent to your inbox.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Could not email the draft: ${err.message}`);
+    } finally {
+      setBridgeSending(false);
+    }
+  };
+
   const handleRegenerateChannel = async (channel: "substack" | "reddit") => {
     if (!editing?.id) {
       setMessage("Save the post first, then regenerate.");
