@@ -1,0 +1,1 @@
+alter table public.blog_posts add column if not exists substack_bridge_sent_at timestamptz;
