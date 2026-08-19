@@ -77,6 +77,8 @@ Deno.serve(async (req) => {
     let substackDrafted = 0;
     let redditPosted = 0;
     let redditFailed = 0;
+    let substackPosted = 0;
+    let substackFailed = 0;
     for (const post of data ?? []) {
       await notifyTelegram({
         kind: 'published',
