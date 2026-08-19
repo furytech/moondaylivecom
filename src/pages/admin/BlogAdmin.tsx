@@ -132,6 +132,9 @@ const BlogAdmin = () => {
   );
   const [substackSending, setSubstackSending] = useState(false);
   const [substackSent, setSubstackSent] = useState(false);
+  // Email-to-draft bridge (manual rerun; it also fires automatically on publish).
+  const [bridgeSending, setBridgeSending] = useState(false);
+  const [bridgeSent, setBridgeSent] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
     "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
   >("queue");
