@@ -4,6 +4,7 @@ import { reportError, errorText } from '../_shared/errorTracking.ts';
 import { notifyTelegram } from '../_shared/telegram.ts';
 import { sendSubstackDraft } from '../_shared/substackBridge.ts';
 import { publishPostToReddit } from '../_shared/redditPublish.ts';
+import { publishPostToSubstack } from '../_shared/substackPublish.ts';
 
 
 const supabase = createClient(
