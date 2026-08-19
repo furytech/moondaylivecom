@@ -476,9 +476,7 @@ const ChannelMatrix = ({
                           status === "scheduled"
                             ? c === "blog"
                               ? () => onUnscheduleBlog(p.id!)
-                              : c === "substack"
-                              ? () => onUnscheduleChannel(p.id!, "substack")
-                              : undefined
+                              : () => onUnscheduleChannel(p.id!, c)
                             : undefined
                         }
                       />
