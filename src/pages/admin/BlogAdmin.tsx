@@ -563,6 +563,58 @@ const BlogAdmin = () => {
     }
   };
 
+  /** Queues the Substack edition; the hourly dispatcher fires the webhook. */
+  const openSubstackSchedule = (p: BlogPostRow) => {
+    setSubstackScheduleTarget(p);
+    setSubstackScheduleIso(p.substack_scheduled_at || p.publish_at || null);
+  };
+
+  /** Sends the Substack payload to the n8n webhook right now. */
+  const handleSendSubstackNow = async (post: BlogPostRow) => {
+    if (!post.substack_post?.trim()) {
+      setMessage("No newsletter copy on this post yet.");
+      return;
+    }
+    setSubstackSendingId(post.id || null);
+    setMessage("Sending the Substack edition to the n8n webhook…");
+    try {
+      const { data, error } = await supabase.functions.invoke("substack-auto-post", {
+        body: { post_id: post.id, force: true },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setMessage(
+        data?.skipped
+          ? `Substack dispatch skipped: ${data.reason}`
+          : "Substack edition sent to the n8n webhook.",
+      );
+      refetch();
+    } catch (err: any) {
+      setMessage(`Substack dispatch failed: ${err.message}`);
+    } finally {
+      setSubstackSendingId(null);
+    }
+  };
+
+  const confirmSubstackSchedule = async () => {
+    if (!substackScheduleTarget || !substackScheduleIso) return;
+    try {
+      if (new Date(substackScheduleIso).getTime() <= Date.now()) {
+        const target = substackScheduleTarget;
+        setSubstackScheduleTarget(null);
+        await handleSendSubstackNow(target);
+        return;
+      }
+      await scheduleChannel(substackScheduleTarget.id!, "substack", substackScheduleIso);
+      setMessage(`Substack edition queued for ${displayDate(substackScheduleIso)}.`);
+      setSubstackScheduleTarget(null);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+
   const openReschedule = (p: BlogPostRow) => {
     setRescheduleTarget(p);
     setRescheduleIso(p.publish_at || null);
