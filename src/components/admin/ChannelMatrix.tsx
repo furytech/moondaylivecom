@@ -6,7 +6,7 @@ import { BlogPostRow } from "@/lib/blog/posts";
  * The old layout was one row per post with a column per channel, which made it
  * impossible to see at a glance whether a given channel actually went out.
  * Here each transit is a block, and inside it the rows are the outlets we
- * actually publish to — Blog and Substack — with their own UTC instant, status
+ * actually publish to — Blog, Substack and Reddit — with their own UTC instant, status
  * and remedy action.
  *
  * Below the tablet breakpoint the table collapses into stacked cards with
@@ -239,7 +239,10 @@ export interface ChannelMatrixProps {
   onSchedule: (post: BlogPostRow) => void;
   onUnscheduleBlog: (id: string) => void;
   onUnpublish: (id: string) => void;
-  onUnscheduleChannel: (id: string, channel: "substack") => void;
+  onUnscheduleChannel: (id: string, channel: "substack" | "reddit") => void;
+  onScheduleReddit: (post: BlogPostRow) => void;
+  onSendRedditNow: (post: BlogPostRow) => void;
+  redditSendingId?: string | null;
   onToggleSent: (post: BlogPostRow, channel: "substack" | "reddit") => void;
   onCopySubstack: (post: BlogPostRow) => void;
   onCopyReddit: (post: BlogPostRow) => void;
@@ -259,6 +262,9 @@ const ChannelMatrix = ({
   onUnscheduleBlog,
   onUnpublish,
   onUnscheduleChannel,
+  onScheduleReddit,
+  onSendRedditNow,
+  redditSendingId,
   onToggleSent,
   onCopySubstack,
   onCopyReddit,
@@ -297,6 +303,20 @@ const ChannelMatrix = ({
     }
     if (c === "reddit") {
       return [
+        status !== "sent" && {
+          key: "send",
+          tone: "emerald" as Tone,
+          label: redditSendingId === p.id ? "Sending…" : "Publish now",
+          onClick: () => onSendRedditNow(p),
+          disabled: !p.reddit_post || redditSendingId === p.id,
+        },
+        {
+          key: "schedule",
+          tone: "sky" as Tone,
+          label: status === "scheduled" ? "Reschedule" : "Schedule",
+          onClick: () => onScheduleReddit(p),
+          disabled: !p.reddit_post,
+        },
         {
           key: "copy",
           tone: "primary" as Tone,
@@ -310,7 +330,7 @@ const ChannelMatrix = ({
           label: status === "sent" ? "Undo posted" : "Mark posted",
           onClick: () => onToggleSent(p, "reddit"),
         },
-      ] as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
+      ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
     }
     return [
       {
@@ -416,9 +436,7 @@ const ChannelMatrix = ({
                             status === "scheduled"
                               ? c === "blog"
                                 ? () => onUnscheduleBlog(p.id!)
-                                : c === "substack"
-                                ? () => onUnscheduleChannel(p.id!, "substack")
-                                : undefined
+                                : () => onUnscheduleChannel(p.id!, c)
                               : undefined
                           }
                         />
