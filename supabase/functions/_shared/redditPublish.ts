@@ -1,32 +1,30 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportError, errorText } from './errorTracking.ts'
-import {
-  addComment,
-  findRecentSubmission,
-  getAccessToken,
-  submitImagePost,
-  submitTextPost,
-  uploadImage,
-  RedditError,
-} from './redditClient.ts'
 
 /**
- * The publish routine shared by the cron pipeline and the admin retry button.
+ * Reddit hand-off, webhook edition.
  *
- * Every outcome — success or failure — is written back onto the post row, so
- * the channel audit page can show what happened and when without guessing.
+ * Reddit is no longer posted to directly with OAuth credentials. Instead every
+ * dispatch — automatic on publish, scheduled, or a manual admin retry — POSTs
+ * the finished payload to the approval webhook, which owns the actual posting.
+ *
+ * Every outcome, success or failure, is written back onto the post row so the
+ * channel audit page can say exactly what happened and when.
  */
 
 type Client = ReturnType<typeof createClient>
 
 const SITE_URL = 'https://moondaylive.com'
 
+const WEBHOOK_URL =
+  Deno.env.get('REDDIT_WEBHOOK_URL')?.trim() ||
+  'http://192.241.153.228:8055/webhook/reddit-approval'
+
 export interface PublishOutcome {
   ok: boolean
   skipped?: boolean
   reason?: string
   permalink?: string
-  commented?: boolean
   title?: string
 }
 
@@ -49,7 +47,7 @@ export async function publishPostToReddit(
   const { data: post, error } = await supabase
     .from('blog_posts')
     .select(
-      'id, slug, title, category, reddit_post, reddit_status, image_url, constellation_graphic_path, zodiac_sign_tag',
+      'id, slug, title, category, reddit_post, reddit_status, reddit_scheduled_at, publish_at, published_at, image_url, constellation_graphic_path, zodiac_sign_tag',
     )
     .eq('id', postId)
     .maybeSingle()
@@ -66,12 +64,6 @@ export async function publishPostToReddit(
     return { ok: false, skipped: true, reason: 'no_reddit_copy' }
   }
 
-  const subreddit = Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim()
-  if (!subreddit) {
-    await recordFailure(supabase, postId, 'No target subreddit configured (REDDIT_DEFAULT_SUBREDDIT).')
-    return { ok: false, reason: 'No target subreddit configured.' }
-  }
-
   const title = post.title?.trim() || `The Moon enters ${post.zodiac_sign_tag ?? 'a new sign'}`
   const postUrl = post.slug
     ? post.category
@@ -79,62 +71,52 @@ export async function publishPostToReddit(
       : `${SITE_URL}/blog/${post.slug}`
     : SITE_URL
 
-  // Reddit reads as spam when a link is the point of the post, so the copy
-  // leads and the source sits at the bottom as a plain attribution line.
-  const commentBody = `${copy}\n\n---\n\n^(Full write-up: )[^(moondaylive.com)](${postUrl})^( — entertainment astrology.)`
-
   const imageUrl =
     post.image_url?.trim() ||
     (post.constellation_graphic_path
       ? `${SITE_URL}${post.constellation_graphic_path.startsWith('/') ? '' : '/'}${post.constellation_graphic_path}`
       : null)
 
+  // The scheduled instant is what the operator picked for Reddit; fall back to
+  // the blog's instant so the webhook always receives a concrete time.
+  const scheduledAt =
+    post.reddit_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
+
+  const payload = {
+    post_id: post.id,
+    title,
+    body: copy,
+    content: copy,
+    scheduled_time: scheduledAt,
+    scheduled_at: scheduledAt,
+    subreddit: Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim() || null,
+    zodiac_sign: post.zodiac_sign_tag ?? null,
+    image_url: imageUrl,
+    source_url: postUrl,
+  }
+
   try {
-    const token = await getAccessToken(supabase)
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
 
-    let submission: { fullname?: string; permalink?: string } | null = null
-    let usedImage = false
-
-    if (imageUrl) {
-      try {
-        const assetUrl = await uploadImage(token, imageUrl)
-        submission = await submitImagePost(token, subreddit, title, assetUrl)
-        usedImage = true
-      } catch (imgErr) {
-        // The image is the nicer presentation, not the payload. If Reddit's
-        // media host balks, still get the transit out as a text post.
-        await reportError({
-          source: 'reddit-auto-post',
-          severity: 'warning',
-          message: `Sign image upload failed, falling back to a text post: ${errorText(imgErr)}`,
-          context: { postId, imageUrl },
-          throttleMinutes: 60,
-        })
-      }
+    const raw = await res.text().catch(() => '')
+    if (!res.ok) {
+      throw new Error(`Reddit webhook returned ${res.status}${raw ? `: ${raw.slice(0, 200)}` : ''}`)
     }
 
-    if (!submission) {
-      submission = await submitTextPost(token, subreddit, title, commentBody)
-    }
-
-    // Image submissions finish asynchronously and come back without an id.
-    if (usedImage && !submission.fullname) {
-      const found = await findRecentSubmission(token, title)
-      if (found) submission = { ...submission, ...found }
-    }
-
-    let commented = false
-    if (usedImage && submission.fullname) {
-      // Image posts carry no body, so the copy becomes the OP comment.
-      await addComment(token, submission.fullname, commentBody)
-      commented = true
+    // The webhook may echo back the live thread; take it when offered.
+    let permalink: string | null = null
+    try {
+      const parsed = raw ? JSON.parse(raw) : null
+      permalink = parsed?.permalink || parsed?.url || null
+    } catch {
+      permalink = null
     }
 
     const now = new Date().toISOString()
-    const permalink =
-      submission.permalink ||
-      (submission.fullname ? `https://www.reddit.com/comments/${submission.fullname.replace('t3_', '')}` : null)
-
     await supabase
       .from('blog_posts')
       .update({
@@ -142,22 +124,19 @@ export async function publishPostToReddit(
         reddit_posted_at: now,
         reddit_attempted_at: now,
         reddit_permalink: permalink,
-        reddit_error:
-          usedImage && !commented
-            ? 'Posted with the image, but the copy comment could not be confirmed — check the thread.'
-            : null,
+        reddit_error: null,
       })
       .eq('id', postId)
 
-    return { ok: true, permalink: permalink ?? undefined, commented, title }
+    return { ok: true, permalink: permalink ?? undefined, title }
   } catch (e) {
-    const message = e instanceof RedditError ? e.message : errorText(e)
+    const message = errorText(e)
     await recordFailure(supabase, postId, message)
     await reportError({
       source: 'reddit-auto-post',
       severity: 'error',
-      message: `Reddit publish failed for "${title}": ${message}`,
-      context: { postId, subreddit },
+      message: `Reddit webhook dispatch failed for "${title}": ${message}`,
+      context: { postId, webhook: WEBHOOK_URL },
       throttleMinutes: 30,
     })
     return { ok: false, reason: message, title }
