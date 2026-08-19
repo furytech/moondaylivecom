@@ -35,6 +35,9 @@ export type Database = {
           publish_at: string | null
           published_at: string | null
           read_time: number
+          reddit_attempted_at: string | null
+          reddit_error: string | null
+          reddit_permalink: string | null
           reddit_post: string | null
           reddit_posted_at: string | null
           reddit_scheduled_at: string | null
@@ -43,6 +46,7 @@ export type Database = {
           slug: string
           status: string
           substack_bridge_sent_at: string | null
+          substack_error: string | null
           substack_post: string | null
           substack_scheduled_at: string | null
           substack_sent_at: string | null
@@ -71,6 +75,9 @@ export type Database = {
           publish_at?: string | null
           published_at?: string | null
           read_time?: number
+          reddit_attempted_at?: string | null
+          reddit_error?: string | null
+          reddit_permalink?: string | null
           reddit_post?: string | null
           reddit_posted_at?: string | null
           reddit_scheduled_at?: string | null
@@ -79,6 +86,7 @@ export type Database = {
           slug: string
           status?: string
           substack_bridge_sent_at?: string | null
+          substack_error?: string | null
           substack_post?: string | null
           substack_scheduled_at?: string | null
           substack_sent_at?: string | null
@@ -107,6 +115,9 @@ export type Database = {
           publish_at?: string | null
           published_at?: string | null
           read_time?: number
+          reddit_attempted_at?: string | null
+          reddit_error?: string | null
+          reddit_permalink?: string | null
           reddit_post?: string | null
           reddit_posted_at?: string | null
           reddit_scheduled_at?: string | null
@@ -115,6 +126,7 @@ export type Database = {
           slug?: string
           status?: string
           substack_bridge_sent_at?: string | null
+          substack_error?: string | null
           substack_post?: string | null
           substack_scheduled_at?: string | null
           substack_sent_at?: string | null
