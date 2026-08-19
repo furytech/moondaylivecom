@@ -140,6 +140,9 @@ const BlogAdmin = () => {
   >("queue");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
+  const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
+  const [redditSendingId, setRedditSendingId] = useState<string | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
@@ -493,12 +496,64 @@ const BlogAdmin = () => {
     }
   };
 
-  /** Retracts a scheduled Substack edition back to draft. */
-  const handleUnscheduleChannel = async (id: string, channel: "substack") => {
-    if (!confirm("Unschedule the Substack edition? It reverts to draft.")) return;
+  /** Retracts a scheduled Substack or Reddit edition back to draft. */
+  const handleUnscheduleChannel = async (id: string, channel: "substack" | "reddit") => {
+    const label = channel === "reddit" ? "Reddit post" : "Substack edition";
+    if (!confirm(`Unschedule the ${label}? It reverts to draft.`)) return;
     try {
       await scheduleChannel(id, channel, null);
-      setMessage("Substack edition unscheduled — back to draft.");
+      setMessage(`${label} unscheduled — back to draft.`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  /** Queues the Reddit edition; the hourly dispatcher fires the webhook. */
+  const openRedditSchedule = (p: BlogPostRow) => {
+    setRedditScheduleTarget(p);
+    setRedditScheduleIso(p.reddit_scheduled_at || p.publish_at || null);
+  };
+
+  /** Sends the Reddit payload to the approval webhook right now. */
+  const handleSendRedditNow = async (post: BlogPostRow) => {
+    if (!post.reddit_post?.trim()) {
+      setMessage("No Reddit copy on this post yet.");
+      return;
+    }
+    setRedditSendingId(post.id || null);
+    setMessage("Sending the Reddit post to the approval webhook…");
+    try {
+      const { data, error } = await supabase.functions.invoke("reddit-auto-post", {
+        body: { post_id: post.id, force: true },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setMessage(
+        data?.skipped
+          ? `Reddit dispatch skipped: ${data.reason}`
+          : "Reddit post sent to the approval webhook.",
+      );
+      refetch();
+    } catch (err: any) {
+      setMessage(`Reddit dispatch failed: ${err.message}`);
+    } finally {
+      setRedditSendingId(null);
+    }
+  };
+
+  const confirmRedditSchedule = async () => {
+    if (!redditScheduleTarget || !redditScheduleIso) return;
+    try {
+      if (new Date(redditScheduleIso).getTime() <= Date.now()) {
+        const target = redditScheduleTarget;
+        setRedditScheduleTarget(null);
+        await handleSendRedditNow(target);
+        return;
+      }
+      await scheduleChannel(redditScheduleTarget.id!, "reddit", redditScheduleIso);
+      setMessage(`Reddit post queued for ${displayDate(redditScheduleIso)}.`);
+      setRedditScheduleTarget(null);
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
@@ -754,6 +809,9 @@ const BlogAdmin = () => {
             onUnscheduleBlog={handleUnscheduleBlog}
             onUnpublish={handleUnpublish}
             onUnscheduleChannel={handleUnscheduleChannel}
+            onScheduleReddit={openRedditSchedule}
+            onSendRedditNow={handleSendRedditNow}
+            redditSendingId={redditSendingId}
             onToggleSent={handleToggleChannelSent}
             onCopySubstack={handleCopySubstack}
             onCopyReddit={handleCopyReddit}
