@@ -319,7 +319,7 @@ const ChannelMatrix = ({
         {
           key: "schedule",
           tone: "sky" as Tone,
-          label: status === "scheduled" ? "Reschedule" : "Schedule",
+          label: status === "scheduled" ? "Approved ✓" : "Approve",
           onClick: () => onScheduleReddit(p),
           disabled: !p.reddit_post,
         },
@@ -349,7 +349,7 @@ const ChannelMatrix = ({
       {
         key: "schedule",
         tone: "sky" as Tone,
-        label: status === "scheduled" ? "Reschedule" : "Schedule",
+        label: status === "scheduled" ? "Approved ✓" : "Approve",
         onClick: () => onScheduleSubstack(p),
         disabled: !p.substack_post,
       },

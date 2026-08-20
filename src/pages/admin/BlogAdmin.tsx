@@ -515,10 +515,20 @@ const BlogAdmin = () => {
     }
   };
 
-  /** Queues the Reddit edition; the hourly dispatcher fires the webhook. */
-  const openRedditSchedule = (p: BlogPostRow) => {
-    setRedditScheduleTarget(p);
-    setRedditScheduleIso(p.reddit_scheduled_at || p.publish_at || null);
+  /** One-tap approval: the Reddit edition inherits the transit's publish time. */
+  const openRedditSchedule = async (p: BlogPostRow) => {
+    const iso = p.publish_at || null;
+    if (!iso || new Date(iso).getTime() <= Date.now()) {
+      await handleSendRedditNow(p);
+      return;
+    }
+    try {
+      await scheduleChannel(p.id!, "reddit", iso);
+      setMessage(`Reddit approved — auto-posts at the transit (${displayDate(iso)}).`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
   };
 
   /** Sends the Reddit payload to the approval webhook right now. */
@@ -566,10 +576,20 @@ const BlogAdmin = () => {
     }
   };
 
-  /** Queues the Substack edition; the hourly dispatcher fires the webhook. */
-  const openSubstackSchedule = (p: BlogPostRow) => {
-    setSubstackScheduleTarget(p);
-    setSubstackScheduleIso(p.substack_scheduled_at || p.publish_at || null);
+  /** One-tap approval: the Substack edition inherits the transit's publish time. */
+  const openSubstackSchedule = async (p: BlogPostRow) => {
+    const iso = p.publish_at || null;
+    if (!iso || new Date(iso).getTime() <= Date.now()) {
+      await handleSendSubstackNow(p);
+      return;
+    }
+    try {
+      await scheduleChannel(p.id!, "substack", iso);
+      setMessage(`Substack approved — auto-sends at the transit (${displayDate(iso)}).`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
   };
 
   /** Sends the Substack payload to the n8n webhook right now. */
@@ -1088,27 +1108,34 @@ const BlogAdmin = () => {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <label className="text-xs uppercase tracking-wider text-cream-muted">
-                      Substack scheduled time
+                      Substack delivery
                     </label>
                     <ChannelBadge status={editing.substack_status} />
                   </div>
-                  <ScheduledPublishPicker
-                    value={editing.substack_scheduled_at ?? null}
-                    onChange={(iso) => {
+                  <p className="text-xs text-cream-muted/80">
+                    Goes out with the transit: {editing.publish_at ? displayDate(editing.publish_at) : "as soon as the blog publishes"}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const approved = editing.substack_status === "scheduled";
                       setEditing((prev) =>
                         prev
                           ? {
                               ...prev,
-                              substack_scheduled_at: iso,
-                              substack_status: iso ? "scheduled" : "draft",
+                              substack_scheduled_at: approved ? prev.substack_scheduled_at : prev.publish_at ?? null,
+                              substack_status: approved ? "draft" : "scheduled",
                             }
                           : prev,
                       );
                       setSubstackSent(false);
                     }}
-                  />
+                    className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs uppercase tracking-wider text-foreground hover:bg-primary/20"
+                  >
+                    {editing.substack_status === "scheduled" ? "Approved — undo" : "Approve for this transit"}
+                  </button>
                   <p className="text-xs text-cream-muted/60">
-                    Telegram nudges you at this instant with the newsletter ready to paste.
+                    Once approved it dispatches automatically at the transit time — no separate date to pick.
                   </p>
                 </div>
                 <div className="mt-3 space-y-3">
@@ -1237,26 +1264,33 @@ const BlogAdmin = () => {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <label className="text-xs uppercase tracking-wider text-cream-muted">
-                      Reddit scheduled time
+                      Reddit delivery
                     </label>
                     <ChannelBadge status={editing.reddit_status} />
                   </div>
-                  <ScheduledPublishPicker
-                    value={editing.reddit_scheduled_at ?? null}
-                    onChange={(iso) =>
+                  <p className="text-xs text-cream-muted/80">
+                    Goes out with the transit: {editing.publish_at ? displayDate(editing.publish_at) : "as soon as the blog publishes"}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const approved = editing.reddit_status === "scheduled";
                       setEditing((prev) =>
                         prev
                           ? {
                               ...prev,
-                              reddit_scheduled_at: iso,
-                              reddit_status: iso ? "scheduled" : "draft",
+                              reddit_scheduled_at: approved ? prev.reddit_scheduled_at : prev.publish_at ?? null,
+                              reddit_status: approved ? "draft" : "scheduled",
                             }
                           : prev,
-                      )
-                    }
-                  />
+                      );
+                    }}
+                    className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs uppercase tracking-wider text-foreground hover:bg-primary/20"
+                  >
+                    {editing.reddit_status === "scheduled" ? "Approved — undo" : "Approve for this transit"}
+                  </button>
                   <p className="text-xs text-cream-muted/60">
-                    At this instant the post is sent to the Reddit approval webhook automatically.
+                    Once approved it dispatches automatically at the transit time — no separate date to pick.
                   </p>
                 </div>
               </div>
