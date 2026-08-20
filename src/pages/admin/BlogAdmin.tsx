@@ -1088,27 +1088,34 @@ const BlogAdmin = () => {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <label className="text-xs uppercase tracking-wider text-cream-muted">
-                      Substack scheduled time
+                      Substack delivery
                     </label>
                     <ChannelBadge status={editing.substack_status} />
                   </div>
-                  <ScheduledPublishPicker
-                    value={editing.substack_scheduled_at ?? null}
-                    onChange={(iso) => {
+                  <p className="text-xs text-cream-muted/80">
+                    Goes out with the transit: {editing.publish_at ? displayDate(editing.publish_at) : "as soon as the blog publishes"}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const approved = editing.substack_status === "scheduled";
                       setEditing((prev) =>
                         prev
                           ? {
                               ...prev,
-                              substack_scheduled_at: iso,
-                              substack_status: iso ? "scheduled" : "draft",
+                              substack_scheduled_at: approved ? prev.substack_scheduled_at : prev.publish_at ?? null,
+                              substack_status: approved ? "draft" : "scheduled",
                             }
                           : prev,
                       );
                       setSubstackSent(false);
                     }}
-                  />
+                    className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs uppercase tracking-wider text-foreground hover:bg-primary/20"
+                  >
+                    {editing.substack_status === "scheduled" ? "Approved — undo" : "Approve for this transit"}
+                  </button>
                   <p className="text-xs text-cream-muted/60">
-                    Telegram nudges you at this instant with the newsletter ready to paste.
+                    Once approved it dispatches automatically at the transit time — no separate date to pick.
                   </p>
                 </div>
                 <div className="mt-3 space-y-3">
