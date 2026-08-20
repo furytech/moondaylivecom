@@ -515,10 +515,20 @@ const BlogAdmin = () => {
     }
   };
 
-  /** Queues the Reddit edition; the hourly dispatcher fires the webhook. */
-  const openRedditSchedule = (p: BlogPostRow) => {
-    setRedditScheduleTarget(p);
-    setRedditScheduleIso(p.reddit_scheduled_at || p.publish_at || null);
+  /** One-tap approval: the Reddit edition inherits the transit's publish time. */
+  const openRedditSchedule = async (p: BlogPostRow) => {
+    const iso = p.publish_at || null;
+    if (!iso || new Date(iso).getTime() <= Date.now()) {
+      await handleSendRedditNow(p);
+      return;
+    }
+    try {
+      await scheduleChannel(p.id!, "reddit", iso);
+      setMessage(`Reddit approved — auto-posts at the transit (${displayDate(iso)}).`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
   };
 
   /** Sends the Reddit payload to the approval webhook right now. */
