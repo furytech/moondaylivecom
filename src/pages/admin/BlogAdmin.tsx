@@ -576,10 +576,20 @@ const BlogAdmin = () => {
     }
   };
 
-  /** Queues the Substack edition; the hourly dispatcher fires the webhook. */
-  const openSubstackSchedule = (p: BlogPostRow) => {
-    setSubstackScheduleTarget(p);
-    setSubstackScheduleIso(p.substack_scheduled_at || p.publish_at || null);
+  /** One-tap approval: the Substack edition inherits the transit's publish time. */
+  const openSubstackSchedule = async (p: BlogPostRow) => {
+    const iso = p.publish_at || null;
+    if (!iso || new Date(iso).getTime() <= Date.now()) {
+      await handleSendSubstackNow(p);
+      return;
+    }
+    try {
+      await scheduleChannel(p.id!, "substack", iso);
+      setMessage(`Substack approved — auto-sends at the transit (${displayDate(iso)}).`);
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
   };
 
   /** Sends the Substack payload to the n8n webhook right now. */
