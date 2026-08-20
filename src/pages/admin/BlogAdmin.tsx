@@ -1244,26 +1244,33 @@ const BlogAdmin = () => {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <label className="text-xs uppercase tracking-wider text-cream-muted">
-                      Reddit scheduled time
+                      Reddit delivery
                     </label>
                     <ChannelBadge status={editing.reddit_status} />
                   </div>
-                  <ScheduledPublishPicker
-                    value={editing.reddit_scheduled_at ?? null}
-                    onChange={(iso) =>
+                  <p className="text-xs text-cream-muted/80">
+                    Goes out with the transit: {editing.publish_at ? displayDate(editing.publish_at) : "as soon as the blog publishes"}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const approved = editing.reddit_status === "scheduled";
                       setEditing((prev) =>
                         prev
                           ? {
                               ...prev,
-                              reddit_scheduled_at: iso,
-                              reddit_status: iso ? "scheduled" : "draft",
+                              reddit_scheduled_at: approved ? prev.reddit_scheduled_at : prev.publish_at ?? null,
+                              reddit_status: approved ? "draft" : "scheduled",
                             }
                           : prev,
-                      )
-                    }
-                  />
+                      );
+                    }}
+                    className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs uppercase tracking-wider text-foreground hover:bg-primary/20"
+                  >
+                    {editing.reddit_status === "scheduled" ? "Approved — undo" : "Approve for this transit"}
+                  </button>
                   <p className="text-xs text-cream-muted/60">
-                    At this instant the post is sent to the Reddit approval webhook automatically.
+                    Once approved it dispatches automatically at the transit time — no separate date to pick.
                   </p>
                 </div>
               </div>
