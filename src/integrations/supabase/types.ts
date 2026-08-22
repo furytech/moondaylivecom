@@ -282,6 +282,56 @@ export type Database = {
         }
         Relationships: []
       }
+      dispatch_logs: {
+        Row: {
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          post_id: string | null
+          request_payload: Json
+          response_body: string | null
+          response_status: number | null
+          status: string
+          trigger_source: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          post_id?: string | null
+          request_payload?: Json
+          response_body?: string | null
+          response_status?: number | null
+          status: string
+          trigger_source?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          post_id?: string | null
+          request_payload?: Json
+          response_body?: string | null
+          response_status?: number | null
+          status?: string
+          trigger_source?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_logs_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctrine_entries: {
         Row: {
           category: string
