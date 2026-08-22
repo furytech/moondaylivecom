@@ -23,6 +23,8 @@ interface PreviewChannel {
   channel: Channel;
   webhook_url: string | null;
   will_dispatch: boolean;
+  already_sent_at: string | null;
+  already_sent_via: string | null;
   blocker: string | null;
   has_image: boolean;
   payload: Record<string, unknown>;
@@ -38,6 +40,7 @@ interface DispatchLogRow {
   response_status: number | null;
   response_body: string | null;
   error: string | null;
+  error_type: string | null;
   created_at: string;
 }
 
@@ -130,6 +133,14 @@ const DispatchPreview = ({
 
       {active && (
         <div className="space-y-3">
+          {active.already_sent_at && (
+            <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 p-3 text-left text-xs text-amber-200">
+              Already delivered clean on {displayDate(active.already_sent_at)}
+              {active.already_sent_via ? ` (${active.already_sent_via})` : ""}. Sending again will
+              ask you to confirm, so a second click cannot duplicate the post.
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-3 text-xs text-cream-muted">
             <span>
               Destination:{" "}
@@ -176,6 +187,11 @@ const DispatchPreview = ({
                   {log.trigger_source && <span>via {log.trigger_source}</span>}
                   {log.response_status != null && <span>HTTP {log.response_status}</span>}
                 </div>
+                {log.error_type && (
+                  <p className="mt-1 text-[11px] uppercase tracking-wide text-red-400/80">
+                    {log.error_type.replace(/_/g, " ")}
+                  </p>
+                )}
                 {log.error && <p className="mt-1 text-[11px] text-red-300">{log.error}</p>}
                 {log.response_body && (
                   <p className="mt-1 break-all text-[11px] text-cream-muted/80">
