@@ -535,6 +535,39 @@ const BlogAdmin = () => {
     }
   };
 
+  /**
+   * Duplicate guard, admin side.
+   *
+   * The dispatcher refuses a second send unless the click acknowledges the
+   * earlier delivery. We surface that as a plain confirm with the timestamp of
+   * the previous successful hand-off, then retry with the acknowledgement.
+   */
+  const dispatchChannel = async (
+    fn: "reddit-auto-post" | "substack-auto-post",
+    postId: string,
+    label: string,
+    confirmDuplicate = false,
+  ): Promise<{ sent: boolean; note: string }> => {
+    const { data, error } = await supabase.functions.invoke(fn, {
+      body: { post_id: postId, force: true, confirm_duplicate: confirmDuplicate },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+
+    if (data?.skipped && data?.reason === "duplicate_dispatch") {
+      const when = data.last_sent_at ? displayDate(data.last_sent_at) : "earlier";
+      const via = data.last_trigger ? ` (${data.last_trigger})` : "";
+      const proceed = confirm(
+        `${label} already went out clean on ${when}${via}.\n\nSending again will create a duplicate post. Send anyway?`,
+      );
+      if (!proceed) return { sent: false, note: `${label} not sent — already delivered ${when}.` };
+      return dispatchChannel(fn, postId, label, true);
+    }
+
+    if (data?.skipped) return { sent: false, note: `${label} dispatch skipped: ${data.reason}` };
+    return { sent: true, note: `${label} sent to the webhook.` };
+  };
+
   /** Sends the Reddit payload to the approval webhook right now. */
   const handleSendRedditNow = async (post: BlogPostRow) => {
     if (!post.reddit_post?.trim()) {
@@ -544,16 +577,8 @@ const BlogAdmin = () => {
     setRedditSendingId(post.id || null);
     setMessage("Sending the Reddit post to the approval webhook…");
     try {
-      const { data, error } = await supabase.functions.invoke("reddit-auto-post", {
-        body: { post_id: post.id, force: true },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setMessage(
-        data?.skipped
-          ? `Reddit dispatch skipped: ${data.reason}`
-          : "Reddit post sent to the approval webhook.",
-      );
+      const result = await dispatchChannel("reddit-auto-post", post.id!, "The Reddit post");
+      setMessage(result.note);
       refetch();
     } catch (err: any) {
       setMessage(`Reddit dispatch failed: ${err.message}`);
@@ -605,16 +630,12 @@ const BlogAdmin = () => {
     setSubstackSendingId(post.id || null);
     setMessage("Sending the Substack edition to the n8n webhook…");
     try {
-      const { data, error } = await supabase.functions.invoke("substack-auto-post", {
-        body: { post_id: post.id, force: true },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setMessage(
-        data?.skipped
-          ? `Substack dispatch skipped: ${data.reason}`
-          : "Substack edition sent to the n8n webhook.",
+      const result = await dispatchChannel(
+        "substack-auto-post",
+        post.id!,
+        "The Substack edition",
       );
+      setMessage(result.note);
       refetch();
     } catch (err: any) {
       setMessage(`Substack dispatch failed: ${err.message}`);
