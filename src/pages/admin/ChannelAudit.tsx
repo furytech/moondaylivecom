@@ -218,13 +218,22 @@ const ChannelAudit = () => {
     const key = `${row.id}-${channel}`;
     setRetrying(key);
     try {
-      const fn = channel === "reddit" ? "reddit-auto-post" : "substack-bridge-send";
+      // Both channels retry the real webhook dispatch, so a failed row can
+      // actually clear. (substack-bridge-send only emails a draft — it never
+      // touches substack_status, so it can't resolve a Failed delivery.)
+      const fn = channel === "reddit" ? "reddit-auto-post" : "substack-auto-post";
       const { data: result, error } = await supabase.functions.invoke(fn, {
-        body: channel === "reddit" ? { post_id: row.id, force: true } : { post_id: row.id },
+        body: { post_id: row.id, force: true },
       });
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
-      toast.success(channel === "reddit" ? "Posted to Reddit." : "Formatted draft emailed.");
+      if (result?.skipped) {
+        toast.info(`Skipped — ${result.reason ?? "nothing to send"}`);
+      } else {
+        toast.success(
+          channel === "reddit" ? "Re-sent to the Reddit webhook." : "Re-sent to the Substack webhook.",
+        );
+      }
       refetch();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Retry failed");
