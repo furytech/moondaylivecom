@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportError, errorText } from './errorTracking.ts'
-import { logDispatch } from './dispatchLog.ts'
+import { classifyDispatchError, findPriorSuccess, logDispatch } from './dispatchLog.ts'
 import {
   DISPATCH_POST_COLUMNS,
   SUBSTACK_WEBHOOK_URL,
@@ -25,6 +25,8 @@ export interface SubstackOutcome {
   ok: boolean
   skipped?: boolean
   reason?: string
+  lastSentAt?: string
+  lastTrigger?: string | null
   title?: string
   url?: string
 }
@@ -42,7 +44,7 @@ async function recordFailure(supabase: Client, postId: string, message: string) 
 export async function publishPostToSubstack(
   supabase: Client,
   postId: string,
-  opts: { force?: boolean; triggerSource?: string } = {},
+  opts: { force?: boolean; triggerSource?: string; confirmDuplicate?: boolean } = {},
 ): Promise<SubstackOutcome> {
   const { data: post, error } = await supabase
     .from('blog_posts')
@@ -55,6 +57,22 @@ export async function publishPostToSubstack(
 
   if (post.substack_status === 'sent' && !opts.force) {
     return { ok: false, skipped: true, reason: 'already_sent' }
+  }
+
+  // Duplicate guard: the dispatch log — not the row flag — decides whether this
+  // post already went out clean on this channel. Even a forced manual send has
+  // to acknowledge it, so a second click can never double-post.
+  if (!opts.confirmDuplicate) {
+    const prior = await findPriorSuccess(supabase, postId, 'substack')
+    if (prior) {
+      return {
+        ok: false,
+        skipped: true,
+        reason: 'duplicate_dispatch',
+        lastSentAt: prior.created_at,
+        lastTrigger: prior.trigger_source,
+      }
+    }
   }
 
   const copy = post.substack_post?.trim()
@@ -85,6 +103,7 @@ export async function publishPostToSubstack(
         responseStatus: res.status,
         responseBody: raw,
         error: `Substack webhook returned ${res.status}`,
+        errorType: classifyDispatchError('', res.status),
       })
       throw new Error(
         `Substack webhook returned ${res.status}${raw ? `: ${raw.slice(0, 200)}` : ''}`,
@@ -131,6 +150,7 @@ export async function publishPostToSubstack(
       triggerSource,
       payload,
       error: message,
+      errorType: classifyDispatchError(message),
     })
     await reportError({
       source: 'substack-auto-post',
