@@ -1,5 +1,12 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportError, errorText } from './errorTracking.ts'
+import { logDispatch } from './dispatchLog.ts'
+import {
+  DISPATCH_POST_COLUMNS,
+  REDDIT_WEBHOOK_URL,
+  buildRedditPayload,
+  resolveTitle,
+} from './dispatchPayloads.ts'
 
 /**
  * Reddit hand-off, webhook edition.
@@ -8,17 +15,11 @@ import { reportError, errorText } from './errorTracking.ts'
  * dispatch — automatic on publish, scheduled, or a manual admin retry — POSTs
  * the finished payload to the approval webhook, which owns the actual posting.
  *
- * Every outcome, success or failure, is written back onto the post row so the
- * channel audit page can say exactly what happened and when.
+ * The payload comes from the shared builder so the admin preview screen shows
+ * exactly this JSON, and every attempt is persisted to dispatch_logs.
  */
 
 type Client = ReturnType<typeof createClient>
-
-const SITE_URL = 'https://moondaylive.com'
-
-const WEBHOOK_URL =
-  Deno.env.get('REDDIT_WEBHOOK_URL')?.trim() ||
-  'http://192.241.153.228:8055/webhook/reddit-approval'
 
 export interface PublishOutcome {
   ok: boolean
@@ -42,13 +43,11 @@ async function recordFailure(supabase: Client, postId: string, message: string) 
 export async function publishPostToReddit(
   supabase: Client,
   postId: string,
-  opts: { force?: boolean } = {},
+  opts: { force?: boolean; triggerSource?: string } = {},
 ): Promise<PublishOutcome> {
   const { data: post, error } = await supabase
     .from('blog_posts')
-    .select(
-      'id, slug, title, category, reddit_post, reddit_status, reddit_scheduled_at, publish_at, published_at, image_url, constellation_graphic_path, zodiac_sign_tag',
-    )
+    .select(DISPATCH_POST_COLUMNS)
     .eq('id', postId)
     .maybeSingle()
 
@@ -64,42 +63,12 @@ export async function publishPostToReddit(
     return { ok: false, skipped: true, reason: 'no_reddit_copy' }
   }
 
-  const title = post.title?.trim() || `The Moon enters ${post.zodiac_sign_tag ?? 'a new sign'}`
-  const postUrl = post.slug
-    ? post.category
-      ? `${SITE_URL}/blog/${post.category}/${post.slug}`
-      : `${SITE_URL}/blog/${post.slug}`
-    : SITE_URL
-
-  const imageUrl =
-    post.image_url?.trim() ||
-    (post.constellation_graphic_path
-      ? `${SITE_URL}${post.constellation_graphic_path.startsWith('/') ? '' : '/'}${post.constellation_graphic_path}`
-      : null)
-
-  // The scheduled instant is what the operator picked for Reddit; fall back to
-  // the blog's instant so the webhook always receives a concrete time.
-  const scheduledAt =
-    post.reddit_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
-
-  // Flat payload — no nested wrappers — so n8n can map fields directly.
-  const payload = {
-    post_id: post.id,
-    slug: post.slug ?? null,
-    title,
-    body: copy,
-    content: copy,
-    status: 'publish',
-    scheduled_time: scheduledAt,
-    scheduled_at: scheduledAt,
-    subreddit: Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim() || null,
-    zodiac_sign: post.zodiac_sign_tag ?? null,
-    image_url: imageUrl,
-    source_url: postUrl,
-  }
+  const title = resolveTitle(post)
+  const payload = buildRedditPayload(post)
+  const triggerSource = opts.triggerSource ?? 'auto'
 
   try {
-    const res = await fetch(WEBHOOK_URL, {
+    const res = await fetch(REDDIT_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -107,6 +76,17 @@ export async function publishPostToReddit(
 
     const raw = await res.text().catch(() => '')
     if (!res.ok) {
+      await logDispatch(supabase, {
+        postId,
+        channel: 'reddit',
+        status: 'failed',
+        webhookUrl: REDDIT_WEBHOOK_URL,
+        triggerSource,
+        payload,
+        responseStatus: res.status,
+        responseBody: raw,
+        error: `Reddit webhook returned ${res.status}`,
+      })
       throw new Error(`Reddit webhook returned ${res.status}${raw ? `: ${raw.slice(0, 200)}` : ''}`)
     }
 
@@ -131,15 +111,35 @@ export async function publishPostToReddit(
       })
       .eq('id', postId)
 
+    await logDispatch(supabase, {
+      postId,
+      channel: 'reddit',
+      status: 'sent',
+      webhookUrl: REDDIT_WEBHOOK_URL,
+      triggerSource,
+      payload,
+      responseStatus: res.status,
+      responseBody: raw,
+    })
+
     return { ok: true, permalink: permalink ?? undefined, title }
   } catch (e) {
     const message = errorText(e)
     await recordFailure(supabase, postId, message)
+    await logDispatch(supabase, {
+      postId,
+      channel: 'reddit',
+      status: 'failed',
+      webhookUrl: REDDIT_WEBHOOK_URL,
+      triggerSource,
+      payload,
+      error: message,
+    })
     await reportError({
       source: 'reddit-auto-post',
       severity: 'error',
       message: `Reddit webhook dispatch failed for "${title}": ${message}`,
-      context: { postId, webhook: WEBHOOK_URL },
+      context: { postId, webhook: REDDIT_WEBHOOK_URL },
       throttleMinutes: 30,
     })
     return { ok: false, reason: message, title }
