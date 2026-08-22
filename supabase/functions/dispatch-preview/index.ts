@@ -56,6 +56,24 @@ Deno.serve(async (req) => {
     if (error) return json({ error: error.message }, 500)
     if (!post) return json({ error: 'Post not found' }, 404)
 
+    // Prior clean deliveries, so the admin panel can warn before a second send.
+    const { data: successes } = await admin
+      .from('dispatch_logs')
+      .select('channel, created_at, trigger_source')
+      .eq('post_id', postId)
+      .eq('status', 'sent')
+      .order('created_at', { ascending: false })
+
+    const lastSuccess = new Map<string, { created_at: string; trigger_source: string | null }>()
+    for (const row of successes ?? []) {
+      if (!lastSuccess.has(row.channel as string)) {
+        lastSuccess.set(row.channel as string, {
+          created_at: row.created_at as string,
+          trigger_source: (row.trigger_source as string) ?? null,
+        })
+      }
+    }
+
     const channels = CHANNELS.map((channel) => {
       const payload = buildPayload(channel, post)
       const copy =
@@ -64,9 +82,12 @@ Deno.serve(async (req) => {
           : channel === 'substack'
           ? post.substack_post?.trim()
           : post.content?.trim()
+      const prior = lastSuccess.get(channel) ?? null
       return {
         channel,
         webhook_url: webhookFor(channel),
+        already_sent_at: prior?.created_at ?? null,
+        already_sent_via: prior?.trigger_source ?? null,
         will_dispatch: Boolean(copy),
         blocker: copy ? null : `No ${channel} copy stored — dispatch is skipped.`,
         has_image: Boolean((payload as { image_url?: string | null }).image_url),

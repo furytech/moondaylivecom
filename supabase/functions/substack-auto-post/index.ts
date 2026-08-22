@@ -49,11 +49,24 @@ Deno.serve(async (req) => {
 
     const result = await publishPostToSubstack(supabase, postId, {
       force: body?.force === true,
+      // The caller must explicitly acknowledge a prior successful delivery
+      // before we send the same post to the same channel twice.
+      confirmDuplicate: body?.confirm_duplicate === true,
       triggerSource: 'manual',
     });
 
     if (!result.ok) {
-      if (result.skipped) return json({ skipped: true, reason: result.reason }, 200);
+      if (result.skipped) {
+        return json(
+          {
+            skipped: true,
+            reason: result.reason,
+            last_sent_at: result.lastSentAt ?? null,
+            last_trigger: result.lastTrigger ?? null,
+          },
+          200,
+        );
+      }
       return json({ error: result.reason }, 400);
     }
 
