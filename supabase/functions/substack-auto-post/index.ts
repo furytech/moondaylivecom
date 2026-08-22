@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
 
     const result = await publishPostToSubstack(supabase, postId, {
       force: body?.force === true,
+      triggerSource: 'manual',
     });
 
     if (!result.ok) {

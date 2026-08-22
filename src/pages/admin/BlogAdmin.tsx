@@ -26,7 +26,8 @@ import {
   ChannelStatus,
 } from "@/lib/blog/posts";
 import { markdownToHtml, markdownToPlainText } from "@/lib/blog/markdownToHtml";
-import ChannelMatrix, { countMissed } from "@/components/admin/ChannelMatrix";
+import ChannelMatrix, { countMissed, Channel } from "@/components/admin/ChannelMatrix";
+import DispatchPreview from "@/components/admin/DispatchPreview";
 
 /** Yellow SCHEDULED pill used inside the editor's Substack panel. */
 const ChannelBadge = ({ status }: { status?: ChannelStatus | string | null }) => {
@@ -152,6 +153,9 @@ const BlogAdmin = () => {
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
+  const [previewTarget, setPreviewTarget] = useState<{ post: BlogPostRow; channel: Channel } | null>(
+    null,
+  );
 
   const setField = <K extends keyof BlogPostRow>(key: K, value: BlogPostRow[K] | null) => {
     setEditing((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -896,6 +900,7 @@ const BlogAdmin = () => {
             onToggleSent={handleToggleChannelSent}
             onCopySubstack={handleCopySubstack}
             onCopyReddit={handleCopyReddit}
+            onPreviewPayload={(post, channel) => setPreviewTarget({ post, channel })}
           />
         )}
 
@@ -1452,7 +1457,24 @@ const BlogAdmin = () => {
             <p className="text-xs text-cream-muted mt-3">Goes live: {displayDate(rescheduleIso)}</p>
           )}
         </ResponsiveModal>
+
+        <ResponsiveModal
+          open={!!previewTarget}
+          onOpenChange={(open) => !open && setPreviewTarget(null)}
+          title="Outgoing payload"
+          description={previewTarget?.post.title}
+          className="sm:max-w-3xl"
+        >
+          {previewTarget && (
+            <DispatchPreview
+              post={previewTarget.post}
+              initialChannel={previewTarget.channel}
+              displayDate={displayDate}
+            />
+          )}
+        </ResponsiveModal>
       </div>
+
     </PageLayout>
   );
 };

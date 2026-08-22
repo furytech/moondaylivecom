@@ -5,6 +5,8 @@ import { notifyTelegram } from '../_shared/telegram.ts';
 import { sendSubstackDraft } from '../_shared/substackBridge.ts';
 import { publishPostToReddit } from '../_shared/redditPublish.ts';
 import { publishPostToSubstack } from '../_shared/substackPublish.ts';
+import { logDispatch } from '../_shared/dispatchLog.ts';
+import { buildBlogPayload } from '../_shared/dispatchPayloads.ts';
 
 
 const supabase = createClient(
@@ -80,6 +82,15 @@ Deno.serve(async (req) => {
     let substackPosted = 0;
     let substackFailed = 0;
     for (const post of data ?? []) {
+      // Persist what the blog channel actually published for this transit.
+      await logDispatch(supabase, {
+        postId: post.id,
+        channel: 'blog',
+        status: 'sent',
+        triggerSource: 'scheduler',
+        payload: buildBlogPayload(post),
+      });
+
       await notifyTelegram({
         kind: 'published',
         post_id: post.id,
@@ -92,7 +103,7 @@ Deno.serve(async (req) => {
       // Substack hand-off is a paste instead of a rebuild.
       // Reddit hands off to the approval webhook. Failures are stamped on the
       // row so the audit page can show them.
-      const reddit = await publishPostToReddit(supabase, post.id);
+      const reddit = await publishPostToReddit(supabase, post.id, { triggerSource: 'scheduler' });
       if (reddit.ok) {
         redditPosted += 1;
         await notifyTelegram({
@@ -123,7 +134,7 @@ Deno.serve(async (req) => {
       }
 
       // Substack hands off to its own n8n webhook, same shape as Reddit.
-      const substack = await publishPostToSubstack(supabase, post.id);
+      const substack = await publishPostToSubstack(supabase, post.id, { triggerSource: 'scheduler' });
       if (substack.ok) {
         substackPosted += 1;
         await notifyTelegram({
@@ -152,7 +163,7 @@ Deno.serve(async (req) => {
       .lte('reddit_scheduled_at', now);
 
     for (const post of dueReddit ?? []) {
-      const reddit = await publishPostToReddit(supabase, post.id);
+      const reddit = await publishPostToReddit(supabase, post.id, { triggerSource: 'scheduler' });
       if (reddit.ok) {
         redditPosted += 1;
         await notifyTelegram({
@@ -180,7 +191,7 @@ Deno.serve(async (req) => {
       .lte('substack_scheduled_at', now);
 
     for (const post of dueSubstack ?? []) {
-      const substack = await publishPostToSubstack(supabase, post.id);
+      const substack = await publishPostToSubstack(supabase, post.id, { triggerSource: 'scheduler' });
       if (substack.ok) {
         substackPosted += 1;
         await notifyTelegram({

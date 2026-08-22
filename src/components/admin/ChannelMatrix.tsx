@@ -249,6 +249,8 @@ export interface ChannelMatrixProps {
   onToggleSent: (post: BlogPostRow, channel: "substack" | "reddit") => void;
   onCopySubstack: (post: BlogPostRow) => void;
   onCopyReddit: (post: BlogPostRow) => void;
+  /** Opens the outgoing-payload inspector for a given channel. */
+  onPreviewPayload: (post: BlogPostRow, channel: Channel) => void;
 }
 
 const ChannelMatrix = ({
@@ -274,6 +276,7 @@ const ChannelMatrix = ({
   onToggleSent,
   onCopySubstack,
   onCopyReddit,
+  onPreviewPayload,
 }: ChannelMatrixProps) => {
   if (posts.length === 0) {
     return (
@@ -304,6 +307,12 @@ const ChannelMatrix = ({
           tone: "amber" as Tone,
           label: "Unpublish",
           onClick: () => onUnpublish(p.id!),
+        },
+        {
+          key: "preview",
+          tone: "primary" as Tone,
+          label: "Preview JSON",
+          onClick: () => onPreviewPayload(p, "blog"),
         },
       ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void }[];
     }
@@ -336,6 +345,12 @@ const ChannelMatrix = ({
           label: status === "sent" ? "Undo posted" : "Mark posted",
           onClick: () => onToggleSent(p, "reddit"),
         },
+        {
+          key: "preview",
+          tone: "primary" as Tone,
+          label: "Preview JSON",
+          onClick: () => onPreviewPayload(p, "reddit"),
+        },
       ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
     }
     return [
@@ -365,6 +380,12 @@ const ChannelMatrix = ({
         tone: "sky" as Tone,
         label: status === "sent" ? "Undo posted" : "Mark posted",
         onClick: () => onToggleSent(p, "substack"),
+      },
+      {
+        key: "preview",
+        tone: "primary" as Tone,
+        label: "Preview JSON",
+        onClick: () => onPreviewPayload(p, "substack"),
       },
     ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
   };

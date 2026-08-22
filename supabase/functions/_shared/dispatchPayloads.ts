@@ -1,0 +1,136 @@
+/**
+ * Single source of truth for every outgoing channel payload.
+ *
+ * Both the live dispatchers (redditPublish / substackPublish / auto-publish)
+ * and the admin "preview payload" endpoint build their JSON here, so what the
+ * operator reviews before approving a transit is byte-for-byte what n8n later
+ * receives.
+ */
+
+export const SITE_URL = 'https://moondaylive.com'
+
+/** Columns every builder needs. Keep dispatchers and preview reading the same set. */
+export const DISPATCH_POST_COLUMNS =
+  'id, slug, title, excerpt, category, content, status, reddit_post, reddit_status, reddit_scheduled_at, reddit_posted_at, substack_post, substack_status, substack_scheduled_at, substack_sent_at, publish_at, published_at, image_url, constellation_graphic_path, zodiac_sign_tag, meta_title, meta_description, keywords, author, guest_display_name'
+
+// deno-lint-ignore no-explicit-any
+export type DispatchPost = Record<string, any>
+
+export const REDDIT_WEBHOOK_URL =
+  Deno.env.get('REDDIT_WEBHOOK_URL')?.trim() ||
+  'http://192.241.153.228:8055/webhook/reddit-approval'
+
+export const SUBSTACK_WEBHOOK_URL =
+  Deno.env.get('SUBSTACK_WEBHOOK_URL')?.trim() ||
+  'http://192.241.153.228:8055/webhook/substack-post'
+
+export function resolveSourceUrl(post: DispatchPost): string {
+  if (!post.slug) return SITE_URL
+  return post.category
+    ? `${SITE_URL}/blog/${post.category}/${post.slug}`
+    : `${SITE_URL}/blog/${post.slug}`
+}
+
+/** image_url first, constellation graphic second — same rule everywhere. */
+export function resolveImageUrl(post: DispatchPost): string | null {
+  const direct = post.image_url?.trim()
+  if (direct) return direct
+  if (post.constellation_graphic_path) {
+    const path = post.constellation_graphic_path
+    return `${SITE_URL}${path.startsWith('/') ? '' : '/'}${path}`
+  }
+  return null
+}
+
+export function resolveTitle(post: DispatchPost): string {
+  return post.title?.trim() || `The Moon enters ${post.zodiac_sign_tag ?? 'a new sign'}`
+}
+
+export function buildRedditPayload(post: DispatchPost) {
+  const scheduledAt =
+    post.reddit_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
+
+  return {
+    post_id: post.id,
+    slug: post.slug ?? null,
+    title: resolveTitle(post),
+    body: post.reddit_post?.trim() ?? '',
+    content: post.reddit_post?.trim() ?? '',
+    status: 'publish',
+    scheduled_time: scheduledAt,
+    scheduled_at: scheduledAt,
+    subreddit: Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim() || null,
+    zodiac_sign: post.zodiac_sign_tag ?? null,
+    image_url: resolveImageUrl(post),
+    source_url: resolveSourceUrl(post),
+  }
+}
+
+export function buildSubstackPayload(post: DispatchPost) {
+  const scheduledAt =
+    post.substack_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
+  const title = resolveTitle(post)
+  const sourceUrl = resolveSourceUrl(post)
+  const imageUrl = resolveImageUrl(post)
+  const copy = post.substack_post?.trim() ?? ''
+
+  return {
+    post_id: post.id,
+    slug: post.slug ?? null,
+    title,
+    body: copy,
+    content: copy,
+    excerpt: post.excerpt ?? null,
+    subject: title,
+    status: 'publish',
+    scheduled_time: scheduledAt,
+    scheduled_at: scheduledAt,
+    zodiac_sign: post.zodiac_sign_tag ?? null,
+    image_url: imageUrl,
+    // Ready-to-paste inline HTML so the PNG always renders in the published
+    // Substack edition even if the workflow does no image handling of its own.
+    image_html: imageUrl
+      ? `<img src="${imageUrl}" alt="${post.zodiac_sign_tag ?? title}" width="600" style="display:block;margin:0 auto 24px;max-width:100%;height:auto;" />`
+      : null,
+    source_url: sourceUrl,
+    canonical: sourceUrl,
+  }
+}
+
+/**
+ * The blog has no webhook — it publishes in-place. The preview still shows the
+ * exact record mutation the scheduler performs, so all three channels can be
+ * audited from one screen.
+ */
+export function buildBlogPayload(post: DispatchPost) {
+  const publishAt = post.publish_at || post.published_at || new Date().toISOString()
+  return {
+    post_id: post.id,
+    slug: post.slug ?? null,
+    title: resolveTitle(post),
+    category: post.category ?? null,
+    excerpt: post.excerpt ?? null,
+    status: 'published',
+    publish_at: publishAt,
+    published_at: post.published_at ?? null,
+    zodiac_sign: post.zodiac_sign_tag ?? null,
+    image_url: resolveImageUrl(post),
+    canonical: resolveSourceUrl(post),
+    meta_title: post.meta_title ?? null,
+    meta_description: post.meta_description ?? null,
+    author: post.guest_display_name || post.author || null,
+    body_chars: (post.content ?? '').length,
+  }
+}
+
+export function buildPayload(channel: 'blog' | 'substack' | 'reddit', post: DispatchPost) {
+  if (channel === 'blog') return buildBlogPayload(post)
+  if (channel === 'reddit') return buildRedditPayload(post)
+  return buildSubstackPayload(post)
+}
+
+export function webhookFor(channel: 'blog' | 'substack' | 'reddit'): string | null {
+  if (channel === 'reddit') return REDDIT_WEBHOOK_URL
+  if (channel === 'substack') return SUBSTACK_WEBHOOK_URL
+  return null
+}

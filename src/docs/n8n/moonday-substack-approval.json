@@ -12,25 +12,31 @@
       "name": "Substack Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-460, 0],
+      "position": [
+        -460,
+        0
+      ],
       "webhookId": "moonday-substack-approval"
     },
     {
       "parameters": {
-        "jsCode": "// Normalize the payload sent by the Moonday admin dashboard\n// (edge function: substack-approval).\nconst p = $json.body || $json;\n\nif (!p || !p.substack_post || !String(p.substack_post).trim()) {\n  throw new Error('Missing substack_post in payload');\n}\n\nconst title = p.title || 'Moonday Transit';\nconst sign = p.zodiac_sign_tag || '';\nconst image = p.image_url || '';\nconst slug = p.slug || '';\n\nconst body = String(p.substack_post).trim();\nconst imageBlock = image ? `![${sign || title}](${image})\\n\\n` : '';\n\nreturn [{\n  json: {\n    post_id: p.post_id || null,\n    slug,\n    title,\n    sign,\n    excerpt: p.excerpt || '',\n    image_url: image,\n    publish_at: p.publish_at || null,\n    sent_at: p.sent_at || new Date().toISOString(),\n    subject: `Substack ready: ${title}`,\n    markdown: imageBlock + body,\n    canonical: slug ? `https://moondaylive.com/blog/${slug}` : 'https://moondaylive.com/blog'\n  }\n}];"
+        "jsCode": "// Normalize the payload sent by Moonday (admin approval or the scheduled\n// dispatcher). Accepts both shapes: `substack_post` (approval) and\n// `body`/`content` (auto dispatcher).\nconst p = $json.body || $json;\n\nconst body = String(p.substack_post || p.body || p.content || '').trim();\nif (!body) {\n  throw new Error('Missing Substack copy in payload');\n}\n\nconst title = p.title || 'Moonday Transit';\nconst sign = p.zodiac_sign_tag || p.zodiac_sign || '';\nconst image = p.image_url || '';\nconst slug = p.slug || '';\nconst canonical = p.canonical || p.source_url || (slug ? `https://moondaylive.com/blog/${slug}` : 'https://moondaylive.com/blog');\n\n// Inline HTML image block. Moonday already sends a ready-made `image_html`;\n// fall back to building it here so older payloads still render the PNG.\nconst imageHtml = p.image_html || (image\n  ? `<img src=\"${image}\" alt=\"${sign || title}\" width=\"600\" style=\"display:block;margin:0 auto 24px;max-width:100%;height:auto;\" />`\n  : '');\n\n// Substack's email-to-post ingestion keeps inline HTML, so the hero PNG\n// always appears at the top of the published post.\nconst paragraphs = body\n  .split(/\\n{2,}/)\n  .map((chunk) => chunk.trim())\n  .filter(Boolean)\n  .map((chunk) => `<p>${chunk.replace(/\\n/g, '<br />')}</p>`)\n  .join('\\n');\n\nconst html = `${imageHtml}\\n${paragraphs}\\n<p><a href=\"${canonical}\">Read this transit on Moonday Live</a></p>`;\n\nreturn [{\n  json: {\n    post_id: p.post_id || null,\n    slug,\n    title,\n    sign,\n    excerpt: p.excerpt || '',\n    image_url: image,\n    image_html: imageHtml,\n    publish_at: p.publish_at || p.scheduled_time || null,\n    sent_at: p.sent_at || new Date().toISOString(),\n    subject: title,\n    markdown: (image ? `![${sign || title}](${image})\\n\\n` : '') + body,\n    html,\n    canonical\n  }\n}];"
       },
       "id": "normalize-substack",
       "name": "Normalize Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-240, 0]
+      "position": [
+        -240,
+        0
+      ]
     },
     {
       "parameters": {
         "sendTo": "={{ $env.SUBSTACK_POST_EMAIL }}",
         "subject": "={{ $json.title }}",
-        "emailType": "text",
-        "message": "={{ $json.markdown }}\n\n---\nRead more: {{ $json.canonical }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
         "options": {
           "appendAttribution": false,
           "bcc": "={{ $env.MOONDAY_ALERT_EMAIL }}"
@@ -40,7 +46,10 @@
       "name": "Email Substack Copy",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [-20, 0],
+      "position": [
+        -20,
+        0
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -53,23 +62,53 @@
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [200, 0]
+      "position": [
+        200,
+        0
+      ]
     }
   ],
   "connections": {
     "Substack Webhook": {
-      "main": [[{ "node": "Normalize Payload", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Normalize Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalize Payload": {
-      "main": [[{ "node": "Email Substack Copy", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Email Substack Copy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Email Substack Copy": {
-      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1"
   },
   "pinData": {},
-  "tags": ["moonday", "substack"]
+  "tags": [
+    "moonday",
+    "substack"
+  ]
 }
