@@ -287,6 +287,7 @@ export type Database = {
           channel: string
           created_at: string
           error: string | null
+          error_type: string | null
           id: string
           post_id: string | null
           request_payload: Json
@@ -300,6 +301,7 @@ export type Database = {
           channel: string
           created_at?: string
           error?: string | null
+          error_type?: string | null
           id?: string
           post_id?: string | null
           request_payload?: Json
@@ -313,6 +315,7 @@ export type Database = {
           channel?: string
           created_at?: string
           error?: string | null
+          error_type?: string | null
           id?: string
           post_id?: string | null
           request_payload?: Json
