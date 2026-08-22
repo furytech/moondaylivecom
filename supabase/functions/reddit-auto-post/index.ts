@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
 
     const result = await publishPostToReddit(supabase, postId, {
       force: body?.force === true,
+      triggerSource: 'manual',
     });
 
     if (!result.ok) {
