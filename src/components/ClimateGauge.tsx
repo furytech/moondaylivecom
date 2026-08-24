@@ -228,6 +228,30 @@ export default function ClimateGauge({ illumination, sign }: Props) {
           </div>
         </div>
       )}
+
+      <EducationModal
+        isOpen={showFormula}
+        onClose={() => setShowFormula(false)}
+        eyebrow="The Climate Score"
+        title="How the Reading Is Composed"
+        subtitle="The Emotional Climate score is a 0–100 reading, refreshed continuously from three live lunar signals."
+        intro="We do not hand-pick a feeling for the day. The gauge you see is computed from the sky itself — then translated into language. Here is exactly what goes in."
+        sections={[
+          {
+            label: "Illumination · I",
+            body: "How full the Moon appears right now, from 0% (dark) to 100% (full). A fuller Moon carries more visible energy into the day, so its weight on the score rises as the Great Cycle builds toward full and falls as it wanes.",
+          },
+          {
+            label: "Sign · Element · W",
+            body: "The zodiac sign the Moon is currently transiting, and its classical element. Each element lends the day a different flavor: Water (+10) deepens feeling, Earth (+5) steadies it, Air (0) keeps it light, and Fire (−5) quickens and unsettles it.",
+          },
+          {
+            label: "Volatility · V",
+            body: "A +15 offset applied only when the Moon is within two hours of changing signs — the brief window Between Phases when the emotional weather is unsettled and the reading is likeliest to shift. Outside that window, V is zero.",
+          },
+        ]}
+        closing="The result is a single number — your Climate. Read it as a temperature, not a verdict."
+      />
     </GlassmorphismCard>
   );
 }
