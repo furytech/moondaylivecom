@@ -1,5 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportError, errorText } from './errorTracking.ts'
+import { sendAppEmail } from './sendAppEmail.ts'
+
 
 /**
  * Substack email-to-draft bridge.
