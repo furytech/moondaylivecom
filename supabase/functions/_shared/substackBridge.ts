@@ -1,5 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportError, errorText } from './errorTracking.ts'
+import { sendAppEmail } from './sendAppEmail.ts'
+
 
 /**
  * Substack email-to-draft bridge.
@@ -97,23 +99,19 @@ export async function sendSubstackDraft(
   let sentAny = false
   for (const recipient of recipients) {
     try {
-      const { error } = await supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'substack-draft',
-          recipientEmail: recipient,
-          idempotencyKey: `substack-draft-${post.id}-${recipient}${attempt}`,
-          templateData: {
-            title: post.title ?? undefined,
-            content: post.substack_post,
-            toSign: post.zodiac_sign_tag ?? undefined,
-            ingressTime: post.published_at ?? post.publish_at ?? undefined,
-            postUrl: postUrl(post),
-            adminUrl: `${SITE_URL}/admin/blog`,
-          },
+      const result = await sendAppEmail(supabase, 'substack-draft', recipient, {
+        idempotencyKey: `substack-draft-${post.id}-${recipient}${attempt}`,
+        templateData: {
+          title: post.title ?? undefined,
+          content: post.substack_post,
+          toSign: post.zodiac_sign_tag ?? undefined,
+          ingressTime: post.published_at ?? post.publish_at ?? undefined,
+          postUrl: postUrl(post),
+          adminUrl: `${SITE_URL}/admin/blog`,
         },
       })
-      if (error) throw error
-      sentAny = true
+      if (result.sent) sentAny = true
+
     } catch (e) {
       await reportError({
         source: 'substack-bridge',

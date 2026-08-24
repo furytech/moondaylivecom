@@ -10,6 +10,8 @@
 // customer-facing request that triggered it.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendAppEmail } from './sendAppEmail.ts'
+
 
 export type Severity = 'warning' | 'error' | 'critical'
 
@@ -82,30 +84,27 @@ async function sendAdminAlert(
   let sentAny = false
   for (const recipient of recipients) {
     try {
-      const { error } = await supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'system-error-alert',
-          recipientEmail: recipient,
-          idempotencyKey: `system-error-${report.errorId}-${recipient}`,
-          templateData: {
-            source: report.source,
-            severity: report.severity,
-            message: report.message,
-            occurredAt: report.occurredAt,
-            affectsSubscribers: report.affectsSubscribers,
-            context: JSON.stringify(report.context, null, 2).slice(0, 2000),
-          },
+      const result = await sendAppEmail(supabase, 'system-error-alert', recipient, {
+        idempotencyKey: `system-error-${report.errorId}-${recipient}`,
+        templateData: {
+          source: report.source,
+          severity: report.severity,
+          message: report.message,
+          occurredAt: report.occurredAt,
+          affectsSubscribers: report.affectsSubscribers,
+          context: JSON.stringify(report.context, null, 2).slice(0, 2000),
         },
       })
-      if (error) {
-        console.error('[errorTracking] Alert email failed', { recipient, error: errorText(error) })
-      } else {
+      if (result.sent) {
         sentAny = true
+      } else {
+        console.warn('[errorTracking] Alert email skipped — recipient suppressed')
       }
     } catch (err) {
-      console.error('[errorTracking] Alert email threw', { recipient, error: errorText(err) })
+      console.error('[errorTracking] Alert email threw', { error: errorText(err) })
     }
   }
+
   return sentAny
 }
 
