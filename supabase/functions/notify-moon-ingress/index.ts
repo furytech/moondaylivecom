@@ -125,27 +125,24 @@ Deno.serve(async (req) => {
       const idempotencyKey = `moon-ingress-${transitionAt}-${userId}`
 
       try {
-        const { error: invokeError } = await supabase.functions.invoke(
-          'send-transactional-email',
-          {
-            body: {
-              templateName: 'moon-ingress-alert',
-              recipientEmail: email,
-              idempotencyKey,
-              templateData: {
-                toSign,
-                fromSign,
-                transitionTime: transitionAt,
-                natalMoonSign,
-                userName,
-              },
-            },
-          }
-        )
+        const result = await sendAppEmail(supabase, 'moon-ingress-alert', email, {
+          idempotencyKey,
+          templateData: {
+            toSign,
+            fromSign,
+            transitionTime: transitionAt,
+            natalMoonSign,
+            userName,
+          },
+        })
 
-        if (invokeError) {
-          throw new Error(invokeError.message)
+        if (!result.sent) {
+          console.warn('[notify-moon-ingress] Recipient suppressed — skipping', {
+            userId,
+            transitionAt,
+          })
         }
+
 
         // Record the notification so we don't repeat it
         const { error: insertError } = await supabase
