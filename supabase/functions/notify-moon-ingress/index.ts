@@ -1,6 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { reportError } from '../_shared/errorTracking.ts'
+import { sendAppEmail } from '../_shared/sendAppEmail.ts'
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
