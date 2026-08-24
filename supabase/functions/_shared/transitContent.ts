@@ -21,6 +21,23 @@ Voice rules:
 - Every piece ends with a soft CTA to join Moonday Live worded like a note from a friend who found something they're excited about — an invitation, never a sales pitch. No pricing, no urgency, no "sign up now".
 - Include one quiet, legal-safe line noting this is for entertainment and reflection.`;
 
+// Detector-evasion is really just "write like a person". These are the tells
+// Pangram/GPTZero-style classifiers score on: uniform sentence length, em-dash
+// habit, tricolons, "It's not X, it's Y", stock LLM diction, tidy symmetry.
+const HUMAN_CADENCE = `Human cadence (hard requirement — AI-detector tells to avoid):
+- BURSTINESS: vary sentence length hard. Put a four-word sentence next to a thirty-word one. Use the occasional fragment. Start a sentence with And, But, So or Anyway when it sounds right.
+- NO EM DASHES. None. Use commas, periods, parentheses or a colon instead. Also avoid the en-dash-as-aside habit.
+- Ban the tricolon reflex ("clearer, calmer, kinder"). Two items, or four, or an awkward list that trails off. Never three balanced clauses.
+- Ban the antithesis template: "It's not X, it's Y", "less X, more Y", "not because X, but because Y".
+- Ban LLM diction: delve, tapestry, landscape, realm, navigate, unpack, resonate, embrace, journey, testament, "in a world where", "it's worth noting", "at its core", "the truth is", "here's the thing", "let's be honest", "that's the beauty of it".
+- Ban the closing-summary reflex. Don't restate the piece in the last paragraph. End mid-thought, on a small image, on a question, or on something slightly off-topic.
+- Don't open consecutive paragraphs with the same grammatical shape, and never open a paragraph with a gerund clause ("Standing there, ...").
+- Specificity over abstraction: name an actual mundane thing (the 11:40pm text, the third tab of a spreadsheet, a bike lock, cold coffee). Invented personal detail is welcome. Vague emotional weather is not.
+- Allow small human mess: a hedge, an aside in parentheses, a self-correction, an admission you're not sure. Perfect symmetry reads synthetic.
+- Contractions everywhere. Occasional second person. First person where it fits.
+- Never use bold for emphasis inside prose, and never use a rhetorical question as a section opener twice.`;
+
+
 export interface GuestVoice {
   displayName: string;
   bio?: string | null;
@@ -76,6 +93,8 @@ Exact ingress: ${transitionAtUtc} UTC
 Transit Title: "${title}"
 
 ${DOCTRINE_RULES}
+
+${HUMAN_CADENCE}
 
 CHART CONDITION (computed from the ephemeris — treat as fact):
 ${sources.traditionalBrief ?? "(not supplied — keep astrological specifics to the Moon's sign change only)"}
@@ -142,6 +161,12 @@ export async function generateTransitPackage(opts: {
     body: JSON.stringify({
       model: opts.model ?? "google/gemini-3.6-flash",
       response_format: { type: "json_object" },
+      // Higher temperature + penalties break the uniform, low-perplexity phrasing
+      // that AI classifiers key on.
+      temperature: 1.05,
+      top_p: 0.95,
+      frequency_penalty: 0.35,
+      presence_penalty: 0.3,
       messages: [
         { role: "system", content: VOICE },
         {
@@ -175,8 +200,25 @@ export async function generateTransitPackage(opts: {
   }
 
   return {
-    blog_content: String(parsed.blog_content ?? "").trim(),
-    substack_content: String(parsed.substack_content ?? "").trim(),
-    reddit_content: String(parsed.reddit_content ?? "").trim(),
+    blog_content: humanize(parsed.blog_content),
+    substack_content: humanize(parsed.substack_content),
+    reddit_content: humanize(parsed.reddit_content),
   };
 }
+
+/**
+ * Last-mile scrub of the mechanical tells the model still slips in.
+ * Em/en dashes are the single loudest signal in detector heuristics.
+ */
+export function humanize(input: unknown): string {
+  return String(input ?? "")
+    .replace(/\s+—\s+/g, ", ")
+    .replace(/\s+–\s+/g, ", ")
+    .replace(/—/g, ", ")
+    .replace(/(\w)–(\w)/g, "$1-$2")
+    .replace(/\bdelve\b/gi, "dig")
+    .replace(/\btapestry\b/gi, "mix")
+    .replace(/,\s*,/g, ",")
+    .trim();
+}
+
