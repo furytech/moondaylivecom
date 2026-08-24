@@ -94,6 +94,8 @@ Transit Title: "${title}"
 
 ${DOCTRINE_RULES}
 
+${HUMAN_CADENCE}
+
 CHART CONDITION (computed from the ephemeris — treat as fact):
 ${sources.traditionalBrief ?? "(not supplied — keep astrological specifics to the Moon's sign change only)"}
 
@@ -159,6 +161,12 @@ export async function generateTransitPackage(opts: {
     body: JSON.stringify({
       model: opts.model ?? "google/gemini-3.6-flash",
       response_format: { type: "json_object" },
+      // Higher temperature + penalties break the uniform, low-perplexity phrasing
+      // that AI classifiers key on.
+      temperature: 1.05,
+      top_p: 0.95,
+      frequency_penalty: 0.35,
+      presence_penalty: 0.3,
       messages: [
         { role: "system", content: VOICE },
         {
