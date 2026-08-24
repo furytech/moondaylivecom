@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import EducationModal from "@/components/EducationModal";
 import { Activity, AlertTriangle, Loader2, ChevronRight } from "lucide-react";
 
 interface ClimateBreakdown {
