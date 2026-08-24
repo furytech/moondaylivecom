@@ -200,8 +200,25 @@ export async function generateTransitPackage(opts: {
   }
 
   return {
-    blog_content: String(parsed.blog_content ?? "").trim(),
-    substack_content: String(parsed.substack_content ?? "").trim(),
-    reddit_content: String(parsed.reddit_content ?? "").trim(),
+    blog_content: humanize(parsed.blog_content),
+    substack_content: humanize(parsed.substack_content),
+    reddit_content: humanize(parsed.reddit_content),
   };
 }
+
+/**
+ * Last-mile scrub of the mechanical tells the model still slips in.
+ * Em/en dashes are the single loudest signal in detector heuristics.
+ */
+export function humanize(input: unknown): string {
+  return String(input ?? "")
+    .replace(/\s+—\s+/g, ", ")
+    .replace(/\s+–\s+/g, ", ")
+    .replace(/—/g, ", ")
+    .replace(/(\w)–(\w)/g, "$1-$2")
+    .replace(/\bdelve\b/gi, "dig")
+    .replace(/\btapestry\b/gi, "mix")
+    .replace(/,\s*,/g, ",")
+    .trim();
+}
+
