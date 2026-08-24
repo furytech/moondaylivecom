@@ -9,13 +9,10 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
-
-const LOGO_URL = 'https://moondaylive.com/assets/moon-logo-new.png'
 
 interface SignupEmailProps {
   siteName: string
@@ -35,21 +32,20 @@ export const SignupEmail = ({
     <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt={siteName} width={64} height={64} style={logo} />
-        <Heading style={h1}>Welcome to Moonday Live</Heading>
+        <Heading style={h1}>Confirm your email</Heading>
         <Text style={text}>
-          Thanks for stepping into the cycle with{' '}
+          Thanks for signing up for{' '}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
-          .
+          !
         </Text>
         <Text style={text}>
-          Confirm your email address ({' '}
+          Please confirm your email address (
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
-          </Link>{' '}
-          ) so we can build your personal Moonday Blueprint.
+          </Link>
+          ) by clicking the button below:
         </Text>
         <Button style={button} href={confirmationUrl}>
           Verify Email
@@ -64,55 +60,27 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = {
-  backgroundColor: '#ffffff',
-  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
-}
-
-const container = {
-  padding: '32px 24px',
-  maxWidth: '520px',
-}
-
-const logo = {
-  display: 'block',
-  margin: '0 auto 24px',
-  borderRadius: '50%',
-}
-
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
-  fontSize: '26px',
-  fontWeight: '600' as const,
-  color: '#0B1030',
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
   margin: '0 0 20px',
-  textAlign: 'center' as const,
-  letterSpacing: '-0.01em',
 }
-
 const text = {
-  fontSize: '15px',
-  color: '#5A5A6E',
-  lineHeight: '1.6',
-  margin: '0 0 20px',
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
 }
-
-const link = { color: '#6B66F7', textDecoration: 'underline' }
-
+const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#6B66F7',
+  backgroundColor: '#000000',
   color: '#ffffff',
   fontSize: '14px',
-  fontWeight: '600' as const,
-  borderRadius: '12px',
-  padding: '14px 28px',
+  borderRadius: '8px',
+  padding: '12px 20px',
   textDecoration: 'none',
-  display: 'inline-block',
-  margin: '8px 0 24px',
 }
-
-const footer = {
-  fontSize: '12px',
-  color: '#8B8B9A',
-  margin: '24px 0 0',
-  lineHeight: '1.5',
-}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
