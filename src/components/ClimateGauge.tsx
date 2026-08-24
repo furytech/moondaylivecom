@@ -34,6 +34,7 @@ export default function ClimateGauge({ illumination, sign }: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ClimateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showFormula, setShowFormula] = useState(false);
 
   const fetchClimate = async () => {
     setLoading(true);
