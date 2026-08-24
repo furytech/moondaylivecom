@@ -10,6 +10,8 @@
 // customer-facing request that triggered it.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendAppEmail } from './sendAppEmail.ts'
+
 
 export type Severity = 'warning' | 'error' | 'critical'
 
