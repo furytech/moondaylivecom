@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
+import EducationModal from "@/components/EducationModal";
 import { Activity, AlertTriangle, Loader2, ChevronRight } from "lucide-react";
 
 interface ClimateBreakdown {
@@ -33,6 +34,7 @@ export default function ClimateGauge({ illumination, sign }: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ClimateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showFormula, setShowFormula] = useState(false);
 
   const fetchClimate = async () => {
     setLoading(true);
@@ -210,9 +212,14 @@ export default function ClimateGauge({ illumination, sign }: Props) {
                 </span>
               </div>
             )}
-            <p className="mt-2 font-serif text-xs text-muted-foreground text-center italic">
-              {data.formula}
-            </p>
+            <button
+              onClick={() => setShowFormula(true)}
+              className="mt-3 group inline-flex items-center justify-center gap-1.5 font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Open the climate score explainer"
+            >
+              <span>How is this calculated?</span>
+              <ChevronRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            </button>
             {data.notice && (
               <p className="mt-2 font-serif text-xs text-amber-signal-soft text-center">
                 {data.notice}
@@ -221,6 +228,30 @@ export default function ClimateGauge({ illumination, sign }: Props) {
           </div>
         </div>
       )}
+
+      <EducationModal
+        isOpen={showFormula}
+        onClose={() => setShowFormula(false)}
+        eyebrow="The Climate Score"
+        title="How the Reading Is Composed"
+        subtitle="The Emotional Climate score is a 0–100 reading, refreshed continuously from three live lunar signals."
+        intro="We do not hand-pick a feeling for the day. The gauge you see is computed from the sky itself — then translated into language. Here is exactly what goes in."
+        sections={[
+          {
+            label: "Illumination · I",
+            body: "How full the Moon appears right now, from 0% (dark) to 100% (full). A fuller Moon carries more visible energy into the day, so its weight on the score rises as the Great Cycle builds toward full and falls as it wanes.",
+          },
+          {
+            label: "Sign · Element · W",
+            body: "The zodiac sign the Moon is currently transiting, and its classical element. Each element lends the day a different flavor: Water (+10) deepens feeling, Earth (+5) steadies it, Air (0) keeps it light, and Fire (−5) quickens and unsettles it.",
+          },
+          {
+            label: "Volatility · V",
+            body: "A +15 offset applied only when the Moon is within two hours of changing signs — the brief window Between Phases when the emotional weather is unsettled and the reading is likeliest to shift. Outside that window, V is zero.",
+          },
+        ]}
+        closing="The result is a single number — your Climate. Read it as a temperature, not a verdict."
+      />
     </GlassmorphismCard>
   );
 }
