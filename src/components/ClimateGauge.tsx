@@ -213,19 +213,17 @@ export default function ClimateGauge({ illumination, sign }: Props) {
               </div>
             )}
             {data.formula && (
-              <button
-                onClick={() => setShowFormula(true)}
-                className="mt-3 group block w-full text-center cursor-pointer"
-                aria-label="Open the climate score explainer"
-                title="Tap to see how this is calculated"
-              >
-                <span className="sanctuary-text italic text-sm text-cream-muted group-hover:text-primary transition-colors duration-300">
-                  {data.formula}
-                </span>
-                <span className="block mt-1 font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground/60 group-hover:text-primary transition-colors duration-300">
-                  How is this calculated?
-                </span>
-              </button>
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => setShowFormula(true)}
+                  className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--reveal)/0.65)] bg-[hsl(var(--reveal)/0.12)] hover:bg-[hsl(var(--reveal)/0.22)] hover:border-[hsl(var(--reveal-strong)/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(var(--reveal-strong))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300"
+                  aria-label="Open the climate score explainer"
+                  title="Tap to see how this is calculated"
+                >
+                  <span>How is this calculated?</span>
+                  <ChevronRight className="w-4 h-4 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
+                </button>
+              </div>
             )}
             {data.notice && (
               <p className="mt-2 font-serif text-xs text-amber-signal-soft text-center">
