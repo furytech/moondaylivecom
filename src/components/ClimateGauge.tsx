@@ -212,14 +212,21 @@ export default function ClimateGauge({ illumination, sign }: Props) {
                 </span>
               </div>
             )}
-            <button
-              onClick={() => setShowFormula(true)}
-              className="mt-3 group inline-flex items-center justify-center gap-1.5 font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground hover:text-primary transition-colors"
-              aria-label="Open the climate score explainer"
-            >
-              <span>How is this calculated?</span>
-              <ChevronRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-            </button>
+            {data.formula && (
+              <button
+                onClick={() => setShowFormula(true)}
+                className="mt-3 group block w-full text-center cursor-pointer"
+                aria-label="Open the climate score explainer"
+                title="Tap to see how this is calculated"
+              >
+                <span className="sanctuary-text italic text-sm text-cream-muted group-hover:text-primary transition-colors duration-300">
+                  {data.formula}
+                </span>
+                <span className="block mt-1 font-display text-[10px] tracking-[0.25em] uppercase text-muted-foreground/60 group-hover:text-primary transition-colors duration-300">
+                  How is this calculated?
+                </span>
+              </button>
+            )}
             {data.notice && (
               <p className="mt-2 font-serif text-xs text-amber-signal-soft text-center">
                 {data.notice}
