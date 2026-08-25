@@ -46,6 +46,7 @@ import SystemErrors from "./pages/admin/SystemErrors";
 import ChannelAudit from "./pages/admin/ChannelAudit";
 import GuestDesk from "./pages/admin/GuestDesk";
 import GuestApplications from "./pages/admin/GuestApplications";
+import EclipseCampaign from "./pages/admin/EclipseCampaign";
 
 import GuestStudio from "./pages/GuestStudio";
 
