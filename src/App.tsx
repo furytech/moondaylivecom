@@ -78,6 +78,11 @@ const App = () => (
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/admin" element={<Navigate to="/admin/blog" replace />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/eclipse-campaign" element={
+              <AdminRoute>
+                <EclipseCampaign />
+              </AdminRoute>
+            } />
             <Route path="/admin/blog" element={
               <AdminRoute>
                 <BlogAdmin />
