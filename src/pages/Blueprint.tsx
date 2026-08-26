@@ -348,7 +348,7 @@ const Blueprint = () => {
                 <div className="border-t border-primary/10 pt-6 mt-auto">
                   <button
                     onClick={() => setMoonSignModalOpen(true)}
-                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--reveal)/0.65)] bg-[hsl(var(--reveal)/0.12)] hover:bg-[hsl(var(--reveal)/0.22)] hover:border-[hsl(var(--reveal-strong)/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(var(--reveal-strong))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--lime-accent)/0.65)] bg-[hsl(var(--lime-accent)/0.12)] hover:bg-[hsl(var(--lime-accent)/0.22)] hover:border-[hsl(var(--lime-accent-light)/0.95)] hover:shadow-[0_0_24px_hsl(var(--lime-accent)/0.35)] text-[hsl(var(--lime-accent-light))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
                   >
                     <span>Your Emotional Blueprint, Set at Birth</span>
                     <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
@@ -390,7 +390,7 @@ const Blueprint = () => {
                   <div className="border-t border-primary/10 pt-6 mt-auto">
                     <button
                       onClick={() => setTodaysMoonModalOpen(true)}
-                      className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--reveal)/0.65)] bg-[hsl(var(--reveal)/0.12)] hover:bg-[hsl(var(--reveal)/0.22)] hover:border-[hsl(var(--reveal-strong)/0.95)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-[hsl(var(--reveal-strong))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                      className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--lime-accent)/0.65)] bg-[hsl(var(--lime-accent)/0.12)] hover:bg-[hsl(var(--lime-accent)/0.22)] hover:border-[hsl(var(--lime-accent-light)/0.95)] hover:shadow-[0_0_24px_hsl(var(--lime-accent)/0.35)] text-[hsl(var(--lime-accent-light))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
                     >
                       <span>About Today's Moon Energy</span>
                       <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
@@ -415,7 +415,7 @@ const Blueprint = () => {
             <div className="mt-8 flex justify-center animate-fade-up stagger-2">
               <button
                 onClick={() => navigate("/my-moon-card")}
-                className="group inline-flex items-center gap-2 px-6 py-3 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/70 hover:shadow-[0_0_24px_hsl(var(--primary)/0.35)] text-primary font-display text-sm uppercase tracking-widest transition-all duration-300"
+                className="group inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[hsl(var(--lime-accent)/0.65)] bg-[hsl(var(--lime-accent)/0.12)] hover:bg-[hsl(var(--lime-accent)/0.22)] hover:border-[hsl(var(--lime-accent-light)/0.95)] hover:shadow-[0_0_24px_hsl(var(--lime-accent)/0.35)] text-[hsl(var(--lime-accent-light))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Share Your Moon Sign</span>

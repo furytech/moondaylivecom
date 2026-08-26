@@ -15,7 +15,7 @@ const GlassmorphismCard = ({
   size = "md",
 }: GlassmorphismCardProps) => {
   const glowStyles = {
-    gold: "shadow-[0_0_60px_-15px_hsl(239,84%,67%,0.25)] border-primary/45 hover:border-primary/65 hover:shadow-[0_0_80px_-15px_hsl(239,84%,67%,0.35)]",
+    gold: "shadow-[0_0_60px_-15px_hsl(239,84%,67%,0.25)] border-[hsl(var(--reveal)/0.55)] hover:border-[hsl(var(--reveal-strong)/0.8)] hover:shadow-[0_0_80px_-15px_hsl(239,84%,67%,0.35)]",
     blue: "shadow-[0_0_60px_-15px_hsl(220,60%,50%,0.2)] border-blue-400/45 hover:border-blue-400/65",
     purple: "shadow-[0_0_60px_-15px_hsl(280,60%,50%,0.2)] border-purple-400/45 hover:border-purple-400/65",
   };
