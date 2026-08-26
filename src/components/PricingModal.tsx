@@ -55,10 +55,10 @@ const PricingModal = ({ open, onOpenChange, onSelectPlan, loading }: PricingModa
       <DialogContent className="sm:max-w-lg glass-card border-primary/20 bg-background/95 backdrop-blur-xl">
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 z-50 p-2 rounded-full bg-background/50 hover:bg-background/80 border border-primary/20 hover:border-primary/40 transition-all group"
+          className="absolute right-4 top-4 z-50 p-2 rounded-full btn-lime group"
           aria-label="Close"
         >
-          <X className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          <X className="w-5 h-5 transition-colors" />
         </button>
         <DialogHeader className="text-center pb-4">
           <div className="flex items-center justify-center gap-2 mb-2">
