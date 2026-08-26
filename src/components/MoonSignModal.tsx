@@ -22,9 +22,10 @@ const MoonSignModal = ({ isOpen, onClose, moonSign }: MoonSignModalProps) => {
         {/* Custom close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 p-2 rounded-full bg-background/50 hover:bg-primary/20 transition-colors group"
+          className="absolute right-4 top-4 z-10 p-2 rounded-full btn-lime group"
+          aria-label="Close"
         >
-          <X className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          <X className="w-5 h-5 transition-colors" />
         </button>
 
         <ScrollArea className="max-h-[85vh]">
@@ -167,9 +168,9 @@ const MoonSignModal = ({ isOpen, onClose, moonSign }: MoonSignModalProps) => {
             <div className="flex justify-center mt-10">
               <button
                 onClick={onClose}
-                className="group relative px-8 py-3 font-display text-sm tracking-widest uppercase overflow-hidden art-deco-border bg-primary/5 hover:bg-primary/10 transition-all duration-500"
+                className="group relative px-8 py-3 font-display text-sm tracking-widest uppercase overflow-hidden rounded-xl btn-lime"
               >
-                <span className="relative z-10 text-primary group-hover:text-gold-pale transition-colors">
+                <span className="relative z-10 transition-colors">
                   Close
                 </span>
               </button>

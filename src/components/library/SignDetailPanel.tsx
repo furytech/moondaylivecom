@@ -35,7 +35,8 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
             {/* Close button - inside scroll area, top right of content */}
             <button
               onClick={onClose}
-              className="absolute top-0 right-0 z-10 p-2 text-muted-foreground hover:text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="absolute top-0 right-0 z-10 p-2 rounded-full btn-lime min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Close"
             >
               <X className="w-6 h-6" />
             </button>

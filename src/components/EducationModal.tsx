@@ -35,10 +35,10 @@ const EducationModal = ({
       <DialogContent className="max-w-2xl max-h-[90vh] p-0 bg-background/98 backdrop-blur-xl border-primary/30 z-[100]">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 p-2 rounded-full bg-background/50 hover:bg-primary/20 transition-colors group"
+          className="absolute right-4 top-4 z-10 p-2 rounded-full btn-lime group"
           aria-label="Close"
         >
-          <X className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          <X className="w-5 h-5 transition-colors" />
         </button>
 
         <ScrollArea className="max-h-[85vh]">
@@ -108,7 +108,7 @@ const EducationModal = ({
             <div className="flex justify-center mt-10">
               <button
                 onClick={onClose}
-                className="px-8 py-3 font-display text-sm tracking-widest uppercase rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 text-primary transition-all duration-300"
+                className="px-8 py-3 font-display text-sm tracking-widest uppercase rounded-xl btn-lime"
               >
                 Close
               </button>
