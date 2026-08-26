@@ -216,7 +216,7 @@ export default function ClimateGauge({ illumination, sign }: Props) {
               <div className="mt-4 flex justify-center">
                 <button
                   onClick={() => setShowFormula(true)}
-                  className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[hsl(var(--lime-accent)/0.65)] bg-[hsl(var(--lime-accent)/0.12)] hover:bg-[hsl(var(--lime-accent)/0.22)] hover:border-[hsl(var(--lime-accent-light)/0.95)] hover:shadow-[0_0_24px_hsl(var(--lime-accent)/0.35)] text-[hsl(var(--lime-accent-light))] hover:text-primary-foreground font-display text-sm uppercase tracking-widest transition-all duration-300"
+                  className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl btn-lime font-display text-sm uppercase tracking-widest transition-all duration-300"
                   aria-label="Open the climate score explainer"
                   title="Tap to see how this is calculated"
                 >
