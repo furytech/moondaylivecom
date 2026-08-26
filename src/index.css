@@ -212,6 +212,23 @@
     border-radius: var(--radius);
   }
 
+  /* Lime CTA — used ONLY for buttons that open a modal or another screen.
+     Outline is lime (#8CD411); label text stays the original reveal blue. */
+  .btn-lime {
+    border: 1px solid hsl(var(--lime-accent) / 0.65);
+    background-color: hsl(var(--lime-accent) / 0.10);
+    color: hsl(var(--reveal-strong));
+    transition: all 0.3s ease;
+  }
+
+  .btn-lime:hover {
+    background-color: hsl(var(--lime-accent) / 0.18);
+    border-color: hsl(var(--lime-accent-light) / 0.95);
+    box-shadow: 0 0 24px hsl(var(--lime-accent) / 0.35);
+    color: hsl(var(--reveal-strong));
+  }
+
+
   /* Celestial glow hover effect */
   .brass-glow {
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);

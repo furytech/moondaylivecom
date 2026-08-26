@@ -142,7 +142,7 @@ const About = () => {
             <div className="flex justify-center pt-2">
               <Link
                 to="/lenses"
-                className="font-display text-xs tracking-widest uppercase px-8 py-3 art-deco-border brass-glow text-primary"
+                className="font-display text-xs tracking-widest uppercase px-8 py-3 rounded-md btn-lime"
               >
                 Explore the Three Lenses
               </Link>
@@ -163,7 +163,7 @@ const About = () => {
             <div className="flex justify-center pt-2">
               <Link
                 to="/pricing"
-                className="font-display text-xs tracking-widest uppercase px-8 py-3 art-deco-border brass-glow text-primary"
+                className="font-display text-xs tracking-widest uppercase px-8 py-3 rounded-md btn-lime"
               >
                 Discover the Sovereign Tier
               </Link>
