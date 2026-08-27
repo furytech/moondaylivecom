@@ -17,3 +17,29 @@ export function redditSingleSpace(text: string): string {
     .join("  \n")
     .trim();
 }
+
+const SITE_URL = "https://moondaylive.com";
+
+/** Same source-url rule the dispatcher uses. */
+export function redditSourceUrl(post: { slug?: string | null; category?: string | null }): string {
+  if (!post.slug) return SITE_URL;
+  return post.category ? `${SITE_URL}/blog/${post.category}/${post.slug}` : `${SITE_URL}/blog/${post.slug}`;
+}
+
+/** Reddit self-posts can't render images, so the brand mark is a plain link line. */
+export function redditBrandLink(href: string = SITE_URL): string {
+  return `[Moonday Live -> ${href.replace(/^https?:\/\//, "")}](${href})`;
+}
+
+/**
+ * Byte-identical to the webhook payload body: brand link, copy, brand link,
+ * all single-spaced with Markdown hard breaks.
+ */
+export function redditBodyWithBrand(
+  text: string,
+  post: { slug?: string | null; category?: string | null } = {},
+): string {
+  const link = redditBrandLink(redditSourceUrl(post));
+  return `${link}  \n${redditSingleSpace(text)}  \n${link}`;
+}
+

@@ -26,7 +26,7 @@ import {
   ChannelStatus,
 } from "@/lib/blog/posts";
 import { markdownToHtml, markdownToPlainText } from "@/lib/blog/markdownToHtml";
-import { redditSingleSpace } from "@/lib/redditFormat";
+import { redditBodyWithBrand } from "@/lib/redditFormat";
 import ChannelMatrix, { countMissed, Channel } from "@/components/admin/ChannelMatrix";
 import DispatchPreview from "@/components/admin/DispatchPreview";
 
@@ -346,8 +346,8 @@ const BlogAdmin = () => {
       setMessage("No Reddit copy on this post yet.");
       return;
     }
-    await navigator.clipboard.writeText(redditSingleSpace(text));
-    setMessage("Reddit post copied (single-spaced).");
+    await navigator.clipboard.writeText(redditBodyWithBrand(text, post));
+    setMessage("Reddit post copied (single-spaced, with Moonday links).");
     setRedditCopiedId(post.id || null);
     setTimeout(() => setRedditCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
@@ -1251,8 +1251,8 @@ const BlogAdmin = () => {
                           setMessage("No Reddit copy on this post yet.");
                           return;
                         }
-                        await navigator.clipboard.writeText(redditSingleSpace(text));
-                        setMessage("Reddit copy copied — single-spaced, title on line one.");
+                        await navigator.clipboard.writeText(redditBodyWithBrand(text, editing));
+                        setMessage("Reddit copy copied — single-spaced, with Moonday links top and bottom.");
                       }}
                       className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition"
                     >
