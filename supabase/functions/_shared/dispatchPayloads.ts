@@ -68,7 +68,7 @@ export function brandButtonMarkdown(href: string = SITE_URL): string {
 
 /** Reddit self-posts don't render images, so the mark becomes a plain link line. */
 export function brandLinkReddit(href: string = SITE_URL): string {
-  return `[Moonday Live -> ${href.replace(/^https?:\/\//, '')}](${href})`
+  return `[Check your moon sign on MoondayLive.com](${href})`
 }
 
 /** Top + bottom brand buttons around a body. */
