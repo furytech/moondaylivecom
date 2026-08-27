@@ -70,14 +70,21 @@ function wrapBrand(body: string, href: string, button: string): string {
 }
 
 /**
- * Reddit renders a blank line between blocks as a full paragraph gap. Collapse
- * runs of blank lines so the post reads single-spaced.
+ * Reddit renders a blank line between blocks as a full paragraph gap (the
+ * "double spacing" the operator sees). A bare single newline is the opposite
+ * problem: Reddit's markdown joins those lines into one run-on paragraph.
+ *
+ * The single-spaced result Reddit actually honours is a Markdown hard break:
+ * two trailing spaces before the newline.
  */
 export function singleSpace(text: string): string {
   return text
     .replace(/\r\n/g, '\n')
     .replace(/[ \t]+$/gm, '')
     .replace(/\n{2,}/g, '\n')
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('  \n')
     .trim()
 }
 
@@ -87,7 +94,7 @@ export function buildRedditPayload(post: DispatchPost) {
   const sourceUrl = resolveSourceUrl(post)
   const link = brandLinkReddit(sourceUrl)
   const copy = singleSpace(post.reddit_post ?? '')
-  const body = `${link}\n${copy}\n${link}`
+  const body = `${link}  \n${copy}  \n${link}`
 
   return {
     post_id: post.id,
