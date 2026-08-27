@@ -49,9 +49,16 @@ export function resolveTitle(post: DispatchPost): string {
 /** The Moonday "M" mark, served from the site so every channel can hotlink it. */
 export const BRAND_LOGO_URL = `${SITE_URL}/moonday-logo.png`
 
-/** Pill button with the logo, for channels that accept raw HTML (Substack). */
+/** Hosted CTA button image (navy pill, lime border, logo) every channel can hotlink. */
+export const BRAND_CTA_URL = `${SITE_URL}/moonday-cta-button.png`
+
+/**
+ * Clickable button for channels that accept raw HTML (Substack).
+ * A linked <img> survives Substack's sanitizer where styled anchors get
+ * flattened into plain text links — this is the reliable "button".
+ */
 export function brandButtonHtml(href: string = SITE_URL): string {
-  return `<p style="text-align:center;margin:28px 0;"><a href="${href}" style="display:inline-block;text-decoration:none;border:2px solid #8CD411;border-radius:999px;padding:10px 20px;font-family:Inter,Helvetica,Arial,sans-serif;font-size:15px;color:#C7D2FE;background:#011124;"><img src="${BRAND_LOGO_URL}" alt="Moonday Live" width="24" height="24" style="vertical-align:middle;border-radius:50%;margin-right:10px;" />Read this on MoondayLive.com</a></p>`
+  return `<p style="text-align:center;margin:28px 0;"><a href="${href}" target="_blank" rel="noopener"><img src="${BRAND_CTA_URL}" alt="Explore your personal radar on MoondayLive.com" width="520" style="width:100%;max-width:520px;height:auto;border:0;display:inline-block;" /></a></p>`
 }
 
 /** Markdown equivalent (logo image link) for markdown-only surfaces. */
