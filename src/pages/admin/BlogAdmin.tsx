@@ -346,8 +346,8 @@ const BlogAdmin = () => {
       setMessage("No Reddit copy on this post yet.");
       return;
     }
-    await navigator.clipboard.writeText(redditSingleSpace(text));
-    setMessage("Reddit post copied (single-spaced).");
+    await navigator.clipboard.writeText(redditBodyWithBrand(text, post));
+    setMessage("Reddit post copied (single-spaced, with Moonday links).");
     setRedditCopiedId(post.id || null);
     setTimeout(() => setRedditCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
