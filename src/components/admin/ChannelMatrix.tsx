@@ -171,11 +171,11 @@ const TONES: Record<Tone, string> = {
 };
 
 const BORDER_TONES: Record<Tone, string> = {
-  primary: "border-primary/40 text-primary hover:bg-primary/10",
-  sky: "border-sky-400/40 text-sky-400 hover:bg-sky-400/10",
-  emerald: "border-emerald-400/40 text-emerald-400 hover:bg-emerald-400/10",
-  amber: "border-amber-400/40 text-amber-400 hover:bg-amber-400/10",
-  red: "border-red-400/40 text-red-400 hover:bg-red-400/10",
+  primary: "border-primary/70 text-primary hover:bg-primary/10",
+  sky: "border-sky-400/70 text-sky-400 hover:bg-sky-400/10",
+  emerald: "border-emerald-400/70 text-emerald-400 hover:bg-emerald-400/10",
+  amber: "border-amber-400/70 text-amber-400 hover:bg-amber-400/10",
+  red: "border-red-400/70 text-red-400 hover:bg-red-400/10",
 };
 
 /** Inline text link — desktop density. */
@@ -422,8 +422,10 @@ const ChannelMatrix = ({
         return (
           <div
             key={p.id}
-            className={`rounded-xl border bg-background/60 overflow-hidden ${
-              missedHere ? "border-red-500/40" : "border-border/40"
+            className={`rounded-xl border-[1.5px] bg-background/60 overflow-hidden transition-colors ${
+              missedHere
+                ? "border-red-500/60"
+                : "border-[hsl(var(--reveal-strong)/0.85)] hover:border-[hsl(var(--reveal-strong))]"
             }`}
           >
             {/* Transit header: what it is, when it happens (UTC first) */}
@@ -448,14 +450,14 @@ const ChannelMatrix = ({
                 </div>
               </div>
               {/* Desktop: inline links. Mobile: full tap targets below. */}
-              <div className="hidden md:flex items-center gap-3 shrink-0">
-                <LinkBtn onClick={() => onEdit(p)}>Edit</LinkBtn>
-                <LinkBtn onClick={() => onDownloadImage(p)}>
+              <div className="hidden md:flex items-center gap-2 shrink-0">
+                <HeaderBtn onClick={() => onEdit(p)}>Edit</HeaderBtn>
+                <HeaderBtn tone="sky" onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
-                </LinkBtn>
-                <LinkBtn tone="red" onClick={() => onDelete(p.id!)}>
+                </HeaderBtn>
+                <HeaderBtn tone="red" onClick={() => onDelete(p.id!)}>
                   Delete
-                </LinkBtn>
+                </HeaderBtn>
               </div>
               <div className="flex flex-wrap md:hidden w-full gap-2">
                 <TapBtn onClick={() => onEdit(p)}>Edit</TapBtn>
