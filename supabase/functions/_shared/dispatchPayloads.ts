@@ -46,23 +46,62 @@ export function resolveTitle(post: DispatchPost): string {
   return post.title?.trim() || `The Moon enters ${post.zodiac_sign_tag ?? 'a new sign'}`
 }
 
+/** The Moonday "M" mark, served from the site so every channel can hotlink it. */
+export const BRAND_LOGO_URL = `${SITE_URL}/moonday-logo.png`
+
+/** Pill button with the logo, for channels that accept raw HTML (Substack). */
+export function brandButtonHtml(href: string = SITE_URL): string {
+  return `<p style="text-align:center;margin:28px 0;"><a href="${href}" style="display:inline-block;text-decoration:none;border:2px solid #8CD411;border-radius:999px;padding:10px 20px;font-family:Inter,Helvetica,Arial,sans-serif;font-size:15px;color:#C7D2FE;background:#011124;"><img src="${BRAND_LOGO_URL}" alt="Moonday Live" width="24" height="24" style="vertical-align:middle;border-radius:50%;margin-right:10px;" />Read this on MoondayLive.com</a></p>`
+}
+
+/** Markdown equivalent (logo image link) for markdown-only surfaces. */
+export function brandButtonMarkdown(href: string = SITE_URL): string {
+  return `[![Moonday Live](${BRAND_LOGO_URL})](${href})\n\n**[Read this on MoondayLive.com](${href})**`
+}
+
+/** Reddit self-posts don't render images, so the mark becomes a plain link line. */
+export function brandLinkReddit(href: string = SITE_URL): string {
+  return `[Moonday Live -> ${href.replace(/^https?:\/\//, '')}](${href})`
+}
+
+/** Top + bottom brand buttons around a body. */
+function wrapBrand(body: string, href: string, button: string): string {
+  return `${button}\n\n${body.trim()}\n\n${button}`
+}
+
+/**
+ * Reddit renders a blank line between blocks as a full paragraph gap. Collapse
+ * runs of blank lines so the post reads single-spaced.
+ */
+export function singleSpace(text: string): string {
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/[ \t]+$/gm, '')
+    .replace(/\n{2,}/g, '\n')
+    .trim()
+}
+
 export function buildRedditPayload(post: DispatchPost) {
   const scheduledAt =
     post.reddit_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
+  const sourceUrl = resolveSourceUrl(post)
+  const link = brandLinkReddit(sourceUrl)
+  const copy = singleSpace(post.reddit_post ?? '')
+  const body = `${link}\n${copy}\n${link}`
 
   return {
     post_id: post.id,
     slug: post.slug ?? null,
     title: resolveTitle(post),
-    body: post.reddit_post?.trim() ?? '',
-    content: post.reddit_post?.trim() ?? '',
+    body,
+    content: body,
     status: 'publish',
     scheduled_time: scheduledAt,
     scheduled_at: scheduledAt,
     subreddit: Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim() || null,
     zodiac_sign: post.zodiac_sign_tag ?? null,
     image_url: resolveImageUrl(post),
-    source_url: resolveSourceUrl(post),
+    source_url: sourceUrl,
   }
 }
 
@@ -70,14 +109,17 @@ export function buildSubstackPayload(post: DispatchPost) {
   const scheduledAt =
     post.substack_scheduled_at || post.published_at || post.publish_at || new Date().toISOString()
   const title = resolveTitle(post)
+  const subtitle = (post.meta_description || post.excerpt || '').trim().slice(0, 180) || null
   const sourceUrl = resolveSourceUrl(post)
   const imageUrl = resolveImageUrl(post)
-  const copy = post.substack_post?.trim() ?? ''
+  const buttonHtml = brandButtonHtml(sourceUrl)
+  const copy = wrapBrand(post.substack_post?.trim() ?? '', sourceUrl, brandButtonMarkdown(sourceUrl))
 
   return {
     post_id: post.id,
     slug: post.slug ?? null,
     title,
+    subtitle,
     body: copy,
     content: copy,
     excerpt: post.excerpt ?? null,
@@ -87,15 +129,20 @@ export function buildSubstackPayload(post: DispatchPost) {
     scheduled_at: scheduledAt,
     zodiac_sign: post.zodiac_sign_tag ?? null,
     image_url: imageUrl,
+    logo_url: BRAND_LOGO_URL,
     // Ready-to-paste inline HTML so the PNG always renders in the published
     // Substack edition even if the workflow does no image handling of its own.
     image_html: imageUrl
       ? `<img src="${imageUrl}" alt="${post.zodiac_sign_tag ?? title}" width="600" style="display:block;margin:0 auto 24px;max-width:100%;height:auto;" />`
       : null,
+    brand_button_html: buttonHtml,
+    header_html: buttonHtml,
+    footer_html: buttonHtml,
     source_url: sourceUrl,
     canonical: sourceUrl,
   }
 }
+
 
 /**
  * The blog has no webhook — it publishes in-place. The preview still shows the
