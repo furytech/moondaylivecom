@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import MarkdownArticle from "@/components/blog/MarkdownArticle";
+import EmailCaptureBlock from "@/components/EmailCaptureBlock";
 import BlogCard from "@/components/blog/BlogCard";
 import MoonLoader from "@/components/MoonLoader";
 import { fetchPostBySlug, getRelated, categoryPath, resolveSignImage } from "@/lib/blog/posts";
@@ -198,6 +199,8 @@ const BlogPost = () => {
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
+
+        {post.category === "Transits" && <EmailCaptureBlock />}
 
         {/* Related */}
         {related.length > 0 && (

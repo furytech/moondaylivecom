@@ -41,7 +41,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const redirectTo = fromParam && fromParam.startsWith("/") ? fromParam : "/blueprint";
 
   const [isLogin, setIsLogin] = useState(defaultMode === "login");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
