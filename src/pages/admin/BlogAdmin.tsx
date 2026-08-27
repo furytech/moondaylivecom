@@ -27,6 +27,7 @@ import {
 } from "@/lib/blog/posts";
 import { markdownToHtml, markdownToPlainText } from "@/lib/blog/markdownToHtml";
 import { redditBodyWithBrand } from "@/lib/redditFormat";
+import { wrapSubstackHtml, wrapSubstackPlain } from "@/lib/brandCta";
 import ChannelMatrix, { countMissed, Channel } from "@/components/admin/ChannelMatrix";
 import DispatchPreview from "@/components/admin/DispatchPreview";
 
@@ -320,8 +321,8 @@ const BlogAdmin = () => {
       setMessage("No Substack copy on this post yet.");
       return;
     }
-    const html = markdownToHtml(text);
-    const plain = markdownToPlainText(text);
+    const html = wrapSubstackHtml(markdownToHtml(text));
+    const plain = wrapSubstackPlain(markdownToPlainText(text));
     try {
       await navigator.clipboard.write([
         new ClipboardItem({

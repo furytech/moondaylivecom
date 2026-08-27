@@ -28,7 +28,7 @@ export function redditSourceUrl(post: { slug?: string | null; category?: string 
 
 /** Reddit self-posts can't render images, so the brand mark is a plain link line. */
 export function redditBrandLink(href: string = SITE_URL): string {
-  return `[Moonday Live -> ${href.replace(/^https?:\/\//, "")}](${href})`;
+  return `[Check your moon sign on MoondayLive.com](${href})`;
 }
 
 /**
