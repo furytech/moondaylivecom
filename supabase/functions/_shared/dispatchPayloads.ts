@@ -94,7 +94,10 @@ export function buildRedditPayload(post: DispatchPost) {
   const sourceUrl = resolveSourceUrl(post)
   const link = brandLinkReddit(sourceUrl)
   const copy = singleSpace(post.reddit_post ?? '')
-  const body = `${link}  \n${copy}  \n${link}`
+  // Body single-spaced; brand links in their own paragraphs so Reddit renders
+  // them as standalone lines at the top and bottom.
+  const body = `${link}\n\n${copy}\n\n${link}`
+
 
   return {
     post_id: post.id,

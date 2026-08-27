@@ -40,6 +40,10 @@ export function redditBodyWithBrand(
   post: { slug?: string | null; category?: string | null } = {},
 ): string {
   const link = redditBrandLink(redditSourceUrl(post));
-  return `${link}  \n${redditSingleSpace(text)}  \n${link}`;
+  // The body stays single-spaced (hard breaks), but the brand links sit in
+  // their own paragraphs so Reddit renders them as standalone lines instead of
+  // merging them into the first/last sentence.
+  return `${link}\n\n${redditSingleSpace(text)}\n\n${link}`;
 }
+
 
