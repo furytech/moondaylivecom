@@ -337,15 +337,16 @@ const BlogAdmin = () => {
     setTimeout(() => setSubstackCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
 
-  // Reddit is plain-text only — copy it verbatim, no Markdown conversion.
+  // Reddit is plain-text only — no Markdown conversion, just the hard-break
+  // single spacing Reddit honours so pasted copy matches the webhook payload.
   const handleCopyReddit = async (post: Partial<BlogPostRow>) => {
     const text = post.reddit_post?.trim();
     if (!text) {
       setMessage("No Reddit copy on this post yet.");
       return;
     }
-    await navigator.clipboard.writeText(text);
-    setMessage("Reddit post copied.");
+    await navigator.clipboard.writeText(redditSingleSpace(text));
+    setMessage("Reddit post copied (single-spaced).");
     setRedditCopiedId(post.id || null);
     setTimeout(() => setRedditCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
@@ -1249,8 +1250,8 @@ const BlogAdmin = () => {
                           setMessage("No Reddit copy on this post yet.");
                           return;
                         }
-                        await navigator.clipboard.writeText(text);
-                        setMessage("Reddit copy copied — title on line one, body below.");
+                        await navigator.clipboard.writeText(redditSingleSpace(text));
+                        setMessage("Reddit copy copied — single-spaced, title on line one.");
                       }}
                       className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition"
                     >
