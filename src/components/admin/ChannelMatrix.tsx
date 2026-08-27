@@ -201,6 +201,24 @@ const LinkBtn = ({
   </button>
 );
 
+/** Outlined action button for the transit header (desktop). */
+const HeaderBtn = ({
+  children,
+  onClick,
+  tone = "primary",
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  tone?: Tone;
+}) => (
+  <button
+    onClick={onClick}
+    className={`rounded-full border-[1.75px] px-4 py-1.5 text-xs tracking-wide transition ${BORDER_TONES[tone]}`}
+  >
+    {children}
+  </button>
+);
+
 /** Pill button — mobile tap target, min 44px tall. */
 const TapBtn = ({
   children,
