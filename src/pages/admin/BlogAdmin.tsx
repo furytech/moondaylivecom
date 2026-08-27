@@ -320,8 +320,8 @@ const BlogAdmin = () => {
       setMessage("No Substack copy on this post yet.");
       return;
     }
-    const html = markdownToHtml(text);
-    const plain = markdownToPlainText(text);
+    const html = wrapSubstackHtml(markdownToHtml(text));
+    const plain = wrapSubstackPlain(markdownToPlainText(text));
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
