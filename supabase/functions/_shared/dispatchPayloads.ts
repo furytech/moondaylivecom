@@ -58,7 +58,7 @@ export const BRAND_CTA_URL = `${SITE_URL}/moonday-cta-button.png`
  * flattened into plain text links — this is the reliable "button".
  */
 export function brandButtonHtml(href: string = SITE_URL): string {
-  return `<p style="text-align:center;margin:28px 0;"><a href="${href}" target="_blank" rel="noopener"><img src="${BRAND_CTA_URL}" alt="Explore your personal radar on MoondayLive.com" width="520" style="width:100%;max-width:520px;height:auto;border:0;display:inline-block;" /></a></p>`
+  return `<p style="text-align:center;margin:28px 0;"><a href="${href}" target="_blank" rel="noopener"><img src="${BRAND_CTA_URL}" alt="Check your moon sign on MoondayLive.com" width="520" style="width:100%;max-width:520px;height:auto;border:0;display:inline-block;" /></a></p>`
 }
 
 /** Markdown equivalent (logo image link) for markdown-only surfaces. */

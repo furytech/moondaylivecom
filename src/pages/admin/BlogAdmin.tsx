@@ -27,6 +27,7 @@ import {
 } from "@/lib/blog/posts";
 import { markdownToHtml, markdownToPlainText } from "@/lib/blog/markdownToHtml";
 import { redditBodyWithBrand } from "@/lib/redditFormat";
+import { wrapSubstackHtml, wrapSubstackPlain } from "@/lib/brandCta";
 import ChannelMatrix, { countMissed, Channel } from "@/components/admin/ChannelMatrix";
 import DispatchPreview from "@/components/admin/DispatchPreview";
 
