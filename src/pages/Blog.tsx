@@ -12,7 +12,8 @@ const FILTERS: Filter[] = ["All", ...CATEGORIES];
 
 const Blog = () => {
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Filter>("All");
+  // The Journal leads with transits — that's the main content, not a blog wall.
+  const [filter, setFilter] = useState<Filter>("Transits");
 
   const { data: posts = [], isLoading, error } = useQuery({
     queryKey: ["blog-posts"],
