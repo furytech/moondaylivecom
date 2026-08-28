@@ -795,7 +795,7 @@ const BlogAdmin = () => {
       statusFilter === "all"
         ? true
         : statusFilter === "queue"
-        ? p.status !== "published"
+        ? !isFullyDone(p)
         : statusFilter === "missed"
         ? hasMissed(p)
         : p.status === statusFilter,
@@ -931,6 +931,8 @@ const BlogAdmin = () => {
             redditCopiedId={redditCopiedId}
             downloadId={downloadId}
             onEdit={openEdit}
+            onApprove={handleApproveTransit}
+
             onDelete={handleDelete}
             onDownloadImage={handleDownloadImage}
             onPublishNow={handleApproveAndPublish}
