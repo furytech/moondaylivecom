@@ -281,6 +281,8 @@ const ChannelMatrix = ({
   redditCopiedId,
   downloadId,
   onEdit,
+  onApprove,
+
   onDelete,
   onDownloadImage,
   onPublishNow,
