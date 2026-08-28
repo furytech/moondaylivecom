@@ -251,7 +251,10 @@ export interface ChannelMatrixProps {
   redditCopiedId?: string | null;
   downloadId: string | null;
   onEdit: (post: BlogPostRow) => void;
+  /** Approves the whole transit (blog + channels ready to schedule). */
+  onApprove?: (post: BlogPostRow) => void;
   onDelete: (id: string) => void;
+
   onDownloadImage: (post: BlogPostRow) => void;
   onPublishNow: (id: string) => void;
   onSchedule: (post: BlogPostRow) => void;
