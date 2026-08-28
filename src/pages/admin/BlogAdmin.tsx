@@ -750,7 +750,7 @@ const BlogAdmin = () => {
   const hasMissed = (p: BlogPostRow) => countMissed([p]) > 0;
 
   const counts = {
-    queue: posts.filter((p) => p.status !== "published").length,
+    queue: posts.filter((p) => !isFullyDone(p)).length,
     all: posts.length,
     missed: posts.filter(hasMissed).length,
     draft: posts.filter((p) => p.status === "draft").length,
