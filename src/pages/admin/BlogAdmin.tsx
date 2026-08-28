@@ -909,6 +909,23 @@ const BlogAdmin = () => {
           </div>
         )}
 
+        <div className="mb-4 rounded-lg border border-[hsl(var(--sov-champagne)/0.3)] bg-background/50 px-4 py-3 text-sm flex flex-wrap items-center justify-between gap-3">
+          <span className="text-cream-muted">
+            Substack automation: every ingress edition is pushed automatically as{" "}
+            <span className="text-foreground">
+              {substackMode === "publish" ? "a live publish" : "a review-ready draft"}
+            </span>
+            .
+          </span>
+          <button
+            onClick={toggleSubstackMode}
+            className="min-h-[40px] rounded-full border-[1.75px] border-[hsl(var(--sov-champagne)/0.55)] px-4 text-xs uppercase tracking-wide text-[hsl(var(--sov-champagne))] hover:bg-[hsl(var(--sov-champagne)/0.08)] transition"
+          >
+            Switch to {substackMode === "publish" ? "draft" : "auto-publish"}
+          </button>
+        </div>
+
+
         {countMissed(posts) > 0 && (
           <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 flex flex-wrap items-center justify-between gap-3">
             <span>
