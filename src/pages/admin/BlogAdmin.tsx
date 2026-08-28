@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { Search, ArrowUpDown, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,6 +100,7 @@ const LABEL = "block text-xs uppercase tracking-wider text-cream-muted mb-1";
 
 const BlogAdmin = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
   const { data: isAdmin, isLoading: checkingAdmin } = useQuery({
     queryKey: ["admin-check"],
@@ -119,6 +120,8 @@ const BlogAdmin = () => {
     queryKey: ["admin-blog-posts"],
     queryFn: listAllPosts,
     enabled: isAdmin === true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
   });
 
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
@@ -154,6 +157,7 @@ const BlogAdmin = () => {
   const [substackScheduleTarget, setSubstackScheduleTarget] = useState<BlogPostRow | null>(null);
   const [substackScheduleIso, setSubstackScheduleIso] = useState<string | null>(null);
   const [substackSendingId, setSubstackSendingId] = useState<string | null>(null);
+  const [blogPublishingId, setBlogPublishingId] = useState<string | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
@@ -289,12 +293,19 @@ const BlogAdmin = () => {
   };
 
   const handleApproveAndPublish = async (id: string) => {
+    setBlogPublishingId(id);
     try {
-      await publishPostNow(id);
-      setMessage("Approved and published live.");
-      refetch();
+      const publishedPost = await publishPostNow(id);
+      queryClient.setQueryData<BlogPostRow[]>(["admin-blog-posts"], (current = []) =>
+        current.map((post) => (post.id === publishedPost.id ? publishedPost : post)),
+      );
+      await queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+      setMessage("Moonday Blog published. The status is now PUBLISHED.");
+      await refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
+    } finally {
+      setBlogPublishingId(null);
     }
   };
 
@@ -943,6 +954,7 @@ const BlogAdmin = () => {
             onDelete={handleDelete}
             onDownloadImage={handleDownloadImage}
             onPublishNow={handleApproveAndPublish}
+            blogPublishingId={blogPublishingId}
             onSchedule={openReschedule}
             onUnscheduleBlog={handleUnscheduleBlog}
             onUnpublish={handleUnpublish}
