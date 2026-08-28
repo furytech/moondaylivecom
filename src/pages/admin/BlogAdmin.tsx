@@ -13,6 +13,8 @@ import {
   upsertPost,
   deletePost,
   publishPostNow,
+  approvePost,
+
   unpublishPost,
   schedulePost,
   BlogPostRow,
@@ -295,6 +297,19 @@ const BlogAdmin = () => {
       setMessage(`Error: ${err.message}`);
     }
   };
+
+  // Transit-level approval: marks the whole post approved so it leaves the
+  // "Pending approval" state without publishing it yet.
+  const handleApproveTransit = async (post: BlogPostRow) => {
+    try {
+      await approvePost(post.id!, post.publish_at || undefined);
+      setMessage("Transit approved. Schedule or publish each channel when ready.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
 
   // Scheduling: the picked instant drives status. Future => scheduled (the
   // hourly publisher flips it live), now/past => published immediately.
@@ -734,8 +749,16 @@ const BlogAdmin = () => {
   // A post "needs attention" when a channel missed its instant.
   const hasMissed = (p: BlogPostRow) => countMissed([p]) > 0;
 
+  // A transit only leaves the review queue once every outlet is out the door,
+  // so publishing the blog keeps the card visible (now flagged PUBLISHED)
+  // instead of silently vanishing from the default view.
+  const isFullyDone = (p: BlogPostRow) =>
+    p.status === "published" && p.substack_status === "sent" && p.reddit_status === "sent";
+
+
+
   const counts = {
-    queue: posts.filter((p) => p.status !== "published").length,
+    queue: posts.filter((p) => !isFullyDone(p)).length,
     all: posts.length,
     missed: posts.filter(hasMissed).length,
     draft: posts.filter((p) => p.status === "draft").length,
@@ -772,7 +795,7 @@ const BlogAdmin = () => {
       statusFilter === "all"
         ? true
         : statusFilter === "queue"
-        ? p.status !== "published"
+        ? !isFullyDone(p)
         : statusFilter === "missed"
         ? hasMissed(p)
         : p.status === statusFilter,
@@ -908,6 +931,8 @@ const BlogAdmin = () => {
             redditCopiedId={redditCopiedId}
             downloadId={downloadId}
             onEdit={openEdit}
+            onApprove={handleApproveTransit}
+
             onDelete={handleDelete}
             onDownloadImage={handleDownloadImage}
             onPublishNow={handleApproveAndPublish}
