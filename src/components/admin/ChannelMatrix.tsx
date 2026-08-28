@@ -623,7 +623,10 @@ const ChannelMatrix = ({
                 );
               })}
             </div>
+            </>
+            )}
           </div>
+
         );
       })}
     </div>
