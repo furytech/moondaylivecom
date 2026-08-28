@@ -325,6 +325,8 @@ const ChannelMatrix = ({
   onCopyReddit,
   onPreviewPayload,
 }: ChannelMatrixProps) => {
+  const [openId, setOpenId] = useState<string | null>(null);
+
   if (posts.length === 0) {
     return (
       <div className="rounded-xl border border-border/40 bg-background/60 px-4 py-8 text-center text-cream-muted">
