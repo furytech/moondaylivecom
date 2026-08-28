@@ -112,7 +112,7 @@ The three pieces go to three different audiences and MUST read like three differ
 - No shared opening line, opening image, or opening move. Compare your three first sentences before answering: if any two rhyme in structure or share a phrase, rewrite them.
 - Do NOT repeat the ingress timestamp sentence ("On <date>, at precisely <time> UTC, the Moon...") in more than one piece. Only the blog may state the exact UTC instant. Substack refers to the shift by feel and by day. Reddit doesn't quote timestamps at all.
 - Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence.
-- Audience tuning: blog = search-led reader who wants a clear, useful explainer. Substack = subscriber who already gets it and wants an essay about the culture-wide weather. Reddit = a skeptical, low-patience feed reader who hates marketing and smells AI instantly.
+- Audience tuning: blog = search-led reader who wants a clear, useful explainer. Substack = subscriber who already gets it and wants an essay about the culture-wide weather. Reddit = practising astrologers who want a technical tracking breakdown and will pick apart anything vague.
 
 Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly three keys:
 
