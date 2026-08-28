@@ -7,6 +7,8 @@
  * receives.
  */
 
+import { resolveSubreddit } from './subredditRouting.ts'
+
 export const SITE_URL = 'https://moondaylive.com'
 
 /** Columns every builder needs. Keep dispatchers and preview reading the same set. */
