@@ -767,10 +767,14 @@ const BlogAdmin = () => {
     published: posts.filter((p) => p.status === "published").length,
   };
 
+  // Sort by the moment the transit actually goes/went live: published_at wins
+  // for live posts, otherwise the scheduled publish_at, then creation time.
   const sortKey = (p: BlogPostRow) => {
-    const t = new Date(p.publish_at || p.published_at || p.created_at || 0).getTime();
+    const raw = p.published_at || p.publish_at || p.created_at || 0;
+    const t = new Date(raw).getTime();
     return Number.isNaN(t) ? 0 : t;
   };
+
 
   const matchesSearch = (p: BlogPostRow) => {
     const q = searchQuery.trim().toLowerCase();
