@@ -115,7 +115,7 @@ export function buildRedditPayload(post: DispatchPost) {
     status: 'publish',
     scheduled_time: scheduledAt,
     scheduled_at: scheduledAt,
-    subreddit: Deno.env.get('REDDIT_DEFAULT_SUBREDDIT')?.replace(/^\/?r\//, '').trim() || null,
+    subreddit: resolveSubreddit(post.zodiac_sign_tag),
     zodiac_sign: post.zodiac_sign_tag ?? null,
     image_url: resolveImageUrl(post),
     source_url: sourceUrl,
