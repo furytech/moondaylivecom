@@ -451,6 +451,11 @@ const ChannelMatrix = ({
               </div>
               {/* Desktop: inline links. Mobile: full tap targets below. */}
               <div className="hidden md:flex items-center gap-2 shrink-0">
+                {onApprove && p.status === "draft" && (
+                  <HeaderBtn tone="emerald" onClick={() => onApprove(p)}>
+                    Approve
+                  </HeaderBtn>
+                )}
                 <HeaderBtn onClick={() => onEdit(p)}>Edit</HeaderBtn>
                 <HeaderBtn tone="sky" onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
@@ -460,6 +465,11 @@ const ChannelMatrix = ({
                 </HeaderBtn>
               </div>
               <div className="flex flex-wrap md:hidden w-full gap-2">
+                {onApprove && p.status === "draft" && (
+                  <TapBtn tone="emerald" onClick={() => onApprove(p)}>
+                    Approve
+                  </TapBtn>
+                )}
                 <TapBtn onClick={() => onEdit(p)}>Edit</TapBtn>
                 <TapBtn tone="sky" onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
@@ -468,6 +478,7 @@ const ChannelMatrix = ({
                   Delete
                 </TapBtn>
               </div>
+
             </div>
 
             {/* Desktop: channels as table rows */}
