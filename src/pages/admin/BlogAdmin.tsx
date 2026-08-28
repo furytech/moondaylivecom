@@ -749,6 +749,14 @@ const BlogAdmin = () => {
   // A post "needs attention" when a channel missed its instant.
   const hasMissed = (p: BlogPostRow) => countMissed([p]) > 0;
 
+  // A transit only leaves the review queue once every outlet is out the door,
+  // so publishing the blog keeps the card visible (now flagged PUBLISHED)
+  // instead of silently vanishing from the default view.
+  const isFullyDone = (p: BlogPostRow) =>
+    p.status === "published" && p.substack_status === "sent" && p.reddit_status === "sent";
+
+
+
   const counts = {
     queue: posts.filter((p) => !isFullyDone(p)).length,
     all: posts.length,
