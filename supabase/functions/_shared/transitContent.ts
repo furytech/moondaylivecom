@@ -127,20 +127,20 @@ Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly 
   Use H2 sections with sentence-case headings. Keep the dry, warm, human voice.
   CTA — read this carefully: end every edition with a warm, conversational invitation that PIVOTS from the macro world-weather to the reader's own micro/personal picture, pointing them to MoondayLive.com to explore their Personal Portrait. You MUST invent a fresh CTA every single time: vary its length, its structure, its opening move, its angle and its rhythm. Sometimes a single offhand line, sometimes a short paragraph, sometimes a question, sometimes a small confession, sometimes an aside mid-thought before signing off. Never reuse a template, never open the CTA the same way twice, never use sales language, urgency, pricing or the phrase "sign up". It should read like a person who happens to have built the thing mentioning it because it's genuinely relevant right now. Zero AI footprint.
 
-"reddit_content": A short, TL;DR-first self-post for r/moondaylive. Reddit is not a blog: people scan, downvote anything that smells like marketing or AI, and reward plain speech plus a real question.
+"reddit_content": A peer-to-peer technical tracking breakdown for r/${resolveSubredditRoute(toSign).subreddit}. This room is astrologers talking to astrologers: they know the glyphs, they downvote marketing and horoscope-app filler, and they reward specificity. Register for this room: ${resolveSubredditRoute(toSign).register}.
   Hard format (follow exactly):
-  Line 1 — the post title: 6-12 words, lowercase-leaning, plain, observation or curiosity led. No "The Moon Enters X:" formula, no colon-subtitle, no markdown heading, no "Title:" prefix, and NOT the blog title.
+  Line 1 — the post title: 6-14 words, plain, states what is being tracked. No "The Moon Enters X:" formula, no colon-subtitle, no markdown heading, no "Title:" prefix, and NOT the blog title.
   Line 2 — blank.
-  Line 3 — "TL;DR: " then ONE sentence (max ~25 words) saying what the shift is and what it feels like, in normal words.
+  Line 3 — "TL;DR: " then ONE sentence (max ~28 words) naming the ingress and the single most testable thing to watch.
   Line 4 — blank.
-  Then 2-4 short sentences of body, ~60-90 words total, broken where a person would break lines.
-  Then a blank line and one genuine open question to the sub.
+  Then 3-5 short sentences of technical body, ~90-130 words: sign condition, ruler and its state, what the Moon aspects on the way through, and the observable window. Use the vocabulary properly — dignity, reception, applying/separating, void course — but never define it, and never stack more than a few terms.
+  Then a blank line, one line noting you track these ingress windows live on moondaylive.com, phrased as a practitioner mentioning their own tooling.
+  Then a blank line and one genuine open question inviting other chart-readers to compare what they are seeing.
   Reddit composition rules (non-negotiable):
-  - No headings, no bold, no bullet lists, no em dashes, no timestamps, no dates, no UTC, no links, no CTA, no brand pitch, no "join us".
-  - At most ONE offhand mention that Moonday Live is where you track this, only if it reads like a person mentioning their own project. Leaving it out entirely is fine and usually better.
-  - No jargon dumping (no "cadent", "domicile", "sect light") — say it the way you'd say it out loud.
+  - No headings, no bold, no bullet lists, no em dashes, no UTC timestamps, no dates, no hype, no "join us", no pricing.
+  - Claims must be falsifiable or clearly framed as observation. No predictions about real events, people or organizations.
   - Never open with the ingress announcement, and never reuse a sentence, image or opening move from the blog or substack pieces.
-  - Total length including the title: under 140 words. If it runs longer, cut it.`;
+  - Total length including the title: under 180 words. If it runs longer, cut it.`;
 }
 
 export async function generateTransitPackage(opts: {
