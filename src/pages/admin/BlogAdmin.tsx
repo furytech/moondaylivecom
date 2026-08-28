@@ -903,10 +903,13 @@ const BlogAdmin = () => {
               onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
               className="inline-flex items-center gap-2 shrink-0 px-3 py-2 rounded-full border border-border/40 text-cream-muted text-xs hover:text-foreground transition"
               aria-label="Toggle sort direction"
+              title="Tap to flip the order"
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
+              <span className="text-cream-muted/60">Sort:</span>
               {sortDirection === "asc" ? "Oldest first" : "Newest first"}
             </button>
+
             {FILTERS.map((f) => (
               <button
                 key={f.key}
