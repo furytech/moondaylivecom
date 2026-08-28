@@ -257,6 +257,7 @@ export interface ChannelMatrixProps {
 
   onDownloadImage: (post: BlogPostRow) => void;
   onPublishNow: (id: string) => void;
+  blogPublishingId?: string | null;
   onSchedule: (post: BlogPostRow) => void;
   onUnscheduleBlog: (id: string) => void;
   onUnpublish: (id: string) => void;
@@ -286,6 +287,7 @@ const ChannelMatrix = ({
   onDelete,
   onDownloadImage,
   onPublishNow,
+  blogPublishingId,
   onSchedule,
   onUnscheduleBlog,
   onUnpublish,
@@ -316,8 +318,9 @@ const ChannelMatrix = ({
         p.status !== "published" && {
           key: "publish",
           tone: "emerald" as Tone,
-          label: "Publish now",
+          label: blogPublishingId === p.id ? "Publishing…" : "Publish now",
           onClick: () => onPublishNow(p.id!),
+          disabled: blogPublishingId === p.id,
         },
         {
           key: "schedule",
@@ -337,7 +340,7 @@ const ChannelMatrix = ({
           label: "Preview JSON",
           onClick: () => onPreviewPayload(p, "blog"),
         },
-      ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void }[];
+      ].filter(Boolean) as { key: string; tone: Tone; label: string; onClick: () => void; disabled?: boolean }[];
     }
     if (c === "reddit") {
       return [
@@ -423,6 +426,8 @@ const ChannelMatrix = ({
           const { status, when } = channelState(p, c);
           return isMissed(status, when);
         });
+        const blogState = channelState(p, "blog");
+        const headerDate = blogState.when || p.publish_at || p.published_at;
 
         return (
           <div
@@ -442,16 +447,16 @@ const ChannelMatrix = ({
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
                   <ApprovalPill
                     status={p.status || "draft"}
-                    deadline={new Date(p.publish_at || p.published_at || Date.now())}
+                    deadline={new Date(headerDate || Date.now())}
                   />
                   <DeadlineBadge
                     status={p.status || "draft"}
-                    deadline={new Date(p.publish_at || p.published_at || Date.now())}
+                    deadline={new Date(headerDate || Date.now())}
                   />
                 </div>
                 <div className="text-xs text-cream-muted mt-1.5 break-words">{p.title}</div>
                 <div className="text-[11px] text-cream-muted/80 mt-1">
-                  {displayDate(p.publish_at || p.published_at)}
+                  {displayDate(headerDate)}
                 </div>
               </div>
               {/* Desktop: inline links. Mobile: full tap targets below. */}
