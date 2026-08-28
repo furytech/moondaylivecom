@@ -71,6 +71,27 @@ export const countMissed = (posts: BlogPostRow[]) =>
     );
   }, 0);
 
+/** Rolled-up distribution state for one transit: how many outlets are done. */
+export const distributionSummary = (post: BlogPostRow) => {
+  let sent = 0;
+  let missed = 0;
+  for (const c of CHANNELS) {
+    const { status, when } = channelState(post, c);
+    if (status === "sent" || status === "published") sent += 1;
+    else if (isMissed(status, when)) missed += 1;
+  }
+  const total = CHANNELS.length;
+  const label =
+    missed > 0
+      ? `Distribution: Attention · ${sent}/${total} sent`
+      : sent === total
+      ? `Distribution: Complete · ${total}/${total} sent`
+      : `Distribution: Ready · ${sent}/${total} sent`;
+  const tone = missed > 0 ? "red" : sent === total ? "champagne" : "amber";
+  return { sent, total, missed, label, tone } as const;
+};
+
+
 /** Formats a deadline relative to now. */
 const relativeTime = (ms: number) => {
   const abs = Math.abs(ms);
