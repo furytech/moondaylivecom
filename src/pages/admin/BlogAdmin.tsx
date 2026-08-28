@@ -13,6 +13,8 @@ import {
   upsertPost,
   deletePost,
   publishPostNow,
+  approvePost,
+
   unpublishPost,
   schedulePost,
   BlogPostRow,
