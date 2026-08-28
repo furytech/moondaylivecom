@@ -3,6 +3,9 @@
 // Voice: warm, personable, quietly funny — a friend telling a friend about something
 // they discovered. Entertainment only, never medical or predictive.
 
+import { resolveSubredditRoute } from "./subredditRouting.ts";
+
+
 export interface TransitPackage {
   blog_content: string;
   substack_content: string;
