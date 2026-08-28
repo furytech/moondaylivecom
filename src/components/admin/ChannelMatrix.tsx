@@ -452,6 +452,10 @@ const ChannelMatrix = ({
         });
         const blogState = channelState(p, "blog");
         const headerDate = blogState.when || p.publish_at || p.published_at;
+        const dist = distributionSummary(p);
+        const isOpen = openId === p.id;
+
+
 
         return (
           <div
