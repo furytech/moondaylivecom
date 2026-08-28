@@ -298,6 +298,19 @@ const BlogAdmin = () => {
     }
   };
 
+  // Transit-level approval: marks the whole post approved so it leaves the
+  // "Pending approval" state without publishing it yet.
+  const handleApproveTransit = async (post: BlogPostRow) => {
+    try {
+      await approvePost(post.id!, post.publish_at || undefined);
+      setMessage("Transit approved. Schedule or publish each channel when ready.");
+      refetch();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+
   // Scheduling: the picked instant drives status. Future => scheduled (the
   // hourly publisher flips it live), now/past => published immediately.
   const handleScheduleChange = (iso: string | null) => {
