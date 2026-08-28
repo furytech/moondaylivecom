@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BlogPostRow } from "@/lib/blog/posts";
 
 /**
@@ -69,6 +70,27 @@ export const countMissed = (posts: BlogPostRow[]) =>
       }).length
     );
   }, 0);
+
+/** Rolled-up distribution state for one transit: how many outlets are done. */
+export const distributionSummary = (post: BlogPostRow) => {
+  let sent = 0;
+  let missed = 0;
+  for (const c of CHANNELS) {
+    const { status, when } = channelState(post, c);
+    if (status === "sent" || status === "published") sent += 1;
+    else if (isMissed(status, when)) missed += 1;
+  }
+  const total = CHANNELS.length;
+  const label =
+    missed > 0
+      ? `Distribution: Attention · ${sent}/${total} sent`
+      : sent === total
+      ? `Distribution: Complete · ${total}/${total} sent`
+      : `Distribution: Ready · ${sent}/${total} sent`;
+  const tone = missed > 0 ? "red" : sent === total ? "champagne" : "amber";
+  return { sent, total, missed, label, tone } as const;
+};
+
 
 /** Formats a deadline relative to now. */
 const relativeTime = (ms: number) => {
@@ -303,6 +325,8 @@ const ChannelMatrix = ({
   onCopyReddit,
   onPreviewPayload,
 }: ChannelMatrixProps) => {
+  const [openId, setOpenId] = useState<string | null>(null);
+
   if (posts.length === 0) {
     return (
       <div className="rounded-xl border border-border/40 bg-background/60 px-4 py-8 text-center text-cream-muted">
@@ -428,6 +452,10 @@ const ChannelMatrix = ({
         });
         const blogState = channelState(p, "blog");
         const headerDate = blogState.when || p.publish_at || p.published_at;
+        const dist = distributionSummary(p);
+        const isOpen = openId === p.id;
+
+
 
         return (
           <div
@@ -491,8 +519,29 @@ const ChannelMatrix = ({
 
             </div>
 
+            {/* One rolled-up distribution control; the granular channel rows
+                live behind it so the feed stays a list of transits. */}
+            <div className="px-4 py-3">
+              <button
+                onClick={() => setOpenId(openId === p.id ? null : p.id!)}
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border-[1.75px] px-4 py-2 text-xs uppercase tracking-wide transition ${
+                  dist.tone === "red"
+                    ? "border-red-400/70 text-red-300 hover:bg-red-400/10"
+                    : dist.tone === "champagne"
+                    ? "border-[hsl(var(--sov-champagne)/0.55)] text-[hsl(var(--sov-champagne))] hover:bg-[hsl(var(--sov-champagne)/0.08)]"
+                    : "border-amber-400/70 text-amber-300 hover:bg-amber-400/10"
+                }`}
+              >
+                {dist.label}
+                <span aria-hidden>{isOpen ? "▴" : "▾"}</span>
+              </button>
+            </div>
+
+            {isOpen && (
+            <>
             {/* Desktop: channels as table rows */}
             <table className="hidden md:table w-full text-sm text-left">
+
               <thead className="text-cream-muted text-[10px] uppercase tracking-wider">
                 <tr>
                   <th className="px-4 py-2 font-normal">Channel</th>
@@ -580,7 +629,10 @@ const ChannelMatrix = ({
                 );
               })}
             </div>
+            </>
+            )}
           </div>
+
         );
       })}
     </div>

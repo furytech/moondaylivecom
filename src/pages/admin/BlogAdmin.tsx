@@ -177,7 +177,39 @@ const BlogAdmin = () => {
     setEditing({ ...post });
   };
 
+  // Substack automation mode: how each ingress edition lands in Substack.
+  const [substackMode, setSubstackMode] = useState<"draft" | "publish">("draft");
+  useEffect(() => {
+    supabase
+      .from("system_settings")
+      .select("value")
+      .eq("key", "substack_publish_mode")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value === "publish") setSubstackMode("publish");
+      });
+  }, []);
+
+  const toggleSubstackMode = async () => {
+    const next = substackMode === "draft" ? "publish" : "draft";
+    setSubstackMode(next);
+    const { error } = await supabase
+      .from("system_settings")
+      .upsert({ key: "substack_publish_mode", value: next }, { onConflict: "key" });
+    if (error) {
+      setSubstackMode(substackMode);
+      setMessage(`Error: ${error.message}`);
+    } else {
+      setMessage(
+        next === "publish"
+          ? "Substack editions will publish automatically at each ingress."
+          : "Substack editions will land as review-ready drafts.",
+      );
+    }
+  };
+
   // Telegram deep links land here as /admin/blog?post=<id>. Open that post's
+
   // editor as soon as the list has loaded, then drop the param so a refresh
   // does not reopen it. We also widen the filter/search so the row is visible
   // in the table behind the editor (e.g. an already-published transit).
@@ -876,6 +908,23 @@ const BlogAdmin = () => {
             {message}
           </div>
         )}
+
+        <div className="mb-4 rounded-lg border border-[hsl(var(--sov-champagne)/0.3)] bg-background/50 px-4 py-3 text-sm flex flex-wrap items-center justify-between gap-3">
+          <span className="text-cream-muted">
+            Substack automation: every ingress edition is pushed automatically as{" "}
+            <span className="text-foreground">
+              {substackMode === "publish" ? "a live publish" : "a review-ready draft"}
+            </span>
+            .
+          </span>
+          <button
+            onClick={toggleSubstackMode}
+            className="min-h-[40px] rounded-full border-[1.75px] border-[hsl(var(--sov-champagne)/0.55)] px-4 text-xs uppercase tracking-wide text-[hsl(var(--sov-champagne))] hover:bg-[hsl(var(--sov-champagne)/0.08)] transition"
+          >
+            Switch to {substackMode === "publish" ? "draft" : "auto-publish"}
+          </button>
+        </div>
+
 
         {countMissed(posts) > 0 && (
           <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200 flex flex-wrap items-center justify-between gap-3">

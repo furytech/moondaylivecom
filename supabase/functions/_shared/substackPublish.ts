@@ -81,8 +81,17 @@ export async function publishPostToSubstack(
   }
 
   const title = resolveTitle(post)
-  const payload = buildSubstackPayload(post)
+  // Landing state is an operator setting, not a code constant: 'draft' drops a
+  // review-ready edition into Substack, 'publish' sends it live at the ingress.
+  const { data: modeRow } = await supabase
+    .from('system_settings')
+    .select('value')
+    .eq('key', 'substack_publish_mode')
+    .maybeSingle()
+  const publishMode = modeRow?.value === 'publish' ? 'publish' : 'draft'
+  const payload = { ...buildSubstackPayload(post), status: publishMode, publish_mode: publishMode }
   const triggerSource = opts.triggerSource ?? 'auto'
+
 
   try {
     const res = await fetch(SUBSTACK_WEBHOOK_URL, {
