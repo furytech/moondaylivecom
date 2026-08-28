@@ -767,10 +767,14 @@ const BlogAdmin = () => {
     published: posts.filter((p) => p.status === "published").length,
   };
 
+  // Sort by the moment the transit actually goes/went live: published_at wins
+  // for live posts, otherwise the scheduled publish_at, then creation time.
   const sortKey = (p: BlogPostRow) => {
-    const t = new Date(p.publish_at || p.published_at || p.created_at || 0).getTime();
+    const raw = p.published_at || p.publish_at || p.created_at || 0;
+    const t = new Date(raw).getTime();
     return Number.isNaN(t) ? 0 : t;
   };
+
 
   const matchesSearch = (p: BlogPostRow) => {
     const q = searchQuery.trim().toLowerCase();
@@ -899,10 +903,13 @@ const BlogAdmin = () => {
               onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
               className="inline-flex items-center gap-2 shrink-0 px-3 py-2 rounded-full border border-border/40 text-cream-muted text-xs hover:text-foreground transition"
               aria-label="Toggle sort direction"
+              title="Tap to flip the order"
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
+              <span className="text-cream-muted/60">Sort:</span>
               {sortDirection === "asc" ? "Oldest first" : "Newest first"}
             </button>
+
             {FILTERS.map((f) => (
               <button
                 key={f.key}
