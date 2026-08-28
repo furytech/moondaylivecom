@@ -177,7 +177,39 @@ const BlogAdmin = () => {
     setEditing({ ...post });
   };
 
+  // Substack automation mode: how each ingress edition lands in Substack.
+  const [substackMode, setSubstackMode] = useState<"draft" | "publish">("draft");
+  useEffect(() => {
+    supabase
+      .from("system_settings")
+      .select("value")
+      .eq("key", "substack_publish_mode")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value === "publish") setSubstackMode("publish");
+      });
+  }, []);
+
+  const toggleSubstackMode = async () => {
+    const next = substackMode === "draft" ? "publish" : "draft";
+    setSubstackMode(next);
+    const { error } = await supabase
+      .from("system_settings")
+      .upsert({ key: "substack_publish_mode", value: next }, { onConflict: "key" });
+    if (error) {
+      setSubstackMode(substackMode);
+      setMessage(`Error: ${error.message}`);
+    } else {
+      setMessage(
+        next === "publish"
+          ? "Substack editions will publish automatically at each ingress."
+          : "Substack editions will land as review-ready drafts.",
+      );
+    }
+  };
+
   // Telegram deep links land here as /admin/blog?post=<id>. Open that post's
+
   // editor as soon as the list has loaded, then drop the param so a refresh
   // does not reopen it. We also widen the filter/search so the row is visible
   // in the table behind the editor (e.g. an already-published transit).
