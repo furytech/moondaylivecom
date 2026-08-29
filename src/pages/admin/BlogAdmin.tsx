@@ -1026,6 +1026,9 @@ const BlogAdmin = () => {
 
             onDelete={handleDelete}
             onDownloadImage={handleDownloadImage}
+            onPostToFacebook={handlePostToFacebook}
+            facebookPostingId={facebookPostingId}
+
             onPublishNow={handleApproveAndPublish}
             blogPublishingId={blogPublishingId}
             onSchedule={openReschedule}
