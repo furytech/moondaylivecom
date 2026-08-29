@@ -158,6 +158,8 @@ const BlogAdmin = () => {
   const [substackScheduleIso, setSubstackScheduleIso] = useState<string | null>(null);
   const [substackSendingId, setSubstackSendingId] = useState<string | null>(null);
   const [blogPublishingId, setBlogPublishingId] = useState<string | null>(null);
+  const [facebookPostingId, setFacebookPostingId] = useState<string | null>(null);
+
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
