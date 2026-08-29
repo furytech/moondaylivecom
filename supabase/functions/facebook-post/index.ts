@@ -82,6 +82,25 @@ Deno.serve(async (req) => {
     const postId = typeof body?.post_id === 'string' ? body.post_id.trim() : '';
     const manual = typeof body?.message === 'string' ? body.message.trim() : '';
 
+    // Diagnostic: tells us whether the stored token is a Page token for this
+    // Page (never returns the token itself).
+    if (body?.diagnose === true) {
+      const meRes = await fetch(
+        `${GRAPH}/me?fields=id,name&access_token=${encodeURIComponent(token)}`,
+      );
+      const me = await meRes.json().catch(() => ({}));
+      return json(
+        {
+          configured_page_id: pageId,
+          token_identity_id: me?.id ?? null,
+          token_identity_name: me?.name ?? null,
+          token_is_page_token: me?.id === pageId,
+          graph_error: me?.error?.message ?? null,
+        },
+        200,
+      );
+    }
+
     let message = manual;
     let imageUrl: string | null = null;
     let link = SITE_URL;
