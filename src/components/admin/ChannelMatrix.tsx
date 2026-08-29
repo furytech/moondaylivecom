@@ -272,6 +272,10 @@ export interface ChannelMatrixProps {
   substackCopiedId?: string | null;
   redditCopiedId?: string | null;
   downloadId: string | null;
+  /** Publishes the transit straight to the Moonday Live Facebook Page. */
+  onPostToFacebook?: (post: BlogPostRow) => void;
+  facebookPostingId?: string | null;
+
   onEdit: (post: BlogPostRow) => void;
   /** Approves the whole transit (blog + channels ready to schedule). */
   onApprove?: (post: BlogPostRow) => void;
@@ -303,6 +307,9 @@ const ChannelMatrix = ({
   substackCopiedId,
   redditCopiedId,
   downloadId,
+  onPostToFacebook,
+  facebookPostingId,
+
   onEdit,
   onApprove,
 
@@ -498,6 +505,12 @@ const ChannelMatrix = ({
                 <HeaderBtn tone="sky" onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
                 </HeaderBtn>
+                {onPostToFacebook && (
+                  <HeaderBtn tone="primary" onClick={() => onPostToFacebook(p)}>
+                    {facebookPostingId === p.id ? "Posting…" : "Post to Facebook"}
+                  </HeaderBtn>
+                )}
+
                 <HeaderBtn tone="red" onClick={() => onDelete(p.id!)}>
                   Delete
                 </HeaderBtn>
@@ -512,6 +525,12 @@ const ChannelMatrix = ({
                 <TapBtn tone="sky" onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
                 </TapBtn>
+                {onPostToFacebook && (
+                  <TapBtn tone="primary" onClick={() => onPostToFacebook(p)}>
+                    {facebookPostingId === p.id ? "Posting…" : "Post to Facebook"}
+                  </TapBtn>
+                )}
+
                 <TapBtn tone="red" onClick={() => onDelete(p.id!)}>
                   Delete
                 </TapBtn>

@@ -158,6 +158,8 @@ const BlogAdmin = () => {
   const [substackScheduleIso, setSubstackScheduleIso] = useState<string | null>(null);
   const [substackSendingId, setSubstackSendingId] = useState<string | null>(null);
   const [blogPublishingId, setBlogPublishingId] = useState<string | null>(null);
+  const [facebookPostingId, setFacebookPostingId] = useState<string | null>(null);
+
   const [rescheduleTarget, setRescheduleTarget] = useState<BlogPostRow | null>(null);
   const [rescheduleIso, setRescheduleIso] = useState<string | null>(null);
   const [rescheduling, setRescheduling] = useState(false);
@@ -629,7 +631,29 @@ const BlogAdmin = () => {
     return { sent: true, note: `${label} sent to the webhook.` };
   };
 
+  /** Publishes the transit straight to the Facebook Page via the Graph API. */
+  const handlePostToFacebook = async (post: BlogPostRow) => {
+    if (!post.id) return;
+    setFacebookPostingId(post.id);
+    setMessage("Posting to the Moonday Live Facebook Page…");
+    try {
+      const { data, error } = await supabase.functions.invoke("facebook-post", {
+        body: { post_id: post.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setMessage(
+        data?.url ? `Posted to Facebook: ${data.url}` : "Posted to the Facebook Page.",
+      );
+    } catch (err: any) {
+      setMessage(`Facebook post failed: ${err.message}`);
+    } finally {
+      setFacebookPostingId(null);
+    }
+  };
+
   /** Sends the Reddit payload to the approval webhook right now. */
+
   const handleSendRedditNow = async (post: BlogPostRow) => {
     if (!post.reddit_post?.trim()) {
       setMessage("No Reddit copy on this post yet.");
@@ -1002,6 +1026,9 @@ const BlogAdmin = () => {
 
             onDelete={handleDelete}
             onDownloadImage={handleDownloadImage}
+            onPostToFacebook={handlePostToFacebook}
+            facebookPostingId={facebookPostingId}
+
             onPublishNow={handleApproveAndPublish}
             blogPublishingId={blogPublishingId}
             onSchedule={openReschedule}
