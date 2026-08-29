@@ -130,14 +130,28 @@ Deno.serve(async (req) => {
     if (!message) return json({ error: 'Nothing to post: send post_id or message.' }, 400);
     if (message.length > 5000) message = `${message.slice(0, 5000)}…`;
 
+    // If the App ID/Secret are configured, upgrade the stored credential to a
+    // long-lived (≈60 day) User token first. Page tokens derived from a
+    // long-lived User token do not expire, so posting stops breaking silently.
+    let userToken = token;
+    const appId = Deno.env.get('FACEBOOK_APP_ID')?.trim();
+    const appSecret = Deno.env.get('FACEBOOK_APP_SECRET')?.trim();
+    if (appId && appSecret) {
+      const exRes = await fetch(
+        `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(token)}`,
+      );
+      const ex = await exRes.json().catch(() => ({}));
+      if (typeof ex?.access_token === 'string') userToken = ex.access_token;
+    }
+
     // The stored credential may be a User token; resolve the Page token from it.
-    let pageToken = token;
+    let pageToken = userToken;
     {
-      const meRes = await fetch(`${GRAPH}/me?fields=id&access_token=${encodeURIComponent(token)}`);
+      const meRes = await fetch(`${GRAPH}/me?fields=id&access_token=${encodeURIComponent(userToken)}`);
       const me = await meRes.json().catch(() => ({}));
       if (me?.id && me.id !== pageId) {
         const accRes = await fetch(
-          `${GRAPH}/me/accounts?fields=id,access_token&access_token=${encodeURIComponent(token)}`,
+          `${GRAPH}/me/accounts?fields=id,access_token&access_token=${encodeURIComponent(userToken)}`,
         );
         const acc = await accRes.json().catch(() => ({}));
         const match = Array.isArray(acc?.data)
@@ -152,6 +166,7 @@ Deno.serve(async (req) => {
         pageToken = match.access_token;
       }
     }
+
 
     // A photo post carries the sign graphic; without an image we post the link.
     const endpoint = imageUrl ? `${GRAPH}/${pageId}/photos` : `${GRAPH}/${pageId}/feed`;
