@@ -96,6 +96,15 @@ Deno.serve(async (req) => {
           token_identity_name: me?.name ?? null,
           token_is_page_token: me?.id === pageId,
           graph_error: me?.error?.message ?? null,
+          pages: await (async () => {
+            const r = await fetch(
+              `${GRAPH}/me/accounts?fields=id,name&access_token=${encodeURIComponent(token)}`,
+            );
+            const d = await r.json().catch(() => ({}));
+            return Array.isArray(d?.data)
+              ? d.data.map((p: { id: string; name: string }) => ({ id: p.id, name: p.name }))
+              : (d?.error?.message ?? null);
+          })(),
         },
         200,
       );
