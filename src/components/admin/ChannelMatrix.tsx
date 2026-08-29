@@ -505,6 +505,12 @@ const ChannelMatrix = ({
                 <HeaderBtn tone="sky" onClick={() => onDownloadImage(p)}>
                   {downloadId === p.id ? "Downloaded!" : "Get Image"}
                 </HeaderBtn>
+                {onPostToFacebook && (
+                  <HeaderBtn tone="primary" onClick={() => onPostToFacebook(p)}>
+                    {facebookPostingId === p.id ? "Posting…" : "Post to Facebook"}
+                  </HeaderBtn>
+                )}
+
                 <HeaderBtn tone="red" onClick={() => onDelete(p.id!)}>
                   Delete
                 </HeaderBtn>
