@@ -130,9 +130,32 @@ Deno.serve(async (req) => {
     if (!message) return json({ error: 'Nothing to post: send post_id or message.' }, 400);
     if (message.length > 5000) message = `${message.slice(0, 5000)}…`;
 
+    // The stored credential may be a User token; resolve the Page token from it.
+    let pageToken = token;
+    {
+      const meRes = await fetch(`${GRAPH}/me?fields=id&access_token=${encodeURIComponent(token)}`);
+      const me = await meRes.json().catch(() => ({}));
+      if (me?.id && me.id !== pageId) {
+        const accRes = await fetch(
+          `${GRAPH}/me/accounts?fields=id,access_token&access_token=${encodeURIComponent(token)}`,
+        );
+        const acc = await accRes.json().catch(() => ({}));
+        const match = Array.isArray(acc?.data)
+          ? acc.data.find((p: { id: string }) => p.id === pageId)
+          : null;
+        if (!match?.access_token) {
+          return json(
+            { error: 'The stored Facebook token cannot manage this Page. Regenerate it.' },
+            400,
+          );
+        }
+        pageToken = match.access_token;
+      }
+    }
+
     // A photo post carries the sign graphic; without an image we post the link.
     const endpoint = imageUrl ? `${GRAPH}/${pageId}/photos` : `${GRAPH}/${pageId}/feed`;
-    const form = new URLSearchParams({ access_token: token });
+    const form = new URLSearchParams({ access_token: pageToken });
     if (imageUrl) {
       form.set('url', imageUrl);
       form.set('caption', message);
