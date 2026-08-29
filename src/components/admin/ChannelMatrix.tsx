@@ -307,6 +307,9 @@ const ChannelMatrix = ({
   substackCopiedId,
   redditCopiedId,
   downloadId,
+  onPostToFacebook,
+  facebookPostingId,
+
   onEdit,
   onApprove,
 
