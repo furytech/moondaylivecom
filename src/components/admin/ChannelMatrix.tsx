@@ -272,6 +272,10 @@ export interface ChannelMatrixProps {
   substackCopiedId?: string | null;
   redditCopiedId?: string | null;
   downloadId: string | null;
+  /** Publishes the transit straight to the Moonday Live Facebook Page. */
+  onPostToFacebook?: (post: BlogPostRow) => void;
+  facebookPostingId?: string | null;
+
   onEdit: (post: BlogPostRow) => void;
   /** Approves the whole transit (blog + channels ready to schedule). */
   onApprove?: (post: BlogPostRow) => void;
