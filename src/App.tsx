@@ -49,6 +49,7 @@ import GuestApplications from "./pages/admin/GuestApplications";
 import EclipseCampaign from "./pages/admin/EclipseCampaign";
 
 import GuestStudio from "./pages/GuestStudio";
+import IdleSessionGuard from "./components/IdleSessionGuard";
 
 
 
@@ -62,6 +63,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <IdleSessionGuard />
           <BottomTabBar />
           <DevTierPanel />
           <Routes>
