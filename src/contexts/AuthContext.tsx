@@ -50,11 +50,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     subscriptionStart: null,
   });
 
-  const checkSubscription = async () => {
+  const checkSubscription = async (attempt = 0): Promise<void> => {
     // Always fetch the latest session to avoid stale token issues
     const { data: sessionData } = await supabase.auth.getSession();
     const currentSession = sessionData?.session;
-    
+
     if (!currentSession?.access_token) {
       setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
       return;
@@ -68,9 +68,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
 
       if (error) {
-        // Silently handle auth errors (token might have just expired)
-        if (error.message?.includes('expired') || error.message?.includes('JWT')) {
-          console.log("Token expired during subscription check, will retry on next refresh");
+        const status = (error as { context?: { status?: number } })?.context?.status;
+        const isAuthError =
+          status === 401 ||
+          error.message?.includes("expired") ||
+          error.message?.includes("JWT");
+
+        if (isAuthError) {
+          // Do NOT downgrade the user. Try to refresh once; if that fails, the
+          // session is truly dead — sign out so they are prompted to log in again.
+          if (attempt === 0) {
+            const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+            if (!refreshError && refreshed?.session?.access_token) {
+              return checkSubscription(1);
+            }
+          }
+          console.warn("Session invalid during subscription check — signing out");
+          await supabase.auth.signOut();
           return;
         }
         console.error("Error checking subscription:", error);
