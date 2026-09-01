@@ -1586,21 +1586,8 @@ const BlogAdmin = () => {
           )}
         </ResponsiveModal>
 
-        <ResponsiveModal
-          open={!!previewTarget}
-          onOpenChange={(open) => !open && setPreviewTarget(null)}
-          title="Outgoing payload"
-          description={previewTarget?.post.title}
-          className="sm:max-w-3xl"
-        >
-          {previewTarget && (
-            <DispatchPreview
-              post={previewTarget.post}
-              initialChannel={previewTarget.channel}
-              displayDate={displayDate}
-            />
-          )}
-        </ResponsiveModal>
+
+
       </div>
 
     </PageLayout>
