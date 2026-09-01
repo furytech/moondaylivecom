@@ -44,6 +44,7 @@ export type Database = {
           reddit_posted_at: string | null
           reddit_scheduled_at: string | null
           reddit_status: string
+          review_email_sent_at: string | null
           reviewed_by: string | null
           slug: string
           status: string
@@ -86,6 +87,7 @@ export type Database = {
           reddit_posted_at?: string | null
           reddit_scheduled_at?: string | null
           reddit_status?: string
+          review_email_sent_at?: string | null
           reviewed_by?: string | null
           slug: string
           status?: string
@@ -128,6 +130,7 @@ export type Database = {
           reddit_posted_at?: string | null
           reddit_scheduled_at?: string | null
           reddit_status?: string
+          review_email_sent_at?: string | null
           reviewed_by?: string | null
           slug?: string
           status?: string
