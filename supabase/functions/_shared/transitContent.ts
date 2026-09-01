@@ -8,9 +8,13 @@ import { resolveSubredditRoute } from "./subredditRouting.ts";
 
 export interface TransitPackage {
   blog_content: string;
-  substack_content: string;
   reddit_content: string;
+  facebook_content: string;
+  pinterest_content: string;
+  /** Retired channel. Kept so older callers keep compiling. */
+  substack_content: string;
 }
+
 
 const VOICE = `You are the voice of Moonday Live — a luxury, editorial astrology brand written by an actual human with a pulse.
 
