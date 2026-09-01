@@ -23,6 +23,7 @@ export type Database = {
           created_at: string
           cta_type: string
           excerpt: string | null
+          facebook_post: string | null
           featured: boolean
           guest_bio: string | null
           guest_contribution_id: string | null
@@ -32,6 +33,7 @@ export type Database = {
           keywords: string[] | null
           meta_description: string | null
           meta_title: string | null
+          pinterest_post: string | null
           publish_at: string | null
           published_at: string | null
           read_time: number
@@ -63,6 +65,7 @@ export type Database = {
           created_at?: string
           cta_type?: string
           excerpt?: string | null
+          facebook_post?: string | null
           featured?: boolean
           guest_bio?: string | null
           guest_contribution_id?: string | null
@@ -72,6 +75,7 @@ export type Database = {
           keywords?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
+          pinterest_post?: string | null
           publish_at?: string | null
           published_at?: string | null
           read_time?: number
@@ -103,6 +107,7 @@ export type Database = {
           created_at?: string
           cta_type?: string
           excerpt?: string | null
+          facebook_post?: string | null
           featured?: boolean
           guest_bio?: string | null
           guest_contribution_id?: string | null
@@ -112,6 +117,7 @@ export type Database = {
           keywords?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
+          pinterest_post?: string | null
           publish_at?: string | null
           published_at?: string | null
           read_time?: number
