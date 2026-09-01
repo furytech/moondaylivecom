@@ -204,9 +204,12 @@ export async function generateTransitPackage(opts: {
 
   return {
     blog_content: humanize(parsed.blog_content),
-    substack_content: humanize(parsed.substack_content),
     reddit_content: humanize(parsed.reddit_content),
+    facebook_content: humanize(parsed.facebook_content),
+    pinterest_content: humanize(parsed.pinterest_content),
+    substack_content: humanize(parsed.substack_content),
   };
+
 }
 
 /**
