@@ -43,10 +43,10 @@ serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData.user?.email) {
-      logStep("Session missing or invalid — returning unsubscribed", { error: userError?.message });
-      return new Response(JSON.stringify({ subscribed: false }), {
+      logStep("Session missing or invalid — returning 401", { error: userError?.message });
+      return new Response(JSON.stringify({ error: "invalid_token", code: "invalid_token" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+        status: 401,
       });
     }
     const user = userData.user;
