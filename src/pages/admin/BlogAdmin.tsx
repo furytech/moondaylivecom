@@ -1018,34 +1018,18 @@ const BlogAdmin = () => {
           <ChannelMatrix
             posts={visiblePosts}
             displayDate={displayDate}
-            substackCopiedId={substackCopiedId}
-            redditCopiedId={redditCopiedId}
             downloadId={downloadId}
             onEdit={openEdit}
             onApprove={handleApproveTransit}
-
             onDelete={handleDelete}
             onDownloadImage={handleDownloadImage}
-            onPostToFacebook={handlePostToFacebook}
-            facebookPostingId={facebookPostingId}
-
             onPublishNow={handleApproveAndPublish}
             blogPublishingId={blogPublishingId}
             onSchedule={openReschedule}
             onUnscheduleBlog={handleUnscheduleBlog}
             onUnpublish={handleUnpublish}
-            onUnscheduleChannel={handleUnscheduleChannel}
-            onScheduleReddit={openRedditSchedule}
-            onSendRedditNow={handleSendRedditNow}
-            redditSendingId={redditSendingId}
-            onScheduleSubstack={openSubstackSchedule}
-            onSendSubstackNow={handleSendSubstackNow}
-            substackSendingId={substackSendingId}
-            onToggleSent={handleToggleChannelSent}
-            onCopySubstack={handleCopySubstack}
-            onCopyReddit={handleCopyReddit}
-            onPreviewPayload={(post, channel) => setPreviewTarget({ post, channel })}
           />
+
         )}
 
         {/* Post editor — dialog on desktop, full-height drawer on mobile. */}
