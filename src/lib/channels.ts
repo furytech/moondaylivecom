@@ -76,7 +76,7 @@ export const ZODIAC_ASSET_MANIFEST: Record<
   string,
   { path: string; labelPosition: "above" | "below" }
 > = Object.fromEntries(
-  ZODIAC_SIGNS.map((s) => [s, { path: `/assets/signs/${s}.png`, labelPosition: "above" as const }]),
+  ZODIAC_SIGNS.map((s) => [s, { path: `/assets/signs/${s}.png`, labelPosition: "below" as const }]),
 );
 
 export interface ZodiacAsset {
