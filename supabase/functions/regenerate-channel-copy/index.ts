@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
 
     const { data: post, error } = await supabase
       .from("blog_posts")
-      .select("id, title, zodiac_sign_tag, publish_at, published_at, content, substack_post, reddit_post")
+      .select("id, title, zodiac_sign_tag, publish_at, published_at, content, substack_post, reddit_post, facebook_post, pinterest_post")
       .eq("id", postId)
       .maybeSingle();
     if (error) throw error;
@@ -81,12 +81,14 @@ Deno.serve(async (req) => {
 
     const want: string[] = Array.isArray(channels) && channels.length
       ? channels
-      : ["substack", "reddit"];
+      : ["reddit", "facebook", "pinterest"];
 
     const update: Record<string, unknown> = {};
     if (want.includes("blog") && pkg.blog_content) update.content = pkg.blog_content;
     if (want.includes("substack") && pkg.substack_content) update.substack_post = pkg.substack_content;
     if (want.includes("reddit") && pkg.reddit_content) update.reddit_post = pkg.reddit_content;
+    if (want.includes("facebook") && pkg.facebook_content) update.facebook_post = pkg.facebook_content;
+    if (want.includes("pinterest") && pkg.pinterest_content) update.pinterest_post = pkg.pinterest_content;
 
     if (Object.keys(update).length === 0) {
       return json({ error: "AI returned no usable copy — try again" }, 502);
