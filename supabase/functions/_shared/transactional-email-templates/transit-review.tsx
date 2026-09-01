@@ -109,7 +109,7 @@ export const template = {
     sign: 'Virgo',
     transitionTime: '12 September 2026, 09:14 UTC',
     imageUrl: 'https://moondaylive.com/assets/signs/Virgo.png',
-    imageWarning: 'Virgo artwork carries its name above the constellation, not beneath it.',
+    imageWarning: null,
     adminUrl: 'https://moondaylive.com/admin/blog',
     channels: [
       {

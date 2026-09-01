@@ -61,10 +61,10 @@ export const ZODIAC_SIGNS = [
   'Pisces',
 ]
 
-/** Verified constellation artwork; name typeset above the star graphic. */
+/** Verified constellation artwork; name typeset beneath the star graphic. */
 export const ZODIAC_ASSETS: Record<string, { path: string; labelPosition: 'above' | 'below' }> =
   Object.fromEntries(
-    ZODIAC_SIGNS.map((s) => [s, { path: `/assets/signs/${s}.png`, labelPosition: 'above' }]),
+    ZODIAC_SIGNS.map((s) => [s, { path: `/assets/signs/${s}.png`, labelPosition: 'below' }]),
   )
 
 export function resolveZodiacAsset(zodiacSignTag?: string | null, imageUrl?: string | null) {
