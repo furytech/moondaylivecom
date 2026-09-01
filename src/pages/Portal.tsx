@@ -82,6 +82,17 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     setIsLogin(defaultMode === "login");
   }, [defaultMode]);
 
+  // Inactivity logout notice
+  useEffect(() => {
+    if (searchParams.get("reason") === "inactivity") {
+      toast({
+        title: "Signed out",
+        description: "You have been logged out due to 15 minutes of inactivity.",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (user && !authLoading) {
       // Apply any pending Moon sign captured from the Between Phases quiz
