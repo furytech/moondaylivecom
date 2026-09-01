@@ -98,7 +98,7 @@ export function useIdleLogout(enabled: boolean, onTimeout: () => void): IdleStat
       "touchstart",
       "scroll",
       "click",
-      "visibilitychange",
+      "focus",
     ];
     events.forEach((e) => window.addEventListener(e, handler, { passive: true }));
 
