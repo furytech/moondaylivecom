@@ -8,13 +8,9 @@ import { resolveSubredditRoute } from "./subredditRouting.ts";
 
 export interface TransitPackage {
   blog_content: string;
-  reddit_content: string;
-  facebook_content: string;
-  pinterest_content: string;
-  /** Retired channel. Kept so older callers keep compiling. */
   substack_content: string;
+  reddit_content: string;
 }
-
 
 const VOICE = `You are the voice of Moonday Live — a luxury, editorial astrology brand written by an actual human with a pulse.
 
@@ -112,38 +108,42 @@ ${guestBlock(sources.guest)}
 
 
 CHANNEL SEPARATION (hard requirement — violating this makes the output unusable):
-The four pieces go to four different audiences and MUST read like four different writers had four different mornings.
-- No shared opening line, opening image, or opening move. Compare your four first sentences before answering: if any two rhyme in structure or share a phrase, rewrite them.
-- Only the blog may state the exact UTC instant. Facebook/Instagram refers to the shift by feel and by day. Reddit and Pinterest quote no timestamps at all.
+The three pieces go to three different audiences and MUST read like three different writers had three different mornings.
+- No shared opening line, opening image, or opening move. Compare your three first sentences before answering: if any two rhyme in structure or share a phrase, rewrite them.
+- Do NOT repeat the ingress timestamp sentence ("On <date>, at precisely <time> UTC, the Moon...") in more than one piece. Only the blog may state the exact UTC instant. Substack refers to the shift by feel and by day. Reddit doesn't quote timestamps at all.
 - Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence.
-- Audience tuning: blog = search-led reader who wants a clear, useful explainer. Reddit = practising astrologers who want a technical tracking breakdown. Facebook/Instagram = a scrolling reader who wants today's emotional weather in a few breaths. Pinterest = a searcher scanning keywords on a pin.
+- Audience tuning: blog = search-led reader who wants a clear, useful explainer. Substack = subscriber who already gets it and wants an essay about the culture-wide weather. Reddit = practising astrologers who want a technical tracking breakdown and will pick apart anything vague.
 
-Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly four keys:
+Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly three keys:
 
-"blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. This is the only piece allowed to name the exact ingress instant. Track the actual degrees, the timing of the ingress, and where the tropical framing sits against the sidereal one when it matters. Three structured sections, each an H2:
-  a) Astronomical baseline and atmospheric resonance — exact degrees, ingress timing, framework note, and what the shift actually feels like over the next ~2.5 days.
-  b) Practical heads-up — underappreciated friction points to watch for, phrased constructively.
+"blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. This is the only piece allowed to name the exact ingress instant. Three structured sections, each an H2:
+  a) Astronomical baseline and atmospheric resonance — what the shift actually feels like emotionally and mentally over the next ~2.5 days.
+  b) Practical heads-up — underappreciated friction points to watch for, phrased constructively (over-analysis, emotional withdrawal, the urge to reorganize your entire life at 2am).
   c) Grounded guidance — simple, practical ways to navigate the shift, including one small ritual.
-  Close on material scarcity and personal growth: what this window asks you to stop spending (attention, energy, patience) and what grows in the space that frees up. Then a soft, quiet invitation to explore their Personal Portrait on MoondayLive.com.
+  Close with a soft, quiet invitation to explore their Personal Portrait on MoondayLive.com, written like a friend sharing a find.
 
-"reddit_content": A community discussion thread for r/${resolveSubredditRoute(toSign).subreddit}. Register for this room: ${resolveSubredditRoute(toSign).register}.
-  Focus on physical body tracking: the gut, the heart and the head, and how this ingress tends to show up in that chain (where tension lands first, what the body does before the mind catches up). Practitioner-to-practitioner, observational, never medical advice and never diagnostic.
+"substack_content": A standalone, long-form newsletter edition of AT LEAST 800 words in Markdown. This is NOT a summary or restatement of "blog_content" — it must be a completely distinct reading experience with its own title (H1), its own structure, and its own examples. Open somewhere else entirely: an observation, a scene, a small confession, a question — never with the date or the ingress announcement. Anyone who read the website article should still find this worth reading.
+  Editorial focus — the macro astro-climate:
+  a) Read the world weather, not the individual. What does this specific Moon shift do to the collective mood: the pace of conversations, what people have patience for, what the culture leans toward or recoils from over these ~2.5 days.
+  b) Societal and cultural pacing — how public discourse, work rhythms, media cycles, group decisions and social dynamics tend to tilt under this atmosphere. Concrete and observational, never political, never predictive about real events, never naming real people or organizations.
+  c) The undercurrent — the quieter social dynamic underneath the surface mood, and what it asks of a room, a team, a family, a timeline.
+  Use H2 sections with sentence-case headings. Keep the dry, warm, human voice.
+  CTA — read this carefully: end every edition with a warm, conversational invitation that PIVOTS from the macro world-weather to the reader's own micro/personal picture, pointing them to MoondayLive.com to explore their Personal Portrait. You MUST invent a fresh CTA every single time: vary its length, its structure, its opening move, its angle and its rhythm. Sometimes a single offhand line, sometimes a short paragraph, sometimes a question, sometimes a small confession, sometimes an aside mid-thought before signing off. Never reuse a template, never open the CTA the same way twice, never use sales language, urgency, pricing or the phrase "sign up". It should read like a person who happens to have built the thing mentioning it because it's genuinely relevant right now. Zero AI footprint.
+
+"reddit_content": A peer-to-peer technical tracking breakdown for r/${resolveSubredditRoute(toSign).subreddit}. This room is astrologers talking to astrologers: they know the glyphs, they downvote marketing and horoscope-app filler, and they reward specificity. Register for this room: ${resolveSubredditRoute(toSign).register}.
   Hard format (follow exactly):
   Line 1 — the post title: 6-14 words, plain, states what is being tracked. No "The Moon Enters X:" formula, no colon-subtitle, no markdown heading, no "Title:" prefix, and NOT the blog title.
   Line 2 — blank.
-  Line 3 — "TL;DR: " then ONE sentence (max ~28 words) naming the ingress and the single most testable body signal to watch.
+  Line 3 — "TL;DR: " then ONE sentence (max ~28 words) naming the ingress and the single most testable thing to watch.
   Line 4 — blank.
-  Then 3-5 short sentences of body, ~90-130 words: sign condition, ruler and its state, and the gut/heart/head read. Use the vocabulary properly — dignity, reception, applying/separating, void course — but never define it.
-  Then a blank line and ONE genuine open question inviting others to compare what they are noticing in their own body this window. The piece must END on that question.
+  Then 3-5 short sentences of technical body, ~90-130 words: sign condition, ruler and its state, what the Moon aspects on the way through, and the observable window. Use the vocabulary properly — dignity, reception, applying/separating, void course — but never define it, and never stack more than a few terms.
+  Then a blank line, one line noting you track these ingress windows live on moondaylive.com, phrased as a practitioner mentioning their own tooling.
+  Then a blank line and one genuine open question inviting other chart-readers to compare what they are seeing.
   Reddit composition rules (non-negotiable):
-  - No headings, no bold, no bullet lists, no em dashes, no UTC timestamps, no dates, no hype, no pricing.
-  - Claims must be falsifiable or clearly framed as observation. No health claims.
-  - Total length including the title: under 180 words.
-
-"facebook_content": A daily atmospheric forecast for Facebook and Instagram, 90-150 words of plain text (no Markdown headings). Short paragraphs, two or three of them, each a couple of lines at most so it survives the "see more" fold. Read the emotional and energetic trend of the next day or so: what the mood leans toward, what tends to snag, what feels easy. One concrete mundane image. No timestamps, no degrees, no jargon. Finish with a warm one-line invitation to subscribe at MoondayLive.com, freshly worded each time.
-
-"pinterest_content": A pin description, 120-200 words of plain text. Open with a high-hook first line (under 12 words) that reads like a search phrase someone would type. Then 3-5 short bulleted lines (use "• ") naming the transit themes in keyword-rich phrases, no full sentences needed. Then one short closing line about tracking the cosmic alignment live, ending in an invitation to MoondayLive.com. Keyword-optimized and scannable, never hashtag spam (at most three hashtags on the final line, or none).`;
-
+  - No headings, no bold, no bullet lists, no em dashes, no UTC timestamps, no dates, no hype, no "join us", no pricing.
+  - Claims must be falsifiable or clearly framed as observation. No predictions about real events, people or organizations.
+  - Never open with the ingress announcement, and never reuse a sentence, image or opening move from the blog or substack pieces.
+  - Total length including the title: under 180 words. If it runs longer, cut it.`;
 }
 
 export async function generateTransitPackage(opts: {
@@ -204,12 +204,9 @@ export async function generateTransitPackage(opts: {
 
   return {
     blog_content: humanize(parsed.blog_content),
-    reddit_content: humanize(parsed.reddit_content),
-    facebook_content: humanize(parsed.facebook_content),
-    pinterest_content: humanize(parsed.pinterest_content),
     substack_content: humanize(parsed.substack_content),
+    reddit_content: humanize(parsed.reddit_content),
   };
-
 }
 
 /**

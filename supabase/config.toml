@@ -21,3 +21,6 @@ project_id = "hzlpnmvboqhzthvjlves"
     verify_jwt = false
   [functions.verify-turnstile]
     verify_jwt = false
+
+[functions.send-transit-review]
+verify_jwt = false
