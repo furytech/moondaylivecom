@@ -130,38 +130,76 @@ export function shareIntentUrl(
 
 /* ------------------------------------------------- delivery timing valve */
 
+/**
+ * The operator's clock. The review email must land during his waking hours,
+ * not at 3am, so the bracket is anchored to New York local time (DST-aware)
+ * rather than UTC.
+ */
+export const REVIEW_TIMEZONE = 'America/New_York'
 export const REVIEW_WINDOW_START_HOUR = 7
 export const REVIEW_WINDOW_END_HOUR = 16
 
-/** True when `at` (UTC) sits inside the 07:00-16:00 delivery bracket. */
+const partsFmt = new Intl.DateTimeFormat('en-US', {
+  timeZone: REVIEW_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  hour12: false,
+})
+
+function localParts(at: Date) {
+  const p = Object.fromEntries(partsFmt.formatToParts(at).map((x) => [x.type, x.value]))
+  return {
+    year: Number(p.year),
+    month: Number(p.month),
+    day: Number(p.day),
+    hour: Number(p.hour) % 24,
+  }
+}
+
+/** UTC offset (ms) of the review timezone at a given instant. */
+function tzOffsetMs(at: Date): number {
+  const { year, month, day, hour } = localParts(at)
+  const minute = at.getUTCMinutes()
+  const asUtc = Date.UTC(year, month - 1, day, hour, minute, at.getUTCSeconds(), at.getUTCMilliseconds())
+  return asUtc - at.getTime()
+}
+
+/** The instant corresponding to a given local wall-clock hour on the local day of `ref`. */
+function localHourInstant(ref: Date, hour: number): Date {
+  const { year, month, day } = localParts(ref)
+  const guess = new Date(Date.UTC(year, month - 1, day, hour))
+  // Correct the guess by the offset in force at that moment, then re-check
+  // once so a DST boundary between guess and result resolves cleanly.
+  const first = new Date(guess.getTime() - tzOffsetMs(guess))
+  return new Date(guess.getTime() - tzOffsetMs(first))
+}
+
+
+/** True when `at` sits inside the 07:00-16:00 local delivery bracket. */
 export function inDeliveryWindow(at: Date): boolean {
-  const h = at.getUTCHours()
+  const h = localParts(at).hour
   return h >= REVIEW_WINDOW_START_HOUR && h < REVIEW_WINDOW_END_HOUR
 }
 
 /**
- * The latest 07:00-16:00 bracket that ends at or before the transit.
+ * The latest 07:00-16:00 local bracket that ends at or before the transit.
  *
  * A transit inside the bracket is reviewed earlier the same day; a transit
  * outside it (overnight, early morning) is pre-delivered in the preceding
- * bracket so nothing ever lands at 3am.
+ * bracket so nothing ever lands while he is asleep.
  */
 export function reviewSendWindow(transitAt: Date): { open: Date; close: Date } {
-  const open = new Date(
-    Date.UTC(
-      transitAt.getUTCFullYear(),
-      transitAt.getUTCMonth(),
-      transitAt.getUTCDate(),
-      REVIEW_WINDOW_START_HOUR,
-    ),
-  )
-  const close = new Date(open.getTime() + (REVIEW_WINDOW_END_HOUR - REVIEW_WINDOW_START_HOUR) * 3600_000)
+  const open = localHourInstant(transitAt, REVIEW_WINDOW_START_HOUR)
+  const close = localHourInstant(transitAt, REVIEW_WINDOW_END_HOUR)
 
   // Transit lands before today's bracket even opens: use yesterday's bracket.
   if (transitAt.getTime() <= open.getTime()) {
+    const prev = new Date(transitAt.getTime() - 86_400_000)
     return {
-      open: new Date(open.getTime() - 86_400_000),
-      close: new Date(close.getTime() - 86_400_000),
+      open: localHourInstant(prev, REVIEW_WINDOW_START_HOUR),
+      close: localHourInstant(prev, REVIEW_WINDOW_END_HOUR),
     }
   }
 
@@ -177,3 +215,4 @@ export function shouldSendReview(transitAt: Date, now: Date = new Date()): boole
   const { open, close } = reviewSendWindow(transitAt)
   return now >= open && now <= close
 }
+

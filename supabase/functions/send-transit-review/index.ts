@@ -23,6 +23,8 @@ import {
   shouldSendReview,
   withCta,
 } from '../_shared/channels.ts'
+import { generateTransitPackage } from '../_shared/transitContent.ts'
+
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -31,6 +33,57 @@ const json = (body: unknown, status = 200) =>
   })
 
 const ADMIN_URL = 'https://moondaylive.com/admin/blog'
+
+const ZODIAC = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+]
+
+/**
+ * Generate any missing Facebook / Pinterest copy for a transit and persist it,
+ * so every channel block in the review email carries a real, native draft.
+ */
+async function backfillSocialDrafts(
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  post: Record<string, unknown>,
+  errors: string[],
+): Promise<void> {
+  const missing = (['facebook_post', 'pinterest_post', 'reddit_post'] as const).filter(
+    (f) => !String(post[f] ?? '').trim(),
+  )
+  if (missing.length === 0) return
+
+  const apiKey = Deno.env.get('LOVABLE_API_KEY')
+  const toSign = typeof post.zodiac_sign_tag === 'string' ? post.zodiac_sign_tag : null
+  if (!apiKey || !toSign || !ZODIAC.includes(toSign)) return
+
+  try {
+    const pkg = await generateTransitPackage({
+      apiKey,
+      fromSign: ZODIAC[(ZODIAC.indexOf(toSign) + 11) % 12],
+      toSign,
+      transitionAtUtc: String(post.publish_at),
+      title: String(post.title ?? `The Moon Enters ${toSign}`),
+    })
+
+    const update: Record<string, string> = {}
+    if (missing.includes('facebook_post') && pkg.facebook_content) update.facebook_post = pkg.facebook_content
+    if (missing.includes('pinterest_post') && pkg.pinterest_content) update.pinterest_post = pkg.pinterest_content
+    if (missing.includes('reddit_post') && pkg.reddit_content) update.reddit_post = pkg.reddit_content
+    if (Object.keys(update).length === 0) return
+
+    const { error } = await supabase.from('blog_posts').update(update).eq('id', post.id)
+    if (error) {
+      errors.push(`backfill-${post.id}: ${error.message}`)
+      return
+    }
+    Object.assign(post, update)
+  } catch (err) {
+    errors.push(`backfill-${post.id}: ${err instanceof Error ? err.message : String(err)}`)
+  }
+}
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
@@ -118,8 +171,12 @@ Deno.serve(async (req) => {
       continue
     }
 
+    // Self-heal: older drafts predate the Facebook/Pinterest channels, and the
+    // model occasionally drops a key. Never email an empty channel block.
+    await backfillSocialDrafts(supabase, post, errors)
 
     const asset = resolveZodiacAsset(post.zodiac_sign_tag, post.image_url)
+
     const url = postUrl(post)
 
     const channels = CHANNEL_KEYS.map((key) => {

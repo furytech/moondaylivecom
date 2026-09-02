@@ -140,9 +140,15 @@ Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly 
   - Claims must be falsifiable or clearly framed as observation. No health claims.
   - Total length including the title: under 180 words.
 
-"facebook_content": A daily atmospheric forecast for Facebook and Instagram, 90-150 words of plain text (no Markdown headings). Short paragraphs, two or three of them, each a couple of lines at most so it survives the "see more" fold. Read the emotional and energetic trend of the next day or so: what the mood leans toward, what tends to snag, what feels easy. One concrete mundane image. No timestamps, no degrees, no jargon. Finish with a warm one-line invitation to subscribe at MoondayLive.com, freshly worded each time.
+"facebook_content": A native Facebook/Instagram caption in plain text (no Markdown, no headings, no bullets, no links inside the body). 90-150 words. Two or three short paragraphs separated by a blank line, the first under 12 words so it survives the "see more" fold. Read the emotional and energetic trend of the next day or so: what the mood leans toward, what tends to snag, what feels easy. One concrete mundane image. No timestamps, no degrees, no jargon. Second to last line: a warm one-line invitation to MoondayLive.com, freshly worded each time. Final line: three to five lowercase hashtags on one line, drawn from the sign and the mood (for example #moonin${toSign.toLowerCase()} #lunarsignature #moondaylive).
 
-"pinterest_content": A pin description, 120-200 words of plain text. Open with a high-hook first line (under 12 words) that reads like a search phrase someone would type. Then 3-5 short bulleted lines (use "• ") naming the transit themes in keyword-rich phrases, no full sentences needed. Then one short closing line about tracking the cosmic alignment live, ending in an invitation to MoondayLive.com. Keyword-optimized and scannable, never hashtag spam (at most three hashtags on the final line, or none).`;
+"pinterest_content": A native Pinterest pin in plain text, formatted exactly like this and nothing else:
+  Line 1 — the pin title, a search phrase under 60 characters, title case, naming the sign (for example "Moon in ${toSign}: What To Feel And Release").
+  Line 2 — blank.
+  Then the pin description, 200-450 characters total (Pinterest truncates past 500). Open with one keyword-rich sentence, then 3-4 short lines each starting with "• " naming the transit themes as scannable keyword phrases, no full sentences needed.
+  Then a blank line and one closing line inviting the reader to track the transit live on MoondayLive.com.
+  Final line: exactly three lowercase hashtags. No emojis, no timestamps, no degrees.`;
+
 
 }
 
@@ -164,12 +170,12 @@ export async function generateTransitPackage(opts: {
     body: JSON.stringify({
       model: opts.model ?? "google/gemini-3.6-flash",
       response_format: { type: "json_object" },
-      // Higher temperature + penalties break the uniform, low-perplexity phrasing
-      // that AI classifiers key on.
+      // Higher temperature breaks the uniform, low-perplexity phrasing that AI
+      // classifiers key on. (Frequency/presence penalties are rejected by the
+      // Gemini models on the gateway, so cadence is enforced by the prompt.)
       temperature: 1.05,
       top_p: 0.95,
-      frequency_penalty: 0.35,
-      presence_penalty: 0.3,
+
       messages: [
         { role: "system", content: VOICE },
         {
