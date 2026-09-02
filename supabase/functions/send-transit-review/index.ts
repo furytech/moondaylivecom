@@ -118,8 +118,12 @@ Deno.serve(async (req) => {
       continue
     }
 
+    // Self-heal: older drafts predate the Facebook/Pinterest channels, and the
+    // model occasionally drops a key. Never email an empty channel block.
+    await backfillSocialDrafts(supabase, post, errors)
 
     const asset = resolveZodiacAsset(post.zodiac_sign_tag, post.image_url)
+
     const url = postUrl(post)
 
     const channels = CHANNEL_KEYS.map((key) => {
