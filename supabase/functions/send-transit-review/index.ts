@@ -70,8 +70,19 @@ Deno.serve(async (req) => {
   }
 
 
+  // Test mode: same code path, same template, same recipient — but the
+  // 07:00-16:00 valve is bypassed and nothing is marked as reviewed.
+  let testMode = false
+  try {
+    const body = await req.json()
+    testMode = body?.test === true
+  } catch {
+    // no body — normal cron invocation
+  }
+
   const now = new Date()
   const horizon = new Date(now.getTime() + 36 * 60 * 60 * 1000)
+
 
   const { data: posts, error } = await supabase
     .from('blog_posts')
@@ -97,13 +108,16 @@ Deno.serve(async (req) => {
   let held = 0
   const errors: string[] = []
 
-  for (const post of posts ?? []) {
+  const queue = testMode ? (posts ?? []).slice(0, 1) : (posts ?? [])
+
+  for (const post of queue) {
     const transitAt = new Date(post.publish_at as string)
 
-    if (!shouldSendReview(transitAt, now)) {
+    if (!testMode && !shouldSendReview(transitAt, now)) {
       held++
       continue
     }
+
 
     const asset = resolveZodiacAsset(post.zodiac_sign_tag, post.image_url)
     const url = postUrl(post)
@@ -122,9 +136,11 @@ Deno.serve(async (req) => {
 
     try {
       await sendAppEmail(supabase, 'transit-review', recipient, {
-        idempotencyKey: `transit-review-${post.id}`,
+        idempotencyKey: testMode
+          ? `transit-review-test-${post.id}-${Date.now()}`
+          : `transit-review-${post.id}`,
         templateData: {
-          title: post.title,
+          title: testMode ? `[TEST] ${post.title}` : post.title,
           sign: asset.sign,
           transitionTime: transitAt.toUTCString(),
           imageUrl: asset.url,
@@ -134,13 +150,16 @@ Deno.serve(async (req) => {
         },
       })
 
-      const { error: markError } = await supabase
-        .from('blog_posts')
-        .update({ review_email_sent_at: new Date().toISOString() })
-        .eq('id', post.id)
+      if (!testMode) {
+        const { error: markError } = await supabase
+          .from('blog_posts')
+          .update({ review_email_sent_at: new Date().toISOString() })
+          .eq('id', post.id)
 
-      if (markError) errors.push(`mark-${post.id}: ${markError.message}`)
+        if (markError) errors.push(`mark-${post.id}: ${markError.message}`)
+      }
       sent++
+
     } catch (err) {
       errors.push(`send-${post.id}: ${err instanceof Error ? err.message : String(err)}`)
     }
