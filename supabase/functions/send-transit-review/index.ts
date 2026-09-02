@@ -108,13 +108,16 @@ Deno.serve(async (req) => {
   let held = 0
   const errors: string[] = []
 
-  for (const post of posts ?? []) {
+  const queue = testMode ? (posts ?? []).slice(0, 1) : (posts ?? [])
+
+  for (const post of queue) {
     const transitAt = new Date(post.publish_at as string)
 
-    if (!shouldSendReview(transitAt, now)) {
+    if (!testMode && !shouldSendReview(transitAt, now)) {
       held++
       continue
     }
+
 
     const asset = resolveZodiacAsset(post.zodiac_sign_tag, post.image_url)
     const url = postUrl(post)
