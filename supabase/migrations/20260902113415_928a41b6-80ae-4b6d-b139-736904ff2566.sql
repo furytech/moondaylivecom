@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.admin_alert_emails() TO service_role;
