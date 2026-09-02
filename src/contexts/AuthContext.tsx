@@ -206,10 +206,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const handleSignOut = async () => {
+    try {
+      localStorage.removeItem("moonday:lastActivityAt");
+    } catch {
+      /* storage unavailable */
+    }
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
   };
+
 
   // Dev-only tier override (no-op in production — tree-shaken).
   const [devTierTick, setDevTierTick] = useState(0);
