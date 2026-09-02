@@ -161,21 +161,21 @@ function localParts(at: Date) {
 /** UTC offset (ms) of the review timezone at a given instant. */
 function tzOffsetMs(at: Date): number {
   const { year, month, day, hour } = localParts(at)
-  const minute = Number(
-    new Intl.DateTimeFormat('en-US', { timeZone: REVIEW_TIMEZONE, minute: '2-digit' }).format(at),
-  )
-  const asUtc = Date.UTC(year, month - 1, day, hour, minute)
-  return asUtc - (at.getTime() - (at.getTime() % 60_000))
+  const minute = at.getUTCMinutes()
+  const asUtc = Date.UTC(year, month - 1, day, hour, minute, at.getUTCSeconds(), at.getUTCMilliseconds())
+  return asUtc - at.getTime()
 }
 
 /** The instant corresponding to a given local wall-clock hour on the local day of `ref`. */
 function localHourInstant(ref: Date, hour: number): Date {
   const { year, month, day } = localParts(ref)
   const guess = new Date(Date.UTC(year, month - 1, day, hour))
-  // Correct the guess by the offset in force at that moment.
-  const corrected = new Date(guess.getTime() - tzOffsetMs(guess))
-  return corrected
+  // Correct the guess by the offset in force at that moment, then re-check
+  // once so a DST boundary between guess and result resolves cleanly.
+  const first = new Date(guess.getTime() - tzOffsetMs(guess))
+  return new Date(guess.getTime() - tzOffsetMs(first))
 }
+
 
 /** True when `at` sits inside the 07:00-16:00 local delivery bracket. */
 export function inDeliveryWindow(at: Date): boolean {
