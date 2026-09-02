@@ -78,7 +78,26 @@ export function useIdleLogout(enabled: boolean, onTimeout: () => void): IdleStat
   // Activity listeners (throttled)
   useEffect(() => {
     if (!enabled) return;
-    markActive();
+
+    // Restore the last known activity time so idle survives reloads / tab close.
+    let restored = 0;
+    try {
+      restored = Number(localStorage.getItem(STORAGE_KEY)) || 0;
+    } catch {
+      /* storage unavailable */
+    }
+    if (restored && Date.now() - restored < IDLE_LIMIT_MS) {
+      lastActivityRef.current = restored;
+      firedRef.current = false;
+    } else if (restored) {
+      // Already past the limit while away — expire immediately.
+      lastActivityRef.current = restored;
+      firedRef.current = true;
+      onTimeoutRef.current();
+      return;
+    } else {
+      markActive();
+    }
 
     let throttled = false;
     const handler = () => {
@@ -87,8 +106,6 @@ export function useIdleLogout(enabled: boolean, onTimeout: () => void): IdleStat
       window.setTimeout(() => {
         throttled = false;
       }, 1000);
-      // Don't let background activity dismiss the warning implicitly —
-      // scroll/mousemove still count as activity per spec.
       markActive();
     };
 
@@ -98,22 +115,14 @@ export function useIdleLogout(enabled: boolean, onTimeout: () => void): IdleStat
       "touchstart",
       "scroll",
       "click",
-      "focus",
     ];
     events.forEach((e) => window.addEventListener(e, handler, { passive: true }));
 
-    // Treat outgoing API requests as activity too.
-    const originalFetch = window.fetch;
-    window.fetch = (...args) => {
-      handler();
-      return originalFetch.apply(window, args as Parameters<typeof fetch>);
-    };
-
     return () => {
       events.forEach((e) => window.removeEventListener(e, handler));
-      window.fetch = originalFetch;
     };
   }, [enabled, markActive]);
+
 
   // Tick
   useEffect(() => {
