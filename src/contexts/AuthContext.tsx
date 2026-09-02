@@ -105,11 +105,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     // Check for existing session FIRST to prevent flicker
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Validate the stored session against the auth server — a token that was
+      // revoked while the tab was closed must not look "logged in".
+      if (session) {
+        const { error } = await supabase.auth.getUser();
+        if (error) {
+          await supabase.auth.signOut().catch(() => undefined);
+          setSession(null);
+          setUser(null);
+        }
+      }
     });
+
 
     // Then set up auth state listener for future changes
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
@@ -194,10 +206,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const handleSignOut = async () => {
+    try {
+      localStorage.removeItem("moonday:lastActivityAt");
+    } catch {
+      /* storage unavailable */
+    }
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
   };
+
 
   // Dev-only tier override (no-op in production — tree-shaken).
   const [devTierTick, setDevTierTick] = useState(0);

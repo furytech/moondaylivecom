@@ -10,11 +10,13 @@ const clearClientSession = () => {
     Object.keys(localStorage)
       .filter((k) => k.startsWith("sb-") || k.startsWith("supabase."))
       .forEach((k) => localStorage.removeItem(k));
+    localStorage.removeItem("moonday:lastActivityAt");
     sessionStorage.clear();
   } catch {
     /* storage may be unavailable */
   }
 };
+
 
 const formatCountdown = (seconds: number) => {
   const m = Math.floor(seconds / 60);
