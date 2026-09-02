@@ -136,9 +136,11 @@ Deno.serve(async (req) => {
 
     try {
       await sendAppEmail(supabase, 'transit-review', recipient, {
-        idempotencyKey: `transit-review-${post.id}`,
+        idempotencyKey: testMode
+          ? `transit-review-test-${post.id}-${Date.now()}`
+          : `transit-review-${post.id}`,
         templateData: {
-          title: post.title,
+          title: testMode ? `[TEST] ${post.title}` : post.title,
           sign: asset.sign,
           transitionTime: transitAt.toUTCString(),
           imageUrl: asset.url,
@@ -148,13 +150,16 @@ Deno.serve(async (req) => {
         },
       })
 
-      const { error: markError } = await supabase
-        .from('blog_posts')
-        .update({ review_email_sent_at: new Date().toISOString() })
-        .eq('id', post.id)
+      if (!testMode) {
+        const { error: markError } = await supabase
+          .from('blog_posts')
+          .update({ review_email_sent_at: new Date().toISOString() })
+          .eq('id', post.id)
 
-      if (markError) errors.push(`mark-${post.id}: ${markError.message}`)
+        if (markError) errors.push(`mark-${post.id}: ${markError.message}`)
+      }
       sent++
+
     } catch (err) {
       errors.push(`send-${post.id}: ${err instanceof Error ? err.message : String(err)}`)
     }
