@@ -53,8 +53,22 @@ Deno.serve(async (req) => {
     return json({ error: 'Unauthorized' }, 401)
   }
 
-  const recipient = Deno.env.get('TRANSIT_REVIEW_RECIPIENT')?.trim()
-  if (!recipient) return json({ error: 'TRANSIT_REVIEW_RECIPIENT is not configured' }, 500)
+  // Recipient: explicit secret if configured, otherwise fall back to the
+  // project's admin emails so the review never silently stops going out.
+  let recipient = Deno.env.get('TRANSIT_REVIEW_RECIPIENT')?.trim() ?? ''
+  if (!recipient) {
+    const { data: admins } = await supabase.rpc('admin_alert_emails')
+    recipient = (admins as { email: string }[] | null)?.[0]?.email?.trim() ?? ''
+  }
+  if (!recipient) {
+    await reportError({
+      source: 'send-transit-review',
+      severity: 'critical',
+      message: 'No review recipient: TRANSIT_REVIEW_RECIPIENT unset and no admin email found',
+    })
+    return json({ error: 'No review recipient configured' }, 500)
+  }
+
 
   const now = new Date()
   const horizon = new Date(now.getTime() + 36 * 60 * 60 * 1000)
