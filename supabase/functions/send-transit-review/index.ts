@@ -70,8 +70,19 @@ Deno.serve(async (req) => {
   }
 
 
+  // Test mode: same code path, same template, same recipient — but the
+  // 07:00-16:00 valve is bypassed and nothing is marked as reviewed.
+  let testMode = false
+  try {
+    const body = await req.json()
+    testMode = body?.test === true
+  } catch {
+    // no body — normal cron invocation
+  }
+
   const now = new Date()
   const horizon = new Date(now.getTime() + 36 * 60 * 60 * 1000)
+
 
   const { data: posts, error } = await supabase
     .from('blog_posts')
