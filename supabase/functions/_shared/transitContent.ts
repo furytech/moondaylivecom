@@ -170,12 +170,12 @@ export async function generateTransitPackage(opts: {
     body: JSON.stringify({
       model: opts.model ?? "google/gemini-3.6-flash",
       response_format: { type: "json_object" },
-      // Higher temperature + penalties break the uniform, low-perplexity phrasing
-      // that AI classifiers key on.
+      // Higher temperature breaks the uniform, low-perplexity phrasing that AI
+      // classifiers key on. (Frequency/presence penalties are rejected by the
+      // Gemini models on the gateway, so cadence is enforced by the prompt.)
       temperature: 1.05,
       top_p: 0.95,
-      frequency_penalty: 0.35,
-      presence_penalty: 0.3,
+
       messages: [
         { role: "system", content: VOICE },
         {
