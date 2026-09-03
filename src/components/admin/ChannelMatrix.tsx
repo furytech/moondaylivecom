@@ -125,12 +125,15 @@ const ActionBtn = ({
   href,
   tone = "primary",
   disabled,
+  beforeOpen,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   href?: string;
   tone?: Tone;
   disabled?: boolean;
+  /** Runs inside the same user gesture, just before the tab opens. */
+  beforeOpen?: () => void;
 }) => {
   const cls = `inline-flex items-center justify-center min-h-[38px] rounded-full border-[1.75px] px-4 text-xs tracking-wide transition ${
     disabled ? "border-border/30 text-cream-muted/40 cursor-not-allowed" : BORDER_TONES[tone]
@@ -140,6 +143,7 @@ const ActionBtn = ({
     // (ERR_BLOCKED_BY_RESPONSE). Force a real top-level tab.
     const openExternal = (e: React.MouseEvent) => {
       e.preventDefault();
+      beforeOpen?.();
       const win = window.open(href, "_blank", "noopener,noreferrer");
       if (!win) {
         try {
