@@ -135,6 +135,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Then set up auth state listener for future changes
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // A fresh sign-in means the user is active now — drop any stale idle
+        // timestamp left over from a previous session so the idle guard
+        // doesn't bounce them straight back to login.
+        if (event === "SIGNED_IN") {
+          try {
+            localStorage.setItem("moonday:lastActivityAt", String(Date.now()));
+          } catch {
+            /* storage unavailable */
+          }
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
