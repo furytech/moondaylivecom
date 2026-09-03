@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { BlogPostRow } from "@/lib/blog/posts";
 import {
   CHANNEL_KEYS,
@@ -194,6 +195,32 @@ const ChannelMatrix = ({
   onUnpublish,
 }: ChannelMatrixProps) => {
   const [copied, setCopied] = useState<string | null>(null);
+  const [fbPostingId, setFbPostingId] = useState<string | null>(null);
+  /** postId -> live Facebook URL on success, or `error:<msg>` on failure. */
+  const [fbResults, setFbResults] = useState<Record<string, string>>({});
+
+  // Direct Page publish through the facebook-post function (Graph API v20.0).
+  // The Page token lives in backend secrets; this just passes the post id.
+  const postToFacebook = async (p: BlogPostRow) => {
+    if (!p.id || fbPostingId) return;
+    setFbPostingId(p.id);
+    setFbResults((r) => ({ ...r, [p.id!]: "" }));
+    try {
+      const { data, error } = await supabase.functions.invoke("facebook-post", {
+        body: { post_id: p.id },
+      });
+      if (error) throw new Error(error.message || "Post failed");
+      if (data?.error) throw new Error(data.error);
+      setFbResults((r) => ({ ...r, [p.id!]: data?.url || "posted" }));
+    } catch (e) {
+      setFbResults((r) => ({
+        ...r,
+        [p.id!]: `error:${e instanceof Error ? e.message : "Post failed"}`,
+      }));
+    } finally {
+      setFbPostingId(null);
+    }
+  };
 
   if (posts.length === 0) {
     return (
