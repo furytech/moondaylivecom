@@ -150,6 +150,12 @@ const BlogAdmin = () => {
   >("queue");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  // Always land on newest-first: any filter change resets the sort so a
+  // stale "Oldest first" toggle can never hide fresh posts at the bottom.
+  useEffect(() => {
+    setSortDirection("desc");
+  }, [statusFilter]);
   const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
   const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
   const [redditSendingId, setRedditSendingId] = useState<string | null>(null);
