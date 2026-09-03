@@ -53,12 +53,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const checkSubscription = async (attempt = 0): Promise<void> => {
     // Always fetch the latest session to avoid stale token issues
     const { data: sessionData } = await supabase.auth.getSession();
-    const currentSession = sessionData?.session;
+    let currentSession = sessionData?.session;
+
+    // The cached session can hold an already-expired access token (auto-refresh
+    // may not have fired yet). Sending it would earn a 401, so refresh first.
+    const expiresAt = currentSession?.expires_at ?? 0;
+    if (currentSession && expiresAt * 1000 - Date.now() < 30_000) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      currentSession = refreshed?.session ?? currentSession;
+    }
 
     if (!currentSession?.access_token) {
       setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
       return;
     }
+
 
     try {
       const { data, error } = await supabase.functions.invoke("check-subscription", {
