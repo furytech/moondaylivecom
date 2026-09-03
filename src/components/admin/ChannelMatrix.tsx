@@ -353,6 +353,31 @@ const ChannelMatrix = ({
                       >
                         {SHARE_LABEL[c]}
                       </ActionBtn>
+                      {c === "facebook" && (
+                        <>
+                          <ActionBtn
+                            tone="emerald"
+                            disabled={!text || fbPostingId === p.id}
+                            onClick={() => postToFacebook(p)}
+                          >
+                            {fbPostingId === p.id ? "Posting…" : "Post to Page"}
+                          </ActionBtn>
+                          {fbResults[p.id!]?.startsWith("error:") ? (
+                            <span className="text-[11px] text-red-300 self-center">
+                              {fbResults[p.id!].slice(6)}
+                            </span>
+                          ) : fbResults[p.id!] ? (
+                            <a
+                              href={fbResults[p.id!]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-emerald-400 underline self-center"
+                            >
+                              Posted — view on Facebook
+                            </a>
+                          ) : null}
+                        </>
+                      )}
                       {c === "blog" && (
                         <>
                           {p.status !== "published" && (
