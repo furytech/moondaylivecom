@@ -146,7 +146,7 @@ export function shareIntentUrl(channel: ChannelKey, ctx: ShareContext): string {
   if (channel === "facebook") {
     return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
       ctx.url,
-    )}&quote=${encodeURIComponent(ctx.text.slice(0, 2000))}`;
+    )}`;
   }
   if (channel === "pinterest") {
     const media = ctx.imageUrl ? `&media=${encodeURIComponent(ctx.imageUrl)}` : "";
