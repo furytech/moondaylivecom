@@ -13,7 +13,7 @@ export const SITE_URL = 'https://moondaylive.com'
 
 /** Columns every builder needs. Keep dispatchers and preview reading the same set. */
 export const DISPATCH_POST_COLUMNS =
-  'id, slug, title, excerpt, category, content, status, reddit_post, reddit_status, reddit_scheduled_at, reddit_posted_at, substack_post, substack_status, substack_scheduled_at, substack_sent_at, publish_at, published_at, image_url, constellation_graphic_path, zodiac_sign_tag, meta_title, meta_description, keywords, author, guest_display_name'
+  'id, slug, title, excerpt, category, content, status, reddit_post, reddit_status, reddit_scheduled_at, reddit_posted_at, substack_post, substack_status, substack_scheduled_at, substack_sent_at, facebook_post, pinterest_post, publish_at, published_at, image_url, constellation_graphic_path, zodiac_sign_tag, meta_title, meta_description, keywords, author, guest_display_name'
 
 // deno-lint-ignore no-explicit-any
 export type DispatchPost = Record<string, any>
