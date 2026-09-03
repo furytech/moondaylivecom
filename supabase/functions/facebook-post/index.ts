@@ -36,12 +36,15 @@ const toPlainText = (raw: string) =>
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
-/** Page-friendly composition: hook, body, link back to the site. */
+/** Page-friendly composition: the FB-native draft wins; excerpt is the fallback. */
 function buildMessage(post: DispatchPost): string {
   const title = resolveTitle(post);
-  const body = toPlainText(post.excerpt?.trim() || post.content || '');
+  const draft = post.facebook_post?.trim();
+  const body = toPlainText(draft || post.excerpt?.trim() || post.content || '');
   const trimmed = body.length > 1200 ? `${body.slice(0, 1200).trimEnd()}…` : body;
-  return [title, trimmed, `Track the cycle live: ${resolveSourceUrl(post)}`]
+  // The native draft already carries its own CTA link; only add one for fallbacks.
+  const cta = draft ? '' : `Track the cycle live: ${resolveSourceUrl(post)}`;
+  return [title, trimmed, cta]
     .filter(Boolean)
     .join('\n\n');
 }
