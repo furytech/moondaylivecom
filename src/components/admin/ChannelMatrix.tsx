@@ -135,12 +135,26 @@ const ActionBtn = ({
     disabled ? "border-border/30 text-cream-muted/40 cursor-not-allowed" : BORDER_TONES[tone]
   }`;
   if (href && !disabled) {
+    // Preview/admin runs inside an iframe; Facebook & co. refuse to be framed
+    // (ERR_BLOCKED_BY_RESPONSE). Force a real top-level tab.
+    const openExternal = (e: React.MouseEvent) => {
+      e.preventDefault();
+      const win = window.open(href, "_blank", "noopener,noreferrer");
+      if (!win) {
+        try {
+          (window.top ?? window).location.href = href;
+        } catch {
+          window.location.href = href;
+        }
+      }
+    };
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={cls} onClick={openExternal}>
         {children}
       </a>
     );
   }
+
   return (
     <button onClick={onClick} disabled={disabled} className={cls}>
       {children}
