@@ -181,6 +181,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       password,
     });
     if (error) throw error;
+    try {
+      localStorage.setItem("moonday:lastActivityAt", String(Date.now()));
+    } catch {
+      /* storage unavailable */
+    }
   };
 
   const handleSignUp = async (
