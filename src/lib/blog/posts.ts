@@ -263,9 +263,12 @@ export async function approvePost(id: string, publishAt?: string) {
 }
 
 export async function publishPostNow(id: string) {
+  const now = new Date().toISOString();
+  // publish_at must also move to now — the public blog hides posts whose
+  // scheduled instant is still in the future, even when status = published.
   const { data, error } = await supabase
     .from("blog_posts")
-    .update({ status: "published", published_at: new Date().toISOString() })
+    .update({ status: "published", published_at: now, publish_at: now })
     .eq("id", id)
     .select()
     .single();
