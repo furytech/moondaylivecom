@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Clock, Calendar } from "lucide-react";
+import { Clock } from "lucide-react";
 import { BlogPost, categoryPath, resolveSignImage } from "@/lib/blog/posts";
 
 const formatDateTime = (iso: string) =>
