@@ -376,15 +376,19 @@ const Index = () => {
                 <Link
                   key={p.slug}
                   to={`/blog/${categoryPath(p.category)}/${p.slug}`}
-                  className="group text-left p-6 rounded-lg border border-lilac/15 bg-card/40 hover:border-lilac/40 hover:bg-card/60 transition-all"
+                  className="group flex flex-col text-left p-6 rounded-lg border border-lilac/15 bg-card/40 hover:border-lilac/40 hover:bg-card/60 transition-all"
                 >
-                  <p className="text-[10px] tracking-[0.25em] uppercase text-lilac/70 mb-3">
-                    {p.category} · {p.readMinutes} min
-                  </p>
                   <h3 className="font-display text-lg leading-snug mb-3 group-hover:text-lilac transition-colors">
                     {p.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-3">{p.excerpt}</p>
+                  <p className="text-[10px] tracking-[0.25em] uppercase text-lilac/70 mb-3">
+                    {new Date(p.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · {" "}
+                    {new Date(p.date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}
+                  </p>
+                  <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{p.excerpt}</p>
+                  <p className="mt-4 text-[10px] tracking-[0.25em] uppercase text-lilac/70 text-center">
+                    {p.category} · {p.readMinutes} min
+                  </p>
                 </Link>
               ))}
             </div>
