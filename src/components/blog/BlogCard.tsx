@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { Clock, Calendar } from "lucide-react";
+import { Clock } from "lucide-react";
 import { BlogPost, categoryPath, resolveSignImage } from "@/lib/blog/posts";
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+const formatDateTime = (iso: string) =>
+  `${new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · ${new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}`;
 
 const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boolean }) => {
   const href = `/blog/${categoryPath(post.category)}/${post.slug}`;
@@ -36,9 +36,6 @@ const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boole
         )}
         {/* Bottom fade into card body (#161622) for seamless blend */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[#161622]" />
-        <span className="absolute top-4 left-4 inline-flex items-center rounded-full border border-primary/40 bg-background/70 px-3 py-1 text-xs tracking-wider uppercase text-primary backdrop-blur">
-          {post.category}
-        </span>
       </div>
 
       <div className={`p-5 md:p-6 ${featured ? "md:p-8" : ""}`}>
@@ -49,17 +46,15 @@ const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boole
         >
           {post.title}
         </h3>
+        <p className="mt-3 text-xs tracking-wider uppercase text-cream-muted/70">
+          {formatDateTime(post.date)}
+        </p>
         <p className="mt-3 text-sm md:text-base text-cream-muted line-clamp-3">{post.excerpt}</p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-cream-muted/80">
-          <span>{post.author}</span>
-          <span className="inline-flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
-            {formatDate(post.date)}
-          </span>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-cream-muted/80">
           <span className="inline-flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
-            {post.readMinutes} min read
+            {post.category} · {post.readMinutes} min
           </span>
         </div>
 
