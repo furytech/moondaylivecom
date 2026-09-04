@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { Clock, Calendar } from "lucide-react";
 import { BlogPost, categoryPath, resolveSignImage } from "@/lib/blog/posts";
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+const formatDateTime = (iso: string) =>
+  `${new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · ${new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}`;
 
 const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boolean }) => {
   const href = `/blog/${categoryPath(post.category)}/${post.slug}`;
