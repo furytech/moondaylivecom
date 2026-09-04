@@ -149,12 +149,12 @@ const BlogAdmin = () => {
     "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
   >("queue");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  // Always land on newest-first: any filter change resets the sort so a
-  // stale "Oldest first" toggle can never hide fresh posts at the bottom.
+  // Always land on soonest-first: any filter change resets the sort so the
+  // current/imminent transit is always on top and nothing urgent sinks.
   useEffect(() => {
-    setSortDirection("desc");
+    setSortDirection("asc");
   }, [statusFilter]);
   const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
   const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
@@ -993,7 +993,7 @@ const BlogAdmin = () => {
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
               <span className="text-cream-muted/60">Sort:</span>
-              {sortDirection === "asc" ? "Oldest first" : "Newest first"}
+              {sortDirection === "asc" ? "Soonest first" : "Furthest out first"}
             </button>
 
             {FILTERS.map((f) => (
