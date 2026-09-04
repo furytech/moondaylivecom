@@ -144,8 +144,22 @@ const ActionBtn = ({
     const openExternal = (e: React.MouseEvent) => {
       e.preventDefault();
       beforeOpen?.();
-      const win = window.open(href, "_blank", "noopener,noreferrer");
-      if (!win) {
+      // Open without `noopener` in the features string so we keep a reference
+      // and can tell whether the tab actually opened. The anchor still carries
+      // rel="noopener noreferrer" for safety, and we sever any opener here.
+      const win = window.open(href, "_blank");
+      if (win) {
+        try {
+          win.opener = null;
+        } catch {
+          /* cross-origin or otherwise inaccessible */
+        }
+        return;
+      }
+      // Only fall back to top-level navigation if we're framed (preview iframe)
+      // and the popup was genuinely blocked. In a top-level window the user can
+      // simply allow pop-ups rather than losing their place in the admin.
+      if (window.self !== window.top) {
         try {
           (window.top ?? window).location.href = href;
         } catch {
