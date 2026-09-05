@@ -995,7 +995,13 @@ const BlogAdmin = () => {
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
               <span className="text-cream-muted/60">Sort:</span>
-              {sortDirection === "asc" ? "Soonest first" : "Furthest out first"}
+              {sortDirection === "asc"
+                ? statusFilter === "queue"
+                  ? "Soonest first"
+                  : "Newest first"
+                : statusFilter === "queue"
+                  ? "Furthest out first"
+                  : "Oldest first"}
             </button>
 
             {FILTERS.map((f) => (
