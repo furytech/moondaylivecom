@@ -149,12 +149,14 @@ const BlogAdmin = () => {
     "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
   >("queue");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
+    statusFilter === "queue" ? "asc" : "desc",
+  );
 
-  // Always land on soonest-first: any filter change resets the sort so the
-  // current/imminent transit is always on top and nothing urgent sinks.
+  // Review queue surfaces the imminent transit first; every other tab leads
+  // with the newest post first so the current/most recent work is on top.
   useEffect(() => {
-    setSortDirection("asc");
+    setSortDirection(statusFilter === "queue" ? "asc" : "desc");
   }, [statusFilter]);
   const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
   const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
@@ -993,7 +995,13 @@ const BlogAdmin = () => {
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
               <span className="text-cream-muted/60">Sort:</span>
-              {sortDirection === "asc" ? "Soonest first" : "Furthest out first"}
+              {sortDirection === "asc"
+                ? statusFilter === "queue"
+                  ? "Soonest first"
+                  : "Newest first"
+                : statusFilter === "queue"
+                  ? "Furthest out first"
+                  : "Oldest first"}
             </button>
 
             {FILTERS.map((f) => (
