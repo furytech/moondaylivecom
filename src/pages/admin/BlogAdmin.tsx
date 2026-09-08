@@ -147,14 +147,14 @@ const BlogAdmin = () => {
   const [bridgeSent, setBridgeSent] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
     "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
-  >("queue");
+  >("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
     statusFilter === "queue" ? "asc" : "desc",
   );
 
-  // Review queue surfaces the imminent transit first; every other tab leads
-  // with the newest post first so the current/most recent work is on top.
+  // Default view is All posts, newest first. The Review queue surfaces the
+  // imminent transit first; every other tab leads with the newest post first.
   useEffect(() => {
     setSortDirection(statusFilter === "queue" ? "asc" : "desc");
   }, [statusFilter]);
