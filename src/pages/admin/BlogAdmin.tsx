@@ -998,10 +998,10 @@ const BlogAdmin = () => {
               {sortDirection === "asc"
                 ? statusFilter === "queue"
                   ? "Soonest first"
-                  : "Newest first"
+                  : "Oldest first"
                 : statusFilter === "queue"
                   ? "Furthest out first"
-                  : "Oldest first"}
+                  : "Newest first"}
             </button>
 
             {FILTERS.map((f) => (
