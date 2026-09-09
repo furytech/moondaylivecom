@@ -203,6 +203,7 @@ export interface ChannelMatrixProps {
 const ChannelMatrix = ({
   posts,
   displayDate,
+  transitAt,
   downloadId,
   onEdit,
   onApprove,
