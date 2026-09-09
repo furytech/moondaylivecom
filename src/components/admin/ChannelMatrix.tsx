@@ -184,6 +184,8 @@ const ActionBtn = ({
 export interface ChannelMatrixProps {
   posts: BlogPostRow[];
   displayDate: (value?: string | null) => string;
+  /** True moment of the ingress this post covers, independent of publishing. */
+  transitAt?: (post: BlogPostRow) => string | null;
   downloadId: string | null;
 
   onEdit: (post: BlogPostRow) => void;
