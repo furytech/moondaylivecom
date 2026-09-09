@@ -123,6 +123,20 @@ const BlogAdmin = () => {
     refetchInterval: 30_000,
   });
 
+  // Real ingress instants, used to label each card with its transit time.
+  const { data: transitions = [] } = useQuery({
+    queryKey: ["admin-moon-transitions"],
+    enabled: isAdmin === true,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("moon_transitions")
+        .select("transition_at,to_sign,transition_date")
+        .order("transition_at", { ascending: true });
+      if (error) throw error;
+      return (data || []) as { transition_at: string; to_sign: string; transition_date: string | null }[];
+    },
+  });
+
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
   const [message, setMessage] = useState("");
   const [substackCopiedId, setSubstackCopiedId] = useState<string | null>(null);
@@ -838,10 +852,24 @@ const BlogAdmin = () => {
     published: posts.filter((p) => p.status === "published").length,
   };
 
-  // Sort by the moment the transit actually goes/went live: published_at wins
-  // for live posts, otherwise the scheduled publish_at, then creation time.
+  // The ingress instant this post covers. Publishing early rewrites publish_at,
+  // so the real transit time comes from the transitions table (sign + date in
+  // the slug), falling back to the scheduled instant.
+  const transitAt = (p: BlogPostRow): string | null => {
+    const day = p.slug?.match(/(\d{4}-\d{2}-\d{2})$/)?.[1];
+    const sign = (p.zodiac_sign_tag || "").toLowerCase();
+    if (day && sign) {
+      const hit = transitions.find(
+        (t) => t.transition_date === day && (t.to_sign || "").toLowerCase() === sign,
+      );
+      if (hit) return hit.transition_at;
+    }
+    return null;
+  };
+
+  // Sort by the transit instant, falling back to publish/creation stamps.
   const sortKey = (p: BlogPostRow) => {
-    const raw = p.published_at || p.publish_at || p.created_at || 0;
+    const raw = transitAt(p) || p.publish_at || p.published_at || p.created_at || 0;
     const t = new Date(raw).getTime();
     return Number.isNaN(t) ? 0 : t;
   };
@@ -1028,6 +1056,7 @@ const BlogAdmin = () => {
           <ChannelMatrix
             posts={visiblePosts}
             displayDate={displayDate}
+            transitAt={transitAt}
             downloadId={downloadId}
             onEdit={openEdit}
             onApprove={handleApproveTransit}

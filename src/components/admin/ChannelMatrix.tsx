@@ -184,6 +184,8 @@ const ActionBtn = ({
 export interface ChannelMatrixProps {
   posts: BlogPostRow[];
   displayDate: (value?: string | null) => string;
+  /** True moment of the ingress this post covers, independent of publishing. */
+  transitAt?: (post: BlogPostRow) => string | null;
   downloadId: string | null;
 
   onEdit: (post: BlogPostRow) => void;
@@ -201,6 +203,7 @@ export interface ChannelMatrixProps {
 const ChannelMatrix = ({
   posts,
   displayDate,
+  transitAt,
   downloadId,
   onEdit,
   onApprove,
@@ -241,7 +244,11 @@ const ChannelMatrix = ({
         const sign = p.zodiac_sign_tag
           ? p.zodiac_sign_tag.charAt(0).toUpperCase() + p.zodiac_sign_tag.slice(1)
           : null;
-        const headerDate = p.status === "published" ? p.published_at || p.publish_at : p.publish_at;
+        const publishDate = p.status === "published" ? p.published_at || p.publish_at : p.publish_at;
+        // The transit instant is what the admin schedules around; publishing can
+        // happen early and must not overwrite the displayed ingress time.
+        const ingress = transitAt?.(p) || null;
+        const headerDate = ingress || publishDate;
         const missed = isMissed(p.status, headerDate);
         const asset = resolveZodiacAsset(p.zodiac_sign_tag, p.image_url);
         const url = postUrl(p);
@@ -272,7 +279,16 @@ const ChannelMatrix = ({
                   />
                 </div>
                 <div className="text-xs text-cream-muted mt-1.5 break-words">{p.title}</div>
-                <div className="text-[11px] text-cream-muted/80 mt-1">{displayDate(headerDate)}</div>
+                <div className="text-[11px] text-cream-muted/80 mt-1">
+                  <span className="uppercase tracking-wider text-cream-muted/60 mr-1">Transit</span>
+                  {displayDate(headerDate)}
+                </div>
+                {p.status === "published" && publishDate && (
+                  <div className="text-[11px] text-cream-muted/60 mt-0.5">
+                    <span className="uppercase tracking-wider mr-1">Published</span>
+                    {displayDate(publishDate)}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2 w-full md:w-auto md:shrink-0">
