@@ -279,7 +279,16 @@ const ChannelMatrix = ({
                   />
                 </div>
                 <div className="text-xs text-cream-muted mt-1.5 break-words">{p.title}</div>
-                <div className="text-[11px] text-cream-muted/80 mt-1">{displayDate(headerDate)}</div>
+                <div className="text-[11px] text-cream-muted/80 mt-1">
+                  <span className="uppercase tracking-wider text-cream-muted/60 mr-1">Transit</span>
+                  {displayDate(headerDate)}
+                </div>
+                {p.status === "published" && publishDate && (
+                  <div className="text-[11px] text-cream-muted/60 mt-0.5">
+                    <span className="uppercase tracking-wider mr-1">Published</span>
+                    {displayDate(publishDate)}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2 w-full md:w-auto md:shrink-0">
