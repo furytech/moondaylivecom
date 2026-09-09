@@ -850,10 +850,6 @@ const BlogAdmin = () => {
       );
       if (hit) return hit.transition_at;
     }
-    if (day && sign) {
-      const bySign = transitions.find((t) => (t.to_sign || "").toLowerCase() === sign);
-      if (bySign && p.status !== "published") return null;
-    }
     return null;
   };
 
