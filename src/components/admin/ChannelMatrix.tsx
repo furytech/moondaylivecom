@@ -244,7 +244,11 @@ const ChannelMatrix = ({
         const sign = p.zodiac_sign_tag
           ? p.zodiac_sign_tag.charAt(0).toUpperCase() + p.zodiac_sign_tag.slice(1)
           : null;
-        const headerDate = p.status === "published" ? p.published_at || p.publish_at : p.publish_at;
+        const publishDate = p.status === "published" ? p.published_at || p.publish_at : p.publish_at;
+        // The transit instant is what the admin schedules around; publishing can
+        // happen early and must not overwrite the displayed ingress time.
+        const ingress = transitAt?.(p) || null;
+        const headerDate = ingress || publishDate;
         const missed = isMissed(p.status, headerDate);
         const asset = resolveZodiacAsset(p.zodiac_sign_tag, p.image_url);
         const url = postUrl(p);
