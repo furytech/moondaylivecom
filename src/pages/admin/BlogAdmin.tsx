@@ -1056,6 +1056,7 @@ const BlogAdmin = () => {
           <ChannelMatrix
             posts={visiblePosts}
             displayDate={displayDate}
+            transitAt={transitAt}
             downloadId={downloadId}
             onEdit={openEdit}
             onApprove={handleApproveTransit}
