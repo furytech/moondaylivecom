@@ -123,6 +123,20 @@ const BlogAdmin = () => {
     refetchInterval: 30_000,
   });
 
+  // Real ingress instants, used to label each card with its transit time.
+  const { data: transitions = [] } = useQuery({
+    queryKey: ["admin-moon-transitions"],
+    enabled: isAdmin === true,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("moon_transitions")
+        .select("transition_at,to_sign,transition_date")
+        .order("transition_at", { ascending: true });
+      if (error) throw error;
+      return (data || []) as { transition_at: string; to_sign: string; transition_date: string | null }[];
+    },
+  });
+
   const [editing, setEditing] = useState<Partial<BlogPostRow> | null>(null);
   const [message, setMessage] = useState("");
   const [substackCopiedId, setSubstackCopiedId] = useState<string | null>(null);
