@@ -60,7 +60,6 @@ function slugify(s: string) {
 }
 
 import { generateTransitPackage } from "../_shared/transitContent.ts";
-import { notifyTelegram } from "../_shared/telegram.ts";
 
 
 
@@ -197,15 +196,8 @@ Deno.serve(async (req) => {
 
       taken.add(key);
       created.push({ sign, ingress_utc: ing.transition_at, slug });
-
-      // A fresh draft needs eyes on it before the ingress — deep link straight
-      // to this post's editor.
-      await notifyTelegram({
-        kind: "approval",
-        post_id: inserted?.id,
-        title,
-        when: `${ing.transition_at.slice(0, 16).replace("T", " ")} UTC`,
-      });
+      // No Telegram ping here: drafts are created ~30 days ahead, and alerts
+      // are only wanted for the imminent transit (handled by auto-publish-posts).
     }
 
 
