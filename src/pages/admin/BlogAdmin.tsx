@@ -904,7 +904,21 @@ const BlogAdmin = () => {
         : p.status === statusFilter,
     )
     .filter(matchesSearch)
-    .sort((a, b) => (sortDirection === "asc" ? sortKey(a) - sortKey(b) : sortKey(b) - sortKey(a)));
+    .sort((a, b) => {
+      if (sortDirection === "asc") return sortKey(a) - sortKey(b);
+      if (sortDirection === "desc") return sortKey(b) - sortKey(a);
+      // "next": upcoming transits ascending (next ingress on top), then past
+      // transits descending (most recent first).
+      const now = Date.now();
+      const ka = sortKey(a);
+      const kb = sortKey(b);
+      const aUpcoming = ka >= now;
+      const bUpcoming = kb >= now;
+      if (aUpcoming && bUpcoming) return ka - kb;
+      if (aUpcoming) return -1;
+      if (bUpcoming) return 1;
+      return kb - ka;
+    });
 
   const FILTERS: { key: typeof statusFilter; label: string }[] = [
     { key: "approved", label: "Approved" },
