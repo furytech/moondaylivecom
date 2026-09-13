@@ -1030,19 +1030,19 @@ const BlogAdmin = () => {
         <div className="mb-4 -mx-1 px-1 overflow-x-auto sm:overflow-visible">
           <div className="flex gap-2 sm:flex-wrap w-max sm:w-auto pb-1">
             <button
-              onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
+              onClick={() =>
+                setSortDirection((d) => (d === "next" ? "asc" : d === "asc" ? "desc" : "next"))
+              }
               className="inline-flex items-center gap-2 shrink-0 px-3 py-2 rounded-full border border-border/40 text-cream-muted text-xs hover:text-foreground transition"
               aria-label="Toggle sort direction"
-              title="Tap to flip the order"
+              title="Tap to change the order"
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
               <span className="text-cream-muted/60">Sort:</span>
-              {sortDirection === "asc"
-                ? statusFilter === "queue"
-                  ? "Soonest first"
-                  : "Oldest first"
-                : statusFilter === "queue"
-                  ? "Furthest out first"
+              {sortDirection === "next"
+                ? "Next transit first"
+                : sortDirection === "asc"
+                  ? "Oldest first"
                   : "Newest first"}
             </button>
 
