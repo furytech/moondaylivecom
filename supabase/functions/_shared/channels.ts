@@ -59,13 +59,15 @@ export function withCta(
 
   if (channel === 'reddit') {
     const block = redditCtaBlock(href)
-    if (body.startsWith(block)) return body
-    // Strip any previous one-line CTA wrapper so existing drafts don't double-wrap.
     const line = ctaLine(href)
     let cleaned = body
+    // Strip any previous CTA wrapper from top/bottom so existing drafts don't double-wrap.
     if (cleaned.startsWith(`${line}\n\n`)) cleaned = cleaned.slice(`${line}\n\n`.length)
     if (cleaned.endsWith(`\n\n${line}`)) cleaned = cleaned.slice(0, -(`\n\n${line}`.length))
-    return `${block}\n\n${cleaned.trim()}\n\n${block}`
+    if (cleaned.startsWith(`${block}\n\n`)) cleaned = cleaned.slice(`${block}\n\n`.length)
+    if (cleaned.endsWith(`\n\n${block}`)) cleaned = cleaned.slice(0, -(`\n\n${block}`.length))
+    // Reddit CTA lives only at the bottom, as the call to action.
+    return `${cleaned.trim()}\n\n${block}`
   }
 
   const line = ctaLine(href)
