@@ -12,6 +12,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { sendAppEmail } from '../_shared/sendAppEmail.ts'
 import { reportError } from '../_shared/errorTracking.ts'
+import { notifyTelegram } from '../_shared/telegram.ts'
 import {
   CHANNEL_FIELD,
   CHANNEL_KEYS,
@@ -213,7 +214,16 @@ Deno.serve(async (req) => {
           .update({ review_email_sent_at: new Date().toISOString() })
           .eq('id', post.id)
 
-        if (markError) errors.push(`mark-${post.id}: ${markError.message}`)
+        if (markError) {
+          errors.push(`mark-${post.id}: ${markError.message}`)
+        } else {
+          await notifyTelegram({
+            kind: 'approval',
+            post_id: post.id,
+            title: post.title,
+            when: transitAt.toUTCString(),
+          })
+        }
       }
       sent++
 
