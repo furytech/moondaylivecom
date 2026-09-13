@@ -907,13 +907,13 @@ const BlogAdmin = () => {
     .sort((a, b) => {
       if (sortDirection === "asc") return sortKey(a) - sortKey(b);
       if (sortDirection === "desc") return sortKey(b) - sortKey(a);
-      // "next": upcoming transits ascending (next ingress on top), then past
-      // transits descending (most recent first).
+      // "next": transits still needing action, soonest first (next ingress on
+      // top), then everything already handled or past, most recent first.
       const now = Date.now();
       const ka = sortKey(a);
       const kb = sortKey(b);
-      const aUpcoming = ka >= now;
-      const bUpcoming = kb >= now;
+      const aUpcoming = ka >= now && a.status !== "published";
+      const bUpcoming = kb >= now && b.status !== "published";
       if (aUpcoming && bUpcoming) return ka - kb;
       if (aUpcoming) return -1;
       if (bUpcoming) return 1;
