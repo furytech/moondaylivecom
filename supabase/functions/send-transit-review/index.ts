@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
 
     const channels = CHANNEL_KEYS.map((key) => {
       const raw = (post as Record<string, unknown>)[CHANNEL_FIELD[key]] as string | null
-      const text = withCta(raw, url)
+      const text = withCta(raw, url, key)
       return {
         key,
         label: CHANNEL_LABEL[key],

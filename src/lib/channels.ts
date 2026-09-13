@@ -33,15 +33,43 @@ export const CHANNEL_FIELD: Record<ChannelKey, string> = {
 
 export const CTA_TEXT = "Check your moon sign on MoondayLive.com";
 
+export const CTA_CLOSING_TEXT = "Read the full transit and share what you're noticing.";
+
 /** Plain-text/markdown CTA line used at the top and bottom of every block. */
 export function ctaLine(href: string = SITE_URL): string {
   return `${CTA_TEXT} → ${href}`;
 }
 
+/**
+ * Reddit CTA block: two sentences around the link, each on its own line,
+ * with blank-line spacing between the sentences and the link.
+ */
+export function redditCtaBlock(href: string = SITE_URL): string {
+  return `${CTA_TEXT}.\n\n→ ${href}\n\n${CTA_CLOSING_TEXT}`;
+}
+
 /** Wraps a draft with the CTA at top and bottom. Idempotent. */
-export function withCta(text: string | null | undefined, href: string = SITE_URL): string {
+export function withCta(
+  text: string | null | undefined,
+  href: string = SITE_URL,
+  channel?: ChannelKey
+): string {
   const body = (text ?? "").trim();
   if (!body) return "";
+
+  if (channel === "reddit") {
+    const block = redditCtaBlock(href);
+    const line = ctaLine(href);
+    let cleaned = body;
+    // Strip any previous CTA wrapper from top/bottom so existing drafts don't double-wrap.
+    if (cleaned.startsWith(`${line}\n\n`)) cleaned = cleaned.slice(`${line}\n\n`.length);
+    if (cleaned.endsWith(`\n\n${line}`)) cleaned = cleaned.slice(0, -(`\n\n${line}`.length));
+    if (cleaned.startsWith(`${block}\n\n`)) cleaned = cleaned.slice(`${block}\n\n`.length);
+    if (cleaned.endsWith(`\n\n${block}`)) cleaned = cleaned.slice(0, -(`\n\n${block}`.length));
+    // Reddit CTA lives only at the bottom, as the call to action.
+    return `${cleaned.trim()}\n\n${block}`;
+  }
+
   const line = ctaLine(href);
   const already = body.startsWith(line);
   return already ? body : `${line}\n\n${body}\n\n${line}`;
