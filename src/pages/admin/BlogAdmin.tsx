@@ -163,14 +163,14 @@ const BlogAdmin = () => {
     "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
-    statusFilter === "queue" ? "asc" : "desc",
-  );
+  // "next" = the next upcoming transit first, then current → future; past
+  // transits follow below, most recent first. This is ALWAYS the default so
+  // the transit you need to post next is on top without touching the toggle.
+  const [sortDirection, setSortDirection] = useState<"next" | "asc" | "desc">("next");
 
-  // Default view is All posts, newest first. The Review queue surfaces the
-  // imminent transit first; every other tab leads with the newest post first.
+  // Every tab resets to the next-transit-first order when switched.
   useEffect(() => {
-    setSortDirection(statusFilter === "queue" ? "asc" : "desc");
+    setSortDirection("next");
   }, [statusFilter]);
   const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
   const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
