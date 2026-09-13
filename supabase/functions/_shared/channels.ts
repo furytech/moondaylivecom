@@ -35,13 +35,39 @@ export const SHARE_LABEL: Record<ChannelKey, string> = {
 
 export const CTA_TEXT = 'Check your moon sign on MoondayLive.com'
 
+export const CTA_CLOSING_TEXT = "Read the full transit and share what you're noticing."
+
 export function ctaLine(href: string = SITE_URL): string {
   return `${CTA_TEXT} → ${href}`
 }
 
-export function withCta(text: string | null | undefined, href: string = SITE_URL): string {
+/**
+ * Reddit CTA block: two sentences around the link, each on its own line,
+ * with blank-line spacing between the sentences and the link.
+ */
+export function redditCtaBlock(href: string = SITE_URL): string {
+  return `${CTA_TEXT}.\n\n→ ${href}\n\n${CTA_CLOSING_TEXT}`
+}
+
+export function withCta(
+  text: string | null | undefined,
+  href: string = SITE_URL,
+  channel?: ChannelKey,
+): string {
   const body = (text ?? '').trim()
   if (!body) return ''
+
+  if (channel === 'reddit') {
+    const block = redditCtaBlock(href)
+    if (body.startsWith(block)) return body
+    // Strip any previous one-line CTA wrapper so existing drafts don't double-wrap.
+    const line = ctaLine(href)
+    let cleaned = body
+    if (cleaned.startsWith(`${line}\n\n`)) cleaned = cleaned.slice(`${line}\n\n`.length)
+    if (cleaned.endsWith(`\n\n${line}`)) cleaned = cleaned.slice(0, -(`${line}\n\n`.length))
+    return `${block}\n\n${cleaned.trim()}\n\n${block}`
+  }
+
   const line = ctaLine(href)
   return body.startsWith(line) ? body : `${line}\n\n${body}\n\n${line}`
 }
