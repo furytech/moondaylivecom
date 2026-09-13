@@ -64,7 +64,7 @@ export function withCta(
     const line = ctaLine(href)
     let cleaned = body
     if (cleaned.startsWith(`${line}\n\n`)) cleaned = cleaned.slice(`${line}\n\n`.length)
-    if (cleaned.endsWith(`\n\n${line}`)) cleaned = cleaned.slice(0, -(`${line}\n\n`.length))
+    if (cleaned.endsWith(`\n\n${line}`)) cleaned = cleaned.slice(0, -(`\n\n${line}`.length))
     return `${block}\n\n${cleaned.trim()}\n\n${block}`
   }
 
