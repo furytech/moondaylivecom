@@ -35,7 +35,7 @@ export const channelCopy = (post: BlogPostRow, channel: ChannelKey): string => {
       : channel === "facebook"
       ? (post as unknown as Record<string, string | null>).facebook_post
       : (post as unknown as Record<string, string | null>).pinterest_post;
-  return withCta(raw ?? "", postUrl(post));
+  return withCta(raw ?? "", postUrl(post), channel);
 };
 
 /** A blog transit is "missed" when its instant has passed but it never went live. */
