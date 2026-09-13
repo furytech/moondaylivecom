@@ -232,11 +232,12 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Final safety nudge: a transit that is still unpublished with ingress inside
-  // 4 hours gets exactly one extra Telegram ping, regardless of the email valve.
+  // Final safety nudge: exactly one extra Telegram ping per transit, always
+  // while he is awake — 4 hours out, or the evening before for an overnight
+  // ingress, so nothing needs posting during 19:30-05:00.
   let finalReminders = 0
   if (!testMode) {
-    const soon = new Date(now.getTime() + 4 * 60 * 60 * 1000)
+    const soon = new Date(now.getTime() + 24 * 60 * 60 * 1000)
     const { data: imminent, error: imminentError } = await supabase
       .from('blog_posts')
       .select('id, title, publish_at, status')
@@ -251,6 +252,8 @@ Deno.serve(async (req) => {
       errors.push(`imminent: ${imminentError.message}`)
     } else {
       for (const post of imminent ?? []) {
+        if (!telegramReminderDue(new Date(post.publish_at as string), now)) continue
+
         try {
           await notifyTelegram({
             kind: 'approval',
