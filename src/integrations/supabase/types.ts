@@ -25,6 +25,7 @@ export type Database = {
           excerpt: string | null
           facebook_post: string | null
           featured: boolean
+          final_reminder_sent_at: string | null
           guest_bio: string | null
           guest_contribution_id: string | null
           guest_display_name: string | null
@@ -68,6 +69,7 @@ export type Database = {
           excerpt?: string | null
           facebook_post?: string | null
           featured?: boolean
+          final_reminder_sent_at?: string | null
           guest_bio?: string | null
           guest_contribution_id?: string | null
           guest_display_name?: string | null
@@ -111,6 +113,7 @@ export type Database = {
           excerpt?: string | null
           facebook_post?: string | null
           featured?: boolean
+          final_reminder_sent_at?: string | null
           guest_bio?: string | null
           guest_contribution_id?: string | null
           guest_display_name?: string | null

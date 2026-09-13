@@ -232,6 +232,44 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Final safety nudge: a transit that is still unpublished with ingress inside
+  // 4 hours gets exactly one extra Telegram ping, regardless of the email valve.
+  let finalReminders = 0
+  if (!testMode) {
+    const soon = new Date(now.getTime() + 4 * 60 * 60 * 1000)
+    const { data: imminent, error: imminentError } = await supabase
+      .from('blog_posts')
+      .select('id, title, publish_at, status')
+      .is('final_reminder_sent_at', null)
+      .is('published_at', null)
+      .not('publish_at', 'is', null)
+      .lte('publish_at', soon.toISOString())
+      .gte('publish_at', now.toISOString())
+      .order('publish_at', { ascending: true })
+
+    if (imminentError) {
+      errors.push(`imminent: ${imminentError.message}`)
+    } else {
+      for (const post of imminent ?? []) {
+        try {
+          await notifyTelegram({
+            kind: 'approval',
+            post_id: post.id,
+            title: post.title,
+            when: new Date(post.publish_at as string).toUTCString(),
+          })
+          await supabase
+            .from('blog_posts')
+            .update({ final_reminder_sent_at: new Date().toISOString() })
+            .eq('id', post.id)
+          finalReminders++
+        } catch (err) {
+          errors.push(`final-${post.id}: ${err instanceof Error ? err.message : String(err)}`)
+        }
+      }
+    }
+  }
+
   if (errors.length > 0) {
     await reportError({
       source: 'send-transit-review',
@@ -241,5 +279,5 @@ Deno.serve(async (req) => {
     })
   }
 
-  return json({ sent, held, candidates: posts?.length ?? 0, errors: errors.length || undefined })
+  return json({ sent, held, finalReminders, candidates: posts?.length ?? 0, errors: errors.length || undefined })
 })
