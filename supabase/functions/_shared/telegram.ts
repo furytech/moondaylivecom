@@ -3,6 +3,8 @@
 // Notifications are a convenience layer: this helper NEVER throws, so a Telegram
 // outage or missing secret can't break publishing or draft generation.
 
+import { inAwakeWindow } from "./channels.ts";
+
 const TELEGRAM_FN_URL = `${Deno.env.get("SUPABASE_URL")}/functions/v1/telegram-notify`;
 
 export interface TelegramPing {
@@ -14,6 +16,11 @@ export interface TelegramPing {
 }
 
 export async function notifyTelegram(payload: TelegramPing): Promise<void> {
+  // Sleep guard: the operator sleeps 19:30-05:00. Purely informational
+  // "published" pings are dropped overnight; action pings are only ever
+  // scheduled inside waking hours by their callers.
+  if (payload.kind === "published" && !inAwakeWindow(new Date())) return;
+
   try {
     await fetch(TELEGRAM_FN_URL, {
       method: "POST",
