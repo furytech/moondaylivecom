@@ -244,3 +244,37 @@ export function shouldSendReview(transitAt: Date, now: Date = new Date()): boole
   return now >= open && now <= close
 }
 
+
+/**
+ * Operator sleep guard: alerts must reach him while he is awake, and never
+ * after 19:30 local (he sleeps 19:30-05:00).
+ */
+export const AWAKE_WINDOW_START_HOUR = 5
+export const AWAKE_WINDOW_END_HOUR = 19
+
+/** True when `at` is inside the 05:00-19:00 local waking bracket. */
+export function inAwakeWindow(at: Date): boolean {
+  const h = localParts(at).hour
+  return h >= AWAKE_WINDOW_START_HOUR && h < AWAKE_WINDOW_END_HOUR
+}
+
+/** The next 05:00 local instant strictly after `at`. */
+function nextAwakeOpen(at: Date): Date {
+  const today = localHourInstant(at, AWAKE_WINDOW_START_HOUR)
+  if (today.getTime() > at.getTime()) return today
+  return localHourInstant(new Date(at.getTime() + 86_400_000), AWAKE_WINDOW_START_HOUR)
+}
+
+/**
+ * Should the imminent-transit Telegram reminder fire right now?
+ *
+ * Never while he is asleep. Standard lead time is 4 hours, but a transit that
+ * lands overnight is pre-alerted in the last awake hours of the previous
+ * evening (from 17:00 local) so he can post before 19:30.
+ */
+export function telegramReminderDue(transitAt: Date, now: Date = new Date()): boolean {
+  if (!inAwakeWindow(now)) return false
+  if (transitAt.getTime() <= now.getTime()) return false
+  if (transitAt.getTime() - now.getTime() <= 4 * 60 * 60 * 1000) return true
+  return transitAt.getTime() <= nextAwakeOpen(now).getTime() && localParts(now).hour >= 17
+}
