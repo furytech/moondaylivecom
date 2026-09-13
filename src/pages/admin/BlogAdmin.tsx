@@ -163,14 +163,14 @@ const BlogAdmin = () => {
     "queue" | "all" | "draft" | "approved" | "scheduled" | "published" | "missed"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
-    statusFilter === "queue" ? "asc" : "desc",
-  );
+  // "next" = the next upcoming transit first, then current → future; past
+  // transits follow below, most recent first. This is ALWAYS the default so
+  // the transit you need to post next is on top without touching the toggle.
+  const [sortDirection, setSortDirection] = useState<"next" | "asc" | "desc">("next");
 
-  // Default view is All posts, newest first. The Review queue surfaces the
-  // imminent transit first; every other tab leads with the newest post first.
+  // Every tab resets to the next-transit-first order when switched.
   useEffect(() => {
-    setSortDirection(statusFilter === "queue" ? "asc" : "desc");
+    setSortDirection("next");
   }, [statusFilter]);
   const [redditScheduleTarget, setRedditScheduleTarget] = useState<BlogPostRow | null>(null);
   const [redditScheduleIso, setRedditScheduleIso] = useState<string | null>(null);
@@ -904,7 +904,21 @@ const BlogAdmin = () => {
         : p.status === statusFilter,
     )
     .filter(matchesSearch)
-    .sort((a, b) => (sortDirection === "asc" ? sortKey(a) - sortKey(b) : sortKey(b) - sortKey(a)));
+    .sort((a, b) => {
+      if (sortDirection === "asc") return sortKey(a) - sortKey(b);
+      if (sortDirection === "desc") return sortKey(b) - sortKey(a);
+      // "next": upcoming transits ascending (next ingress on top), then past
+      // transits descending (most recent first).
+      const now = Date.now();
+      const ka = sortKey(a);
+      const kb = sortKey(b);
+      const aUpcoming = ka >= now;
+      const bUpcoming = kb >= now;
+      if (aUpcoming && bUpcoming) return ka - kb;
+      if (aUpcoming) return -1;
+      if (bUpcoming) return 1;
+      return kb - ka;
+    });
 
   const FILTERS: { key: typeof statusFilter; label: string }[] = [
     { key: "approved", label: "Approved" },
@@ -1016,19 +1030,19 @@ const BlogAdmin = () => {
         <div className="mb-4 -mx-1 px-1 overflow-x-auto sm:overflow-visible">
           <div className="flex gap-2 sm:flex-wrap w-max sm:w-auto pb-1">
             <button
-              onClick={() => setSortDirection((d) => (d === "asc" ? "desc" : "asc"))}
+              onClick={() =>
+                setSortDirection((d) => (d === "next" ? "asc" : d === "asc" ? "desc" : "next"))
+              }
               className="inline-flex items-center gap-2 shrink-0 px-3 py-2 rounded-full border border-border/40 text-cream-muted text-xs hover:text-foreground transition"
               aria-label="Toggle sort direction"
-              title="Tap to flip the order"
+              title="Tap to change the order"
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
               <span className="text-cream-muted/60">Sort:</span>
-              {sortDirection === "asc"
-                ? statusFilter === "queue"
-                  ? "Soonest first"
-                  : "Oldest first"
-                : statusFilter === "queue"
-                  ? "Furthest out first"
+              {sortDirection === "next"
+                ? "Next transit first"
+                : sortDirection === "asc"
+                  ? "Oldest first"
                   : "Newest first"}
             </button>
 
