@@ -279,5 +279,5 @@ Deno.serve(async (req) => {
     })
   }
 
-  return json({ sent, held, candidates: posts?.length ?? 0, errors: errors.length || undefined })
+  return json({ sent, held, finalReminders, candidates: posts?.length ?? 0, errors: errors.length || undefined })
 })
