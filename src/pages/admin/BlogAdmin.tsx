@@ -28,7 +28,7 @@ import {
   ChannelStatus,
 } from "@/lib/blog/posts";
 import { markdownToHtml, markdownToPlainText } from "@/lib/blog/markdownToHtml";
-import { redditBodyWithBrand } from "@/lib/redditFormat";
+import { withCta, postUrl } from "@/lib/channels";
 import { wrapSubstackHtml, wrapSubstackPlain } from "@/lib/brandCta";
 import ChannelMatrix, { countMissed } from "@/components/admin/ChannelMatrix";
 
@@ -417,16 +417,15 @@ const BlogAdmin = () => {
     setTimeout(() => setSubstackCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
 
-  // Reddit is plain-text only — no Markdown conversion, just the hard-break
-  // single spacing Reddit honours so pasted copy matches the webhook payload.
+  // Reddit copy: link only at the bottom, paragraphs preserved.
   const handleCopyReddit = async (post: Partial<BlogPostRow>) => {
     const text = post.reddit_post?.trim();
     if (!text) {
       setMessage("No Reddit copy on this post yet.");
       return;
     }
-    await navigator.clipboard.writeText(redditBodyWithBrand(text, post));
-    setMessage("Reddit post copied (single-spaced, with Moonday links).");
+    await navigator.clipboard.writeText(withCta(text, postUrl(post), "reddit"));
+    setMessage("Reddit post copied — link at the bottom, paragraphs untouched.");
     setRedditCopiedId(post.id || null);
     setTimeout(() => setRedditCopiedId((cur) => (cur === post.id ? null : cur)), 2000);
   };
@@ -1409,8 +1408,8 @@ const BlogAdmin = () => {
                           setMessage("No Reddit copy on this post yet.");
                           return;
                         }
-                        await navigator.clipboard.writeText(redditBodyWithBrand(text, editing));
-                        setMessage("Reddit copy copied — single-spaced, with Moonday links top and bottom.");
+                        await navigator.clipboard.writeText(withCta(text, postUrl(editing), "reddit"));
+                        setMessage("Reddit copy copied — link at the bottom, paragraphs untouched.");
                       }}
                       className="min-h-[40px] px-3 rounded-full border border-border/50 text-cream-muted text-xs hover:bg-white/5 transition"
                     >
