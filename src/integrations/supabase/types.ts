@@ -31,6 +31,7 @@ export type Database = {
           guest_display_name: string | null
           id: string
           image_url: string | null
+          instagram_post: string | null
           keywords: string[] | null
           meta_description: string | null
           meta_title: string | null
@@ -55,7 +56,9 @@ export type Database = {
           substack_scheduled_at: string | null
           substack_sent_at: string | null
           substack_status: string
+          threads_post: string | null
           title: string
+          twitter_post: string | null
           updated_at: string
           zodiac_sign_tag: string | null
         }
@@ -75,6 +78,7 @@ export type Database = {
           guest_display_name?: string | null
           id?: string
           image_url?: string | null
+          instagram_post?: string | null
           keywords?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
@@ -99,7 +103,9 @@ export type Database = {
           substack_scheduled_at?: string | null
           substack_sent_at?: string | null
           substack_status?: string
+          threads_post?: string | null
           title: string
+          twitter_post?: string | null
           updated_at?: string
           zodiac_sign_tag?: string | null
         }
@@ -119,6 +125,7 @@ export type Database = {
           guest_display_name?: string | null
           id?: string
           image_url?: string | null
+          instagram_post?: string | null
           keywords?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
@@ -143,7 +150,9 @@ export type Database = {
           substack_scheduled_at?: string | null
           substack_sent_at?: string | null
           substack_status?: string
+          threads_post?: string | null
           title?: string
+          twitter_post?: string | null
           updated_at?: string
           zodiac_sign_tag?: string | null
         }
