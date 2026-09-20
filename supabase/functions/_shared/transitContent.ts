@@ -5,12 +5,17 @@
 
 import { resolveSubredditRoute } from "./subredditRouting.ts";
 
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
+
 
 export interface TransitPackage {
   blog_content: string;
   reddit_content: string;
   facebook_content: string;
+  instagram_content: string;
+  threads_content: string;
   pinterest_content: string;
+  twitter_content: string;
   /** Retired channel. Kept so older callers keep compiling. */
   substack_content: string;
 }
@@ -118,36 +123,54 @@ The four pieces go to four different audiences and MUST read like four different
 - Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence.
 - Audience tuning: blog = search-led reader who wants a clear, useful explainer. Reddit = practising astrologers who want a technical tracking breakdown. Facebook/Instagram = a scrolling reader who wants today's emotional weather in a few breaths. Pinterest = a searcher scanning keywords on a pin.
 
-Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly four keys:
+Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly five keys:
 
-"blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. This is the only piece allowed to name the exact ingress instant. Track the actual degrees, the timing of the ingress, and where the tropical framing sits against the sidereal one when it matters. Three structured sections, each an H2:
-  a) Astronomical baseline and atmospheric resonance — exact degrees, ingress timing, framework note, and what the shift actually feels like over the next ~2.5 days.
-  b) Practical heads-up — underappreciated friction points to watch for, phrased constructively.
-  c) Grounded guidance — simple, practical ways to navigate the shift, including one small ritual.
-  Close on material scarcity and personal growth: what this window asks you to stop spending (attention, energy, patience) and what grows in the space that frees up. Then a soft, quiet invitation to explore their Personal Portrait on MoondayLive.com.
+"blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. Three structured sections, each an H2:
 
-"reddit_content": A community discussion thread for r/${resolveSubredditRoute(toSign).subreddit}. Register for this room: ${resolveSubredditRoute(toSign).register}.
-  Focus on physical body tracking: the gut, the heart and the head, and how this ingress tends to show up in that chain (where tension lands first, what the body does before the mind catches up). Practitioner-to-practitioner, observational, never medical advice and never diagnostic.
-  Hard format (follow exactly):
-  Line 1 — the post title: 6-14 words, plain, states what is being tracked. No "The Moon Enters X:" formula, no colon-subtitle, no markdown heading, no "Title:" prefix, and NOT the blog title.
-  Line 2 — blank.
-  Line 3 — "TL;DR: " then ONE sentence (max ~28 words) naming the ingress and the single most testable body signal to watch.
-  Line 4 — blank.
-  Then 3-5 short sentences of body, ~90-130 words: sign condition, ruler and its state, and the gut/heart/head read. Use the vocabulary properly — dignity, reception, applying/separating, void course — but never define it.
-  Then a blank line and ONE genuine open question inviting others to compare what they are noticing in their own body this window. The piece must END on that question.
-  Reddit composition rules (non-negotiable):
-  - No headings, no bold, no bullet lists, no em dashes, no UTC timestamps, no dates, no hype, no pricing.
-  - Claims must be falsifiable or clearly framed as observation. No health claims.
-  - Total length including the title: under 180 words.
+Astronomical baseline and atmospheric resonance — exact degrees, ingress timing, framework note, and what the shift actually feels like over the next ~2.5 days
+Practical heads-up — underappreciated friction points to watch for, phrased constructively
+Grounded guidance — simple practical ways to navigate the shift, including one small ritual
 
-"facebook_content": A native Facebook/Instagram caption in plain text (no Markdown, no headings, no bullets, no links inside the body). 90-150 words. Two or three short paragraphs separated by a blank line, the first under 12 words so it survives the "see more" fold. Read the emotional and energetic trend of the next day or so: what the mood leans toward, what tends to snag, what feels easy. One concrete mundane image. No timestamps, no degrees, no jargon. Second to last line: a warm one-line invitation to MoondayLive.com, freshly worded each time. Final line: three to five lowercase hashtags on one line, drawn from the sign and the mood (for example #moonin${toSign.toLowerCase()} #lunarsignature #moondaylive).
+CTA (platform native): A soft closing paragraph, two to three sentences, worded like a friend who found something they're excited about. Invite the reader to explore their Personal Portrait on MoondayLive.com. No pricing, no urgency, never a sales pitch.
 
-"pinterest_content": A native Pinterest pin in plain text, formatted exactly like this and nothing else:
-  Line 1 — the pin title, a search phrase under 60 characters, title case, naming the sign (for example "Moon in ${toSign}: What To Feel And Release").
-  Line 2 — blank.
-  Then the pin description, 200-450 characters total (Pinterest truncates past 500). Open with one keyword-rich sentence, then 3-4 short lines each starting with "• " naming the transit themes as scannable keyword phrases, no full sentences needed.
-  Then a blank line and one closing line inviting the reader to track the transit live on MoondayLive.com.
-  Final line: exactly three lowercase hashtags. No emojis, no timestamps, no degrees.`;
+"reddit_content": A community discussion thread for r/${resolveSubredditRoute(toSign).subreddit}. Register: ${resolveSubredditRoute(toSign).register}. Focus on physical body tracking: gut, heart, head, and how this ingress tends to show up in that chain.
+
+Hard format:
+
+Line 1: post title, 6-14 words, plain, states what is being tracked. No "The Moon Enters X:" formula, no colon-subtitle, no markdown, no "Title:" prefix
+Line 2: blank
+Line 3: "TL;DR: " then one sentence, max 28 words, naming the ingress and the single most testable body signal to watch
+Line 4: blank
+Body: 3-5 short sentences, ~90-130 words. Sign condition, ruler and its state, gut/heart/head read. Use dignity, reception, applying/separating, void course vocabulary correctly but never define it
+Blank line
+CTA (platform native): One genuine open question inviting the community to compare what they are noticing in their own body this window. The piece MUST end on that question. Zero promotional language. No links. Reddit norms apply hard here.
+
+No headings, no bold, no bullets, no em dashes, no UTC timestamps, no dates, no hype. Total length including title: under 180 words.
+
+"facebook_content": Native Facebook caption, plain text, no markdown, no links inside the body. 90-150 words. Two to three short paragraphs separated by a blank line. First line under 12 words, survives the "see more" fold. One concrete mundane image. No timestamps, no degrees, no jargon.
+
+CTA (platform native): Second to last line: a warm direct invitation freshly worded each time, with the full URL MoondayLive.com written plainly in the text. Final line: three to five lowercase hashtags including #moonin${toSign.toLowerCase()} and #moondaylive.
+
+"instagram_content": Native Instagram caption, plain text, no markdown. 150-200 words. First line under 10 words, visually evocative, survives the "more" fold. Two to three short paragraphs. One concrete sensory image from the transit. Warm and aesthetic, slightly more poetic than Facebook but never vague.
+
+CTA (platform native): Second to last line: "full reading at the link in our bio" or a fresh variation of that phrasing — never a raw URL, Instagram links don't work in captions. Final line: 10-15 lowercase hashtags mixing astrology community tags and mood tags, including #moondaylive and #moonin${toSign.toLowerCase()}.
+
+"twitter_content": A single tweet, plain text, no markdown, under 260 characters to leave room for a link. Punchy and conversational. One concrete image or observation from the transit. No jargon, no degrees, no timestamps.
+
+CTA (platform native): End with a space then the bare URL moondaylive.com as the final element before the hashtag. Final element: #moondaylive. Total must stay under 280 characters including the URL.
+
+"threads_content": Native Threads post, plain text, no markdown, under 500 characters. Conversational and intimate, like a diary entry you decided to make public. One sharp observation about how this transit lands in daily life. No jargon, no timestamps, no degrees.
+
+CTA (platform native): One casual closing line, freshly worded each time, something like "tracking this one over at MoondayLive.com if you want to follow along" — never a hard sell, always sounds like you mentioned it in passing. Ends with #moondaylive.
+
+"pinterest_content": Native Pinterest pin, plain text, formatted exactly:
+
+Line 1: pin title, search phrase under 60 characters, title case, naming the sign
+Line 2: blank
+Pin description, 200-450 characters total. One keyword-rich opening sentence, then 3-4 short lines each starting with • naming transit themes as scannable keyword phrases
+Blank line
+CTA (platform native): One closing line inviting the reader to track the transit live on MoondayLive.com — Pinterest users expect a destination, make it clear and direct
+Final line: exactly three lowercase hashtags`;
 
 
 }
@@ -161,14 +184,14 @@ export async function generateTransitPackage(opts: {
   model?: string;
   sources?: GenerationSources;
 }): Promise<TransitPackage> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${opts.apiKey}`,
+      Authorization: `Bearer ${GEMINI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: opts.model ?? "google/gemini-3.6-flash",
+      model: opts.model ?? "gemini-2.0-flash",
       response_format: { type: "json_object" },
       // Higher temperature breaks the uniform, low-perplexity phrasing that AI
       // classifiers key on. (Frequency/presence penalties are rejected by the
@@ -212,7 +235,10 @@ export async function generateTransitPackage(opts: {
     blog_content: humanize(parsed.blog_content),
     reddit_content: humanize(parsed.reddit_content),
     facebook_content: humanize(parsed.facebook_content),
+    instagram_content: humanize(parsed.instagram_content),
+    threads_content: humanize(parsed.threads_content),
     pinterest_content: humanize(parsed.pinterest_content),
+    twitter_content: humanize(parsed.twitter_content),
     substack_content: humanize(parsed.substack_content),
   };
 
