@@ -191,7 +191,7 @@ export async function generateTransitPackage(opts: {
       Authorization: `Bearer ${GEMINI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: opts.model ?? "gemini-1.5-flash",
+      model: opts.model ?? "gemini-3.6-flash",
       response_format: { type: "json_object" },
       // Higher temperature breaks the uniform, low-perplexity phrasing that AI
       // classifiers key on. (Frequency/presence penalties are rejected by the
