@@ -123,7 +123,7 @@ The four pieces go to four different audiences and MUST read like four different
 - Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence.
 - Audience tuning: blog = search-led reader who wants a clear, useful explainer. Reddit = practising astrologers who want a technical tracking breakdown. Facebook/Instagram = a scrolling reader who wants today's emotional weather in a few breaths. Pinterest = a searcher scanning keywords on a pin.
 
-Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly five keys:
+Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly seven keys:
 
 "blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. Three structured sections, each an H2:
 
