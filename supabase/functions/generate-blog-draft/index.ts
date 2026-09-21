@@ -86,17 +86,28 @@ Deno.serve(async (req) => {
     const now = new Date();
     const ingresses = computeIngresses(now, 14);
 
+    // Look at ALL Transits posts in the window, whatever their status.
+    // Match on BOTH the scheduled instant and the slug's trailing date, because
+    // "publish now" rewrites publish_at and would otherwise hide an existing post.
     const { data: existing } = await supabase
       .from("blog_posts")
-      .select("zodiac_sign_tag, publish_at")
+      .select("slug, zodiac_sign_tag, publish_at")
       .eq("category", "Transits")
-      .gte("publish_at", new Date(now.getTime() - 24 * 3600 * 1000).toISOString());
+      .or(
+        `publish_at.gte.${new Date(now.getTime() - 24 * 3600 * 1000).toISOString()},created_at.gte.${new Date(now.getTime() - 60 * 24 * 3600 * 1000).toISOString()}`,
+      );
 
-    const taken = new Set(
-      (existing ?? [])
-        .filter((p) => p.zodiac_sign_tag && p.publish_at)
-        .map((p) => `${p.zodiac_sign_tag}|${String(p.publish_at).slice(0, 10)}`),
-    );
+    const taken = new Set<string>();
+    for (const p of existing ?? []) {
+      if (p.zodiac_sign_tag && p.publish_at) {
+        taken.add(`${p.zodiac_sign_tag}|${String(p.publish_at).slice(0, 10)}`);
+      }
+      const slugDate = String(p.slug ?? "").match(/(\d{4}-\d{2}-\d{2})$/)?.[1];
+      if (p.zodiac_sign_tag && slugDate) {
+        taken.add(`${p.zodiac_sign_tag}|${slugDate}`);
+      }
+      if (p.slug) taken.add(`slug:${p.slug}`);
+    }
 
     const next = ingresses.find(
       (i) => !taken.has(`${i.to_sign}|${i.transition_at.slice(0, 10)}`),
@@ -109,9 +120,31 @@ Deno.serve(async (req) => {
       );
     }
 
+
     const sign = next.to_sign;
     const title = `The Moon Enters ${sign}: What to Feel, Notice, and Release`;
     const slug = `${slugify(title)}-${next.transition_at.slice(0, 10)}`;
+
+    // Final guard: never fail on a duplicate slug — report it and stop cleanly.
+    if (taken.has(`slug:${slug}`)) {
+      return new Response(
+        JSON.stringify({ ok: true, created: false, reason: "post already exists", slug, sign }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    const { data: slugHit } = await supabase
+      .from("blog_posts")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (slugHit) {
+      return new Response(
+        JSON.stringify({ ok: true, created: false, reason: "post already exists", slug, sign }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+
 
     // Vetted inputs only: deterministic chart condition, Hellenistic doctrine,
     // and (when accepted for this window) the guest astrologer's own words.
