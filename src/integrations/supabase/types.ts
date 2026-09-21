@@ -49,6 +49,7 @@ export type Database = {
           review_email_sent_at: string | null
           reviewed_by: string | null
           slug: string
+          social_posted_at: string | null
           status: string
           substack_bridge_sent_at: string | null
           substack_error: string | null
@@ -96,6 +97,7 @@ export type Database = {
           review_email_sent_at?: string | null
           reviewed_by?: string | null
           slug: string
+          social_posted_at?: string | null
           status?: string
           substack_bridge_sent_at?: string | null
           substack_error?: string | null
@@ -143,6 +145,7 @@ export type Database = {
           review_email_sent_at?: string | null
           reviewed_by?: string | null
           slug?: string
+          social_posted_at?: string | null
           status?: string
           substack_bridge_sent_at?: string | null
           substack_error?: string | null
