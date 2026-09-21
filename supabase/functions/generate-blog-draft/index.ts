@@ -125,6 +125,27 @@ Deno.serve(async (req) => {
     const title = `The Moon Enters ${sign}: What to Feel, Notice, and Release`;
     const slug = `${slugify(title)}-${next.transition_at.slice(0, 10)}`;
 
+    // Final guard: never fail on a duplicate slug — report it and stop cleanly.
+    if (taken.has(`slug:${slug}`)) {
+      return new Response(
+        JSON.stringify({ ok: true, created: false, reason: "post already exists", slug, sign }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    const { data: slugHit } = await supabase
+      .from("blog_posts")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (slugHit) {
+      return new Response(
+        JSON.stringify({ ok: true, created: false, reason: "post already exists", slug, sign }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+
+
     // Vetted inputs only: deterministic chart condition, Hellenistic doctrine,
     // and (when accepted for this window) the guest astrologer's own words.
     const sources = await buildGenerationSources(supabase, next.transition_at);
