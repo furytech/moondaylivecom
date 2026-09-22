@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
   const { data: posts, error } = await supabase
     .from('blog_posts')
     .select(
-      'id, slug, title, category, content, reddit_post, facebook_post, pinterest_post, zodiac_sign_tag, image_url, publish_at, review_email_sent_at',
+      'id, slug, title, category, content, reddit_post, facebook_post, pinterest_post, twitter_post, threads_post, instagram_post, zodiac_sign_tag, image_url, publish_at, review_email_sent_at',
     )
     .is('review_email_sent_at', null)
     .not('publish_at', 'is', null)
