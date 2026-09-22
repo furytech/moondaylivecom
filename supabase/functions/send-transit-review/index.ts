@@ -51,7 +51,14 @@ async function backfillSocialDrafts(
   post: Record<string, unknown>,
   errors: string[],
 ): Promise<void> {
-  const missing = (['facebook_post', 'pinterest_post', 'reddit_post'] as const).filter(
+  const missing = ([
+    'facebook_post',
+    'pinterest_post',
+    'reddit_post',
+    'twitter_post',
+    'threads_post',
+    'instagram_post',
+  ] as const).filter(
     (f) => !String(post[f] ?? '').trim(),
   )
   if (missing.length === 0) return
