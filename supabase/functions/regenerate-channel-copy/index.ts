@@ -89,6 +89,9 @@ Deno.serve(async (req) => {
     if (want.includes("reddit") && pkg.reddit_content) update.reddit_post = pkg.reddit_content;
     if (want.includes("facebook") && pkg.facebook_content) update.facebook_post = pkg.facebook_content;
     if (want.includes("pinterest") && pkg.pinterest_content) update.pinterest_post = pkg.pinterest_content;
+    if (want.includes("twitter") && pkg.twitter_content) update.twitter_post = pkg.twitter_content;
+    if (want.includes("threads") && pkg.threads_content) update.threads_post = pkg.threads_content;
+    if (want.includes("instagram") && pkg.instagram_content) update.instagram_post = pkg.instagram_content;
 
     if (Object.keys(update).length === 0) {
       return json({ error: "AI returned no usable copy — try again" }, 502);
