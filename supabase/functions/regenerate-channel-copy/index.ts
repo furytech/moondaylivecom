@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
 
     const want: string[] = Array.isArray(channels) && channels.length
       ? channels
-      : ["reddit", "facebook", "pinterest"];
+      : ["reddit", "facebook", "pinterest", "twitter", "threads", "instagram"];
 
     const update: Record<string, unknown> = {};
     if (want.includes("blog") && pkg.blog_content) update.content = pkg.blog_content;
