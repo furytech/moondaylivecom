@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
 
     const { data: post, error } = await supabase
       .from("blog_posts")
-      .select("id, title, zodiac_sign_tag, publish_at, published_at, content, substack_post, reddit_post, facebook_post, pinterest_post")
+      .select("id, title, zodiac_sign_tag, publish_at, published_at, content, substack_post, reddit_post, facebook_post, pinterest_post, twitter_post, threads_post, instagram_post")
       .eq("id", postId)
       .maybeSingle();
     if (error) throw error;
