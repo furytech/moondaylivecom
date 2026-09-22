@@ -80,6 +80,9 @@ async function backfillSocialDrafts(
     if (missing.includes('facebook_post') && pkg.facebook_content) update.facebook_post = pkg.facebook_content
     if (missing.includes('pinterest_post') && pkg.pinterest_content) update.pinterest_post = pkg.pinterest_content
     if (missing.includes('reddit_post') && pkg.reddit_content) update.reddit_post = pkg.reddit_content
+    if (missing.includes('twitter_post') && pkg.twitter_content) update.twitter_post = pkg.twitter_content
+    if (missing.includes('threads_post') && pkg.threads_content) update.threads_post = pkg.threads_content
+    if (missing.includes('instagram_post') && pkg.instagram_content) update.instagram_post = pkg.instagram_content
     if (Object.keys(update).length === 0) return
 
     const { error } = await supabase.from('blog_posts').update(update).eq('id', post.id)
