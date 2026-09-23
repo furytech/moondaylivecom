@@ -97,16 +97,14 @@ Deno.serve(async (req) => {
     const counts: Record<string, number> = {};
 
     for (const t of ordered) {
+      if (!/^[a-z0-9_]+$/.test(t)) continue; // defensive: identifiers only
       const rows = await client.queryObject<{ stmt: string }>(
         `select format('INSERT INTO public.%I (%s) VALUES (%s);',
                   $1::text,
                   (select string_agg(quote_ident(key), ', ') from json_each_text(row_to_json(x))),
                   (select string_agg(coalesce(quote_literal(value), 'NULL'), ', ') from json_each_text(row_to_json(x)))
                 ) as stmt
-         from public.${JSON.stringify(t).replace(/"/g, '"')} x`.replace(
-          `public.${JSON.stringify(t).replace(/"/g, '"')}`,
-          `public."${t}"`,
-        ),
+         from public."${t}" x`,
         [t],
       );
       counts[t] = rows.rows.length;
