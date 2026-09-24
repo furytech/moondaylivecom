@@ -1,70 +1,92 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const COLUMNS =
-  "id, zodiac_sign_tag, image_url, twitter_post, instagram_post, threads_post, reddit_post, facebook_post, pinterest_post";
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+      'authorization, x-client-info, apikey, content-type, x-make-secret',
+};
 
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+);
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", {
-      headers: { ...corsHeaders, "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-make-secret" },
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  // Validate the shared secret Make.com sends in every request
+  const makeSecret = req.headers.get('X-Make-Secret');
+  const expectedSecret = Deno.env.get('MAKE_SOCIAL_SECRET');
+
+  if (!makeSecret || makeSecret !== expectedSecret) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
-  const expected = Deno.env.get("MAKE_SOCIAL_SECRET");
-  const provided = req.headers.get("x-make-secret");
-  if (!expected || !provided || provided !== expected) {
-    return json({ error: "unauthorized" }, 401);
-  }
+  // GET — return published posts not yet sent to social
+  if (req.method === 'GET') {
+    const { data: posts, error } = await supabase
+        .from('blog_posts')
+        .select(
+            'id, title, slug, image_url, zodiac_sign_tag, ' +
+            'facebook_post, instagram_post, twitter_post, ' +
+            'threads_post, pinterest_post, reddit_post'
+        )
+        .eq('status', 'published')
+        .is('social_posted_at', null)
+        .lte('published_at', new Date().toISOString())
+        .order('published_at', { ascending: true })
+        .limit(5);
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
-
-  try {
-    if (req.method === "GET") {
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select(COLUMNS)
-        .eq("status", "published")
-        .is("social_posted_at", null)
-        .order("publish_at", { ascending: true });
-      if (error) throw error;
-      return json({ posts: data ?? [] });
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    if (req.method === "POST") {
-      let body: Record<string, unknown> = {};
-      try {
-        body = await req.json();
-      } catch {
-        return json({ error: "invalid JSON body" }, 400);
-      }
-      const id = typeof body.id === "string" ? body.id.trim() : "";
-      const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuid.test(id)) return json({ error: "id must be a valid post id" }, 400);
+    return new Response(JSON.stringify({ posts: posts ?? [] }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
-      const { data, error } = await supabase
-        .from("blog_posts")
+  // POST — stamp social_posted_at after Make.com has finished posting
+  if (req.method === 'POST') {
+    const body = await req.json();
+    const { id } = body;
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'Missing post id' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { error } = await supabase
+        .from('blog_posts')
         .update({ social_posted_at: new Date().toISOString() })
-        .eq("id", id)
-        .select("id, social_posted_at")
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) return json({ error: "post not found" }, 404);
-      return json({ ok: true, ...data });
+        .eq('id', id);
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    return json({ error: "method not allowed" }, 405);
-  } catch (e) {
-    console.error("Full error:", e);
-    return json({ error: "Internal error" }, 500);
+    return new Response(JSON.stringify({ success: true, id }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
+
+  return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    status: 405,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 });
