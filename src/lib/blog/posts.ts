@@ -251,10 +251,10 @@ export async function deletePost(id: string) {
   if (error) throw error;
 }
 
-export async function approvePost(id: string, publishAt?: string) {
+export async function approvePost(id: string) {
   const { data, error } = await supabase
     .from("blog_posts")
-    .update({ status: "approved", publish_at: publishAt || new Date().toISOString() })
+    .update({ published_at: new Date().toISOString() })
     .eq("id", id)
     .select()
     .single();

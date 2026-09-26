@@ -361,12 +361,16 @@ const BlogAdmin = () => {
     }
   };
 
-  // Transit-level approval: marks the whole post approved so it leaves the
-  // "Pending approval" state without publishing it yet.
+  // Approve action: sets published_at = now() on the blog_posts row in Supabase
+  // so the downstream poller (Make.com) picks it up.
   const handleApproveTransit = async (post: BlogPostRow) => {
     try {
-      await approvePost(post.id!, post.publish_at || undefined);
-      setMessage("Transit approved. Schedule or publish each channel when ready.");
+      const updated = await approvePost(post.id!);
+      queryClient.setQueryData<BlogPostRow[]>(["admin-blog-posts"], (current = []) =>
+        current.map((p) => (p.id === updated.id ? { ...p, published_at: updated.published_at } : p)),
+      );
+      await queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+      setMessage("Post approved (published_at stamped).");
       refetch();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
@@ -1092,7 +1096,20 @@ const BlogAdmin = () => {
           description={editing?.title || undefined}
           className="sm:max-w-3xl"
           footer={
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap items-center">
+              {editing?.id && !editing.published_at && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!editing.id) return;
+                    await handleApproveTransit(editing as BlogPostRow);
+                    setEditing((prev) => (prev ? { ...prev, published_at: new Date().toISOString() } : null));
+                  }}
+                  className="min-h-[44px] px-5 rounded-full bg-emerald-600/90 text-white text-sm hover:bg-emerald-600 transition font-medium"
+                >
+                  Approve Post
+                </button>
+              )}
               <button
                 onClick={handleSave}
                 className="flex-1 sm:flex-none min-h-[44px] px-5 rounded-full bg-primary/90 text-primary-foreground text-sm hover:bg-primary transition"

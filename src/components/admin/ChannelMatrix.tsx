@@ -292,7 +292,7 @@ const ChannelMatrix = ({
               </div>
 
               <div className="flex flex-wrap gap-2 w-full md:w-auto md:shrink-0">
-                {onApprove && p.status === "draft" && (
+                {onApprove && !p.published_at && (
                   <ActionBtn tone="emerald" onClick={() => onApprove(p)}>
                     Approve
                   </ActionBtn>

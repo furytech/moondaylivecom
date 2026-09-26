@@ -1,183 +1,254 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import AdminRoute from "@/components/AdminRoute";
-import ScrollToTop from "@/components/ScrollToTop";
-import BottomTabBar from "@/components/BottomTabBar";
-import DevTierPanel from "@/components/DevTierPanel";
-import Index from "./pages/Index";
-import Portal from "./pages/Portal";
-import Pricing from "./pages/Pricing";
-import Blueprint from "./pages/Blueprint";
-import Sovereign from "./pages/Sovereign";
-import Lenses from "./pages/Triad";
-import Library from "./pages/Library";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import SubscriptionSuccess from "./pages/SubscriptionSuccess";
-import NotFound from "./pages/NotFound";
-import ResetPassword from "./pages/ResetPassword";
-import ForgotPassword from "./pages/ForgotPassword";
-import Account from "./pages/Account";
-import Contact from "./pages/Contact";
+import React, { useState, useEffect } from 'react';
+import { INITIAL_TRANSIT_QUEUE } from './mocks/transitQueue';
+import { ZodiacSignTransit } from './types';
+import { 
+  approveTransit, 
+  batchApproveAllTransits, 
+  updateTransitContent 
+} from './services/transitService';
+import { supabase } from './lib/supabase';
+import { TransitReviewPanel } from './components/TransitReviewPanel';
+import { TransitDetailModal } from './components/TransitDetailModal';
+import { SocialQueueModal } from './components/SocialQueueModal';
+import { AdminLogin, MASTER_ADMIN_EMAIL } from './components/AdminLogin';
+import { CosmicAiAssistant } from './components/CosmicAiAssistant';
+import { Moon, Database, LogOut, Sparkles, UserCheck, Shield } from 'lucide-react';
+import type { Session, User } from '@supabase/supabase-js';
 
-import FAQ from "./pages/FAQ";
-import Refund from "./pages/Refund";
-import Disclaimer from "./pages/Disclaimer";
-import About from "./pages/About";
-import TransitionQuiz from "./pages/TransitionQuiz";
-import Pulse from "./pages/Pulse";
-import MoonSignHoroscope from "./pages/MoonSignHoroscope";
-import LunarClimate from "./pages/LunarClimate";
-import LunarCycleTracking from "./pages/LunarCycleTracking";
-import MyMoonCard from "./pages/MyMoonCard";
-import OAuthConsent from "./pages/OAuthConsent";
-import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import BlogAdmin from "./pages/admin/BlogAdmin";
-import AdminLogin from "./pages/admin/AdminLogin";
-import Subscribers from "./pages/admin/Subscribers";
-import SystemErrors from "./pages/admin/SystemErrors";
-import ChannelAudit from "./pages/admin/ChannelAudit";
-import GuestDesk from "./pages/admin/GuestDesk";
-import GuestApplications from "./pages/admin/GuestApplications";
-import EclipseCampaign from "./pages/admin/EclipseCampaign";
+export function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [mockAuthenticated, setMockAuthenticated] = useState(false);
 
-import GuestStudio from "./pages/GuestStudio";
-import IdleSessionGuard from "./components/IdleSessionGuard";
+  const [transits, setTransits] = useState<ZodiacSignTransit[]>(INITIAL_TRANSIT_QUEUE);
+  const [selectedTransit, setSelectedTransit] = useState<ZodiacSignTransit | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [inspectingTransit, setInspectingTransit] = useState<ZodiacSignTransit | null>(null);
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Initialize and listen to Supabase Auth state
+  useEffect(() => {
+    let mounted = true;
 
+    async function checkAuth() {
+      try {
+        if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          // If no Supabase environment keys, defer to login form mock handler
+          if (mounted) setAuthLoading(false);
+          return;
+        }
 
-const queryClient = new QueryClient();
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (mounted) {
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          setAuthLoading(false);
+        }
+      } catch (err) {
+        console.error('Error fetching Supabase session:', err);
+        if (mounted) setAuthLoading(false);
+      }
+    }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <IdleSessionGuard />
-          <BottomTabBar />
-          <DevTierPanel />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/pulse" element={<Pulse />} />
-            <Route path="/moon-sign-horoscope" element={<MoonSignHoroscope />} />
-            <Route path="/lunar-climate" element={<LunarClimate />} />
-            <Route path="/lunar-cycle-tracking" element={<LunarCycleTracking />} />
-            <Route path="/birthday-moon-phase" element={<BirthdayMoonPhase />} />
-            <Route path="/login" element={<Portal defaultMode="login" />} />
-            <Route path="/signup" element={<Portal defaultMode="signup" />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:category/:slug" element={<BlogPost />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/admin" element={<Navigate to="/admin/blog" replace />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/eclipse-campaign" element={
-              <AdminRoute>
-                <EclipseCampaign />
-              </AdminRoute>
-            } />
-            <Route path="/admin/blog" element={
-              <AdminRoute>
-                <BlogAdmin />
-              </AdminRoute>
-            } />
-            <Route path="/admin/subscribers" element={
-              <AdminRoute>
-                <Subscribers />
-              </AdminRoute>
-            } />
-            <Route path="/admin/channel-audit" element={
-              <AdminRoute>
-                <ChannelAudit />
-              </AdminRoute>
-            } />
-            <Route path="/admin/errors" element={
-              <AdminRoute>
-                <SystemErrors />
-              </AdminRoute>
-            } />
-            <Route path="/admin/guests" element={
-              <AdminRoute>
-                <GuestDesk />
-              </AdminRoute>
-            } />
-            <Route path="/admin/guest-applications" element={
-              <AdminRoute>
-                <GuestApplications />
-              </AdminRoute>
-            } />
+    checkAuth();
 
-            <Route path="/guest" element={
-              <ProtectedRoute>
-                <GuestStudio />
-              </ProtectedRoute>
-            } />
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      if (mounted) {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+      }
+    });
 
+    return () => {
+      mounted = false;
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
 
-            {/* Legacy redirect */}
-            <Route path="/portal" element={<Navigate to="/login" replace />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/blueprint" element={
-              <ProtectedRoute>
-                <Blueprint />
-              </ProtectedRoute>
-            } />
-            <Route path="/sovereign" element={
-              <ProtectedRoute>
-                <Sovereign />
-              </ProtectedRoute>
-            } />
-            <Route path="/lenses" element={
-              <ProtectedRoute>
-                <Lenses />
-              </ProtectedRoute>
-            } />
-            <Route path="/triad" element={<Navigate to="/lenses" replace />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/my-moon-card" element={
-              <ProtectedRoute>
-                <MyMoonCard />
-              </ProtectedRoute>
-            } />
-            <Route path="/account" element={
-              <ProtectedRoute>
-                <Account />
-              </ProtectedRoute>
-            } />
-            <Route path="/privacy" element={<Privacy />} />
+  const handleSignOut = async () => {
+    setIsLoading(true);
+    try {
+      if (import.meta.env.VITE_SUPABASE_URL) {
+        await supabase.auth.signOut();
+      }
+    } catch (err) {
+      console.error('Error signing out:', err);
+    } finally {
+      setSession(null);
+      setUser(null);
+      setMockAuthenticated(false);
+      setIsLoading(false);
+    }
+  };
 
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/refund" element={<Refund />} />
-            <Route path="/disclaimer" element={<Disclaimer />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/transition-quiz" element={<TransitionQuiz />} />
-            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route path="/update-password" element={<ResetPassword />} />
-            <Route path="/welcome-sovereign" element={
-              <ProtectedRoute>
-                <SubscriptionSuccess />
-              </ProtectedRoute>
-            } />
-            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  // Check master admin permission
+  const isMasterAdmin = 
+    mockAuthenticated || 
+    (user?.email && user.email.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase());
+
+  // Approve a single transit
+  const handleApprove = async (id: string) => {
+    setIsLoading(true);
+    const result = await approveTransit(id, transits);
+    if (result.success) {
+      setTransits(result.updatedTransits);
+      if (selectedTransit?.id === id) {
+        const updated = result.updatedTransits.find((t) => t.id === id);
+        if (updated) setSelectedTransit(updated);
+      }
+    }
+    setIsLoading(false);
+  };
+
+  // Batch approve all 12 signs
+  const handleBatchApprove = async () => {
+    setIsLoading(true);
+    const result = await batchApproveAllTransits(transits);
+    if (result.success) {
+      setTransits(result.updatedTransits);
+    }
+    setIsLoading(false);
+  };
+
+  // Save edited copy/aspect/rituals
+  const handleSaveContent = async (id: string, updates: Partial<ZodiacSignTransit>) => {
+    const result = await updateTransitContent(id, updates, transits);
+    if (result.success) {
+      setTransits(result.updatedTransits);
+      const updated = result.updatedTransits.find((t) => t.id === id);
+      if (updated) setSelectedTransit(updated);
+    }
+  };
+
+  const handleSelectTransit = (transit: ZodiacSignTransit) => {
+    setSelectedTransit(transit);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleInspectPayload = (transit: ZodiacSignTransit) => {
+    setInspectingTransit(transit);
+  };
+
+  // Render loading state while checking session
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
+        <div className="w-10 h-10 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4" />
+        <span className="text-xs font-mono uppercase tracking-widest text-slate-500">
+          Verifying Sovereign Session...
+        </span>
+      </div>
+    );
+  }
+
+  // Render Master Admin Login Gate if not authenticated or not authorized
+  if (!isMasterAdmin) {
+    return (
+      <AdminLogin
+        allowedEmail={MASTER_ADMIN_EMAIL}
+        onSuccessfulAuth={() => setMockAuthenticated(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+      {/* Top Navigation Bar */}
+      <header className="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+              <Moon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="font-bold text-white text-base tracking-tight flex items-center gap-2">
+                MOONDAY <span className="text-indigo-400 font-mono text-xs uppercase px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20">Mission Control</span>
+              </h1>
+              <p className="text-xs text-slate-400">Admin Operations & Syndication Engine</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* AI Assistant Launcher Button */}
+            <button
+              onClick={() => setIsAiAssistantOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600/30 to-violet-600/30 hover:from-indigo-600/40 hover:to-violet-600/40 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-medium transition-all shadow-sm cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>AI Features</span>
+            </button>
+
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Zero-Webhook Architecture</span>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
+              <Database className="w-3.5 h-3.5" />
+              <span>Supabase Live Seam</span>
+            </div>
+
+            {/* Authenticated Admin Badge & Sign Out */}
+            <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+              <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800/80">
+                <Shield className="w-3 h-3 text-emerald-400" />
+                <span className="font-mono text-slate-300 truncate max-w-[150px]">
+                  {user?.email || MASTER_ADMIN_EMAIL}
+                </span>
+              </div>
+
+              <button
+                onClick={handleSignOut}
+                title="Sign Out of Mission Control"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30 text-slate-400 border border-slate-700/60 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <TransitReviewPanel
+          transits={transits}
+          onApprove={handleApprove}
+          onBatchApprove={handleBatchApprove}
+          onSelectTransit={handleSelectTransit}
+          onInspectPayload={handleInspectPayload}
+          selectedTransitId={selectedTransit?.id}
+          isActionLoading={isLoading}
+        />
+      </main>
+
+      {/* Detail / Content Editor Modal */}
+      <TransitDetailModal
+        transit={selectedTransit}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onSaveContent={handleSaveContent}
+        onApprove={handleApprove}
+      />
+
+      {/* Supabase Row Payload Inspector Modal */}
+      <SocialQueueModal
+        transit={inspectingTransit}
+        onClose={() => setInspectingTransit(null)}
+      />
+
+      {/* Cosmic AI Assistant Panel */}
+      <CosmicAiAssistant
+        isOpen={isAiAssistantOpen}
+        onClose={() => setIsAiAssistantOpen(false)}
+        transits={transits}
+        onApplyTransitUpdate={handleSaveContent}
+      />
+    </div>
+  );
+}
 
 export default App;
