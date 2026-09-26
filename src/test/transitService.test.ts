@@ -1,22 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { approveTransit, batchApproveAllTransits, updateTransitContent } from '../services/transitService';
+import { approveTransit, batchApproveAllTransits, updateTransitContent, fetchTransits } from '../services/transitService';
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
 
 vi.mock('../lib/supabase', () => {
-  const updateMock = vi.fn();
-  const eqMock = vi.fn();
-  const inMock = vi.fn();
+  const upsertMock = vi.fn();
+  const selectMock = vi.fn();
+  const orderMock = vi.fn();
 
   return {
     supabase: {
       from: vi.fn(() => ({
-        update: updateMock,
+        upsert: upsertMock,
+        select: selectMock,
       })),
     },
-    updateMock,
-    eqMock,
-    inMock,
+    upsertMock,
+    selectMock,
+    orderMock,
   };
 });
 
@@ -62,12 +63,11 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     vi.clearAllMocks();
   });
 
-  it('approveTransit publishes a pending transit with exact database column names', async () => {
-    const eqMock = vi.fn().mockResolvedValue({ error: null });
-    const updateMock = vi.fn().mockReturnValue({ eq: eqMock });
+  it('approveTransit publishes a pending transit with exact database column names via upsert', async () => {
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(supabase.from).mockReturnValue({
-      update: updateMock,
+      upsert: upsertMock,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const result = await approveTransit('aries', mockTransits);
@@ -77,21 +77,22 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
     if (import.meta.env.VITE_SUPABASE_URL) {
       expect(supabase.from).toHaveBeenCalledWith('transits');
-      expect(updateMock).toHaveBeenCalledTimes(1);
-      const payload = updateMock.mock.calls[0][0];
+      expect(upsertMock).toHaveBeenCalledTimes(1);
+      const payload = upsertMock.mock.calls[0][0];
+      expect(payload).toHaveProperty('id', 'aries');
       expect(payload).toHaveProperty('status', 'published');
       expect(payload).toHaveProperty('published_at');
       expect(payload).toHaveProperty('updated_at');
-      expect(eqMock).toHaveBeenCalledWith('id', 'aries');
+      expect(payload).toHaveProperty('sign', 'Aries');
+      expect(upsertMock.mock.calls[0][1]).toEqual({ onConflict: 'id' });
     }
   });
 
   it('approveTransit revokes a published transit back to pending', async () => {
-    const eqMock = vi.fn().mockResolvedValue({ error: null });
-    const updateMock = vi.fn().mockReturnValue({ eq: eqMock });
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(supabase.from).mockReturnValue({
-      update: updateMock,
+      upsert: upsertMock,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const result = await approveTransit('taurus', mockTransits);
@@ -102,18 +103,18 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(taurus?.publishedAt).toBeNull();
 
     if (import.meta.env.VITE_SUPABASE_URL) {
-      const payload = updateMock.mock.calls[0][0];
+      const payload = upsertMock.mock.calls[0][0];
+      expect(payload).toHaveProperty('id', 'taurus');
       expect(payload).toHaveProperty('status', 'pending');
       expect(payload.published_at).toBeNull();
     }
   });
 
-  it('batchApproveAllTransits marks all transits as published with database timestamp', async () => {
-    const inMock = vi.fn().mockResolvedValue({ error: null });
-    const updateMock = vi.fn().mockReturnValue({ in: inMock });
+  it('batchApproveAllTransits marks all transits as published with database timestamp via upsert', async () => {
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(supabase.from).mockReturnValue({
-      update: updateMock,
+      upsert: upsertMock,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const result = await batchApproveAllTransits(mockTransits);
@@ -123,19 +124,20 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
     if (import.meta.env.VITE_SUPABASE_URL) {
       expect(supabase.from).toHaveBeenCalledWith('transits');
-      const payload = updateMock.mock.calls[0][0];
-      expect(payload.status).toBe('published');
-      expect(payload.published_at).toBeDefined();
-      expect(inMock).toHaveBeenCalledWith('id', ['aries', 'taurus']);
+      const rows = upsertMock.mock.calls[0][0];
+      expect(Array.isArray(rows)).toBe(true);
+      expect(rows.length).toBe(2);
+      expect(rows.every((r: any) => r.status === 'published')).toBe(true);
+      expect(rows.every((r: any) => r.published_at !== null)).toBe(true);
+      expect(upsertMock.mock.calls[0][1]).toEqual({ onConflict: 'id' });
     }
   });
 
   it('updateTransitContent maps transitTitle, transitAspect, powerHour, ritualTip, hashtags to snake_case db columns', async () => {
-    const eqMock = vi.fn().mockResolvedValue({ error: null });
-    const updateMock = vi.fn().mockReturnValue({ eq: eqMock });
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(supabase.from).mockReturnValue({
-      update: updateMock,
+      upsert: upsertMock,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const updates = {
@@ -155,9 +157,10 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
     if (import.meta.env.VITE_SUPABASE_URL) {
       expect(supabase.from).toHaveBeenCalledWith('transits');
-      const payload = updateMock.mock.calls[0][0];
+      const payload = upsertMock.mock.calls[0][0];
       expect(payload).toEqual(
         expect.objectContaining({
+          id: 'aries',
           copy: 'New updated copy',
           transit_title: 'New Title',
           transit_aspect: 'New Aspect',
@@ -166,7 +169,44 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
           hashtags: ['#TestTag'],
         })
       );
-      expect(eqMock).toHaveBeenCalledWith('id', 'aries');
+      expect(upsertMock.mock.calls[0][1]).toEqual({ onConflict: 'id' });
+    }
+  });
+
+  it('fetchTransits loads and maps rows from the transits table', async () => {
+    const dbRow = {
+      id: 'aries',
+      sign: 'Aries',
+      symbol: '♈',
+      element: 'Fire',
+      ruler: 'Mars',
+      dates: 'Mar 21 – Apr 19',
+      transit_title: 'Moon in Aries',
+      transit_aspect: 'Cardinal Ignition',
+      copy: 'A high-octane charge pulses.',
+      power_hour: '08:15 AM EST',
+      ritual_tip: 'Burn frankincense.',
+      hashtags: ['#AriesSeason'],
+      status: 'published',
+      published_at: '2026-09-26T00:00:00.000Z',
+      social_posted_at: null,
+      created_at: '2026-09-26T00:00:00.000Z',
+      updated_at: '2026-09-26T00:00:00.000Z',
+    };
+
+    const orderMock = vi.fn().mockResolvedValue({ data: [dbRow], error: null });
+    const selectMock = vi.fn().mockReturnValue({ order: orderMock });
+
+    vi.mocked(supabase.from).mockReturnValue({
+      select: selectMock,
+    } as unknown as ReturnType<typeof supabase.from>);
+
+    const res = await fetchTransits();
+    if (import.meta.env.VITE_SUPABASE_URL) {
+      expect(res.data).not.toBeNull();
+      expect(res.data?.[0].transitTitle).toBe('Moon in Aries');
+      expect(res.data?.[0].powerHour).toBe('08:15 AM EST');
+      expect(res.data?.[0].status).toBe('published');
     }
   });
 });

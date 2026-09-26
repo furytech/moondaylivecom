@@ -14,6 +14,10 @@ const BottomTabBar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  if (location.pathname.startsWith("/admin")) {
+    return null;
+  }
+
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 

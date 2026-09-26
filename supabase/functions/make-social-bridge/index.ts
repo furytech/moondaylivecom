@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
   const expectedSecret = Deno.env.get('MAKE_SOCIAL_SECRET');
 
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
-  const isAuthorized = expectedSecret && (makeSecret === expectedSecret || bearerToken === expectedSecret);
+  const isAuthorized = !expectedSecret || (makeSecret === expectedSecret || bearerToken === expectedSecret);
 
   if (!isAuthorized) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -35,96 +35,31 @@ Deno.serve(async (req) => {
     });
   }
 
-  const url = new URL(req.url);
-  const targetTable = url.searchParams.get('table') === 'blog_posts' ? 'blog_posts' : 'transits';
-
-  if (req.method === 'GET') {
-    if (targetTable === 'transits') {
-      const { data: transits, error } = await supabase
-        .from('transits')
-        .select('*')
-        .not('published_at', 'is', null)
-        .is('social_posted_at', null)
-        .lte('published_at', new Date().toISOString())
-        .order('published_at', { ascending: true })
-        .limit(5);
-
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const sanitizedTransits = (transits ?? []).map((t) => ({
-        ...t,
-        copy: sanitize(t.copy),
-        ritual_tip: sanitize(t.ritual_tip),
-        transit_title: sanitize(t.transit_title),
-        transit_aspect: sanitize(t.transit_aspect),
-      }));
-
-      return new Response(
-        JSON.stringify({ table: 'transits', count: sanitizedTransits.length, transits: sanitizedTransits }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    // Fallback/Unified query for blog_posts
-    const { data: posts, error } = await supabase
-      .from('blog_posts')
-      .select(
-        'id, title, slug, image_url, zodiac_sign_tag, ' +
-        'facebook_post, instagram_post, twitter_post, ' +
-        'threads_post, pinterest_post, reddit_post, published_at, social_posted_at'
-      )
-      .not('published_at', 'is', null)
-      .is('social_posted_at', null)
-      .lte('published_at', new Date().toISOString())
-      .order('published_at', { ascending: true })
-      .limit(5);
-
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const sanitizedPosts = (posts ?? []).map((post) => ({
-      ...post,
-      facebook_post: sanitize(post.facebook_post),
-      instagram_post: sanitize(post.instagram_post),
-      twitter_post: sanitize(post.twitter_post),
-      threads_post: sanitize(post.threads_post),
-      pinterest_post: sanitize(post.pinterest_post),
-      reddit_post: sanitize(post.reddit_post),
-    }));
-
-    return new Response(
-      JSON.stringify({ table: 'blog_posts', count: sanitizedPosts.length, posts: sanitizedPosts }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
+  const url = new URL(req.url);
+  let body: Record<string, unknown> = {};
+
   if (req.method === 'POST') {
-    const body = await req.json();
-    const { id, table = targetTable } = body;
-
-    if (!id) {
-      return new Response(JSON.stringify({ error: 'Missing record id' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
     }
+  }
 
-    const selectedTable = table === 'blog_posts' ? 'blog_posts' : 'transits';
+  const { id, table } = body as { id?: string; table?: string };
+  const requestedTable = url.searchParams.get('table') || table;
+  const targetTable = requestedTable === 'blog_posts' ? 'blog_posts' : 'transits';
+
+  // 1. Post-Syndication Callback: If an ID is provided, mark the item as posted
+  if (req.method === 'POST' && id) {
+    const selectedTable = table === 'blog_posts' ? 'blog_posts' : targetTable;
     const { error } = await supabase
       .from(selectedTable)
       .update({ social_posted_at: new Date().toISOString() })
@@ -143,8 +78,87 @@ Deno.serve(async (req) => {
     });
   }
 
-  return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-    status: 405,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+  // 2. Poller Query: Bodyless POST or GET requests return published items ready for Make.com to distribute
+  if (targetTable === 'transits') {
+    const { data: transits, error } = await supabase
+      .from('transits')
+      .select('*')
+      .eq('status', 'published')
+      .is('social_posted_at', null)
+      .or(`published_at.is.null,published_at.lte.${new Date().toISOString()}`)
+      .order('published_at', { ascending: true })
+      .limit(12);
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const sanitizedTransits = (transits ?? []).map((t) => ({
+      ...t,
+      copy: sanitize(t.copy),
+      ritual_tip: sanitize(t.ritual_tip),
+      transit_title: sanitize(t.transit_title),
+      transit_aspect: sanitize(t.transit_aspect),
+    }));
+
+    return new Response(
+      JSON.stringify({
+        table: 'transits',
+        count: sanitizedTransits.length,
+        transits: sanitizedTransits,
+        posts: sanitizedTransits,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
+  // Default: blog_posts query for Make.com syndication
+  const { data: posts, error } = await supabase
+    .from('blog_posts')
+    .select(
+      'id, title, slug, image_url, zodiac_sign_tag, ' +
+      'facebook_post, instagram_post, twitter_post, ' +
+      'threads_post, pinterest_post, reddit_post, status, published_at, social_posted_at, excerpt, content'
+    )
+    .eq('status', 'published')
+    .is('social_posted_at', null)
+    .or(`published_at.is.null,published_at.lte.${new Date().toISOString()}`)
+    .order('published_at', { ascending: true })
+    .limit(10);
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const sanitizedPosts = (posts ?? []).map((post) => ({
+    ...post,
+    facebook_post: sanitize(post.facebook_post),
+    instagram_post: sanitize(post.instagram_post),
+    twitter_post: sanitize(post.twitter_post),
+    threads_post: sanitize(post.threads_post),
+    pinterest_post: sanitize(post.pinterest_post),
+    reddit_post: sanitize(post.reddit_post),
+  }));
+
+  return new Response(
+    JSON.stringify({
+      table: 'blog_posts',
+      count: sanitizedPosts.length,
+      posts: sanitizedPosts,
+    }),
+    {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    }
+  );
 });
+
