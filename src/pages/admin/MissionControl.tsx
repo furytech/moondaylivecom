@@ -120,34 +120,48 @@ export function MissionControl() {
   // Approve a single transit
   const handleApprove = async (id: string) => {
     setIsLoading(true);
-    const result = await approveTransit(id, transits);
-    if (result.success) {
-      setTransits(result.updatedTransits);
-      if (selectedTransit?.id === id) {
-        const updated = result.updatedTransits.find((t) => t.id === id);
-        if (updated) setSelectedTransit(updated);
+    try {
+      const result = await approveTransit(id, transits);
+      if (result.success) {
+        setTransits(result.updatedTransits);
+        if (selectedTransit?.id === id) {
+          const updated = result.updatedTransits.find((t) => t.id === id);
+          if (updated) setSelectedTransit(updated);
+        }
       }
+    } catch (err: unknown) {
+      console.error('[MissionControl] Error approving transit:', err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   // Batch approve all 12 signs
   const handleBatchApprove = async () => {
     setIsLoading(true);
-    const result = await batchApproveAllTransits(transits);
-    if (result.success) {
-      setTransits(result.updatedTransits);
+    try {
+      const result = await batchApproveAllTransits(transits);
+      if (result.success) {
+        setTransits(result.updatedTransits);
+      }
+    } catch (err: unknown) {
+      console.error('[MissionControl] Error batch approving transits:', err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   // Save edited copy/aspect/rituals
   const handleSaveContent = async (id: string, updates: Partial<ZodiacSignTransit>) => {
-    const result = await updateTransitContent(id, updates, transits);
-    if (result.success) {
-      setTransits(result.updatedTransits);
-      const updated = result.updatedTransits.find((t) => t.id === id);
-      if (updated) setSelectedTransit(updated);
+    try {
+      const result = await updateTransitContent(id, updates, transits);
+      if (result.success) {
+        setTransits(result.updatedTransits);
+        const updated = result.updatedTransits.find((t) => t.id === id);
+        if (updated) setSelectedTransit(updated);
+      }
+    } catch (err: unknown) {
+      console.error('[MissionControl] Error saving transit content:', err);
     }
   };
 

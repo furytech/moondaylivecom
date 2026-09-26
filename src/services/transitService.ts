@@ -18,6 +18,7 @@ export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<st
     status: transit.status,
     published_at: transit.publishedAt || null,
     social_posted_at: transit.socialPostedAt || null,
+    created_at: transit.createdAt || new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
   };
@@ -89,14 +90,20 @@ export async function approveTransit(
       published_at: publishedAt,
     });
 
-    const { error } = await supabase
+    console.log('[approveTransit] Executing live Supabase upsert for transit ID:', id, 'Payload:', dbPayload);
+
+    const { data, error } = await supabase
       .from('transits')
       .upsert(dbPayload, { onConflict: 'id' });
 
     if (error) {
-      console.error('Supabase update error:', error);
-      return { success: false, error: error.message, updatedTransits: currentTransits };
+      console.error('[approveTransit] Supabase upsert failed:', error);
+      throw new Error(`Failed to approve transit in Supabase: ${error.message}`);
     }
+
+    console.log('[approveTransit] Supabase upsert succeeded for transit ID:', id);
+  } else {
+    console.warn('[approveTransit] VITE_SUPABASE_URL is not configured. Supabase write skipped, only local state updated.');
   }
 
   const updatedTransits = currentTransits.map((t) =>
@@ -119,14 +126,20 @@ export async function batchApproveAllTransits(
       })
     );
 
+    console.log('[batchApproveAllTransits] Batch upserting 12 signs to Supabase transits table:', rows);
+
     const { error } = await supabase
       .from('transits')
       .upsert(rows, { onConflict: 'id' });
 
     if (error) {
-      console.error('Supabase batch update error:', error);
-      return { success: false, error: error.message, updatedTransits: currentTransits };
+      console.error('[batchApproveAllTransits] Supabase batch update error:', error);
+      throw new Error(`Failed to batch approve transits in Supabase: ${error.message}`);
     }
+
+    console.log('[batchApproveAllTransits] Supabase batch upsert succeeded for all transits.');
+  } else {
+    console.warn('[batchApproveAllTransits] VITE_SUPABASE_URL is not configured. Supabase write skipped.');
   }
 
   const updatedTransits = currentTransits.map((t) => ({
@@ -150,15 +163,20 @@ export async function updateTransitContent(
 
   if (import.meta.env.VITE_SUPABASE_URL) {
     const dbPayload = toDbRow(merged);
+    console.log('[updateTransitContent] Upserting content to Supabase transits table:', { id, payload: dbPayload });
 
     const { error } = await supabase
       .from('transits')
       .upsert(dbPayload, { onConflict: 'id' });
 
     if (error) {
-      console.error('Supabase update content error:', error);
-      return { success: false, error: error.message, updatedTransits: currentTransits };
+      console.error('[updateTransitContent] Supabase update content error:', error);
+      throw new Error(`Failed to update transit content in Supabase: ${error.message}`);
     }
+
+    console.log('[updateTransitContent] Supabase content write succeeded for transit ID:', id);
+  } else {
+    console.warn('[updateTransitContent] VITE_SUPABASE_URL is not configured. Supabase write skipped.');
   }
 
   const updatedTransits = currentTransits.map((t) =>
