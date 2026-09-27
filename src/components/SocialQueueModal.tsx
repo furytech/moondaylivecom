@@ -26,6 +26,7 @@ export const SocialQueueModal: React.FC<SocialQueueModalProps> = ({
     power_hour: transit.powerHour,
     ritual_tip: transit.ritualTip,
     hashtags: transit.hashtags,
+    image_url: transit.imageUrl || transit.image_url || null,
     status: transit.status,
     published_at: transit.publishedAt || null,
     social_posted_at: transit.socialPostedAt || null

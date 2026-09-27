@@ -1,7 +1,10 @@
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
+import { getDefaultTransitImageUrl } from '../lib/transitImages';
 
 export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<string, unknown>> = {}) {
+  const imageUrl = transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id || transit.sign);
+
   return {
     id: transit.id,
     sign: transit.sign,
@@ -15,6 +18,7 @@ export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<st
     power_hour: transit.powerHour,
     ritual_tip: transit.ritualTip,
     hashtags: transit.hashtags || [],
+    image_url: imageUrl,
     status: transit.status,
     published_at: transit.publishedAt || null,
     social_posted_at: transit.socialPostedAt || null,
@@ -25,6 +29,8 @@ export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<st
 }
 
 export function fromDbRow(row: Record<string, any>): ZodiacSignTransit {
+  const imageUrl = row.image_url || getDefaultTransitImageUrl(row.id || row.sign);
+
   return {
     id: row.id,
     sign: row.sign,
@@ -38,6 +44,8 @@ export function fromDbRow(row: Record<string, any>): ZodiacSignTransit {
     powerHour: row.power_hour,
     ritualTip: row.ritual_tip,
     hashtags: row.hashtags || [],
+    imageUrl: imageUrl,
+    image_url: imageUrl,
     status: row.status,
     publishedAt: row.published_at,
     socialPostedAt: row.social_posted_at,

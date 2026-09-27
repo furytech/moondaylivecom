@@ -7,7 +7,8 @@ import {
   Clock, 
   RefreshCw, 
   Eye,
-  CheckCheck
+  CheckCheck,
+  ImageIcon
 } from 'lucide-react';
 
 interface TransitReviewPanelProps {
@@ -161,8 +162,19 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700/60 flex items-center justify-center text-lg shadow-inner">
-                    {transit.symbol}
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700/60 overflow-hidden relative flex items-center justify-center text-lg shadow-inner flex-shrink-0">
+                    {transit.imageUrl ? (
+                      <img
+                        src={transit.imageUrl}
+                        alt={transit.sign}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to symbol glyph if image is not yet uploaded
+                          (e.currentTarget as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    <span className="absolute text-sm select-none opacity-80 pointer-events-none">{transit.symbol}</span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-white text-sm flex items-center gap-1.5">

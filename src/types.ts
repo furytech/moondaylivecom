@@ -12,6 +12,8 @@ export interface ZodiacSignTransit {
   ritualTip: string;
   hashtags: string[];
   status: 'pending' | 'published';
+  imageUrl?: string | null;
+  image_url?: string | null;
   publishedAt?: string | null;
   socialPostedAt?: string | null;
   createdAt?: string;

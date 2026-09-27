@@ -96,13 +96,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    const sanitizedTransits = (transits ?? []).map((t) => ({
-      ...t,
-      copy: sanitize(t.copy),
-      ritual_tip: sanitize(t.ritual_tip),
-      transit_title: sanitize(t.transit_title),
-      transit_aspect: sanitize(t.transit_aspect),
-    }));
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://ggrhuhwxbwrfbbcwcrmv.supabase.co';
+
+    const sanitizedTransits = (transits ?? []).map((t) => {
+      const signKey = (t.id || t.sign || 'aries').toLowerCase().trim();
+      const defaultImageUrl = `${supabaseUrl}/storage/v1/object/public/transit-images/${signKey}.png`;
+      const imageUrl = t.image_url || defaultImageUrl;
+
+      return {
+        ...t,
+        image_url: imageUrl,
+        media_url: imageUrl,
+        copy: sanitize(t.copy),
+        ritual_tip: sanitize(t.ritual_tip),
+        transit_title: sanitize(t.transit_title),
+        transit_aspect: sanitize(t.transit_aspect),
+      };
+    });
 
     return new Response(
       JSON.stringify({

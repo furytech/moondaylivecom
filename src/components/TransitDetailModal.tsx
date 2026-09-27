@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ZodiacSignTransit } from '../types';
-import { X, Save, Sparkles, Send, RefreshCw } from 'lucide-react';
+import { X, Save, Sparkles, Send, RefreshCw, Image as ImageIcon } from 'lucide-react';
+import { getDefaultTransitImageUrl } from '../lib/transitImages';
 
 interface TransitDetailModalProps {
   transit: ZodiacSignTransit | null;
@@ -21,6 +22,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
   const [aspect, setAspect] = useState(transit?.transitAspect || '');
   const [powerHour, setPowerHour] = useState(transit?.powerHour || '');
   const [ritualTip, setRitualTip] = useState(transit?.ritualTip || '');
+  const [imageUrl, setImageUrl] = useState(transit?.imageUrl || transit?.image_url || (transit ? getDefaultTransitImageUrl(transit.id) : ''));
   const [isSavedNotice, setIsSavedNotice] = useState(false);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
       setAspect(transit.transitAspect);
       setPowerHour(transit.powerHour);
       setRitualTip(transit.ritualTip);
+      setImageUrl(transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id));
       setIsSavedNotice(false);
     }
   }, [transit]);
@@ -40,7 +43,9 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
       copy,
       transitAspect: aspect,
       powerHour,
-      ritualTip
+      ritualTip,
+      imageUrl,
+      image_url: imageUrl,
     });
     setIsSavedNotice(true);
     setTimeout(() => setIsSavedNotice(false), 2500);
@@ -133,6 +138,38 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center gap-1.5">
+              <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Branded Transit Image URL (Instagram & Social Syndication):</span>
+            </label>
+            <div className="flex gap-3 items-center">
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://.../storage/v1/object/public/transit-images/aries.png"
+                className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+              <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden relative flex items-center justify-center flex-shrink-0">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={transit.sign}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : null}
+                <span className="absolute text-xs opacity-70 pointer-events-none">{transit.symbol}</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-1">
+              Mapped to Supabase Storage <code className="text-indigo-400 font-mono">transit-images/{transit.id}.png</code> for Make.com distribution.
+            </p>
           </div>
 
           <div>

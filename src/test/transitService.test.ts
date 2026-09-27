@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { approveTransit, batchApproveAllTransits, updateTransitContent, fetchTransits, toDbRow } from '../services/transitService';
+import { approveTransit, batchApproveAllTransits, updateTransitContent, fetchTransits, toDbRow, fromDbRow } from '../services/transitService';
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
 
@@ -201,10 +201,40 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(row).toHaveProperty('power_hour', '08:15 AM EST');
     expect(row).toHaveProperty('ritual_tip', 'Burn frankincense.');
     expect(row).toHaveProperty('hashtags', ['#AriesSeason']);
+    expect(row).toHaveProperty('image_url');
+    expect(row.image_url).toContain('/storage/v1/object/public/transit-images/aries.png');
     expect(row).toHaveProperty('status', 'published');
     expect(row).toHaveProperty('published_at', '2026-09-26T12:00:00Z');
     expect(row).toHaveProperty('social_posted_at', null);
     expect(row).toHaveProperty('created_at');
     expect(row).toHaveProperty('updated_at');
+  });
+
+  it('fromDbRow maps image_url to both imageUrl and image_url', () => {
+    const dbRow = {
+      id: 'leo',
+      sign: 'Leo',
+      symbol: '♌',
+      element: 'Fire',
+      ruler: 'The Sun',
+      dates: 'Jul 23 – Aug 22',
+      transit_title: 'Sun Trine Moon',
+      transit_aspect: 'Solar Radiance',
+      copy: 'Your creative aura commands attention.',
+      power_hour: '12:00 PM EST',
+      ritual_tip: 'Wear gold.',
+      hashtags: ['#LeoSeason'],
+      image_url: 'https://ggrhuhwxbwrfbbcwcrmv.supabase.co/storage/v1/object/public/transit-images/leo.png',
+      status: 'pending',
+      published_at: null,
+      social_posted_at: null,
+      created_at: '2026-09-26T00:00:00Z',
+      updated_at: '2026-09-26T00:00:00Z',
+    };
+
+    const transit = fromDbRow(dbRow);
+    expect(transit.imageUrl).toBe('https://ggrhuhwxbwrfbbcwcrmv.supabase.co/storage/v1/object/public/transit-images/leo.png');
+    expect(transit.image_url).toBe('https://ggrhuhwxbwrfbbcwcrmv.supabase.co/storage/v1/object/public/transit-images/leo.png');
+    expect(transit.sign).toBe('Leo');
   });
 });
