@@ -11,7 +11,8 @@ import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSignAsync, type TransitionInfo } from "@/lib/moonSign";
+import { calculateMoonSignAsync, calculateNatalSigns, calculateSunSign, type TransitionInfo } from "@/lib/moonSign";
+import { fetchCombinationProfile } from "@/services/combinationService";
 import { getCombinedTransitionInfo } from "@/lib/moonTransitions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEO from "@/components/SEO";
@@ -101,11 +102,20 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         try {
           const raw = localStorage.getItem("pendingMoonSign");
           if (raw) {
-            const pending = JSON.parse(raw) as { sign?: string };
+            const pending = JSON.parse(raw) as { sign?: string; sunSign?: string; birthday?: string };
             if (pending?.sign) {
+              const updatePayload: Record<string, any> = {
+                moon_sign: pending.sign,
+                natal_moon_sign: pending.sign,
+              };
+              if (pending.sunSign) {
+                updatePayload.natal_sun_sign = pending.sunSign;
+              } else if (pending.birthday) {
+                updatePayload.natal_sun_sign = calculateSunSign(new Date(`${pending.birthday}T12:00:00`));
+              }
               await supabase
                 .from("user_profiles")
-                .update({ moon_sign: pending.sign })
+                .update(updatePayload)
                 .eq("user_id", user.id);
             }
             localStorage.removeItem("pendingMoonSign");
@@ -189,9 +199,14 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         }
 
         const birthDate = new Date(`${birthday}T12:00:00`);
-        const moonSignName = (await calculateMoonSignAsync(birthDate)).sign;
-        await signUp(email, password, birthday, moonSignName, timezone);
+        const { sunSign, moonSign: moonSignName } = await calculateNatalSigns(birthDate);
+        await signUp(email, password, birthday, moonSignName, timezone, sunSign);
         cacheTimezone(timezone);
+        try {
+          await fetchCombinationProfile(sunSign, moonSignName);
+        } catch {
+          /* background prefetch */
+        }
         setSignupSuccess(true);
       }
     } catch (err: unknown) {

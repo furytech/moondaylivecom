@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { trackEvent } from "@/lib/analytics";
 import { getDevTierOverride, subscribeDevTier } from "@/lib/devTier";
+import { calculateSunSign, calculateMoonSignAsync } from "@/lib/moonSign";
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -19,7 +20,14 @@ interface AuthContextType {
   loading: boolean;
   subscription: SubscriptionStatus;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, birthday?: string, moonSign?: string, timezone?: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    birthday?: string,
+    moonSign?: string,
+    timezone?: string,
+    natalSunSign?: string
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
 }
@@ -193,15 +201,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     password: string,
     birthday?: string,
     moonSign?: string,
-    timezone?: string
+    timezone?: string,
+    natalSunSign?: string
   ) => {
+    let resolvedSunSign = natalSunSign;
+    let resolvedMoonSign = moonSign;
+
+    if (birthday && (!resolvedSunSign || !resolvedMoonSign)) {
+      try {
+        const bd = new Date(`${birthday.split("T")[0]}T12:00:00`);
+        if (!resolvedSunSign) {
+          resolvedSunSign = calculateSunSign(bd);
+        }
+        if (!resolvedMoonSign) {
+          resolvedMoonSign = (await calculateMoonSignAsync(bd)).sign;
+        }
+      } catch (err) {
+        console.warn("Could not calculate natal signs during signup:", err);
+      }
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
         data: birthday
-          ? { birthday, moon_sign: moonSign, timezone: timezone ?? "UTC" }
+          ? {
+              birthday,
+              moon_sign: resolvedMoonSign ?? null,
+              natal_moon_sign: resolvedMoonSign ?? null,
+              natal_sun_sign: resolvedSunSign ?? null,
+              timezone: timezone ?? "UTC",
+            }
           : timezone
             ? { timezone }
             : undefined,
@@ -209,7 +241,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
     if (error) throw error;
 
-    // Persist birthday + moon sign immediately so it's saved even before email verification.
+    // Persist birthday + natal signs immediately so it's saved even before email verification.
     // Upsert in case the handle_new_user trigger hasn't created the row yet.
     if (data.user && birthday) {
       await supabase
@@ -219,7 +251,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             user_id: data.user.id,
             email,
             birthday,
-            moon_sign: moonSign ?? null,
+            moon_sign: resolvedMoonSign ?? null,
+            natal_moon_sign: resolvedMoonSign ?? null,
+            natal_sun_sign: resolvedSunSign ?? null,
             timezone: timezone ?? "UTC",
           },
           { onConflict: "user_id" }

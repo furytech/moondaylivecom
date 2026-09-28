@@ -863,6 +863,54 @@ export type Database = {
         }
         Relationships: []
       }
+      combination_profiles: {
+        Row: {
+          combination_synthesis: string
+          combination_title: string
+          created_at: string
+          default_behaviors: Json
+          generated_at: string
+          id: string
+          lunar_essence: string
+          moon_sign: string
+          shadow_pattern: string | null
+          solar_essence: string
+          sun_sign: string
+          updated_at: string
+          upgrade_teaser: string | null
+        }
+        Insert: {
+          combination_synthesis: string
+          combination_title: string
+          created_at?: string
+          default_behaviors?: Json
+          generated_at?: string
+          id?: string
+          lunar_essence: string
+          moon_sign: string
+          shadow_pattern?: string | null
+          solar_essence: string
+          sun_sign: string
+          updated_at?: string
+          upgrade_teaser?: string | null
+        }
+        Update: {
+          combination_synthesis?: string
+          combination_title?: string
+          created_at?: string
+          default_behaviors?: Json
+          generated_at?: string
+          id?: string
+          lunar_essence?: string
+          moon_sign?: string
+          shadow_pattern?: string | null
+          solar_essence?: string
+          sun_sign?: string
+          updated_at?: string
+          upgrade_teaser?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           birth_city: string | null
@@ -874,6 +922,8 @@ export type Database = {
           is_subscriber: boolean
           moon_alert_frequency: string | null
           moon_sign: string | null
+          natal_moon_sign: string | null
+          natal_sun_sign: string | null
           subscription_status: string
           timezone: string
           updated_at: string
@@ -889,6 +939,8 @@ export type Database = {
           is_subscriber?: boolean
           moon_alert_frequency?: string | null
           moon_sign?: string | null
+          natal_moon_sign?: string | null
+          natal_sun_sign?: string | null
           subscription_status?: string
           timezone?: string
           updated_at?: string
@@ -904,6 +956,8 @@ export type Database = {
           is_subscriber?: boolean
           moon_alert_frequency?: string | null
           moon_sign?: string | null
+          natal_moon_sign?: string | null
+          natal_sun_sign?: string | null
           subscription_status?: string
           timezone?: string
           updated_at?: string

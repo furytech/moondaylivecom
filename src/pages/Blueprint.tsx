@@ -29,10 +29,14 @@ import ClimateGauge from "@/components/ClimateGauge";
 import SovereignUpgradeCTA from "@/components/SovereignUpgradeCTA";
 import FirstRunOnboarding from "@/components/FirstRunOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoonSignResult } from "@/lib/moonSign";
+import { MoonSignResult, calculateSunSign } from "@/lib/moonSign";
+import { fetchCombinationProfile } from "@/services/combinationService";
+import type { CombinationProfile } from "@/types";
 
 interface UserProfile {
   moon_sign: string | null;
+  natal_moon_sign?: string | null;
+  natal_sun_sign?: string | null;
   birthday: string | null;
   subscription_status: string | null;
   is_subscriber: boolean;
@@ -90,7 +94,7 @@ const Blueprint = () => {
       try {
         const { data, error } = await supabase
           .from("user_profiles")
-          .select("moon_sign, birthday, subscription_status, is_subscriber")
+          .select("moon_sign, birthday, subscription_status, is_subscriber, natal_sun_sign, natal_moon_sign")
           .eq("user_id", user.id)
           .maybeSingle();
         
@@ -211,10 +215,14 @@ const Blueprint = () => {
 
     if (!user) return;
 
-    // Save birthday + moon sign for EVERY logged-in user (free or Sovereign).
+    const sunSign = calculateSunSign(result.birthDate);
+
+    // Save birthday + natal signs for EVERY logged-in user (free or Sovereign).
     // Birth time and city stay Sovereign-only since they require precision calc.
     const updatePayload: Record<string, string> = {
       moon_sign: result.sign,
+      natal_moon_sign: result.sign,
+      natal_sun_sign: sunSign,
       birthday: result.birthDate.toISOString().split("T")[0],
     };
     if (isPro && result.birthTime) updatePayload.birth_time = result.birthTime;
@@ -232,6 +240,8 @@ const Blueprint = () => {
         setUserProfile((prev) => ({
           ...prev,
           moon_sign: result.sign,
+          natal_moon_sign: result.sign,
+          natal_sun_sign: sunSign,
           birthday: updatePayload.birthday,
           subscription_status: prev?.subscription_status ?? "free",
           is_subscriber: prev?.is_subscriber ?? false,

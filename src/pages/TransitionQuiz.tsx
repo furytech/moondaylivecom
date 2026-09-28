@@ -15,7 +15,7 @@ import {
   type QuizQuestion,
   type QuizResult,
 } from "@/lib/transitionQuiz";
-import { getMoonSignByName, type TransitionInfo } from "@/lib/moonSign";
+import { getMoonSignByName, calculateSunSign, type TransitionInfo } from "@/lib/moonSign";
 import { getCombinedTransitionInfo } from "@/lib/moonTransitions";
 
 const VALID_SIGNS = new Set([
@@ -86,12 +86,14 @@ const TransitionQuiz = () => {
     } else {
       const r = calculateQuizResult(signA, signB, next);
       setResult(r);
-      // Persist so Portal can apply it after email verification + sign-in.
+    // Persist so Portal can apply it after email verification + sign-in.
       try {
+        const sunSign = birthdayParam ? calculateSunSign(new Date(`${birthdayParam.split("T")[0]}T12:00:00`)) : undefined;
         localStorage.setItem(
           "pendingMoonSign",
           JSON.stringify({
             sign: r.primarySign,
+            sunSign,
             birthday: birthdayParam,
             ts: Date.now(),
           })
@@ -122,12 +124,16 @@ const TransitionQuiz = () => {
     setSignupSubmitting(true);
     (async () => {
       try {
+        const bd = pending!.birthday || birthdayParam;
+        const sunSign = bd ? calculateSunSign(new Date(`${bd.split("T")[0]}T12:00:00`)) : undefined;
+
         await signUp(
           pending!.email!,
           pending!.password!,
-          pending!.birthday || birthdayParam,
+          bd,
           result.primarySign,
-          pending!.timezone || detectTimezoneOption()
+          pending!.timezone || detectTimezoneOption(),
+          sunSign
         );
         setSignupSuccess(true);
       } catch (err) {
@@ -162,9 +168,26 @@ const TransitionQuiz = () => {
     }
     setSaving(true);
     try {
+      const { data: userProfile } = await supabase
+        .from("user_profiles")
+        .select("birthday, natal_sun_sign")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const birthdayToUse = userProfile?.birthday || birthdayParam;
+      const sunSign = userProfile?.natal_sun_sign || (birthdayToUse ? calculateSunSign(new Date(`${birthdayToUse.split("T")[0]}T12:00:00`)) : null);
+
+      const updatePayload: Record<string, any> = {
+        moon_sign: result.primarySign,
+        natal_moon_sign: result.primarySign,
+      };
+      if (sunSign) {
+        updatePayload.natal_sun_sign = sunSign;
+      }
+
       const { error } = await supabase
         .from("user_profiles")
-        .update({ moon_sign: result.primarySign })
+        .update(updatePayload)
         .eq("user_id", user.id);
       if (error) throw error;
       try { localStorage.removeItem("pendingMoonSign"); } catch { /* ignore */ }
@@ -208,9 +231,8 @@ const TransitionQuiz = () => {
     }
     setSignupSubmitting(true);
     try {
-      // Keep pendingMoonSign in localStorage so Portal can apply it after the
-      // user clicks the email verification link and lands signed-in.
-      await signUp(signupEmail, signupPassword, birthdayParam, result.primarySign, detectTimezoneOption());
+      const sunSign = birthdayParam ? calculateSunSign(new Date(`${birthdayParam.split("T")[0]}T12:00:00`)) : undefined;
+      await signUp(signupEmail, signupPassword, birthdayParam, result.primarySign, detectTimezoneOption(), sunSign);
       setSignupSuccess(true);
     } catch (err) {
       const msg = (err as { message?: string }).message || "Could not create account.";

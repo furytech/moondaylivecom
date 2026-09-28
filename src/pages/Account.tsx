@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSignAsync } from "@/lib/moonSign";
+import { calculateMoonSignAsync, calculateSunSign } from "@/lib/moonSign";
 import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell, Globe } from "lucide-react";
 import {
   Select,
@@ -114,6 +114,7 @@ const Account = () => {
     try {
       const birthDate = new Date(`${birthday}T12:00:00`);
       const moon = await calculateMoonSignAsync(birthDate);
+      const sunSign = calculateSunSign(birthDate);
 
       const { error } = await supabase
         .from("user_profiles")
@@ -123,6 +124,8 @@ const Account = () => {
             email: user.email,
             birthday,
             moon_sign: moon.sign,
+            natal_moon_sign: moon.sign,
+            natal_sun_sign: sunSign,
           },
           { onConflict: "user_id" }
         );
@@ -133,16 +136,17 @@ const Account = () => {
         email: user.email ?? prev?.email ?? null,
         birthday,
         moon_sign: moon.sign,
+        natal_moon_sign: moon.sign,
+        natal_sun_sign: sunSign,
         subscription_status: prev?.subscription_status ?? "free",
         is_subscriber: prev?.is_subscriber ?? false,
         moon_alert_frequency: prev?.moon_alert_frequency ?? "all",
         timezone: prev?.timezone ?? timezone,
       }));
 
-
       toast({
         title: "Profile saved",
-        description: `Your moon sign is ${moon.sign}.`,
+        description: `Your sun sign is ${sunSign} and moon sign is ${moon.sign}.`,
       });
     } catch (err) {
       console.error("Save error:", err);

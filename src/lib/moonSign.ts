@@ -3,6 +3,7 @@
 
 import { createTimeOfInterest } from 'astronomy-bundle/time';
 import { createMoon } from 'astronomy-bundle/moon';
+import { AstroTime, SunPosition } from 'astronomy-engine';
 
 export interface MoonSignResult {
   sign: string;
@@ -320,4 +321,41 @@ export function getMoonSignByName(signName: string): MoonSignResult | null {
     };
   }
   return null;
+}
+
+/**
+ * Calculate the Tropical Sun sign using high-precision ephemeris (astronomy-engine).
+ * Uses noon UTC on the birth date to ensure stable astronomical coordinates.
+ */
+export function calculateSunSign(birthDate: Date | string): string {
+  const d = typeof birthDate === 'string'
+    ? new Date(`${birthDate.split('T')[0]}T12:00:00Z`)
+    : birthDate;
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth();
+  const date = d.getUTCDate();
+  const noonUtc = new Date(Date.UTC(year, month, date, 12, 0, 0));
+  const time = new AstroTime(noonUtc);
+  const sunPos = SunPosition(time);
+  return longitudeToZodiacSign(sunPos.elon);
+}
+
+/**
+ * Calculate both natal Sun sign and natal Moon sign for a given birth date.
+ */
+export async function calculateNatalSigns(birthDate: Date | string): Promise<{
+  sunSign: string;
+  moonSign: string;
+  moonResult: MoonSignResult;
+}> {
+  const d = typeof birthDate === 'string'
+    ? new Date(`${birthDate.split('T')[0]}T12:00:00`)
+    : birthDate;
+  const sunSign = calculateSunSign(d);
+  const moonResult = await calculateMoonSignAsync(d);
+  return {
+    sunSign,
+    moonSign: moonResult.sign,
+    moonResult,
+  };
 }

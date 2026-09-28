@@ -33,3 +33,25 @@ export interface Subscriber {
   status: 'Active' | 'Churned' | 'Paused';
   createdAt: string;
 }
+
+export interface CombinationProfile {
+  id?: string;
+  sun_sign: string;
+  moon_sign: string;
+  combination_title: string;
+  solar_essence: string;
+  lunar_essence: string;
+  combination_synthesis: string;
+  default_behaviors: string[] | Record<string, unknown>[];
+  shadow_pattern?: string | null;
+  upgrade_teaser?: string | null;
+  generated_at?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NatalSigns {
+  sunSign: string;
+  moonSign: string;
+  birthDate: string;
+}
