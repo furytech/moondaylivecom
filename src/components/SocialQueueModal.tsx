@@ -22,6 +22,7 @@ export const SocialQueueModal: React.FC<SocialQueueModalProps> = ({
     dates: transit.dates,
     transit_title: transit.transitTitle,
     transit_aspect: transit.transitAspect,
+    transit_date: transit.transitDate || transit.transit_date || null,
     copy: transit.copy,
     power_hour: transit.powerHour,
     ritual_tip: transit.ritualTip,

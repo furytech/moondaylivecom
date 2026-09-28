@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { approveTransit, batchApproveAllTransits, updateTransitContent, fetchTransits, toDbRow, fromDbRow } from '../services/transitService';
+import { 
+  approveTransit, 
+  batchApproveAllTransits, 
+  updateTransitContent, 
+  fetchTransits, 
+  toDbRow, 
+  fromDbRow,
+  formatTransitBlogPostMarkdown,
+  buildTransitBlogPostPayload,
+  syncTransitToBlogPost
+} from '../services/transitService';
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
 
@@ -65,10 +75,30 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('approveTransit publishes a pending transit with exact database column names via upsert', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const selectMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
+      }),
+    });
+    const updateMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
+        }),
+      }),
+    });
 
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-    } as unknown as ReturnType<typeof supabase.from>);
+    vi.mocked(supabase.from).mockImplementation((table: string) => {
+      if (table === 'transits') {
+        return {
+          upsert: upsertMock,
+        } as any;
+      }
+      return {
+        select: selectMock,
+        update: updateMock,
+      } as any;
+    });
 
     const result = await approveTransit('aries', mockTransits);
 
@@ -90,10 +120,30 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('approveTransit revokes a published transit back to pending', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const selectMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
+      }),
+    });
+    const updateMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
+        }),
+      }),
+    });
 
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-    } as unknown as ReturnType<typeof supabase.from>);
+    vi.mocked(supabase.from).mockImplementation((table: string) => {
+      if (table === 'transits') {
+        return {
+          upsert: upsertMock,
+        } as any;
+      }
+      return {
+        select: selectMock,
+        update: updateMock,
+      } as any;
+    });
 
     const result = await approveTransit('taurus', mockTransits);
 
@@ -112,10 +162,30 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('batchApproveAllTransits marks all transits as published with database timestamp via upsert', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const selectMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
+      }),
+    });
+    const updateMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
+        }),
+      }),
+    });
 
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-    } as unknown as ReturnType<typeof supabase.from>);
+    vi.mocked(supabase.from).mockImplementation((table: string) => {
+      if (table === 'transits') {
+        return {
+          upsert: upsertMock,
+        } as any;
+      }
+      return {
+        select: selectMock,
+        update: updateMock,
+      } as any;
+    });
 
     const result = await batchApproveAllTransits(mockTransits);
 
@@ -187,7 +257,7 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('toDbRow outputs all required columns matching PostgreSQL transits schema', () => {
     const transit = mockTransits[0];
-    const row = toDbRow(transit, { status: 'published', published_at: '2026-09-26T12:00:00Z' });
+    const row = toDbRow(transit, { status: 'published', published_at: '2026-09-26T12:00:00Z', transit_date: 'Sep 28 – Sep 30' });
 
     expect(row).toHaveProperty('id', 'aries');
     expect(row).toHaveProperty('sign', 'Aries');
@@ -197,6 +267,7 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(row).toHaveProperty('dates', 'Mar 21 – Apr 19');
     expect(row).toHaveProperty('transit_title', 'Moon in Aries');
     expect(row).toHaveProperty('transit_aspect', 'Cardinal Ignition');
+    expect(row).toHaveProperty('transit_date', 'Sep 28 – Sep 30');
     expect(row).toHaveProperty('copy', 'A high-octane charge pulses.');
     expect(row).toHaveProperty('power_hour', '08:15 AM EST');
     expect(row).toHaveProperty('ritual_tip', 'Burn frankincense.');
@@ -210,7 +281,7 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(row).toHaveProperty('updated_at');
   });
 
-  it('fromDbRow maps image_url to both imageUrl and image_url', () => {
+  it('fromDbRow maps image_url and transit_date to both camelCase and snake_case', () => {
     const dbRow = {
       id: 'leo',
       sign: 'Leo',
@@ -220,6 +291,7 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
       dates: 'Jul 23 – Aug 22',
       transit_title: 'Sun Trine Moon',
       transit_aspect: 'Solar Radiance',
+      transit_date: 'Sep 28 – Sep 30',
       copy: 'Your creative aura commands attention.',
       power_hour: '12:00 PM EST',
       ritual_tip: 'Wear gold.',
@@ -235,6 +307,65 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     const transit = fromDbRow(dbRow);
     expect(transit.imageUrl).toBe('https://ggrhuhwxbwrfbbcwcrmv.supabase.co/storage/v1/object/public/transit-images/leo.png');
     expect(transit.image_url).toBe('https://ggrhuhwxbwrfbbcwcrmv.supabase.co/storage/v1/object/public/transit-images/leo.png');
+    expect(transit.transitDate).toBe('Sep 28 – Sep 30');
+    expect(transit.transit_date).toBe('Sep 28 – Sep 30');
     expect(transit.sign).toBe('Leo');
+  });
+
+  it('formatTransitBlogPostMarkdown generates complete markdown article from transit data', () => {
+    const transit = mockTransits[0];
+    const md = formatTransitBlogPostMarkdown(transit);
+
+    expect(md).toContain('# Moon in Aries');
+    expect(md).toContain('**Zodiac Sign:** Aries ♈');
+    expect(md).toContain('**Transit Aspect:** Cardinal Ignition');
+    expect(md).toContain('**Transit Window:** Mar 21 – Apr 19');
+    expect(md).toContain('**Power Hour:** 08:15 AM EST');
+    expect(md).toContain('### Cosmic Weather & Astrological Forecast');
+    expect(md).toContain('A high-octane charge pulses.');
+    expect(md).toContain('### Daily Ritual & Alignment Tip');
+    expect(md).toContain('Burn frankincense.');
+    expect(md).toContain('#AriesSeason');
+  });
+
+  it('buildTransitBlogPostPayload creates published blog_posts row payload matching schema', () => {
+    const transit = mockTransits[0];
+    const payload = buildTransitBlogPostPayload(transit, true);
+
+    expect(payload.slug).toBe('transit-aries');
+    expect(payload.title).toBe('Moon in Aries');
+    expect(payload.category).toBe('Transits');
+    expect(payload.status).toBe('published');
+    expect(payload.published_at).not.toBeNull();
+    expect(payload.zodiac_sign_tag).toBe('Aries');
+    expect(payload.keywords).toContain('AriesSeason');
+  });
+
+  it('syncTransitToBlogPost handles blog_posts table synchronization', async () => {
+    const selectMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'post-123' }, error: null }),
+      }),
+    });
+    const updateMock = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { id: 'post-123', status: 'published' }, error: null }),
+        }),
+      }),
+    });
+
+    vi.mocked(supabase.from).mockReturnValue({
+      select: selectMock,
+      update: updateMock,
+    } as unknown as ReturnType<typeof supabase.from>);
+
+    const transit = mockTransits[0];
+    const result = await syncTransitToBlogPost(transit, true);
+
+    expect(result.success).toBe(true);
+    if (import.meta.env.VITE_SUPABASE_URL) {
+      expect(supabase.from).toHaveBeenCalledWith('blog_posts');
+    }
   });
 });

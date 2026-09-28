@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import AdminRoute from "@/components/AdminRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import BottomTabBar from "@/components/BottomTabBar";
 import DevTierPanel from "@/components/DevTierPanel";
@@ -40,14 +39,6 @@ import BirthdayMoonPhase from "./pages/BirthdayMoonPhase";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import MissionControl from "./pages/admin/MissionControl";
-import BlogAdmin from "./pages/admin/BlogAdmin";
-import AdminLogin from "./pages/admin/AdminLogin";
-import Subscribers from "./pages/admin/Subscribers";
-import SystemErrors from "./pages/admin/SystemErrors";
-import ChannelAudit from "./pages/admin/ChannelAudit";
-import GuestDesk from "./pages/admin/GuestDesk";
-import GuestApplications from "./pages/admin/GuestApplications";
-import EclipseCampaign from "./pages/admin/EclipseCampaign";
 
 import GuestStudio from "./pages/GuestStudio";
 import IdleSessionGuard from "./components/IdleSessionGuard";
@@ -83,43 +74,16 @@ export const App = () => (
 
             {/* Mission Control Admin Dashboard (gated at /admin) */}
             <Route path="/admin" element={<MissionControl />} />
-            <Route path="/admin/mission-control" element={<MissionControl />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/eclipse-campaign" element={
-              <AdminRoute>
-                <EclipseCampaign />
-              </AdminRoute>
-            } />
-            <Route path="/admin/blog" element={
-              <AdminRoute>
-                <BlogAdmin />
-              </AdminRoute>
-            } />
-            <Route path="/admin/subscribers" element={
-              <AdminRoute>
-                <Subscribers />
-              </AdminRoute>
-            } />
-            <Route path="/admin/channel-audit" element={
-              <AdminRoute>
-                <ChannelAudit />
-              </AdminRoute>
-            } />
-            <Route path="/admin/errors" element={
-              <AdminRoute>
-                <SystemErrors />
-              </AdminRoute>
-            } />
-            <Route path="/admin/guests" element={
-              <AdminRoute>
-                <GuestDesk />
-              </AdminRoute>
-            } />
-            <Route path="/admin/guest-applications" element={
-              <AdminRoute>
-                <GuestApplications />
-              </AdminRoute>
-            } />
+            <Route path="/admin/mission-control" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/login" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/blog" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/subscribers" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/channel-audit" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/errors" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/guests" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/guest-applications" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/eclipse-campaign" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
 
             <Route path="/guest" element={
               <ProtectedRoute>

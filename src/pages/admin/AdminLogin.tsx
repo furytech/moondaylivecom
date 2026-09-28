@@ -28,7 +28,7 @@ const AdminLogin = () => {
 
   useEffect(() => {
     checkAdmin().then((ok) => {
-      if (ok) navigate("/admin/blog", { replace: true });
+      if (ok) navigate("/admin", { replace: true });
       else setChecking(false);
     });
   }, [navigate]);
@@ -53,7 +53,7 @@ const AdminLogin = () => {
     }
     // Drop the stale "not signed in" gate result so AdminRoute re-checks.
     queryClient.setQueryData(["admin-route-check"], { signedIn: true, isAdmin: true });
-    navigate("/admin/blog", { replace: true });
+    navigate("/admin", { replace: true });
   };
 
   if (checking) {

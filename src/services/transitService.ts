@@ -4,6 +4,7 @@ import { getDefaultTransitImageUrl } from '../lib/transitImages';
 
 export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<string, unknown>> = {}) {
   const imageUrl = transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id || transit.sign);
+  const transitDate = transit.transitDate !== undefined ? transit.transitDate : (transit.transit_date !== undefined ? transit.transit_date : null);
 
   return {
     id: transit.id,
@@ -14,6 +15,7 @@ export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<st
     dates: transit.dates,
     transit_title: transit.transitTitle,
     transit_aspect: transit.transitAspect,
+    transit_date: transitDate,
     copy: transit.copy,
     power_hour: transit.powerHour,
     ritual_tip: transit.ritualTip,
@@ -30,6 +32,7 @@ export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<st
 
 export function fromDbRow(row: Record<string, any>): ZodiacSignTransit {
   const imageUrl = row.image_url || getDefaultTransitImageUrl(row.id || row.sign);
+  const transitDate = row.transit_date || row.transitDate || null;
 
   return {
     id: row.id,
@@ -40,6 +43,8 @@ export function fromDbRow(row: Record<string, any>): ZodiacSignTransit {
     dates: row.dates,
     transitTitle: row.transit_title,
     transitAspect: row.transit_aspect,
+    transitDate: transitDate,
+    transit_date: transitDate,
     copy: row.copy,
     powerHour: row.power_hour,
     ritualTip: row.ritual_tip,
@@ -80,6 +85,114 @@ export async function fetchTransits(): Promise<{ data: ZodiacSignTransit[] | nul
   }
 }
 
+export function formatTransitBlogPostMarkdown(transit: ZodiacSignTransit): string {
+  const hashtags = Array.isArray(transit.hashtags) ? transit.hashtags.join(' ') : '';
+  const dates = transit.transitDate || transit.transit_date || transit.dates || '';
+  const powerHour = transit.powerHour || '';
+  const ritualTip = transit.ritualTip || '';
+  const copy = transit.copy || '';
+
+  return `# ${transit.transitTitle || `Moon in ${transit.sign}: ${transit.transitAspect}`}
+
+**Zodiac Sign:** ${transit.sign} ${transit.symbol || ''}  
+**Transit Aspect:** ${transit.transitAspect || ''}  
+${dates ? `**Transit Window:** ${dates}  \n` : ''}${powerHour ? `**Power Hour:** ${powerHour}  \n` : ''}
+---
+
+### Cosmic Weather & Astrological Forecast
+
+${copy}
+
+---
+
+### Daily Ritual & Alignment Tip
+
+${ritualTip}
+
+---
+
+**Astrological Keywords & Archetypes:**  
+${hashtags}`;
+}
+
+export function buildTransitBlogPostPayload(transit: ZodiacSignTransit, publish: boolean = true) {
+  const slug = `transit-${(transit.id || transit.sign).toLowerCase()}`;
+  const now = new Date().toISOString();
+  const hashtags = Array.isArray(transit.hashtags)
+    ? transit.hashtags.map((h) => h.replace(/^#/, '').trim()).filter(Boolean)
+    : [];
+  const imageUrl = transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id || transit.sign);
+
+  return {
+    slug,
+    title: transit.transitTitle || `Moon in ${transit.sign}: ${transit.transitAspect}`,
+    category: 'Transits' as const,
+    excerpt: transit.copy ? (transit.copy.length > 160 ? transit.copy.slice(0, 157) + '...' : transit.copy) : '',
+    content: formatTransitBlogPostMarkdown(transit),
+    keywords: hashtags,
+    read_time: 3,
+    author: 'Moonday Live Team',
+    reviewed_by: 'Moonday Live Astrologer',
+    status: (publish ? 'published' : 'draft') as 'published' | 'draft',
+    publish_at: publish ? (transit.publishedAt || now) : null,
+    published_at: publish ? (transit.publishedAt || now) : null,
+    featured: false,
+    cta_type: 'birthday-calculator' as const,
+    image_url: imageUrl,
+    zodiac_sign_tag: transit.sign,
+  };
+}
+
+export async function syncTransitToBlogPost(
+  transit: ZodiacSignTransit,
+  publish: boolean = true
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  if (!import.meta.env.VITE_SUPABASE_URL) {
+    return { success: true };
+  }
+
+  const payload = buildTransitBlogPostPayload(transit, publish);
+
+  try {
+    const { data: existing } = await supabase
+      .from('blog_posts')
+      .select('id')
+      .eq('slug', payload.slug)
+      .maybeSingle();
+
+    if (existing?.id) {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .update(payload)
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`[transitService] Error updating blog post for transit ${transit.id}:`, error);
+        return { success: false, error: error.message };
+      }
+      return { success: true, data };
+    } else {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) {
+        console.error(`[transitService] Error inserting blog post for transit ${transit.id}:`, error);
+        return { success: false, error: error.message };
+      }
+      return { success: true, data };
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error syncing transit to blog';
+    console.error(`[transitService] Exception syncing blog post:`, err);
+    return { success: false, error: message };
+  }
+}
+
 export async function approveTransit(
   id: string,
   currentTransits: ZodiacSignTransit[]
@@ -110,6 +223,15 @@ export async function approveTransit(
     }
 
     console.log('[approveTransit] Supabase upsert succeeded for transit ID:', id);
+
+    // Automatically sync / publish corresponding blog post in the journal
+    try {
+      const updatedTransitForBlog = { ...target, status: newStatus as any, publishedAt };
+      await syncTransitToBlogPost(updatedTransitForBlog, newStatus === 'published');
+      console.log('[approveTransit] Automatically synced journal blog post for sign:', target.sign, 'published:', newStatus === 'published');
+    } catch (blogErr) {
+      console.error('[approveTransit] Error during journal blog post sync:', blogErr);
+    }
   } else {
     console.warn('[approveTransit] VITE_SUPABASE_URL is not configured. Supabase write skipped, only local state updated.');
   }
@@ -146,6 +268,18 @@ export async function batchApproveAllTransits(
     }
 
     console.log('[batchApproveAllTransits] Supabase batch upsert succeeded for all transits.');
+
+    // Automatically sync / publish all 12 blog posts to the journal
+    try {
+      await Promise.allSettled(
+        currentTransits.map((t) =>
+          syncTransitToBlogPost({ ...t, status: 'published', publishedAt: timestamp }, true)
+        )
+      );
+      console.log('[batchApproveAllTransits] Successfully synced all 12 journal blog posts.');
+    } catch (blogErr) {
+      console.error('[batchApproveAllTransits] Error during batch journal blog post sync:', blogErr);
+    }
   } else {
     console.warn('[batchApproveAllTransits] VITE_SUPABASE_URL is not configured. Supabase write skipped.');
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ZodiacSignTransit } from '../types';
-import { X, Save, Sparkles, Send, RefreshCw, Image as ImageIcon } from 'lucide-react';
+import { X, Save, Sparkles, Send, RefreshCw, Image as ImageIcon, Calendar } from 'lucide-react';
 import { getDefaultTransitImageUrl } from '../lib/transitImages';
 
 interface TransitDetailModalProps {
@@ -20,6 +20,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
 }) => {
   const [copy, setCopy] = useState(transit?.copy || '');
   const [aspect, setAspect] = useState(transit?.transitAspect || '');
+  const [transitDate, setTransitDate] = useState(transit?.transitDate || transit?.transit_date || '');
   const [powerHour, setPowerHour] = useState(transit?.powerHour || '');
   const [ritualTip, setRitualTip] = useState(transit?.ritualTip || '');
   const [imageUrl, setImageUrl] = useState(transit?.imageUrl || transit?.image_url || (transit ? getDefaultTransitImageUrl(transit.id) : ''));
@@ -29,6 +30,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
     if (transit) {
       setCopy(transit.copy);
       setAspect(transit.transitAspect);
+      setTransitDate(transit.transitDate || transit.transit_date || '');
       setPowerHour(transit.powerHour);
       setRitualTip(transit.ritualTip);
       setImageUrl(transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id));
@@ -42,6 +44,8 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
     onSaveContent(transit.id, {
       copy,
       transitAspect: aspect,
+      transitDate,
+      transit_date: transitDate,
       powerHour,
       ritualTip,
       imageUrl,
@@ -76,9 +80,18 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
                   {isPublished ? 'Published' : 'Pending Approval'}
                 </span>
               </h3>
-              <p className="text-xs text-indigo-400">
-                Element: {transit.element} • Ruler: {transit.ruler}
-              </p>
+              <div className="text-xs text-indigo-400 flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
+                <span>Element: {transit.element} • Ruler: {transit.ruler}</span>
+                {(transitDate || transit.transitDate || transit.transit_date) && (
+                  <>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-slate-200 font-semibold flex items-center gap-1 bg-indigo-500/15 px-2 py-0.5 rounded border border-indigo-500/30">
+                      <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                      Transit Date: {transitDate || transit.transitDate || transit.transit_date}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -91,16 +104,30 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
 
         {/* Form Body */}
         <div className="p-6 overflow-y-auto space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-              Astrological Transit Aspect / Frequency:
-            </label>
-            <input
-              type="text"
-              value={aspect}
-              onChange={(e) => setAspect(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                Astrological Transit Aspect / Frequency:
+              </label>
+              <input
+                type="text"
+                value={aspect}
+                onChange={(e) => setAspect(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                Upcoming Transit Date / Window:
+              </label>
+              <input
+                type="text"
+                value={transitDate}
+                placeholder="e.g. Sep 28 – Sep 30"
+                onChange={(e) => setTransitDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+            </div>
           </div>
 
           <div>

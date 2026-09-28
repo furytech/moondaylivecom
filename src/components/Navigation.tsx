@@ -90,9 +90,9 @@ const Navigation = () => {
             </Link>
             {isAdmin && (
               <Link
-                to="/admin/blog"
-                title="Open Journal Admin"
-                aria-label="Open Journal Admin"
+                to="/admin"
+                title="Open Mission Control Admin"
+                aria-label="Open Mission Control Admin"
                 className={`flex items-center gap-2 border-l border-border/40 pl-3 font-display text-xs tracking-widest uppercase whitespace-nowrap transition-colors ${
                   location.pathname.startsWith("/admin")
                     ? "text-white font-bold [text-shadow:0_0_10px_hsl(var(--primary)/0.95)]"
@@ -100,7 +100,7 @@ const Navigation = () => {
                 }`}
               >
                 <ShieldCheck size={16} aria-hidden="true" />
-                <span className="hidden sm:inline">Journal Admin</span>
+                <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
           </div>

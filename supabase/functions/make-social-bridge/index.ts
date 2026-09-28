@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
         ...t,
         image_url: imageUrl,
         media_url: imageUrl,
+        transit_date: t.transit_date || null,
         copy: sanitize(t.copy),
         ritual_tip: sanitize(t.ritual_tip),
         transit_title: sanitize(t.transit_title),

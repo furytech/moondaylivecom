@@ -7,6 +7,8 @@ export interface ZodiacSignTransit {
   dates: string;
   transitTitle: string;
   transitAspect: string;
+  transitDate?: string | null;
+  transit_date?: string | null;
   copy: string;
   powerHour: string;
   ritualTip: string;

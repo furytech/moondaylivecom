@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { INITIAL_TRANSIT_QUEUE } from '../../mocks/transitQueue';
 import { ZodiacSignTransit } from '../../types';
 import { 
@@ -7,13 +7,23 @@ import {
   batchApproveAllTransits, 
   updateTransitContent 
 } from '../../services/transitService';
+import { 
+  listAllPosts, 
+  upsertPost, 
+  deletePost, 
+  publishPostNow, 
+  unpublishPost, 
+  BlogPostRow 
+} from '../../lib/blog/posts';
 import { supabase } from '../../lib/supabase';
 import { TransitReviewPanel } from '../../components/TransitReviewPanel';
 import { TransitDetailModal } from '../../components/TransitDetailModal';
 import { SocialQueueModal } from '../../components/SocialQueueModal';
+import { BlogManagerPanel } from '../../components/admin/BlogManagerPanel';
+import { BlogPostEditModal } from '../../components/admin/BlogPostEditModal';
 import { AdminLogin, MASTER_ADMIN_EMAIL } from '../../components/AdminLogin';
 import { CosmicAiAssistant } from '../../components/CosmicAiAssistant';
-import { Moon, Database, LogOut, Sparkles, UserCheck, Shield } from 'lucide-react';
+import { Moon, Database, LogOut, Sparkles, UserCheck, BookOpen, Layers } from 'lucide-react';
 import type { Session, User } from '@supabase/supabase-js';
 
 export function MissionControl() {
@@ -22,12 +32,22 @@ export function MissionControl() {
   const [authLoading, setAuthLoading] = useState(true);
   const [mockAuthenticated, setMockAuthenticated] = useState(false);
 
+  // View tab: 'transits' | 'blog'
+  const [activeTab, setActiveTab] = useState<'transits' | 'blog'>('transits');
+
+  // Transits state
   const [transits, setTransits] = useState<ZodiacSignTransit[]>(INITIAL_TRANSIT_QUEUE);
   const [selectedTransit, setSelectedTransit] = useState<ZodiacSignTransit | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [inspectingTransit, setInspectingTransit] = useState<ZodiacSignTransit | null>(null);
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Blog posts state
+  const [blogPosts, setBlogPosts] = useState<BlogPostRow[]>([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [editingBlogPost, setEditingBlogPost] = useState<BlogPostRow | null>(null);
+  const [isBlogEditModalOpen, setIsBlogEditModalOpen] = useState(false);
 
   // Initialize and listen to Supabase Auth state
   useEffect(() => {
@@ -68,6 +88,20 @@ export function MissionControl() {
     };
   }, []);
 
+  // Fetch live blog posts from Supabase blog_posts table
+  const loadBlogPosts = useCallback(async () => {
+    if (!import.meta.env.VITE_SUPABASE_URL) return;
+    setBlogLoading(true);
+    try {
+      const posts = await listAllPosts();
+      setBlogPosts(posts);
+    } catch (err) {
+      console.error('Error loading blog posts from Supabase:', err);
+    } finally {
+      setBlogLoading(false);
+    }
+  }, []);
+
   // Fetch live transits from Supabase transits table on load / auth
   useEffect(() => {
     let active = true;
@@ -90,11 +124,12 @@ export function MissionControl() {
     }
 
     loadLiveTransits();
+    loadBlogPosts();
 
     return () => {
       active = false;
     };
-  }, [session]);
+  }, [session, loadBlogPosts]);
 
   const handleSignOut = async () => {
     setIsLoading(true);
@@ -128,6 +163,8 @@ export function MissionControl() {
           const updated = result.updatedTransits.find((t) => t.id === id);
           if (updated) setSelectedTransit(updated);
         }
+        // Refresh blog posts as an approved transit automatically publishes a blog post
+        loadBlogPosts();
       }
     } catch (err: unknown) {
       console.error('[MissionControl] Error approving transit:', err);
@@ -143,6 +180,8 @@ export function MissionControl() {
       const result = await batchApproveAllTransits(transits);
       if (result.success) {
         setTransits(result.updatedTransits);
+        // Refresh blog posts as batch approval publishes all 12 signs to the journal
+        loadBlogPosts();
       }
     } catch (err: unknown) {
       console.error('[MissionControl] Error batch approving transits:', err);
@@ -159,6 +198,7 @@ export function MissionControl() {
         setTransits(result.updatedTransits);
         const updated = result.updatedTransits.find((t) => t.id === id);
         if (updated) setSelectedTransit(updated);
+        loadBlogPosts();
       }
     } catch (err: unknown) {
       console.error('[MissionControl] Error saving transit content:', err);
@@ -172,6 +212,36 @@ export function MissionControl() {
 
   const handleInspectPayload = (transit: ZodiacSignTransit) => {
     setInspectingTransit(transit);
+  };
+
+  // Blog Management Handlers
+  const handleCreateNewBlogPost = () => {
+    setEditingBlogPost(null);
+    setIsBlogEditModalOpen(true);
+  };
+
+  const handleSelectEditBlogPost = (post: BlogPostRow) => {
+    setEditingBlogPost(post);
+    setIsBlogEditModalOpen(true);
+  };
+
+  const handleSaveBlogPost = async (postData: Partial<BlogPostRow>) => {
+    await upsertPost(postData);
+    await loadBlogPosts();
+  };
+
+  const handleToggleBlogPublish = async (id: string, currentStatus: string) => {
+    if (currentStatus === 'published') {
+      await unpublishPost(id);
+    } else {
+      await publishPostNow(id);
+    }
+    await loadBlogPosts();
+  };
+
+  const handleDeleteBlogPost = async (id: string) => {
+    await deletePost(id);
+    await loadBlogPosts();
   };
 
   // Apply copy & rituals generated from Cosmic AI Assistant
@@ -270,28 +340,86 @@ export function MissionControl() {
             </div>
           </div>
         </div>
+
+        {/* Section Navigation Tabs */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/60 flex items-center gap-2 py-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('transits')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+              activeTab === 'transits'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25 border border-indigo-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Operational Transit Queue</span>
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-950/60 text-indigo-300 border border-indigo-500/30">
+              12 Signs
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('blog')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+              activeTab === 'blog'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25 border border-indigo-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Journal / Blog Manager</span>
+            {blogPosts.length > 0 && (
+              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-950/60 text-indigo-300 border border-indigo-500/30">
+                {blogPosts.length}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <TransitReviewPanel
-          transits={transits}
-          onApprove={handleApprove}
-          onBatchApprove={handleBatchApprove}
-          onSelectTransit={handleSelectTransit}
-          onInspectPayload={handleInspectPayload}
-          selectedTransitId={selectedTransit?.id}
-          isActionLoading={isLoading}
-        />
+        {activeTab === 'transits' ? (
+          <TransitReviewPanel
+            transits={transits}
+            onApprove={handleApprove}
+            onBatchApprove={handleBatchApprove}
+            onSelectTransit={handleSelectTransit}
+            onInspectPayload={handleInspectPayload}
+            selectedTransitId={selectedTransit?.id}
+            isActionLoading={isLoading}
+          />
+        ) : (
+          <BlogManagerPanel
+            posts={blogPosts}
+            loading={blogLoading}
+            onSelectEditPost={handleSelectEditBlogPost}
+            onCreateNewPost={handleCreateNewBlogPost}
+            onPublishToggle={handleToggleBlogPublish}
+            onDeletePost={handleDeleteBlogPost}
+            onRefresh={loadBlogPosts}
+          />
+        )}
       </main>
 
-      {/* Detail / Content Editor Modal */}
+      {/* Detail / Transit Content Editor Modal */}
       <TransitDetailModal
         transit={selectedTransit}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         onSaveContent={handleSaveContent}
         onApprove={handleApprove}
+      />
+
+      {/* Blog Post Edit & Create Modal */}
+      <BlogPostEditModal
+        post={editingBlogPost}
+        isOpen={isBlogEditModalOpen}
+        onClose={() => setIsBlogEditModalOpen(false)}
+        onSave={handleSaveBlogPost}
+        onPublishToggle={handleToggleBlogPublish}
       />
 
       {/* Supabase Row Payload Inspector Modal */}

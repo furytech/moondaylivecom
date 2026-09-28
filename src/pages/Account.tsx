@@ -536,20 +536,14 @@ const Account = () => {
                       Administrator
                     </h2>
                     <p className="font-serif text-sm text-cream-muted/70 mb-5">
-                      Manage the Journal and review Sovereign subscribers.
+                      Access Moonday Mission Control and administrative operations.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <button
-                        onClick={() => navigate("/admin/blog")}
+                        onClick={() => navigate("/admin")}
                         className="px-5 py-2.5 font-display text-xs tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 transition-all"
                       >
-                        Journal Admin
-                      </button>
-                      <button
-                        onClick={() => navigate("/admin/subscribers")}
-                        className="px-5 py-2.5 font-display text-xs tracking-[0.2em] uppercase border border-primary/40 rounded-full text-primary hover:bg-primary/10 transition-all"
-                      >
-                        Subscribers
+                        Mission Control Admin
                       </button>
                     </div>
                   </div>

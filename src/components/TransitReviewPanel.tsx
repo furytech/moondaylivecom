@@ -6,9 +6,10 @@ import {
   CheckCircle2, 
   Clock, 
   RefreshCw, 
-  Eye,
+  Eye, 
   CheckCheck,
-  ImageIcon
+  ImageIcon,
+  Calendar
 } from 'lucide-react';
 
 interface TransitReviewPanelProps {
@@ -184,6 +185,12 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
                     <p className="text-xs text-indigo-400 font-medium">
                       {transit.transitAspect}
                     </p>
+                    {(transit.transitDate || transit.transit_date) && (
+                      <p className="text-xs text-slate-400 font-medium flex items-center gap-1 mt-0.5">
+                        <Calendar className="w-3 h-3 text-indigo-400/80 flex-shrink-0" />
+                        <span>{transit.transitDate || transit.transit_date}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 

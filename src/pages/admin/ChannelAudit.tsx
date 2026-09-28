@@ -276,10 +276,10 @@ const ChannelAudit = () => {
             {isFetching ? "Refreshing…" : "Refresh"}
           </button>
           <Link
-            to="/admin/blog"
+            to="/admin"
             className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
           >
-            Journal admin
+            Mission Control
           </Link>
         </div>
 
