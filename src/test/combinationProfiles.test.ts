@@ -150,3 +150,70 @@ describe('Combination Profiles Service', () => {
     expect(res.data?.sun_sign).toBe('Taurus');
   });
 });
+
+describe('Batch Combination Generator (Gemini API & Parser)', () => {
+  it('generates system and user prompts matching astrological metadata', async () => {
+    const { buildSystemPrompt, buildUserPrompt } = await import('../../scripts/batch-generate-combinations');
+    const systemPrompt = buildSystemPrompt();
+    expect(systemPrompt).toContain('Moonday Live');
+    expect(systemPrompt).toContain('psychologically penetrating');
+
+    const userPrompt = buildUserPrompt('Scorpio', 'Aries');
+    expect(userPrompt).toContain('Sun Sign: Scorpio');
+    expect(userPrompt).toContain('Moon Sign: Aries');
+    expect(userPrompt).toContain('Pluto / Mars');
+    expect(userPrompt).toContain('Water');
+  });
+
+  it('parses clean and markdown-wrapped JSON payloads correctly', async () => {
+    const { parseAndValidateResponse } = await import('../../scripts/batch-generate-combinations');
+    const mockJson = JSON.stringify({
+      combination_title: 'Scorpio Sun • Aries Moon — The Primal Catalyst',
+      solar_essence: 'Outward Expression: Scorpio drive.',
+      lunar_essence: 'Inner Sanctuary: Aries instincts.',
+      combination_synthesis: 'High impact synthesis.',
+      default_behaviors: ['b1', 'b2', 'b3', 'b4', 'b5'],
+      shadow_pattern: 'Impatience under stress.',
+      upgrade_teaser: 'Upgrade teaser text.',
+    });
+
+    const wrappedInMarkdown = `\`\`\`json\n${mockJson}\n\`\`\``;
+    const parsed = parseAndValidateResponse(wrappedInMarkdown, 'Scorpio', 'Aries');
+
+    expect(parsed.combination_title).toBe('Scorpio Sun • Aries Moon — The Primal Catalyst');
+    expect(parsed.default_behaviors.length).toBe(5);
+    expect(parsed.sun_sign).toBe('Scorpio');
+    expect(parsed.moon_sign).toBe('Aries');
+  });
+
+  it('normalizes behavioral array to exactly 5 items when fewer are returned', async () => {
+    const { parseAndValidateResponse } = await import('../../scripts/batch-generate-combinations');
+    const partialJson = JSON.stringify({
+      combination_title: 'Gemini Sun • Taurus Moon — The Articulate Builder',
+      solar_essence: 'Gemini agility.',
+      lunar_essence: 'Taurus grounding.',
+      combination_synthesis: 'Air and earth synergy.',
+      default_behaviors: ['Communicates clearly', 'Seeks material security'],
+      shadow_pattern: 'Restlessness meets stubbornness.',
+      upgrade_teaser: 'Upgrade to daily blueprint.',
+    });
+
+    const parsed = parseAndValidateResponse(partialJson, 'Gemini', 'Taurus');
+    expect(parsed.default_behaviors.length).toBe(5);
+    expect(parsed.default_behaviors[0]).toBe('Communicates clearly');
+    expect(parsed.default_behaviors[1]).toBe('Seeks material security');
+  });
+
+  it('runs batch dry-run mode smoothly', async () => {
+    const { runBatchGeneration } = await import('../../scripts/batch-generate-combinations');
+    const result = await runBatchGeneration({
+      dryRun: true,
+      limit: 3,
+      delayMs: 0,
+    });
+
+    expect(result.total).toBe(3);
+    expect(result.successful).toBe(3);
+    expect(result.failed).toBe(0);
+  });
+});

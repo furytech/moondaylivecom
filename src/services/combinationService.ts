@@ -101,6 +101,7 @@ export function generateDefaultCombinationProfile(sunSign: string, moonSign: str
     `Processes unexpected stress through ${moonSign}'s subconscious emotional lens.`,
     `Achieves highest productivity when ${sunSign} goals honor ${moonSign}'s emotional rhythms.`,
     `Balances ${sunElement} outward drive with ${moonElement} internal resilience.`,
+    `Restores vital equilibrium through rhythmic solitary reflection and somatic grounding.`,
   ];
 
   const shadowPattern = `Under extreme exhaustion, you may alternate between ${sunData.shadow.toLowerCase()} and ${moonData.shadow.toLowerCase()}`;
