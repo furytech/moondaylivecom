@@ -165,7 +165,7 @@ const About = () => {
                 to="/pricing"
                 className="font-display text-xs tracking-widest uppercase px-8 py-3 rounded-md btn-lime"
               >
-                Discover the Sovereign Tier
+                Discover the Luminary Tier
               </Link>
             </div>
           </div>

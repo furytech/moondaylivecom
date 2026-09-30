@@ -92,7 +92,7 @@ export const CosmicAiAssistant: React.FC<CosmicAiAssistantProps> = ({
       } else if (updates) {
         replyText = `✨ Here is an enhanced cosmic transmission for **${updates.sign}** with heightened harmonic resonance and syndication-ready formatting:`;
       } else {
-        replyText = `I have analyzed the celestial alignments for your query: "${prompt}". The cosmic currents favor direct, evocative language that aligns with Moonday's sovereign branding. Let me know if you would like me to draft full transit copy for a specific zodiac sign!`;
+        replyText = `I have analyzed the celestial alignments for your query: "${prompt}". The cosmic currents favor direct, evocative language that aligns with Moonday's luminary branding. Let me know if you would like me to draft full transit copy for a specific zodiac sign!`;
       }
 
       setMessages((prev) => [
@@ -136,7 +136,7 @@ export const CosmicAiAssistant: React.FC<CosmicAiAssistantProps> = ({
     const enhancedAspect = `${currentSign.element} Elevation Wave`;
     const enhancedCopy = `Cosmic currents intensify around ${currentSign.sign}. As the lunar frequencies harmonize with ${currentSign.ruler}, clarity replaces hesitation. Stand firmly in your authentic power today and let instinct guide your key decisions before twilight.`;
     const enhancedPowerHour = '09:30 AM EST';
-    const enhancedRitual = `Light pure beeswax or cedar incense; recite a declaration of sovereign clarity while holding ${currentSign.element === 'Fire' ? 'carnelian' : currentSign.element === 'Earth' ? 'pyrite' : currentSign.element === 'Air' ? 'selenite' : 'aquamarine'}.`;
+    const enhancedRitual = `Light pure beeswax or cedar incense; recite a declaration of luminary clarity while holding ${currentSign.element === 'Fire' ? 'carnelian' : currentSign.element === 'Earth' ? 'pyrite' : currentSign.element === 'Air' ? 'selenite' : 'aquamarine'}.`;
     const enhancedTags = [`#${currentSign.sign}Energy`, '#MoondayLive', '#CosmicSyndication', '#LunarFrequency', '#DailyAlignment'];
 
     const updates = {

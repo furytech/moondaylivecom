@@ -295,7 +295,7 @@ const Blueprint = () => {
             <GlassmorphismCard className="mb-6 text-center animate-fade-up" size="sm">
               <div className="flex items-center justify-center gap-3 mb-2">
                 <Crown className="w-6 h-6 text-primary" />
-                <span className="font-display text-xl text-primary tracking-wider">Welcome, Sovereign!</span>
+                <span className="font-display text-xl text-primary tracking-wider">Welcome, Luminary!</span>
               </div>
               <p className="font-serif text-lg text-cream-muted">
                 Your lunar journey has begun. All premium features are now unlocked.
@@ -311,7 +311,7 @@ const Blueprint = () => {
               {isPro && (
                 <span className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full">
                   <Crown className="w-4 h-4 text-primary" />
-                  <span className="font-display text-sm text-primary uppercase tracking-widest">Sovereign Member</span>
+                  <span className="font-display text-sm text-primary uppercase tracking-widest">Luminary Member</span>
                 </span>
               )}
             </div>

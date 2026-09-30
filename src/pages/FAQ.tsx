@@ -19,8 +19,8 @@ const faqs = [
     a: "Your Lunar Signature is generated from the precise date, time, and location of your birth using astronomical engines. The more accurate the data, the more nuanced your blueprint.",
   },
   {
-    q: "What is the Sovereign Tier?",
-    a: "The Sovereign Tier unlocks the full archive: deeper daily forecasts, the complete Lunar Library, void-of-course interval guidance, and unlimited access to your personal blueprint.",
+    q: "What is the Luminary Tier?",
+    a: "The Luminary Tier unlocks the full archive: deeper daily forecasts, the complete Lunar Library, void-of-course interval guidance, and unlimited access to your personal blueprint.",
   },
   {
     q: "Can I cancel my subscription?",
@@ -49,7 +49,7 @@ const FAQ = () => {
     <PageLayout>
       <SEO
         title="FAQ — Moonday Live"
-        description="Answers about your Lunar Signature, the Sovereign Tier, billing, cancellations, and how Moonday guides your Great Cycle."
+        description="Answers about your Lunar Signature, the Luminary Tier, billing, cancellations, and how Moonday guides your Great Cycle."
       />
       <Helmet>
         <script type="application/ld+json">

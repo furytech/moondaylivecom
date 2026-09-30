@@ -250,7 +250,7 @@ const Account = () => {
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
         title="Account — Moonday Live"
-        description="Manage your Moonday Live account, birth details, subscription, and Sovereign Security settings."
+        description="Manage your Moonday Live account, birth details, subscription, and Luminary Security settings."
         noindex
       />
       {/* Decorative stars */}
@@ -454,7 +454,7 @@ const Account = () => {
                       <div className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full mb-4">
                         <Crown className="w-4 h-4 text-primary" />
                         <span className="font-display text-sm text-primary uppercase tracking-widest">
-                          Sovereign Member
+                          Luminary Member
                         </span>
                       </div>
                       <p className="font-serif text-base text-cream-muted mb-6">
@@ -485,7 +485,7 @@ const Account = () => {
                         className="inline-flex items-center gap-2 px-6 py-3 font-display text-xs tracking-[0.2em] uppercase border border-primary/30 rounded-full text-primary/90 hover:text-primary hover:bg-primary/5 hover:border-primary/50 transition-all duration-500"
                       >
                         <Crown className="w-4 h-4" />
-                        Upgrade to Sovereign
+                        Upgrade to Luminary
                       </button>
                     </>
                   )}

@@ -113,7 +113,7 @@ const OAuthConsent = () => {
         <div className="max-w-md w-full">
           <div className="text-center mb-6">
             <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
-              Sovereign Access
+              Luminary Access
             </p>
             <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-2">
               Connect {clientName} to your account

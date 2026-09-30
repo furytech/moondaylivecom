@@ -101,7 +101,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
           <div className="flex items-center justify-center gap-2 mb-6">
             <Crown className="w-5 h-5 text-primary" />
             <h3 className="font-display text-lg tracking-widest text-primary uppercase">
-              Sovereign Insight
+              Luminary Insight
             </h3>
           </div>
           <div className="text-center mb-4">
@@ -124,7 +124,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
               Complete Your Profile
             </h3>
             <p className="font-serif text-base text-cream-muted mb-6 max-w-md mx-auto">
-              Enter your birth details above to unlock your personalized Sovereign Insight — a deep reading of how today's moon interacts with your natal lunar imprint.
+              Enter your birth details above to unlock your personalized Luminary Insight — a deep reading of how today's moon interacts with your natal lunar imprint.
             </p>
           </div>
         </div>
@@ -136,7 +136,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
               <Lock className="w-6 h-6 text-primary" />
             </div>
             <h3 className="font-display text-lg text-gold-gradient mb-6 tracking-widest uppercase">
-              Sovereign Features
+              Luminary Features
             </h3>
             <ul className="space-y-4 text-left max-w-md mx-auto mb-8">
               <li className="flex items-start gap-3">
@@ -163,7 +163,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
               className="inline-flex items-center gap-2 px-8 py-4 font-display text-sm tracking-widest uppercase bg-primary text-primary-foreground rounded-xl shadow-glow hover:shadow-gold transition-all duration-500"
             >
               <Crown className="w-4 h-4" />
-              Unlock Sovereign Access
+              Unlock Luminary Access
             </button>
           </div>
         </div>

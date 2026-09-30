@@ -366,8 +366,8 @@ export default function Sovereign() {
   return (
     <div className="sov-shell min-h-screen">
       <SEO
-        title="Sovereign Dashboard — Present-Moment Geometry"
-        description="Live geocentric lunar positions, Whole Sign houses, and kinetic aspects for the Sovereign Tier."
+        title="Luminary Dashboard — Present-Moment Geometry"
+        description="Live geocentric lunar positions, Whole Sign houses, and kinetic aspects for the Luminary Tier."
         noindex
       />
       <Navigation />
@@ -375,7 +375,7 @@ export default function Sovereign() {
         <div className="max-w-6xl mx-auto">
           <header className="text-center mb-4">
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
-              Sovereign · Awareness Dashboard
+              Luminary · Awareness Dashboard
             </div>
             <h1 className="font-display text-3xl md:text-4xl tracking-tight text-[hsl(var(--sov-ivory))]">
               Present-Moment Geometry

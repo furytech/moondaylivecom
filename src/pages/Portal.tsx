@@ -347,7 +347,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         toast({
           title: "Recovery Successful",
           description:
-            "Two-factor has been removed. Please re-enroll from Sovereign Security.",
+            "Two-factor has been removed. Please re-enroll from Luminary Security.",
         });
         navigate(redirectTo, { replace: true });
       } catch (err: unknown) {
@@ -365,7 +365,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           <div className="max-w-md w-full">
             <div className="text-center mb-6 animate-fade-up">
               <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
-                Sovereign Security
+                Luminary Security
               </p>
               <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-2">
                 Two-Factor Required
@@ -689,7 +689,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                   <span className="bg-gradient-to-r from-[#E8C97A] via-[#F5DDA1] to-[#E8C97A] bg-clip-text text-transparent">A real astrologer never did.</span>
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto relative">
-                  Your Moon sign is the headline. <span className="text-lilac">Sovereign</span> reads the Sun, Mars, Venus, and the slow outer planets that shape who you actually are — no birth time required.
+                  Your Moon sign is the headline. <span className="text-lilac">Luminary</span> reads the Sun, Mars, Venus, and the slow outer planets that shape who you actually are — no birth time required.
                 </p>
               </div>
             </div>

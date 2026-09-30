@@ -121,7 +121,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
           <div className="flex items-center justify-between pb-5 mb-6 border-b border-slate-800">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-medium text-slate-300">Sovereign Gate</span>
+              <span className="text-xs font-medium text-slate-300">Luminary Gate</span>
             </div>
             <span className="text-xs font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
               {allowedEmail}

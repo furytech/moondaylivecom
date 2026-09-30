@@ -109,7 +109,7 @@ const SystemErrors = () => {
 
         <div className="flex items-center justify-center gap-6 my-6 text-sm">
           <span className="text-destructive">{openCritical} open critical</span>
-          <span className="text-primary">{affectingMembers} affecting Sovereign members</span>
+          <span className="text-primary">{affectingMembers} affecting Luminary members</span>
           <button
             onClick={() => refetch()}
             className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
@@ -138,7 +138,7 @@ const SystemErrors = () => {
                   <span className="text-sm text-foreground/90">{row.source}</span>
                   <span className="text-xs text-muted-foreground">{fmt(row.occurred_at)}</span>
                   {row.affects_subscribers && !row.resolved_at ? (
-                    <span className="text-xs text-destructive">Sovereign impact</span>
+                    <span className="text-xs text-destructive">Luminary impact</span>
                   ) : null}
                   {row.alerted_at ? (
                     <span className="text-xs text-muted-foreground">alerted {fmt(row.alerted_at)}</span>

@@ -46,7 +46,7 @@ const Contact = () => {
             Contact Support
           </h1>
           <p className="font-serif text-cream-muted text-sm md:text-base">
-            For account, billing, or sovereign inquiries — we are listening.
+            For account, billing, or luminary inquiries — we are listening.
           </p>
         </header>
 

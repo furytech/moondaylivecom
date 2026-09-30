@@ -19,7 +19,7 @@ const PLANS = [
     price: "$89.99",
     period: "/year",
     savings: "Save 25%",
-    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Sovereign Insight", "Priority support"],
+    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Luminary Insight", "Priority support"],
   },
   {
     id: "monthly",
@@ -28,7 +28,7 @@ const PLANS = [
     price: "$9.99",
     period: "/month",
     savings: null,
-    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Sovereign Insight"],
+    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Luminary Insight"],
   },
 ];
 
@@ -64,7 +64,7 @@ const PricingModal = ({ open, onOpenChange, onSelectPlan, loading }: PricingModa
           <div className="flex items-center justify-center gap-2 mb-2">
             <Crown className="w-6 h-6 text-primary" />
             <DialogTitle className="font-display text-2xl text-gold-gradient tracking-wider">
-              The Sovereign Tier
+              The Luminary Tier
             </DialogTitle>
           </div>
           <p className="font-serif text-cream-muted">

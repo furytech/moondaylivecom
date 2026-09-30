@@ -186,7 +186,7 @@ const SovereignSecurity = () => {
       <div className="flex items-center justify-center gap-3 mb-2">
         <ShieldCheck className="w-5 h-5 text-primary" />
         <h2 className="font-display text-lg tracking-widest uppercase text-foreground text-center">
-          Sovereign Security
+          Luminary Security
         </h2>
       </div>
       <p className="font-serif text-sm text-cream-muted/70 text-center mb-6">

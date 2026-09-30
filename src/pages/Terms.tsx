@@ -10,7 +10,7 @@ const Terms = () => {
     <PageLayout>
       <SEO
         title="Terms of Service — Moonday Live"
-        description="The terms governing your use of Moonday Live, the Sovereign Tier subscription, and account responsibilities."
+        description="The terms governing your use of Moonday Live, the Luminary Tier subscription, and account responsibilities."
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({

@@ -7,7 +7,7 @@ const Refund = () => {
     <PageLayout>
       <SEO
         title="Refund & Cancellation Policy — Moonday Live"
-        description="How cancellations, renewals, and refunds are handled for the Moonday Live Sovereign Tier subscription."
+        description="How cancellations, renewals, and refunds are handled for the Moonday Live Luminary Tier subscription."
       />
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
@@ -22,7 +22,7 @@ const Refund = () => {
         <GlassmorphismCard>
           <div className="font-serif text-cream-muted leading-relaxed space-y-6 text-sm md:text-base">
             <p>
-              The Sovereign Tier is a recurring subscription. By subscribing,
+              The Luminary Tier is a recurring subscription. By subscribing,
               you authorise Moonday Live to charge your payment method on a
               recurring basis until you cancel.
             </p>
@@ -33,7 +33,7 @@ const Refund = () => {
             <p>
               You may cancel your subscription at any time from the Account
               page. Cancellation takes effect at the end of your current
-              billing period. You will retain Sovereign Tier access until that
+              billing period. You will retain Luminary Tier access until that
               date — no further charges will be made.
             </p>
 

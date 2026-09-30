@@ -327,11 +327,11 @@ const Index = () => {
               Go Deeper
             </p>
             <h2 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-6">
-              The Sovereign Tier
+              The Luminary Tier
             </h2>
             <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
               Personalized daily analysis, long-term trend forecasting, and the
-              Sovereign Reflection — a deep reading of why you react the way you
+              Luminary Reflection — a deep reading of why you react the way you
               do during specific transits.
             </p>
 
@@ -347,7 +347,7 @@ const Index = () => {
                 <div className="absolute inset-0 backdrop-blur-md bg-navy-deep/40 z-10" />
                 <div className="relative md:absolute md:inset-0 flex flex-col items-center justify-center z-20 p-8">
                   <h3 className="font-display text-2xl md:text-3xl text-foreground mb-4 tracking-wide">
-                    Unlock Sovereign Insight
+                    Unlock Luminary Insight
                   </h3>
                   <p className="text-muted-foreground mb-8 max-w-sm text-sm md:text-base">
                     Your personalized Emotional Climate report and predictive lunar tools.
@@ -356,7 +356,7 @@ const Index = () => {
                     onClick={() => navigate("/pricing")}
                     className="px-8 py-3 bg-lilac hover:bg-lilac-light text-primary-foreground text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_30px_-8px_hsl(var(--lilac)/0.6)]"
                   >
-                    Enter the Sovereign Tier
+                    Enter the Luminary Tier
                   </button>
                 </div>
               </div>

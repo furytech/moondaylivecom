@@ -139,7 +139,7 @@ const Subscribers = () => {
                     <td className="px-4 py-3">{r.email ?? "—"}</td>
                     <td className="px-4 py-3">
                       {r.is_subscriber ? (
-                        <span className="text-amber-300">Sovereign</span>
+                        <span className="text-amber-300">Luminary</span>
                       ) : (
                         <span className="text-white/50">Free</span>
                       )}

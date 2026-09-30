@@ -61,8 +61,8 @@ const SubscriptionSuccess = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
-        title="Welcome to the Sovereign Tier — Moonday Live"
-        description="Your Sovereign Tier is active. Step into the full lunar archive and your personal blueprint."
+        title="Welcome to the Luminary Tier — Moonday Live"
+        description="Your Luminary Tier is active. Step into the full lunar archive and your personal blueprint."
         noindex
       />
       {/* Stars */}
@@ -90,14 +90,14 @@ const SubscriptionSuccess = () => {
             <span className="inline-flex items-center gap-2 px-5 py-2.5 glass-card rounded-full shadow-glow">
               <Crown className="w-5 h-5 text-primary" />
               <span className="font-display text-sm text-primary uppercase tracking-widest">
-                Sovereign Member
+                Luminary Member
               </span>
             </span>
           </div>
 
           {/* Main heading */}
           <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-gold-gradient tracking-wider mb-3 animate-fade-up stagger-2 leading-[1.2] pb-1">
-            Welcome, Sovereign.
+            Welcome, Luminary.
           </h1>
 
           <p className="font-serif text-lg md:text-xl text-cream-muted mb-3 animate-fade-up stagger-2">

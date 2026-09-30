@@ -28,7 +28,7 @@ const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: Sover
         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/40 bg-primary/10 mb-5">
           <Crown className="w-3 h-3 text-primary" />
           <span className="font-display text-[10px] uppercase tracking-[0.25em] text-primary">
-            The Sovereign Reading
+            The Luminary Reading
           </span>
         </span>
 

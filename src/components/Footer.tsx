@@ -41,7 +41,7 @@ const Footer = () => {
             </p>
             <ul className="space-y-2">
               <li><Link to="/" className={linkClass}>Home</Link></li>
-              <li><Link to="/pricing" className={linkClass}>Sovereign Tier</Link></li>
+              <li><Link to="/pricing" className={linkClass}>Luminary Tier</Link></li>
               <li><Link to="/library" className={linkClass}>Lunar Library</Link></li>
             </ul>
           </div>

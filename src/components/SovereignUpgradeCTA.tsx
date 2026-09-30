@@ -24,7 +24,7 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
         <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 mb-6">
           <Crown className="w-3.5 h-3.5 text-primary" />
           <span className="font-display text-[11px] uppercase tracking-[0.25em] text-primary">
-            The Sovereign Reading
+            The Luminary Reading
           </span>
         </span>
 
@@ -35,7 +35,7 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
         </h2>
 
         <p className="font-serif text-lg md:text-xl text-cream-muted max-w-2xl mb-3 leading-relaxed">
-          Your Moon sign is the headline. <span className="text-foreground">Sovereign is the rest of the story.</span>
+          Your Moon sign is the headline. <span className="text-foreground">Luminary is the rest of the story.</span>
         </p>
 
         <p className="font-serif text-sm md:text-base text-cream-muted/90 max-w-2xl mb-3 leading-relaxed italic">

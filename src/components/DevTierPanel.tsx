@@ -73,7 +73,7 @@ const DevTierPanel = () => {
           {([
             { v: null, label: "Real", color: "rgb(148, 163, 184)" },
             { v: "free" as const, label: "Free", color: "rgb(248, 113, 113)" },
-            { v: "sovereign" as const, label: "Sovereign", color: "rgb(192, 132, 252)" },
+            { v: "sovereign" as const, label: "Luminary", color: "rgb(192, 132, 252)" },
           ]).map((opt) => {
             const active = override === opt.v;
             return (

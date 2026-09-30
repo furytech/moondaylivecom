@@ -154,7 +154,7 @@ export default function Triad() {
     <div className="sov-shell min-h-screen">
       <SEO
         title="The Three Lenses — Tropical, Sidereal & Draconic Moon"
-        description="One Sovereign View of today's Moon through Tropical (persona), Sidereal (wiring), and Draconic (soul) lenses."
+        description="One Luminary View of today's Moon through Tropical (persona), Sidereal (wiring), and Draconic (soul) lenses."
         canonical="https://moondaylive.com/lenses"
       />
       <Navigation />
@@ -165,7 +165,7 @@ export default function Triad() {
               The Lenses
             </div>
             <h1 className="font-display text-3xl md:text-4xl tracking-tight text-[hsl(var(--sov-ivory))]">
-              Three Lenses, One Sovereign View
+              Three Lenses, One Luminary View
             </h1>
             <p className="mt-3 text-sm sm:text-base text-[hsl(var(--sov-ivory)/0.65)] max-w-xl mx-auto leading-relaxed">
               The same Moon, read through three lenses — Persona, Wiring, Soul.
@@ -182,7 +182,7 @@ export default function Triad() {
           <div className="grid gap-6 grid-cols-1 items-start">
             <article className="sov-card">
               <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
-                Three Lenses, One Sovereign View
+                Three Lenses, One Luminary View
               </div>
               <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-3">
                 The three positions rarely agree — and that is the point. When your Tropical,
