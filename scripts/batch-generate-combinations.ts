@@ -257,7 +257,7 @@ export async function callGeminiApi(
   apiKey: string,
   options: GeminiApiOptions = {}
 ): Promise<CombinationProfile> {
-  const model = options.model || 'gemini-2.5-flash';
+  const model = options.model || 'gemini-3.1-flash-lite';
   const maxTokens = options.maxTokens || 2500;
   const temperature = options.temperature ?? 0.7;
   const maxRetries = options.maxRetries ?? 3;

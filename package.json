@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "generate:combinations": "npx tsx -- scripts/batch-generate-combinations.ts",
     "predev": "bunx tsx scripts/generate-sitemap.ts",
+    "enrich:shadow": "npx tsx -- scripts/enrich-shadow-work.ts",
     "prebuild": "bunx tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
@@ -54,6 +55,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "dotenv": "^18.0.4",
     "embla-carousel-react": "^8.6.0",
     "html-to-image": "^1.11.13",
     "input-otp": "^1.4.2",
