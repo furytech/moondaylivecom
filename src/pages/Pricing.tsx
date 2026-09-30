@@ -23,7 +23,7 @@ const PRICES = {
     id: "price_1TyyXjJowQfvwg0ZmlzUBfAI",
     amount: "$58.88",
     interval: "year",
-    savings: "Save 25%",
+    savings: "2 Months Free",
   },
 };
 
@@ -175,7 +175,7 @@ const Pricing = () => {
             {
               "@type": "Offer",
               name: "Luminary Monthly",
-              price: "9.99",
+              price: "6.88",
               priceCurrency: "USD",
               url: "https://moondaylive.com/pricing",
               availability: "https://schema.org/InStock",
@@ -183,7 +183,7 @@ const Pricing = () => {
             {
               "@type": "Offer",
               name: "Luminary Yearly",
-              price: "89.99",
+              price: "58.88",
               priceCurrency: "USD",
               url: "https://moondaylive.com/pricing",
               availability: "https://schema.org/InStock",
