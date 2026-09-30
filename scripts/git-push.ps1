@@ -1,0 +1,1 @@
+.\scripts\git-push.ps1 -message "populated all 144 signs with moon, sun, and shadow work"
