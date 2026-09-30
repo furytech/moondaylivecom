@@ -15,31 +15,31 @@ import { getCurrentMoon } from "@/lib/currentMoon";
 // Stripe Price IDs
 const PRICES = {
   monthly: {
-    id: "price_1TyyX5JowQfvwg0ZUb0qwrdE",
-    amount: "$9.99",
+    id: "price_1ULN2GJowQfvwg0ZtYxb5Th5",
+    amount: "$6.88",
     interval: "month",
   },
   yearly: {
     id: "price_1TyyXjJowQfvwg0ZmlzUBfAI",
-    amount: "$89.99",
+    amount: "$58.88",
     interval: "year",
     savings: "Save 25%",
   },
 };
 
 // Side-by-side comparison: each row indicates whether the tier includes the feature.
-const COMPARISON: { label: string; free: boolean; sovereign: boolean }[] = [
-  { label: "Current Moon sign & phase", free: true, sovereign: true },
-  { label: "General earthwide moon meaning", free: true, sovereign: true },
-  { label: "Daily lunar climate gauge", free: true, sovereign: true },
-  { label: "Lunar Library (zodiac archives)", free: true, sovereign: true },
-  { label: "Personalized Birth Moon × Current Moon Forecast", free: false, sovereign: true },
-  { label: "Mind, Soul & Body Lunar Pillars", free: false, sovereign: true },
-  { label: "Daily Sovereign Insight & ritual", free: false, sovereign: true },
-  { label: "Crystal & element guidance", free: false, sovereign: true },
-  { label: "Moon transition alerts", free: false, sovereign: true },
-  { label: "Sacred practice library", free: false, sovereign: true },
-  { label: "Honest Chart — no birth time required", free: false, sovereign: true },
+const COMPARISON: { label: string; free: boolean; Luminary: boolean }[] = [
+  { label: "Current Moon sign & phase", free: true, Luminary: true },
+  { label: "General earthwide moon meaning", free: true, Luminary: true },
+  { label: "Daily lunar climate gauge", free: true, Luminary: true },
+  { label: "Lunar Library (zodiac archives)", free: true, Luminary: true },
+  { label: "Personalized Birth Moon × Current Moon Forecast", free: false, Luminary: true },
+  { label: "Mind, Soul & Body Lunar Pillars", free: false, Luminary: true },
+  { label: "Daily Luminary Insight & ritual", free: false, Luminary: true },
+  { label: "Crystal & element guidance", free: false, Luminary: true },
+  { label: "Moon transition alerts", free: false, Luminary: true },
+  { label: "Sacred practice library", free: false, Luminary: true },
+  { label: "Honest Chart — no birth time required", free: false, Luminary: true },
 ];
 
 const Pricing = () => {
@@ -77,7 +77,7 @@ const Pricing = () => {
         setTeaserMoonSign(birthMoonSign);
         setTeaserLoading(true);
         const current = getCurrentMoon();
-        const { data, error: fnError } = await supabase.functions.invoke("sovereign-teaser", {
+        const { data, error: fnError } = await supabase.functions.invoke("Luminary-teaser", {
           body: {
             birthMoonSign,
             currentMoonSign: current.sign,
@@ -105,7 +105,7 @@ const Pricing = () => {
       ? "Yearly"
       : subscription.priceId === PRICES.monthly.id
       ? "Monthly"
-      : "Sovereign";
+      : "Luminary";
 
   const formatDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : null;
@@ -160,21 +160,21 @@ const Pricing = () => {
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
         title="Moon Sign Horoscope & Daily Forecast Pricing | Moonday Live"
-        description="Unlock precise astrology without a birth time. Get your daily moon sign horoscope, full Lunar Library, and personal blueprint. Sovereign Tier from $9.99/month."
+        description="Unlock precise astrology without a birth time. Get your daily moon sign horoscope, full Lunar Library, and personal blueprint. Luminary Tier from $6.88/month."
         canonical="https://moondaylive.com/pricing"
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Product",
-          name: "Moonday Live Sovereign Tier",
+          name: "Moonday Live Luminary Tier",
           description: "Precise, personalized daily moon sign horoscope, full Lunar Library, SMS moon ingress alerts, and complete natal chart synthesis — no birth time required.",
           brand: { "@type": "Brand", name: "Moonday Live" },
           url: "https://moondaylive.com/pricing",
           offers: [
             {
               "@type": "Offer",
-              name: "Sovereign Monthly",
+              name: "Luminary Monthly",
               price: "9.99",
               priceCurrency: "USD",
               url: "https://moondaylive.com/pricing",
@@ -182,7 +182,7 @@ const Pricing = () => {
             },
             {
               "@type": "Offer",
-              name: "Sovereign Yearly",
+              name: "Luminary Yearly",
               price: "89.99",
               priceCurrency: "USD",
               url: "https://moondaylive.com/pricing",
@@ -240,7 +240,7 @@ const Pricing = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full mb-4">
                 <Crown className="w-4 h-4 text-primary" />
                 <span className="font-display text-sm text-primary uppercase tracking-widest">
-                  You're a Sovereign Member
+                  You're a Luminary Member
                 </span>
               </div>
               <p className="font-serif text-base text-cream-muted mb-2">
@@ -360,7 +360,7 @@ const Pricing = () => {
                 <span className="font-display text-4xl text-cream-muted">$0</span>
                 <span className="font-serif text-base text-cream-muted/60">/forever</span>
               </div>
-              {/* Spacer to match Sovereign's "Save X%" line so checklists align */}
+              {/* Spacer to match Luminary's "Save X%" line so checklists align */}
               <p className="font-serif text-sm mt-2 invisible" aria-hidden="true">placeholder</p>
               <p className="font-serif text-sm text-cream-muted/60 mt-3">
                 The universal lunar climate — always free, always on
@@ -394,7 +394,7 @@ const Pricing = () => {
             </button>
           </GlassmorphismCard>
 
-          {/* SOVEREIGN */}
+          {/* Luminary */}
           <GlassmorphismCard className="animate-fade-up stagger-2 flex flex-col relative border-primary/40">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-full px-4 py-1.5 bg-primary text-primary-foreground font-display text-[10px] tracking-[0.15em] uppercase rounded-full whitespace-nowrap z-20 shadow-lg">
               Most Popular
@@ -403,7 +403,7 @@ const Pricing = () => {
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Crown className="w-5 h-5 text-primary" />
-                <h2 className="font-display text-2xl text-gold-gradient tracking-[0.06em]">Sovereign</h2>
+                <h2 className="font-display text-2xl text-gold-gradient tracking-[0.06em]">Luminary</h2>
               </div>
               <div className="flex items-baseline justify-center gap-1 mt-3">
                 <span className="font-display text-4xl text-gold-gradient">
@@ -415,7 +415,7 @@ const Pricing = () => {
               </div>
               {billingInterval === "yearly" ? (
                 <p className="font-serif text-sm text-primary/80 mt-2">
-                  Just $7.49/mo · billed yearly
+                  Just $4.91/mo · billed yearly
                 </p>
               ) : (
                 <p className="font-serif text-sm text-cream-muted/60 mt-2">
@@ -445,7 +445,7 @@ const Pricing = () => {
               disabled={loading}
               className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-50"
             >
-              {loading ? <MoonLoader size="sm" /> : "Become Sovereign"}
+              {loading ? <MoonLoader size="sm" /> : "Become Luminary"}
             </button>
           </GlassmorphismCard>
         </div>
@@ -462,7 +462,7 @@ const Pricing = () => {
               No birth time? No problem.
             </h2>
             <p className="font-serif text-base text-cream-muted/85 leading-relaxed max-w-2xl mx-auto">
-              Most astrology apps demand a birth time and city before they reveal anything personal. Moonday Live is built differently: we synthesize your Sun, Moon, Mars through Pluto using proven astronomical data — without guessing houses or an Ascendant you can't verify. Free members get their moon sign; Sovereign members get the full picture, honestly delivered.
+              Most astrology apps demand a birth time and city before they reveal anything personal. Moonday Live is built differently: we synthesize your Sun, Moon, Mars through Pluto using proven astronomical data — without guessing houses or an Ascendant you can't verify. Free members get their moon sign; Luminary members get the full picture, honestly delivered.
             </p>
           </div>
         </GlassmorphismCard>
