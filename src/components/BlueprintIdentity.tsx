@@ -41,6 +41,27 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
     return [];
   })();
 
+  // Split combination_synthesis into 2-sentence paragraph chunks
+  const synthesisParagraphs: string[] = (() => {
+    if (!profile.combination_synthesis) return [];
+    const sentences = profile.combination_synthesis
+      .split(". ")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const paragraphs: string[] = [];
+    for (let i = 0; i < sentences.length; i += 2) {
+      const chunk = sentences.slice(i, i + 2);
+      const paragraphText = chunk
+        .map((s) =>
+          s.endsWith(".") || s.endsWith("!") || s.endsWith("?") ? s : `${s}.`
+        )
+        .join(" ");
+      paragraphs.push(paragraphText);
+    }
+    return paragraphs;
+  })();
+
   return (
     <GlassmorphismCard size="lg" className={className}>
       {/* Header Eyebrow */}
@@ -78,12 +99,18 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
         </div>
       )}
 
-      {/* 3. combination_synthesis: Large serif, centered paragraph */}
-      {profile.combination_synthesis && (
-        <div className="mb-10 max-w-3xl mx-auto text-center px-4">
-          <p className="font-serif text-xl md:text-2xl text-cream-muted leading-relaxed italic font-light">
-            "{profile.combination_synthesis}"
-          </p>
+      {/* 3. combination_synthesis: Left-aligned paragraph chunks filling full width */}
+      {synthesisParagraphs.length > 0 && (
+        <div className="mb-10 text-left">
+          {synthesisParagraphs.map((paragraph, index) => (
+            <p
+              key={index}
+              className="font-serif text-xl md:text-2xl text-cream-muted leading-relaxed italic font-light text-left indent-0"
+              style={{ marginBottom: "1.2em", textIndent: 0 }}
+            >
+              {paragraph}
+            </p>
+          ))}
         </div>
       )}
 

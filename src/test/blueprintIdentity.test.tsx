@@ -55,13 +55,12 @@ describe("BlueprintIdentity Component (Layer 1)", () => {
     expect(screen.getByText("Empathetic")).toBeDefined();
   });
 
-  it("renders the combination synthesis paragraph in serif text", () => {
+  it("renders the combination synthesis paragraph in serif text with left-alignment", () => {
     render(<BlueprintIdentity profile={mockProfile} />);
-    const synthesis = screen.getByText(
-      `"${mockProfile.combination_synthesis}"`
-    );
+    const synthesis = screen.getByText(mockProfile.combination_synthesis);
     expect(synthesis).toBeDefined();
     expect(synthesis.className).toContain("font-serif");
+    expect(synthesis.className).toContain("text-left");
   });
 
   it("renders solar and lunar essences side by side", () => {
