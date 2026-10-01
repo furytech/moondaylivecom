@@ -986,6 +986,60 @@ export type Database = {
         }
         Relationships: []
       }
+      triad_states: {
+        Row: {
+          combination_title: string | null
+          created_at: string | null
+          daily_ritual: string | null
+          emotional_guidance: string | null
+          generated_at: string | null
+          id: string
+          integration_invitation: string | null
+          natal_moon_sign: string
+          natal_sun_sign: string
+          physical_guidance: string | null
+          shadow_activation: string | null
+          spiritual_guidance: string | null
+          transiting_moon_sign: string
+          triad_number: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          combination_title?: string | null
+          created_at?: string | null
+          daily_ritual?: string | null
+          emotional_guidance?: string | null
+          generated_at?: string | null
+          id?: string
+          integration_invitation?: string | null
+          natal_moon_sign: string
+          natal_sun_sign: string
+          physical_guidance?: string | null
+          shadow_activation?: string | null
+          spiritual_guidance?: string | null
+          transiting_moon_sign: string
+          triad_number?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          combination_title?: string | null
+          created_at?: string | null
+          daily_ritual?: string | null
+          emotional_guidance?: string | null
+          generated_at?: string | null
+          id?: string
+          integration_invitation?: string | null
+          natal_moon_sign?: string
+          natal_sun_sign?: string
+          physical_guidance?: string | null
+          shadow_activation?: string | null
+          spiritual_guidance?: string | null
+          transiting_moon_sign?: string
+          triad_number?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

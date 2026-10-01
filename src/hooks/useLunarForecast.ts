@@ -9,6 +9,7 @@ interface ForecastData {
   energy: string;
   luckyFocus: string;
   phaseModifier?: string;
+  integrationInvitation?: string;
 }
 
 interface UseLunarForecastResult {
@@ -19,7 +20,8 @@ interface UseLunarForecastResult {
 
 export function useLunarForecast(
   birthMoonSign: string,
-  currentMoon: CurrentMoonData
+  currentMoon: CurrentMoonData,
+  natalSunSign?: string | null
 ): UseLunarForecastResult {
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,33 @@ export function useLunarForecast(
       setError(null);
 
       try {
+        if (natalSunSign) {
+          const { data: triadData, error: triadError } = await supabase
+            .from('triad_states')
+            .select('physical_guidance, emotional_guidance, spiritual_guidance, daily_ritual, shadow_activation, integration_invitation')
+            .eq('natal_sun_sign', natalSunSign)
+            .eq('natal_moon_sign', birthMoonSign)
+            .eq('transiting_moon_sign', currentMoon.sign)
+            .maybeSingle();
+
+          if (triadError) {
+            console.error("Error fetching triad forecast:", triadError);
+          }
+
+          if (triadData) {
+            setForecast({
+              headline: triadData.physical_guidance || "",
+              forecast: triadData.emotional_guidance || "",
+              energy: triadData.spiritual_guidance || "",
+              luckyFocus: triadData.daily_ritual || "",
+              phaseModifier: triadData.shadow_activation || undefined,
+              integrationInvitation: triadData.integration_invitation || undefined,
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
         // Fetch the forecast for this birth/current sign combination
         const { data: forecastData, error: forecastError } = await supabase
           .from("daily_forecasts")
@@ -97,7 +126,7 @@ export function useLunarForecast(
     };
 
     fetchForecast();
-  }, [birthMoonSign, currentMoon.sign, currentMoon.phase]);
+  }, [birthMoonSign, currentMoon.sign, currentMoon.phase, natalSunSign]);
 
   return { forecast, loading, error };
 }

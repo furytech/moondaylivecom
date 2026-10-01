@@ -63,6 +63,7 @@ const Blueprint = () => {
   
   // Temporary moon sign for users who use the lookup form but don't have a saved profile
   const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
+  const [tempSunSign, setTempSunSign] = useState<string | null>(null);
   
   // Dev tier override wins in DEV builds; tree-shaken in production.
   const devOverride = import.meta.env.DEV
@@ -79,6 +80,7 @@ const Blueprint = () => {
 
   // The displayed moon sign - either from profile or temp lookup
   const displayedMoonSign = userProfile?.natal_moon_sign || userProfile?.moon_sign || tempMoonSign;
+  const displayedSunSign = userProfile?.natal_sun_sign || (userProfile?.birthday ? calculateSunSign(new Date(`${userProfile.birthday.split("T")[0]}T12:00:00`)) : null) || tempSunSign;
 
   // Extract name from email
   const userName = user?.email?.split("@")[0] || "Cosmic Traveler";
@@ -212,10 +214,10 @@ const Blueprint = () => {
 
   const handleMoonSignCalculated = async (result: MoonSignResult & { birthDate: Date; birthTime?: string; birthCity?: string }) => {
     setTempMoonSign(result.sign);
+    const sunSign = calculateSunSign(result.birthDate);
+    setTempSunSign(sunSign);
 
     if (!user) return;
-
-    const sunSign = calculateSunSign(result.birthDate);
 
     // Save birthday + natal signs for EVERY logged-in user (free or Sovereign).
     // Birth time and city stay Sovereign-only since they require precision calc.
@@ -450,6 +452,7 @@ const Blueprint = () => {
                 <DailyForecast
                   birthMoonSign={displayedMoonSign}
                   currentMoon={moonDataCompat}
+                  natalSunSign={displayedSunSign}
                 />
               </CalculationBoundary>
             </div>

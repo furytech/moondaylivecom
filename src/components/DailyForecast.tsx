@@ -7,10 +7,11 @@ import { Skeleton } from "./ui/skeleton";
 interface DailyForecastProps {
   birthMoonSign: string;
   currentMoon: CurrentMoonData;
+  natalSunSign?: string | null;
 }
 
-const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
-  const { forecast, loading } = useLunarForecast(birthMoonSign, currentMoon);
+const DailyForecast = ({ birthMoonSign, currentMoon, natalSunSign }: DailyForecastProps) => {
+  const { forecast, loading } = useLunarForecast(birthMoonSign, currentMoon, natalSunSign);
 
   if (loading) {
     return (
@@ -52,7 +53,7 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
       <div className="flex items-center justify-center gap-8 mb-8">
         <div className="text-center">
           <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-2">
-            Your Birth Moon
+            {natalSunSign ? `${natalSunSign} Sun • ${birthMoonSign} Moon` : "Your Birth Moon"}
           </p>
           <p className="font-display text-xl text-primary">
             {birthMoonSign}
@@ -88,6 +89,11 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
               {forecast.phaseModifier}
             </span>
           )}
+          {forecast.integrationInvitation && (
+            <span className="block mt-3 text-cream-muted/90 italic text-base">
+              ✦ {forecast.integrationInvitation}
+            </span>
+          )}
         </p>
       </div>
 
@@ -95,17 +101,17 @@ const DailyForecast = ({ birthMoonSign, currentMoon }: DailyForecastProps) => {
       <div className="grid lg:grid-cols-2 gap-6 pt-6 border-t border-primary/10">
         <div className="text-center">
           <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-2">
-            Today's Energy
+            {forecast.energy.length > 50 ? "Spiritual Guidance" : "Today's Energy"}
           </p>
-          <p className="font-display text-xl text-primary capitalize">
+          <p className={forecast.energy.length > 50 ? "font-serif text-sm md:text-base text-cream-muted leading-relaxed text-left" : "font-display text-xl text-primary capitalize"}>
             {forecast.energy}
           </p>
         </div>
         <div className="text-center">
           <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-2">
-            Lucky Focus
+            {forecast.luckyFocus.length > 50 ? "Daily Ritual" : "Lucky Focus"}
           </p>
-          <p className="font-display text-xl text-primary capitalize">
+          <p className={forecast.luckyFocus.length > 50 ? "font-serif text-sm md:text-base text-cream-muted leading-relaxed text-left" : "font-display text-xl text-primary capitalize"}>
             {forecast.luckyFocus}
           </p>
         </div>
