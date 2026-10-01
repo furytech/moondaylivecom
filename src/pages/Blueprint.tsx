@@ -78,7 +78,7 @@ const Blueprint = () => {
   const success = searchParams.get("success") === "true";
 
   // The displayed moon sign - either from profile or temp lookup
-  const displayedMoonSign = userProfile?.moon_sign || tempMoonSign;
+  const displayedMoonSign = userProfile?.natal_moon_sign || userProfile?.moon_sign || tempMoonSign;
 
   // Extract name from email
   const userName = user?.email?.split("@")[0] || "Cosmic Traveler";
