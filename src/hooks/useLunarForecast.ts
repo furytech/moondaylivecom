@@ -3,17 +3,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { CurrentMoonData } from "@/lib/currentMoon";
 import { generateDailyForecast } from "@/lib/forecastEngine";
 
-interface ForecastData {
+export interface TriadData {
+  physical_guidance: string;
+  emotional_guidance: string;
+  spiritual_guidance: string;
+  daily_ritual: string;
+  shadow_activation: string;
+  integration_invitation: string;
+}
+
+export interface ForecastData {
   headline: string;
   forecast: string;
   energy: string;
   luckyFocus: string;
   phaseModifier?: string;
   integrationInvitation?: string;
+  triadData?: TriadData | null;
 }
 
-interface UseLunarForecastResult {
+export interface UseLunarForecastResult {
   forecast: ForecastData | null;
+  triadData: TriadData | null;
   loading: boolean;
   error: string | null;
 }
@@ -24,6 +35,7 @@ export function useLunarForecast(
   natalSunSign?: string | null
 ): UseLunarForecastResult {
   const [forecast, setForecast] = useState<ForecastData | null>(null);
+  const [triadData, setTriadData] = useState<TriadData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,31 +51,46 @@ export function useLunarForecast(
 
       try {
         if (natalSunSign) {
-          const { data: triadData, error: triadError } = await supabase
-            .from('triad_states')
-            .select('physical_guidance, emotional_guidance, spiritual_guidance, daily_ritual, shadow_activation, integration_invitation')
-            .eq('natal_sun_sign', natalSunSign)
-            .eq('natal_moon_sign', birthMoonSign)
-            .eq('transiting_moon_sign', currentMoon.sign)
+          const { data: dbTriad, error: triadError } = await supabase
+            .from("triad_states")
+            .select(
+              "physical_guidance, emotional_guidance, spiritual_guidance, daily_ritual, shadow_activation, integration_invitation"
+            )
+            .eq("natal_sun_sign", natalSunSign)
+            .eq("natal_moon_sign", birthMoonSign)
+            .eq("transiting_moon_sign", currentMoon.sign)
             .maybeSingle();
 
           if (triadError) {
             console.error("Error fetching triad forecast:", triadError);
           }
 
-          if (triadData) {
+          if (dbTriad) {
+            const structuredTriad: TriadData = {
+              physical_guidance: dbTriad.physical_guidance || "",
+              emotional_guidance: dbTriad.emotional_guidance || "",
+              spiritual_guidance: dbTriad.spiritual_guidance || "",
+              daily_ritual: dbTriad.daily_ritual || "",
+              shadow_activation: dbTriad.shadow_activation || "",
+              integration_invitation: dbTriad.integration_invitation || "",
+            };
+
+            setTriadData(structuredTriad);
             setForecast({
-              headline: triadData.physical_guidance || "",
-              forecast: triadData.emotional_guidance || "",
-              energy: triadData.spiritual_guidance || "",
-              luckyFocus: triadData.daily_ritual || "",
-              phaseModifier: triadData.shadow_activation || undefined,
-              integrationInvitation: triadData.integration_invitation || undefined,
+              headline: dbTriad.physical_guidance || "",
+              forecast: dbTriad.emotional_guidance || "",
+              energy: dbTriad.spiritual_guidance || "",
+              luckyFocus: dbTriad.daily_ritual || "",
+              phaseModifier: dbTriad.shadow_activation || undefined,
+              integrationInvitation: dbTriad.integration_invitation || undefined,
             });
             setLoading(false);
             return;
           }
         }
+
+        // Triad not found or natalSunSign not provided -> clear triadData
+        setTriadData(null);
 
         // Fetch the forecast for this birth/current sign combination
         const { data: forecastData, error: forecastError } = await supabase
@@ -111,7 +138,8 @@ export function useLunarForecast(
       } catch (err) {
         console.error("Failed to fetch lunar forecast:", err);
         setError("Failed to load forecast");
-        
+        setTriadData(null);
+
         // Fall back to local engine on error
         const localForecast = generateDailyForecast(birthMoonSign, currentMoon.sign);
         setForecast({
@@ -128,5 +156,5 @@ export function useLunarForecast(
     fetchForecast();
   }, [birthMoonSign, currentMoon.sign, currentMoon.phase, natalSunSign]);
 
-  return { forecast, loading, error };
+  return { forecast, triadData, loading, error };
 }

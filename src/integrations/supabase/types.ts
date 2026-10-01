@@ -871,9 +871,12 @@ export type Database = {
           default_behaviors: Json
           generated_at: string
           id: string
+          luminous_expression: Json | string[] | string | null
           lunar_essence: string
           moon_sign: string
+          shadow_behaviors: Json | null
           shadow_pattern: string | null
+          shadow_synthesis: string | null
           solar_essence: string
           sun_sign: string
           updated_at: string
@@ -886,9 +889,12 @@ export type Database = {
           default_behaviors?: Json
           generated_at?: string
           id?: string
+          luminous_expression?: Json | string[] | string | null
           lunar_essence: string
           moon_sign: string
+          shadow_behaviors?: Json | null
           shadow_pattern?: string | null
+          shadow_synthesis?: string | null
           solar_essence: string
           sun_sign: string
           updated_at?: string
@@ -901,9 +907,12 @@ export type Database = {
           default_behaviors?: Json
           generated_at?: string
           id?: string
+          luminous_expression?: Json | string[] | string | null
           lunar_essence?: string
           moon_sign?: string
+          shadow_behaviors?: Json | null
           shadow_pattern?: string | null
+          shadow_synthesis?: string | null
           solar_essence?: string
           sun_sign?: string
           updated_at?: string

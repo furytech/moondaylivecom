@@ -19,6 +19,7 @@ import EducationModal from "@/components/EducationModal";
 import { INNER_CIRCLE, PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 
 import DailyForecast from "@/components/DailyForecast";
+import BlueprintIdentity from "@/components/BlueprintIdentity";
 import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
@@ -54,6 +55,7 @@ const Blueprint = () => {
   const [todaysMoonModalOpen, setTodaysMoonModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [combinationProfile, setCombinationProfile] = useState<CombinationProfile | null>(null);
   
   // Unified lunar intelligence. Never throws — a failed ephemeris read leaves
   // `lunar` null and surfaces an informative fallback instead of a blank page.
@@ -114,6 +116,58 @@ const Blueprint = () => {
 
     fetchUserProfile();
   }, [user]);
+
+  // Fetch combination profile for Layer 1 — Blueprint Identity
+  useEffect(() => {
+    const sunSign = userProfile?.natal_sun_sign || displayedSunSign;
+    const moonSign = userProfile?.natal_moon_sign || displayedMoonSign;
+
+    if (!sunSign || !moonSign) {
+      setCombinationProfile(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadCombinationProfile = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("combination_profiles")
+          .select("combination_title, luminous_expression, combination_synthesis, solar_essence, lunar_essence, shadow_synthesis")
+          .eq("sun_sign", sunSign)
+          .eq("moon_sign", moonSign)
+          .maybeSingle();
+
+        if (!isMounted) return;
+
+        if (!error && data && data.combination_title) {
+          setCombinationProfile({
+            sun_sign: sunSign,
+            moon_sign: moonSign,
+            combination_title: data.combination_title,
+            luminous_expression: data.luminous_expression as string[] | string | null,
+            combination_synthesis: data.combination_synthesis,
+            solar_essence: data.solar_essence,
+            lunar_essence: data.lunar_essence,
+            shadow_synthesis: data.shadow_synthesis,
+          });
+        } else {
+          const fallback = await fetchCombinationProfile(sunSign, moonSign);
+          if (isMounted) setCombinationProfile(fallback);
+        }
+      } catch (err) {
+        console.error("Failed to load combination profile:", err);
+        const fallback = await fetchCombinationProfile(sunSign, moonSign);
+        if (isMounted) setCombinationProfile(fallback);
+      }
+    };
+
+    loadCombinationProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userProfile?.natal_sun_sign, userProfile?.natal_moon_sign, displayedSunSign, displayedMoonSign]);
 
   // Update lunar data periodically
   useEffect(() => {
@@ -443,9 +497,14 @@ const Blueprint = () => {
             </div>
           )}
 
+          {/* Layer 1 — Blueprint Identity */}
+          {combinationProfile && (
+            <div className="mt-12 animate-fade-up stagger-2">
+              <BlueprintIdentity profile={combinationProfile} />
+            </div>
+          )}
 
-
-          {/* Daily Forecast */}
+          {/* Layer 2 & 3 — Daily Forecast (Transit Bridge & Triad Activation) */}
           {displayedMoonSign && moonDataCompat && (
             <div className="mt-12 animate-fade-up stagger-3">
               <CalculationBoundary scope="DailyForecast" title="Today's forecast is unavailable">

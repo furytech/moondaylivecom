@@ -104,7 +104,16 @@ export function generateDefaultCombinationProfile(sunSign: string, moonSign: str
     `Restores vital equilibrium through rhythmic solitary reflection and somatic grounding.`,
   ];
 
+  const luminousExpression = [
+    `${sunSign} Vitality`,
+    `${moonSign} Depth`,
+    'Integrative Vision',
+    'Emotional Sovereignty',
+    'Radiant Discernment',
+  ];
+
   const shadowPattern = `Under extreme exhaustion, you may alternate between ${sunData.shadow.toLowerCase()} and ${moonData.shadow.toLowerCase()}`;
+  const shadowSynthesis = `Wholeness for the ${sunSign} Sun and ${moonSign} Moon emerges when outward ambition no longer bypasses inner feeling. By bringing conscious light to instinctual shadows, you ground ${sunElement} clarity directly into ${moonElement} sanctuary.`;
   const upgradeTeaser = `Unlock your Sovereign Daily Blueprint to receive personalized transit alerts tuned to your ${sunSign}/${moonSign} synergy.`;
 
   return {
@@ -114,6 +123,8 @@ export function generateDefaultCombinationProfile(sunSign: string, moonSign: str
     solar_essence: solarEssence,
     lunar_essence: lunarEssence,
     combination_synthesis: combinationSynthesis,
+    luminous_expression: luminousExpression,
+    shadow_synthesis: shadowSynthesis,
     default_behaviors: defaultBehaviors,
     shadow_pattern: shadowPattern,
     upgrade_teaser: upgradeTeaser,
@@ -165,6 +176,9 @@ export async function fetchCombinationProfile(
           solar_essence: data.solar_essence,
           lunar_essence: data.lunar_essence,
           combination_synthesis: data.combination_synthesis,
+          luminous_expression: data.luminous_expression ?? null,
+          shadow_synthesis: data.shadow_synthesis ?? null,
+          shadow_behaviors: Array.isArray(data.shadow_behaviors) ? data.shadow_behaviors : null,
           default_behaviors: Array.isArray(data.default_behaviors) ? data.default_behaviors : [],
           shadow_pattern: data.shadow_pattern,
           upgrade_teaser: data.upgrade_teaser,

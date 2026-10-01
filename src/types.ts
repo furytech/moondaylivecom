@@ -42,7 +42,16 @@ export interface CombinationProfile {
   solar_essence: string;
   lunar_essence: string;
   combination_synthesis: string;
-  default_behaviors: string[] | Record<string, unknown>[];
+  luminous_expression?: string[] | string | null;
+  shadow_synthesis?: string | null;
+  shadow_behaviors?: Array<{
+    name: string;
+    pattern: string;
+    root: string;
+    integration_pathways: string[];
+    integration_gift: string;
+  }> | null;
+  default_behaviors?: string[] | Record<string, unknown>[];
   shadow_pattern?: string | null;
   upgrade_teaser?: string | null;
   generated_at?: string;
