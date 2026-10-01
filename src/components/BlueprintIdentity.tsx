@@ -9,9 +9,9 @@ interface BlueprintIdentityProps {
 }
 
 export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
-  profile,
-  className,
-}) => {
+                                                                      profile,
+                                                                      className,
+                                                                    }) => {
   if (!profile) return null;
 
   // Extract archetype display title and pairing subtitle
@@ -34,9 +34,9 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
     }
     if (typeof profile.luminous_expression === "string") {
       return profile.luminous_expression
-        .split(/[,·•|]/)
-        .map((t) => t.trim())
-        .filter(Boolean);
+          .split(/[,·•|]/)
+          .map((t) => t.trim())
+          .filter(Boolean);
     }
     return [];
   })();
@@ -45,108 +45,115 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
   const synthesisParagraphs: string[] = (() => {
     if (!profile.combination_synthesis) return [];
     const sentences = profile.combination_synthesis
-      .split(". ")
-      .map((s) => s.trim())
-      .filter(Boolean);
+        .split(". ")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
     const paragraphs: string[] = [];
     for (let i = 0; i < sentences.length; i += 2) {
       const chunk = sentences.slice(i, i + 2);
       const paragraphText = chunk
-        .map((s) =>
-          s.endsWith(".") || s.endsWith("!") || s.endsWith("?") ? s : `${s}.`
-        )
-        .join(" ");
+          .map((s) =>
+              s.endsWith(".") || s.endsWith("!") || s.endsWith("?") ? s : `${s}.`
+          )
+          .join(" ");
       paragraphs.push(paragraphText);
     }
     return paragraphs;
   })();
 
   return (
-    <GlassmorphismCard size="lg" className={className}>
-      {/* Header Eyebrow */}
-      <div className="text-center mb-3">
-        <p className="font-display text-xs text-primary/80 uppercase tracking-widest flex items-center justify-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>Natal Blueprint · Core Identity</span>
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-        </p>
-      </div>
-
-      {/* 1. combination_title: Evocative identity label in gold */}
-      <div className="text-center mb-4">
-        <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wide mb-2 leading-tight">
-          {displayTitle}
-        </h2>
-        {pairingSubtitle && (
-          <p className="font-display text-xs md:text-sm text-primary/70 tracking-widest uppercase">
-            {pairingSubtitle}
+      <GlassmorphismCard size="lg" className={className}>
+        {/* Header Eyebrow */}
+        <div className="text-center mb-3">
+          <p className="font-display text-xs text-primary/80 uppercase tracking-widest flex items-center justify-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span>Natal Blueprint · Core Identity</span>
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
           </p>
-        )}
-      </div>
+        </div>
 
-      {/* 2. luminous_expression: Horizontal row of trait chips */}
-      {traits.length > 0 && (
-        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-2.5 mb-8 max-w-2xl mx-auto">
-          {traits.map((trait, index) => (
-            <span
-              key={index}
-              className="px-3.5 py-1 rounded-full text-xs md:text-sm font-display tracking-wider uppercase bg-primary/10 border border-primary/20 text-cream"
-            >
+        {/* 1. combination_title: Evocative identity label in gold */}
+        <div className="text-center mb-4">
+          <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wide mb-2 leading-tight">
+            {displayTitle}
+          </h2>
+          {pairingSubtitle && (
+              <p className="font-display text-xs md:text-sm text-primary/70 tracking-widest uppercase">
+                {pairingSubtitle}
+              </p>
+          )}
+        </div>
+
+        {/* 2. luminous_expression: Horizontal row of trait chips */}
+        {traits.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-2.5 mb-8 max-w-2xl mx-auto">
+              {traits.map((trait, index) => (
+                  <span
+                      key={index}
+                      className="px-3.5 py-1 rounded-full text-xs md:text-sm font-display tracking-wider uppercase bg-primary/10 border border-primary/20 text-cream"
+                  >
               {trait}
             </span>
-          ))}
-        </div>
-      )}
+              ))}
+            </div>
+        )}
 
-      {/* 3. combination_synthesis: Left-aligned paragraph chunks filling full width */}
-      {synthesisParagraphs.length > 0 && (
-        <div className="mb-10 text-left">
-          {synthesisParagraphs.map((paragraph, index) => (
-            <p
-              key={index}
-              className="font-serif text-xl md:text-2xl text-cream-muted leading-relaxed italic font-light text-left indent-0"
-              style={{ marginBottom: "1.2em", textIndent: 0 }}
+        {/* 3. combination_synthesis: Left-aligned paragraph chunks filling full width */}
+        {synthesisParagraphs.length > 0 && (
+            <div
+                className="mb-10"
+                style={{ textAlign: "left" }}
             >
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      )}
+              {synthesisParagraphs.map((paragraph, index) => (
+                  <p
+                      key={index}
+                      className="font-serif text-xl md:text-2xl text-cream-muted leading-relaxed italic font-light"
+                      style={{
+                        marginBottom: "1.2em",
+                        textIndent: 0,
+                        textAlign: "left",
+                      }}
+                  >
+                    {paragraph}
+                  </p>
+              ))}
+            </div>
+        )}
 
-      {/* 4. solar_essence + lunar_essence: Side by side descriptors */}
-      {(profile.solar_essence || profile.lunar_essence) && (
-        <div className="grid md:grid-cols-2 gap-6 pt-8 border-t border-primary/15">
-          {profile.solar_essence && (
-            <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-              <div className="flex items-center gap-2 mb-2 text-primary">
-                <Sun className="w-4 h-4 text-primary" />
-                <span className="font-display text-xs uppercase tracking-widest text-primary">
+        {/* 4. solar_essence + lunar_essence: Side by side descriptors */}
+        {(profile.solar_essence || profile.lunar_essence) && (
+            <div className="grid md:grid-cols-2 gap-6 pt-8 border-t border-primary/15">
+              {profile.solar_essence && (
+                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
+                    <div className="flex items-center gap-2 mb-2 text-primary">
+                      <Sun className="w-4 h-4 text-primary" />
+                      <span className="font-display text-xs uppercase tracking-widest text-primary">
                   Natal Sun · Conscious Drive
                 </span>
-              </div>
-              <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
-                {profile.solar_essence}
-              </p>
-            </div>
-          )}
+                    </div>
+                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+                      {profile.solar_essence}
+                    </p>
+                  </div>
+              )}
 
-          {profile.lunar_essence && (
-            <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-              <div className="flex items-center gap-2 mb-2 text-primary">
-                <Moon className="w-4 h-4 text-primary" />
-                <span className="font-display text-xs uppercase tracking-widest text-primary">
+              {profile.lunar_essence && (
+                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
+                    <div className="flex items-center gap-2 mb-2 text-primary">
+                      <Moon className="w-4 h-4 text-primary" />
+                      <span className="font-display text-xs uppercase tracking-widest text-primary">
                   Natal Moon · Instinctual Sanctuary
                 </span>
-              </div>
-              <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
-                {profile.lunar_essence}
-              </p>
+                    </div>
+                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+                      {profile.lunar_essence}
+                    </p>
+                  </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
-    </GlassmorphismCard>
+        )}
+      </GlassmorphismCard>
   );
 };
 
