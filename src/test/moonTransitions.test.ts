@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   formatTransitWindow,
   getTransitWindowForSign,
+  getTransitWindowDetailsForSign,
+  parseTransitWindowDates,
   computeLiveTransitions,
   MoonTransitionRow
 } from "@/lib/moonTransitions";
@@ -83,5 +85,59 @@ describe("moonTransitions - Dynamic Transit Period Derivation", () => {
     const cancerEvent = transitions.find((t) => t.to_sign === "Cancer");
     expect(cancerEvent).toBeDefined();
     expect(cancerEvent?.transition_date).toBe("2026-10-02");
+  });
+
+  describe("parseTransitWindowDates", () => {
+    it("parses valid date window strings with en-dash and hyphen", () => {
+      const refDate = new Date("2026-10-02T12:00:00Z");
+      const parsedEnDash = parseTransitWindowDates("Oct 2 – Oct 4", refDate);
+      expect(parsedEnDash).not.toBeNull();
+      expect(parsedEnDash?.start.toISOString().startsWith("2026-10-02")).toBe(true);
+      expect(parsedEnDash?.end.toISOString().startsWith("2026-10-04")).toBe(true);
+
+      const parsedHyphen = parseTransitWindowDates("Sep 28 - Sep 30", refDate);
+      expect(parsedHyphen).not.toBeNull();
+      expect(parsedHyphen?.start.toISOString().startsWith("2026-09-28")).toBe(true);
+      expect(parsedHyphen?.end.toISOString().startsWith("2026-09-30")).toBe(true);
+    });
+
+    it("returns null for invalid strings", () => {
+      expect(parseTransitWindowDates("")).toBeNull();
+      expect(parseTransitWindowDates("Invalid Date Format")).toBeNull();
+    });
+  });
+
+  describe("getTransitWindowDetailsForSign - Classification & Timestamps", () => {
+    it("identifies an active transit as 'current'", () => {
+      const nowActive = new Date("2026-10-03T12:00:00Z");
+      const details = getTransitWindowDetailsForSign("Cancer", mockTransitions, null, nowActive);
+      expect(details.status).toBe("current");
+      expect(details.period).toBe("Oct 2 – Oct 4");
+      expect(details.start.getTime()).toBeLessThan(nowActive.getTime());
+      expect(details.end.getTime()).toBeGreaterThan(nowActive.getTime());
+    });
+
+    it("identifies a future transit as 'upcoming'", () => {
+      const now = new Date("2026-10-02T10:00:00Z");
+      const details = getTransitWindowDetailsForSign("Leo", mockTransitions, null, now);
+      expect(details.status).toBe("upcoming");
+      expect(details.period).toBe("Oct 4 – Oct 7");
+      expect(details.start.getTime()).toBeGreaterThan(now.getTime());
+    });
+
+    it("identifies concluded transits as 'past'", () => {
+      const now = new Date("2026-10-02T21:00:00Z");
+      const details = getTransitWindowDetailsForSign("Taurus", mockTransitions, null, now);
+      expect(details.status).toBe("past");
+      expect(details.period).toBe("Sep 28 – Sep 30");
+      expect(details.end.getTime()).toBeLessThan(now.getTime());
+    });
+
+    it("classifies past fallbackPeriod if sign is missing from transitions list", () => {
+      const now = new Date("2026-10-02T12:00:00Z");
+      const details = getTransitWindowDetailsForSign("Aries", mockTransitions, "Sep 28 – Sep 30", now);
+      expect(details.status).toBe("past");
+      expect(details.period).toBe("Sep 28 – Sep 30");
+    });
   });
 });

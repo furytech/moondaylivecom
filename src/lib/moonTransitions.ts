@@ -135,6 +135,157 @@ export function computeLiveTransitions(from: Date, to: Date): MoonTransitionRow[
   return events;
 }
 
+export interface TransitWindowDetails {
+  period: string;
+  start: Date;
+  end: Date;
+  status: 'current' | 'upcoming' | 'past';
+}
+
+/**
+ * Parses short format transit window strings such as "Oct 2 – Oct 4" or "Sep 28 - Sep 30"
+ * into start and end Date objects in UTC relative to a reference date.
+ */
+export function parseTransitWindowDates(
+  windowStr: string,
+  referenceDate: Date = new Date()
+): { start: Date; end: Date } | null {
+  if (!windowStr) return null;
+  const trimmed = windowStr.trim();
+  const match = trimmed.match(/^([A-Za-z]{3})\s+(\d{1,2})\s*[\u2013\u2014-]\s*([A-Za-z]{3})\s+(\d{1,2})$/);
+  if (!match) return null;
+
+  const [, startMonthStr, startDayStr, endMonthStr, endDayStr] = match;
+  const startMonth = MONTHS.indexOf(startMonthStr as typeof MONTHS[number]);
+  const endMonth = MONTHS.indexOf(endMonthStr as typeof MONTHS[number]);
+  if (startMonth === -1 || endMonth === -1) return null;
+
+  const refYear = referenceDate.getUTCFullYear();
+  let startYear = refYear;
+  let endYear = refYear;
+
+  if (endMonth < startMonth) {
+    if (referenceDate.getUTCMonth() >= startMonth) {
+      endYear = refYear + 1;
+    } else {
+      startYear = refYear - 1;
+    }
+  }
+
+  const start = new Date(Date.UTC(startYear, startMonth, parseInt(startDayStr, 10), 0, 0, 0));
+  const end = new Date(Date.UTC(endYear, endMonth, parseInt(endDayStr, 10), 23, 59, 59, 999));
+  return { start, end };
+}
+
+/**
+ * Derives comprehensive transit window details (formatted period, start instant, end instant, and time status)
+ * for a specific zodiac sign based on moon_transitions rows or live ephemeris fallback.
+ */
+export function getTransitWindowDetailsForSign(
+  sign: string,
+  transitions: MoonTransitionRow[] = [],
+  fallbackPeriod?: string | null,
+  now: Date = new Date()
+): TransitWindowDetails {
+  if (!sign) {
+    return {
+      period: fallbackPeriod || '',
+      start: new Date(0),
+      end: new Date(0),
+      status: 'upcoming'
+    };
+  }
+
+  const targetSign = sign.trim().toLowerCase();
+  const nowMs = now.getTime();
+
+  const list = transitions && transitions.length > 0
+    ? transitions
+    : computeLiveTransitions(new Date(now.getTime() - 4 * 86400000), new Date(now.getTime() + 35 * 86400000));
+
+  if (list && list.length > 0) {
+    const entries: { start: Date; end: Date }[] = [];
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].to_sign.toLowerCase() === targetSign) {
+        const start = new Date(list[i].transition_at);
+        let end: Date;
+        if (i + 1 < list.length) {
+          end = new Date(list[i + 1].transition_at);
+        } else {
+          end = new Date(start.getTime() + 54 * 3600000);
+        }
+        entries.push({ start, end });
+      }
+    }
+
+    if (entries.length > 0) {
+      // 1. Current active transit
+      const active = entries.find((e) => e.start.getTime() <= nowMs && e.end.getTime() > nowMs);
+      if (active) {
+        return {
+          period: formatTransitWindow(active.start, active.end),
+          start: active.start,
+          end: active.end,
+          status: 'current'
+        };
+      }
+
+      // 2. Earliest upcoming transit
+      const upcoming = entries.find((e) => e.start.getTime() > nowMs);
+      if (upcoming) {
+        return {
+          period: formatTransitWindow(upcoming.start, upcoming.end),
+          start: upcoming.start,
+          end: upcoming.end,
+          status: 'upcoming'
+        };
+      }
+
+      // 3. Fallback to latest available entry (ended in the past)
+      const latest = entries[entries.length - 1];
+      const isPast = latest.end.getTime() <= nowMs;
+      return {
+        period: formatTransitWindow(latest.start, latest.end),
+        start: latest.start,
+        end: latest.end,
+        status: isPast ? 'past' : 'upcoming'
+      };
+    }
+  }
+
+  // Fallback to static period string on the card if transitions did not yield a result
+  if (fallbackPeriod) {
+    const parsed = parseTransitWindowDates(fallbackPeriod, now);
+    if (parsed) {
+      let status: 'current' | 'upcoming' | 'past' = 'upcoming';
+      if (parsed.end.getTime() <= nowMs) {
+        status = 'past';
+      } else if (parsed.start.getTime() <= nowMs && parsed.end.getTime() > nowMs) {
+        status = 'current';
+      }
+      return {
+        period: fallbackPeriod,
+        start: parsed.start,
+        end: parsed.end,
+        status
+      };
+    }
+    return {
+      period: fallbackPeriod,
+      start: new Date(0),
+      end: new Date(0),
+      status: 'upcoming'
+    };
+  }
+
+  return {
+    period: '',
+    start: new Date(0),
+    end: new Date(0),
+    status: 'upcoming'
+  };
+}
+
 /**
  * Derives the active or next upcoming transit window for a specific zodiac sign
  * based on moon_transitions rows (or live ephemeris fallback if table is empty).
@@ -144,47 +295,7 @@ export function getTransitWindowForSign(
   transitions: MoonTransitionRow[] = [],
   now: Date = new Date()
 ): string | null {
-  if (!sign) return null;
-  const targetSign = sign.trim().toLowerCase();
-
-  const list = transitions && transitions.length > 0
-    ? transitions
-    : computeLiveTransitions(new Date(now.getTime() - 4 * 86400000), new Date(now.getTime() + 35 * 86400000));
-
-  if (!list || list.length === 0) return null;
-
-  const nowMs = now.getTime();
-  const entries: { start: Date; end: Date }[] = [];
-
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].to_sign.toLowerCase() === targetSign) {
-      const start = new Date(list[i].transition_at);
-      let end: Date;
-      if (i + 1 < list.length) {
-        end = new Date(list[i + 1].transition_at);
-      } else {
-        end = new Date(start.getTime() + 54 * 3600000);
-      }
-      entries.push({ start, end });
-    }
-  }
-
-  if (entries.length === 0) return null;
-
-  // 1. Current active transit
-  const active = entries.find((e) => e.start.getTime() <= nowMs && e.end.getTime() > nowMs);
-  if (active) {
-    return formatTransitWindow(active.start, active.end);
-  }
-
-  // 2. Earliest upcoming transit
-  const upcoming = entries.find((e) => e.start.getTime() > nowMs);
-  if (upcoming) {
-    return formatTransitWindow(upcoming.start, upcoming.end);
-  }
-
-  // 3. Fallback to latest available entry
-  const latest = entries[entries.length - 1];
-  return formatTransitWindow(latest.start, latest.end);
+  const details = getTransitWindowDetailsForSign(sign, transitions, null, now);
+  return details.period || null;
 }
 
