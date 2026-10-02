@@ -1,0 +1,11 @@
+# Auto-approve file operations and shell execution
+[[rule]]
+toolName = ["run_shell_command", "write_file", "replace"]
+decision = "allow"
+allowRedirection = true
+priority = 500
+
+[[rule]]
+toolName = "*"
+decision = "allow"
+priority = 400

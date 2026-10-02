@@ -39,17 +39,22 @@ Deno.serve(async (req) => {
   if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
 
   const token = authHeader.replace("Bearer ", "");
-  const { data: claims, error: claimsError } = await supabase.auth.getClaims(token);
-  if (claimsError || !claims?.claims) return json({ error: "Unauthorized" }, 401);
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const isServiceRole = Boolean(serviceRoleKey && token === serviceRoleKey);
 
-  const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
-    _user_id: claims.claims.sub,
-    _role: "admin",
-  });
-  if (roleError || !isAdmin) return json({ error: "Forbidden" }, 403);
+  if (!isServiceRole) {
+    const { data: claims, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claims?.claims) return json({ error: "Unauthorized" }, 401);
+
+    const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+      _user_id: claims.claims.sub,
+      _role: "admin",
+    });
+    if (roleError || !isAdmin) return json({ error: "Forbidden" }, 403);
+  }
 
   try {
-    const { post_id: postId, channels } = await req.json();
+    const { post_id: postId, channels, model } = await req.json();
     if (!postId) return json({ error: "post_id is required" }, 400);
 
     const { data: post, error } = await supabase
@@ -71,12 +76,13 @@ Deno.serve(async (req) => {
     const sources = await buildGenerationSources(supabase, ingress);
 
     const pkg = await generateTransitPackage({
-      apiKey: Deno.env.get("LOVABLE_API_KEY")!,
+      apiKey: Deno.env.get("GEMINI_API_KEY") || Deno.env.get("LOVABLE_API_KEY")!,
       fromSign,
       toSign,
       transitionAtUtc: ingress,
       title: post.title ?? `The Moon Enters ${toSign}`,
       sources,
+      model: model || "gemini-3.1-flash-lite",
     });
 
     const want: string[] = Array.isArray(channels) && channels.length

@@ -5,8 +5,7 @@
 
 import { resolveSubredditRoute } from "./subredditRouting.ts";
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
-
+const GEMINI_API_KEY = typeof Deno !== "undefined" ? Deno.env.get("GEMINI_API_KEY") : undefined;
 
 export interface TransitPackage {
   blog_content: string;
@@ -117,11 +116,18 @@ ${guestBlock(sources.guest)}
 
 
 CHANNEL SEPARATION (hard requirement — violating this makes the output unusable):
-The four pieces go to four different audiences and MUST read like four different writers had four different mornings.
-- No shared opening line, opening image, or opening move. Compare your four first sentences before answering: if any two rhyme in structure or share a phrase, rewrite them.
-- Only the blog may state the exact UTC instant. Facebook/Instagram refers to the shift by feel and by day. Reddit and Pinterest quote no timestamps at all.
-- Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence.
-- Audience tuning: blog = search-led reader who wants a clear, useful explainer. Reddit = practising astrologers who want a technical tracking breakdown. Facebook/Instagram = a scrolling reader who wants today's emotional weather in a few breaths. Pinterest = a searcher scanning keywords on a pin.
+The pieces go to distinct audiences and platforms. Each platform field must be written natively, never copy-pasted. Every channel MUST read like a different writer had a different morning.
+- No shared opening line, opening image, or opening move. Compare your opening sentences across all platforms before answering: if any two rhyme in structure or share a phrase, rewrite them.
+- Only the blog may state the exact UTC instant. Facebook/Instagram refers to the shift by feel and by day. Reddit, Twitter, Threads, and Pinterest quote no timestamps at all.
+- Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence across platforms.
+- Audience and platform tuning:
+  - blog = search-led reader who wants a clear, useful explainer.
+  - reddit = practising astrologers who want a technical tracking breakdown.
+  - facebook = conversational scrolling reader, 3-4 paragraphs, link and hashtags at end.
+  - instagram = visual and emotional, 4-5 sentences, 15-20 hashtags, link in bio reference.
+  - pinterest = descriptive and search-optimized, keyword-rich, direct link to moondaylive.com.
+  - twitter = punchy, max 280 characters, 2-3 hashtags, link.
+  - threads = conversational, 2-3 sentences, minimal hashtags.
 
 Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly seven keys:
 
@@ -147,36 +153,38 @@ CTA (platform native): One genuine open question inviting the community to compa
 
 No headings, no bold, no bullets, no em dashes, no UTC timestamps, no dates, no hype. Total length including title: under 180 words.
 
-"facebook_content": Native Facebook caption, plain text, no markdown, no links inside the body. 90-150 words. Two to three short paragraphs separated by a blank line. First line under 12 words, survives the "see more" fold. One concrete mundane image. No timestamps, no degrees, no jargon.
+"facebook_content": Native Facebook post, plain text, no markdown. Conversational tone, structured into exactly 3-4 short paragraphs separated by a blank line. No links inside the body text. First line under 12 words, survives the "see more" fold. One concrete mundane image. No timestamps, no degrees, no astrology jargon.
 
-CTA (platform native): Second to last line: a warm direct invitation freshly worded each time, with the full URL MoondayLive.com written plainly in the text. Final line: three to five lowercase hashtags including #moonin${toSign.toLowerCase()} and #moondaylive.
+Ending (platform native): Link and hashtags placed strictly at the end.
+- Second to last line: a warm direct invitation freshly worded each time, with the full URL https://moondaylive.com written plainly in the text.
+- Final line: three to five lowercase hashtags including #moonin${toSign.toLowerCase()} and #moondaylive.
 
-"instagram_content": Native Instagram caption, plain text, no markdown. 150-200 words. First line under 10 words, visually evocative, survives the "more" fold. Two to three short paragraphs. One concrete sensory image from the transit. Warm and aesthetic, slightly more poetic than Facebook but never vague.
+"instagram_content": Native Instagram caption, plain text, no markdown. Visual and emotional tone. Exactly 4-5 sentences total across 2-3 short paragraphs. First line under 10 words, visually evocative, survives the "more" fold. One concrete sensory image from the transit. Warm, aesthetic, and evocative, slightly more poetic than Facebook but grounded and never vague.
 
-CTA (platform native): Second to last line: "full reading at the link in our bio" or a fresh variation of that phrasing — never a raw URL, Instagram links don't work in captions. Final line: 10-15 lowercase hashtags mixing astrology community tags and mood tags, including #moondaylive and #moonin${toSign.toLowerCase()}.
+Ending (platform native):
+- Second to last line: clear "link in bio" reference (e.g. "Full reading at the link in our bio" or a fresh variation — NEVER an active/raw URL, Instagram links do not work in captions).
+- Final line: heavy hashtags, exactly 15-20 lowercase hashtags mixing astrology community tags, sign tags, and mood tags, including #moondaylive and #moonin${toSign.toLowerCase()}.
 
-"twitter_content": A single tweet, plain text, no markdown, under 260 characters to leave room for a link. Punchy and conversational. One concrete image or observation from the transit. No jargon, no degrees, no timestamps.
+"twitter_content": A single tweet, plain text, no markdown. Punchy and conversational, one concrete image or observation from the transit. No jargon, no degrees, no timestamps.
 
-CTA (platform native): End with a space then the bare URL moondaylive.com as the final element before the hashtag. Final element: #moondaylive. Total must stay under 280 characters including the URL.
+Length & Link: Maximum 280 characters total (CRITICAL HARD LIMIT: count characters carefully including the URL and hashtags; must stay strictly under 280 characters total). Include link https://moondaylive.com and exactly 2-3 hashtags including #moondaylive and #moonin${toSign.toLowerCase()}.
 
-"threads_content": Native Threads post, plain text, no markdown, under 500 characters. Conversational and intimate, like a diary entry you decided to make public. One sharp observation about how this transit lands in daily life. No jargon, no timestamps, no degrees.
+"threads_content": Native Threads post, plain text, no markdown. Conversational tone, like Instagram but shorter and intimate, like a diary entry or quick thought you decided to post. Exactly 2-3 sentences total. One sharp observation about how this transit lands in daily life. No jargon, no timestamps, no degrees.
 
-CTA (platform native): One casual closing line, freshly worded each time, something like "tracking this one over at MoondayLive.com if you want to follow along" — never a hard sell, always sounds like you mentioned it in passing. Ends with #moondaylive.
+CTA & hashtags: One casual closing mention/link to MoondayLive.com. Minimal hashtags (at most 1 hashtag: #moondaylive, or zero).
 
-"pinterest_content": Native Pinterest pin, plain text, formatted exactly:
+"pinterest_content": Native Pinterest pin, plain text, descriptive and search-optimized, keyword-rich, formatted exactly:
 
-Line 1: pin title, search phrase under 60 characters, title case, naming the sign
+Line 1: pin title, search phrase under 60 characters, title case, naming the sign (e.g. "Moon in ${toSign} Transit Guide & Meaning")
 Line 2: blank
-Pin description, 200-450 characters total. One keyword-rich opening sentence, then 3-4 short lines each starting with • naming transit themes as scannable keyword phrases
+Pin description: 200-450 characters total. Descriptive, search-optimized, keyword-rich opening sentence, followed by 3-4 short lines each starting with • naming transit themes as scannable keyword phrases.
 Blank line
-CTA (platform native): One closing line inviting the reader to track the transit live on MoondayLive.com — Pinterest users expect a destination, make it clear and direct
-Final line: exactly three lowercase hashtags`;
-
-
+CTA (platform native): One direct closing line with a direct link to moondaylive.com (e.g. "Track this transit live and explore your chart at https://moondaylive.com").
+Final line: 3-5 lowercase search hashtags including #moonin${toSign.toLowerCase()} and #moondaylive.`;
 }
 
 export async function generateTransitPackage(opts: {
-  apiKey: string;
+  apiKey?: string;
   fromSign: string;
   toSign: string;
   transitionAtUtc: string;
@@ -184,20 +192,32 @@ export async function generateTransitPackage(opts: {
   model?: string;
   sources?: GenerationSources;
 }): Promise<TransitPackage> {
+  const apiKey =
+    (typeof Deno !== "undefined" ? Deno.env.get("GEMINI_API_KEY") : undefined) ||
+    opts.apiKey ||
+    (typeof process !== "undefined" ? process.env?.GEMINI_API_KEY : undefined) ||
+    GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
+  const model = opts.model ?? "gemini-3.1-flash-lite";
+
   const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${GEMINI_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: opts.model ?? "gemini-3.6-flash",
+      model,
       response_format: { type: "json_object" },
       // Higher temperature breaks the uniform, low-perplexity phrasing that AI
-      // classifiers key on. (Frequency/presence penalties are rejected by the
-      // Gemini models on the gateway, so cadence is enforced by the prompt.)
+      // classifiers key on.
       temperature: 1.05,
       top_p: 0.95,
+      max_tokens: 4096,
 
       messages: [
         { role: "system", content: VOICE },
@@ -220,15 +240,20 @@ export async function generateTransitPackage(opts: {
   const data = await res.json();
   const raw: string = data.choices?.[0]?.message?.content ?? "";
 
-  const cleaned = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-  let parsed: Partial<TransitPackage>;
+  let parsed: Partial<TransitPackage> = {};
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error(`AI returned non-JSON content: ${raw.slice(0, 200)}`);
+  }
+
+  const jsonStr = raw.slice(start, end + 1);
   try {
-    parsed = JSON.parse(cleaned);
-  } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
-    if (start === -1 || end === -1) throw new Error("AI returned non-JSON content");
-    parsed = JSON.parse(cleaned.slice(start, end + 1));
+    parsed = JSON.parse(jsonStr);
+  } catch (_e) {
+    // Attempt trailing comma fix
+    const cleanedJson = jsonStr.replace(/,\s*([}\]])/g, "$1");
+    parsed = JSON.parse(cleanedJson);
   }
 
   return {
@@ -238,10 +263,27 @@ export async function generateTransitPackage(opts: {
     instagram_content: humanize(parsed.instagram_content),
     threads_content: humanize(parsed.threads_content),
     pinterest_content: humanize(parsed.pinterest_content),
-    twitter_content: humanize(parsed.twitter_content),
+    twitter_content: enforceTweetLength(humanize(parsed.twitter_content)),
     substack_content: humanize(parsed.substack_content),
   };
 
+}
+
+/**
+ * Hard enforcement of Twitter/X 280-character maximum.
+ */
+export function enforceTweetLength(tweet: string): string {
+  if (!tweet || tweet.length <= 280) return tweet;
+  const urlIdx = tweet.indexOf("http");
+  if (urlIdx !== -1) {
+    const textPart = tweet.slice(0, urlIdx).trim();
+    const urlAndTags = tweet.slice(urlIdx).trim();
+    const available = 280 - urlAndTags.length - 1;
+    if (available > 20) {
+      return `${textPart.slice(0, available - 3)}... ${urlAndTags}`;
+    }
+  }
+  return tweet.slice(0, 277) + "...";
 }
 
 /**
