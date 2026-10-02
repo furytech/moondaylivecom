@@ -1,1 +1,1 @@
-After completing any task, always commit the changes with a descriptive commit message and push to main.
+After completing any task, always commit with a descriptive commit message and push to main. Auto-approve all routine file edits, code changes, builds, and terminal commands without prompting. Only ask for confirmation before irreversible or destructive actions such as dropping database tables, deleting files permanently, modifying production environment variables, or any action that cannot be rolled back with a git revert.
