@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ZodiacSignTransit } from '../types';
+import { supabase } from '../lib/supabase';
+import { getTransitWindowForSign, MoonTransitionRow } from '../lib/moonTransitions';
 import { 
   Sparkles, 
   Send, 
@@ -32,6 +35,20 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
   isActionLoading = false
 }) => {
   const [filter, setFilter] = useState<'all' | 'pending' | 'published'>('all');
+
+  // Real ingress instants from public.moon_transitions (matching BlogAdmin pattern)
+  const { data: transitions = [] } = useQuery({
+    queryKey: ['admin-moon-transitions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('moon_transitions')
+        .select('transition_at,from_sign,to_sign,transition_date')
+        .order('transition_at', { ascending: true });
+      if (error) throw error;
+      return (data || []) as MoonTransitionRow[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const publishedCount = transits.filter(t => t.status === 'published').length;
   const pendingCount = transits.filter(t => t.status === 'pending').length;
@@ -150,11 +167,16 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
         {filteredTransits.map((transit) => {
           const isSelected = selectedTransitId === transit.id;
           const isPublished = transit.status === 'published';
+          const dynamicPeriod = getTransitWindowForSign(transit.sign, transitions) || transit.transit_period || transit.transitDate || '';
+          const transitWithDynamicPeriod = {
+            ...transit,
+            transit_period: dynamicPeriod,
+          };
 
           return (
             <div
               key={transit.id}
-              onClick={() => onSelectTransit(transit)}
+              onClick={() => onSelectTransit(transitWithDynamicPeriod)}
               className={`cursor-pointer rounded-xl border p-4 transition-all duration-200 relative group ${
                 isSelected
                   ? 'bg-slate-900 border-indigo-500 ring-1 ring-indigo-500/50 shadow-lg'
@@ -185,10 +207,10 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
                     <p className="text-xs text-indigo-400 font-medium">
                       {transit.transitAspect}
                     </p>
-                    {(transit.transitDate || transit.transit_date) && (
+                    {(dynamicPeriod || transit.transitDate || transit.transit_date) && (
                       <p className="text-xs text-slate-400 font-medium flex items-center gap-1 mt-0.5">
                         <Calendar className="w-3 h-3 text-indigo-400/80 flex-shrink-0" />
-                        <span>{transit.transitDate || transit.transit_date}</span>
+                        <span>{dynamicPeriod || transit.transitDate || transit.transit_date}</span>
                       </p>
                     )}
                   </div>
@@ -224,7 +246,7 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
               <div className="bg-slate-950/40 rounded-lg p-2.5 text-xs space-y-1.5 border border-slate-800/50 mb-3">
                 <div className="flex justify-between text-slate-400">
                   <span>Transit Period:</span>
-                  <span className="text-slate-200 font-mono">{transit.transit_period}</span>
+                  <span className="text-slate-200 font-mono">{dynamicPeriod}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
                   <span>Power Hour:</span>
@@ -242,7 +264,7 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onInspectPayload(transit);
+                    onInspectPayload(transitWithDynamicPeriod);
                   }}
                   className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-300 transition-colors"
                 >

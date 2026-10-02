@@ -68,3 +68,123 @@ export async function getCombinedTransitionInfo(
     return { ...live, source: "live" };
   }
 }
+
+import { EclipticGeoMoon, AstroTime } from "astronomy-engine";
+
+export interface MoonTransitionRow {
+  transition_at: string;
+  from_sign?: string;
+  to_sign: string;
+  transition_date?: string | null;
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const ZODIAC_SIGNS = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+] as const;
+
+function signFromLon(lon: number): string {
+  const norm = ((lon % 360) + 360) % 360;
+  return ZODIAC_SIGNS[Math.floor(norm / 30) % 12];
+}
+
+/**
+ * Formats start and end dates as short UTC transit window, e.g. "Oct 2 – Oct 4".
+ */
+export function formatTransitWindow(start: Date, end: Date): string {
+  const startMonth = MONTHS[start.getUTCMonth()];
+  const startDay = start.getUTCDate();
+  const endMonth = MONTHS[end.getUTCMonth()];
+  const endDay = end.getUTCDate();
+
+  return `${startMonth} ${startDay} \u2013 ${endMonth} ${endDay}`;
+}
+
+/**
+ * Live ephemeris fallback: scans forward from `from` to `to` to compute ingress instants.
+ */
+export function computeLiveTransitions(from: Date, to: Date): MoonTransitionRow[] {
+  const events: MoonTransitionRow[] = [];
+  const stepMs = 15 * 60 * 1000;
+  let prevSign = signFromLon(EclipticGeoMoon(new AstroTime(from)).lon);
+
+  for (let t = from.getTime() + stepMs; t <= to.getTime(); t += stepMs) {
+    const sign = signFromLon(EclipticGeoMoon(new AstroTime(new Date(t))).lon);
+    if (sign !== prevSign) {
+      let lo = t - stepMs;
+      let hi = t;
+      for (let i = 0; i < 20; i++) {
+        const mid = (lo + hi) / 2;
+        if (signFromLon(EclipticGeoMoon(new AstroTime(new Date(mid))).lon) === prevSign) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+      events.push({
+        transition_at: new Date(hi).toISOString(),
+        from_sign: prevSign,
+        to_sign: sign,
+        transition_date: new Date(hi).toISOString().slice(0, 10),
+      });
+      prevSign = sign;
+    }
+  }
+  return events;
+}
+
+/**
+ * Derives the active or next upcoming transit window for a specific zodiac sign
+ * based on moon_transitions rows (or live ephemeris fallback if table is empty).
+ */
+export function getTransitWindowForSign(
+  sign: string,
+  transitions: MoonTransitionRow[] = [],
+  now: Date = new Date()
+): string | null {
+  if (!sign) return null;
+  const targetSign = sign.trim().toLowerCase();
+
+  const list = transitions && transitions.length > 0
+    ? transitions
+    : computeLiveTransitions(new Date(now.getTime() - 4 * 86400000), new Date(now.getTime() + 35 * 86400000));
+
+  if (!list || list.length === 0) return null;
+
+  const nowMs = now.getTime();
+  const entries: { start: Date; end: Date }[] = [];
+
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].to_sign.toLowerCase() === targetSign) {
+      const start = new Date(list[i].transition_at);
+      let end: Date;
+      if (i + 1 < list.length) {
+        end = new Date(list[i + 1].transition_at);
+      } else {
+        end = new Date(start.getTime() + 54 * 3600000);
+      }
+      entries.push({ start, end });
+    }
+  }
+
+  if (entries.length === 0) return null;
+
+  // 1. Current active transit
+  const active = entries.find((e) => e.start.getTime() <= nowMs && e.end.getTime() > nowMs);
+  if (active) {
+    return formatTransitWindow(active.start, active.end);
+  }
+
+  // 2. Earliest upcoming transit
+  const upcoming = entries.find((e) => e.start.getTime() > nowMs);
+  if (upcoming) {
+    return formatTransitWindow(upcoming.start, upcoming.end);
+  }
+
+  // 3. Fallback to latest available entry
+  const latest = entries[entries.length - 1];
+  return formatTransitWindow(latest.start, latest.end);
+}
+
