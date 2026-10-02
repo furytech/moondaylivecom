@@ -20,7 +20,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
 }) => {
   const [copy, setCopy] = useState(transit?.copy || '');
   const [aspect, setAspect] = useState(transit?.transitAspect || '');
-  const [transitDate, setTransitDate] = useState(transit?.transitDate || transit?.transit_date || '');
+  const [transitDate, setTransitDate] = useState(transit?.transit_period || transit?.transitDate || transit?.transit_date || '');
   const [powerHour, setPowerHour] = useState(transit?.powerHour || '');
   const [ritualTip, setRitualTip] = useState(transit?.ritualTip || '');
   const [imageUrl, setImageUrl] = useState(transit?.imageUrl || transit?.image_url || (transit ? getDefaultTransitImageUrl(transit.id) : ''));
@@ -30,7 +30,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
     if (transit) {
       setCopy(transit.copy);
       setAspect(transit.transitAspect);
-      setTransitDate(transit.transitDate || transit.transit_date || '');
+      setTransitDate(transit.transit_period || transit.transitDate || transit.transit_date || '');
       setPowerHour(transit.powerHour);
       setRitualTip(transit.ritualTip);
       setImageUrl(transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id));
@@ -46,6 +46,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
       transitAspect: aspect,
       transitDate,
       transit_date: transitDate,
+      transit_period: transitDate,
       powerHour,
       ritualTip,
       imageUrl,

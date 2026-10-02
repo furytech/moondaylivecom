@@ -268,6 +268,7 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(row).toHaveProperty('transit_title', 'Moon in Aries');
     expect(row).toHaveProperty('transit_aspect', 'Cardinal Ignition');
     expect(row).toHaveProperty('transit_date', 'Sep 28 – Sep 30');
+    expect(row).toHaveProperty('transit_period', 'Sep 28 – Sep 30');
     expect(row).toHaveProperty('copy', 'A high-octane charge pulses.');
     expect(row).toHaveProperty('power_hour', '08:15 AM EST');
     expect(row).toHaveProperty('ritual_tip', 'Burn frankincense.');
@@ -309,6 +310,7 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(transit.image_url).toBe('https://ggrhuhwxbwrfbbcwcrmv.supabase.co/storage/v1/object/public/transit-images/leo.png');
     expect(transit.transitDate).toBe('Sep 28 – Sep 30');
     expect(transit.transit_date).toBe('Sep 28 – Sep 30');
+    expect(transit.transit_period).toBe('Sep 28 – Sep 30');
     expect(transit.sign).toBe('Leo');
   });
 

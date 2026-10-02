@@ -4,8 +4,8 @@ import { getDefaultTransitImageUrl } from '../lib/transitImages';
 
 export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<string, unknown>> = {}) {
   const imageUrl = transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id || transit.sign);
-  const transitDate = transit.transitDate !== undefined ? transit.transitDate : (transit.transit_date !== undefined ? transit.transit_date : null);
-  const transitPeriod = transit.transit_period !== undefined ? transit.transit_period : (transit.transitPeriod !== undefined ? transit.transitPeriod : transitDate);
+  const transitDate = overrides.transit_date !== undefined ? overrides.transit_date : (transit.transitDate !== undefined ? transit.transitDate : (transit.transit_date !== undefined ? transit.transit_date : null));
+  const transitPeriod = overrides.transit_period !== undefined ? overrides.transit_period : (transit.transit_period !== undefined ? transit.transit_period : (transit.transitPeriod !== undefined ? transit.transitPeriod : transitDate));
 
   return {
     id: transit.id,

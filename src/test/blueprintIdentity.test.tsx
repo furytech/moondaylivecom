@@ -80,7 +80,7 @@ describe("BlueprintIdentity Component (Layer 1)", () => {
       expect(p.className).not.toContain("text-justify");
       expect((p as HTMLElement).style.textAlign).toBe("left");
       expect((p as HTMLElement).style.marginBottom).toBe("1.2em");
-      expect((p as HTMLElement).style.textIndent).toBe("0px");
+      expect(["0", "0px"]).toContain((p as HTMLElement).style.textIndent);
     });
   });
 
