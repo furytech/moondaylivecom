@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ZodiacSignTransit } from '../types';
-import { X, Save, Sparkles, Send, RefreshCw, Image as ImageIcon, Calendar } from 'lucide-react';
+import { X, Save, Sparkles, Send, RefreshCw, Image as ImageIcon, Calendar, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { getDefaultTransitImageUrl } from '../lib/transitImages';
+
+export interface ApprovalFeedback {
+  type: 'success' | 'warning' | 'error';
+  message: string;
+}
 
 interface TransitDetailModalProps {
   transit: ZodiacSignTransit | null;
@@ -9,6 +14,8 @@ interface TransitDetailModalProps {
   onClose: () => void;
   onSaveContent: (id: string, updates: Partial<ZodiacSignTransit>) => void;
   onApprove: (id: string) => void;
+  feedback?: ApprovalFeedback | null;
+  onDismissFeedback?: () => void;
 }
 
 export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
@@ -16,7 +23,9 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
   isOpen,
   onClose,
   onSaveContent,
-  onApprove
+  onApprove,
+  feedback,
+  onDismissFeedback
 }) => {
   const [copy, setCopy] = useState(transit?.copy || '');
   const [aspect, setAspect] = useState(transit?.transitAspect || '');
@@ -222,6 +231,47 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
               Content updates saved to state and queued for Supabase persistence!
             </div>
           )}
+
+          {feedback && (
+            <div
+              className={`p-3.5 rounded-xl text-xs flex items-start justify-between gap-2.5 border transition-all animate-in fade-in duration-200 ${
+                feedback.type === 'success'
+                  ? 'bg-emerald-950/80 border-emerald-500/30 text-emerald-300'
+                  : feedback.type === 'warning'
+                  ? 'bg-amber-950/80 border-amber-500/30 text-amber-200'
+                  : 'bg-rose-950/80 border-rose-500/30 text-rose-300'
+              }`}
+            >
+              <div className="flex items-start gap-2.5">
+                {feedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                ) : feedback.type === 'warning' ? (
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <p className="font-semibold mb-0.5">
+                    {feedback.type === 'success'
+                      ? 'Status: Approved'
+                      : feedback.type === 'warning'
+                      ? 'Warning: Webhook Delivery'
+                      : 'Approval Error'}
+                  </p>
+                  <p className="leading-relaxed opacity-95">{feedback.message}</p>
+                </div>
+              </div>
+              {onDismissFeedback && (
+                <button
+                  type="button"
+                  onClick={onDismissFeedback}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -251,7 +301,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>Approve for Syndication</span>
+                  <span>Approve Sign</span>
                 </>
               )}
             </button>

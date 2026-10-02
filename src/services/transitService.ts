@@ -198,10 +198,84 @@ export async function syncTransitToBlogPost(
   }
 }
 
+export async function sendMakeWebhook(
+  transit: ZodiacSignTransit,
+  publishedAt: string
+): Promise<{ success: boolean; error?: string }> {
+  let webhookUrl =
+    import.meta.env.VITE_MAKE_WEBHOOK_URL?.trim() ||
+    (typeof window !== 'undefined' ? localStorage.getItem('moonday.makeWebhook')?.trim() : null);
+
+  if (!webhookUrl) {
+    try {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'make_webhook_url')
+        .maybeSingle();
+      if (data?.value?.trim()) {
+        webhookUrl = data.value.trim();
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (!webhookUrl) {
+    console.warn('[sendMakeWebhook] No Make.com webhook URL configured.');
+    return { success: false, error: 'No Make.com webhook URL configured' };
+  }
+
+  try {
+    const payload = {
+      event: 'transit.approved',
+      source: 'moonday-mission-control',
+      transit: toDbRow(transit, { status: 'published', published_at: publishedAt }),
+      timestamp: new Date().toISOString(),
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok || response.status === 200 || response.status === 201 || response.status === 204) {
+      console.log('[sendMakeWebhook] Successfully delivered to Make.com');
+      return { success: true };
+    }
+
+    console.warn(`[sendMakeWebhook] Make.com returned status ${response.status}`);
+    return { success: false, error: `Make.com returned HTTP ${response.status}` };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[sendMakeWebhook] Failed to deliver to Make.com:', message);
+    return { success: false, error: message };
+  }
+}
+
+export interface ApproveTransitResult {
+  success: boolean;
+  updatedTransits: ZodiacSignTransit[];
+  action?: 'published' | 'pending';
+  webhookSuccess?: boolean;
+  feedbackMessage?: string;
+  feedbackType?: 'success' | 'warning' | 'error';
+  error?: string;
+}
+
 export async function approveTransit(
   id: string,
   currentTransits: ZodiacSignTransit[]
-): Promise<{ success: boolean; updatedTransits: ZodiacSignTransit[]; error?: string }> {
+): Promise<ApproveTransitResult> {
   const target = currentTransits.find((t) => t.id === id);
   if (!target) return { success: false, updatedTransits: currentTransits };
 
@@ -241,11 +315,41 @@ export async function approveTransit(
     console.warn('[approveTransit] VITE_SUPABASE_URL is not configured. Supabase write skipped, only local state updated.');
   }
 
+  const updatedTarget: ZodiacSignTransit = {
+    ...target,
+    status: newStatus,
+    publishedAt,
+  };
+
   const updatedTransits = currentTransits.map((t) =>
-    t.id === id ? { ...t, status: newStatus, publishedAt } : t
+    t.id === id ? updatedTarget : t
   );
 
-  return { success: true, updatedTransits };
+  if (newStatus === 'published') {
+    const webhookRes = await sendMakeWebhook(updatedTarget, publishedAt!);
+    const webhookSuccess = webhookRes.success;
+    const feedbackMessage = webhookSuccess
+      ? 'Approved. Sent to Make.com for syndication.'
+      : 'Approval saved but Make.com webhook did not respond. Check your automation.';
+    const feedbackType = webhookSuccess ? 'success' : 'warning';
+
+    return {
+      success: true,
+      updatedTransits,
+      action: 'published',
+      webhookSuccess,
+      feedbackMessage,
+      feedbackType,
+    };
+  }
+
+  return {
+    success: true,
+    updatedTransits,
+    action: 'pending',
+    feedbackMessage: 'Transit revoked to pending.',
+    feedbackType: 'success',
+  };
 }
 
 export async function batchApproveAllTransits(

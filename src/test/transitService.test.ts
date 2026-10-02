@@ -255,6 +255,66 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     }
   });
 
+  it('approveTransit returns success feedback when Make.com webhook responds 200', async () => {
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    vi.mocked(supabase.from).mockReturnValue({
+      upsert: upsertMock,
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>);
+
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    localStorage.setItem('moonday.makeWebhook', 'https://hook.us1.make.com/test-endpoint');
+
+    try {
+      const result = await approveTransit('aries', mockTransits);
+      expect(result.success).toBe(true);
+      expect(result.webhookSuccess).toBe(true);
+      expect(result.feedbackMessage).toBe('Approved. Sent to Make.com for syndication.');
+      expect(result.feedbackType).toBe('success');
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://hook.us1.make.com/test-endpoint',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      );
+    } finally {
+      global.fetch = originalFetch;
+      localStorage.removeItem('moonday.makeWebhook');
+    }
+  });
+
+  it('approveTransit returns warning feedback when Make.com webhook does not respond', async () => {
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    vi.mocked(supabase.from).mockReturnValue({
+      upsert: upsertMock,
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>);
+
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network connection timeout'));
+    localStorage.setItem('moonday.makeWebhook', 'https://hook.us1.make.com/test-endpoint');
+
+    try {
+      const result = await approveTransit('aries', mockTransits);
+      expect(result.success).toBe(true);
+      expect(result.webhookSuccess).toBe(false);
+      expect(result.feedbackMessage).toBe('Approval saved but Make.com webhook did not respond. Check your automation.');
+      expect(result.feedbackType).toBe('warning');
+    } finally {
+      global.fetch = originalFetch;
+      localStorage.removeItem('moonday.makeWebhook');
+    }
+  });
+
   it('toDbRow outputs all required columns matching PostgreSQL transits schema', () => {
     const transit = mockTransits[0];
     const row = toDbRow(transit, { status: 'published', published_at: '2026-09-26T12:00:00Z', transit_date: 'Sep 28 – Sep 30' });
