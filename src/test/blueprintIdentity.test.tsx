@@ -61,6 +61,27 @@ describe("BlueprintIdentity Component (Layer 1)", () => {
     expect(synthesis).toBeDefined();
     expect(synthesis.className).toContain("font-serif");
     expect(synthesis.className).toContain("text-left");
+    expect(synthesis.style.textAlign).toBe("left");
+  });
+
+  it("splits multi-sentence combination_synthesis into multiple <p> tags with explicit left alignment", () => {
+    const multiSentenceProfile: CombinationProfile = {
+      ...mockProfile,
+      combination_synthesis:
+        "First sentence sets the stage. Second sentence finishes the thought. Third sentence goes deeper into the shadow. Fourth sentence brings sovereign integration.",
+    };
+    const { container } = render(<BlueprintIdentity profile={multiSentenceProfile} />);
+    const paragraphs = container.querySelectorAll("div.w-full.mb-10.text-left p");
+    expect(paragraphs.length).toBe(2);
+
+    paragraphs.forEach((p) => {
+      expect(p.className).toContain("text-left");
+      expect(p.className).not.toContain("text-center");
+      expect(p.className).not.toContain("text-justify");
+      expect((p as HTMLElement).style.textAlign).toBe("left");
+      expect((p as HTMLElement).style.marginBottom).toBe("1.2em");
+      expect((p as HTMLElement).style.textIndent).toBe("0px");
+    });
   });
 
   it("renders solar and lunar essences side by side", () => {

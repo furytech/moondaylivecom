@@ -223,6 +223,10 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
               {/* Card Meta details */}
               <div className="bg-slate-950/40 rounded-lg p-2.5 text-xs space-y-1.5 border border-slate-800/50 mb-3">
                 <div className="flex justify-between text-slate-400">
+                  <span>Transit Period:</span>
+                  <span className="text-slate-200 font-mono">{transit.transit_period}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
                   <span>Power Hour:</span>
                   <span className="text-slate-200 font-mono">{transit.powerHour}</span>
                 </div>

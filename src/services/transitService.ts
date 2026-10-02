@@ -5,6 +5,7 @@ import { getDefaultTransitImageUrl } from '../lib/transitImages';
 export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<string, unknown>> = {}) {
   const imageUrl = transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id || transit.sign);
   const transitDate = transit.transitDate !== undefined ? transit.transitDate : (transit.transit_date !== undefined ? transit.transit_date : null);
+  const transitPeriod = transit.transit_period !== undefined ? transit.transit_period : (transit.transitPeriod !== undefined ? transit.transitPeriod : transitDate);
 
   return {
     id: transit.id,
@@ -16,6 +17,7 @@ export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<st
     transit_title: transit.transitTitle,
     transit_aspect: transit.transitAspect,
     transit_date: transitDate,
+    transit_period: transitPeriod,
     copy: transit.copy,
     power_hour: transit.powerHour,
     ritual_tip: transit.ritualTip,
@@ -33,6 +35,7 @@ export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<st
 export function fromDbRow(row: Record<string, any>): ZodiacSignTransit {
   const imageUrl = row.image_url || getDefaultTransitImageUrl(row.id || row.sign);
   const transitDate = row.transit_date || row.transitDate || null;
+  const transitPeriod = row.transit_period || row.transitPeriod || transitDate || null;
 
   return {
     id: row.id,
@@ -45,6 +48,8 @@ export function fromDbRow(row: Record<string, any>): ZodiacSignTransit {
     transitAspect: row.transit_aspect,
     transitDate: transitDate,
     transit_date: transitDate,
+    transit_period: transitPeriod,
+    transitPeriod: transitPeriod,
     copy: row.copy,
     powerHour: row.power_hour,
     ritualTip: row.ritual_tip,

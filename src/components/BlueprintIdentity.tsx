@@ -44,19 +44,25 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
   // Split combination_synthesis into 2-sentence paragraph chunks
   const synthesisParagraphs: string[] = (() => {
     if (!profile.combination_synthesis) return [];
-    const sentences = profile.combination_synthesis
-        .split(". ")
-        .map((s) => s.trim())
-        .filter(Boolean);
+    // Normalize newlines following periods so ". " splitting works consistently
+    const normalized = profile.combination_synthesis
+      .replace(/\r\n/g, "\n")
+      .replace(/\.\s*\n+/g, ". ")
+      .replace(/\n+/g, " ");
+
+    const sentences = normalized
+      .split(". ")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     const paragraphs: string[] = [];
     for (let i = 0; i < sentences.length; i += 2) {
       const chunk = sentences.slice(i, i + 2);
       const paragraphText = chunk
-          .map((s) =>
-              s.endsWith(".") || s.endsWith("!") || s.endsWith("?") ? s : `${s}.`
-          )
-          .join(" ");
+        .map((s) =>
+          s.endsWith(".") || s.endsWith("!") || s.endsWith("?") ? s : `${s}.`
+        )
+        .join(" ");
       paragraphs.push(paragraphText);
     }
     return paragraphs;
@@ -99,16 +105,16 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
             </div>
         )}
 
-        {/* 3. combination_synthesis: Left-aligned paragraph chunks filling full width */}
+        {/* 3. combination_synthesis: Explicitly left-aligned paragraph chunks filling full width */}
         {synthesisParagraphs.length > 0 && (
             <div
-                className="mb-10"
-                style={{ textAlign: "left" }}
+                className="w-full mb-10 text-left !text-left"
+                style={{ textAlign: "left", width: "100%" }}
             >
               {synthesisParagraphs.map((paragraph, index) => (
                   <p
                       key={index}
-                      className="font-serif text-xl md:text-2xl text-cream-muted leading-relaxed italic font-light"
+                      className="w-full font-serif text-xl md:text-2xl text-cream-muted leading-relaxed italic font-light text-left !text-left indent-0 !indent-0"
                       style={{
                         marginBottom: "1.2em",
                         textIndent: 0,
