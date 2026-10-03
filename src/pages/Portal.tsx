@@ -42,6 +42,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const redirectTo = fromParam && fromParam.startsWith("/") ? fromParam : "/blueprint";
 
   const [isLogin, setIsLogin] = useState(defaultMode === "login");
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState(() => searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -150,6 +151,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
       setError("Please fill in all fields");
       return;
     }
+    if (!isLogin && !firstName.trim()) {
+      setError("Please enter your first name");
+      return;
+    }
     if (!isLogin && !birthday) {
       setError("Please enter your birthday — it's needed to chart your moon sign.");
       return;
@@ -188,7 +193,13 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           try {
             sessionStorage.setItem(
               "pendingSignup",
-              JSON.stringify({ email, password, birthday, timezone })
+              JSON.stringify({
+                email,
+                password,
+                birthday,
+                timezone,
+                firstName: firstName.trim(),
+              })
             );
           } catch { /* ignore */ }
           cacheTimezone(timezone);
@@ -200,7 +211,15 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
         const birthDate = new Date(`${birthday}T12:00:00`);
         const { sunSign, moonSign: moonSignName } = await calculateNatalSigns(birthDate);
-        await signUp(email, password, birthday, moonSignName, timezone, sunSign);
+        await signUp(
+          email,
+          password,
+          birthday,
+          moonSignName,
+          timezone,
+          sunSign,
+          firstName.trim()
+        );
         cacheTimezone(timezone);
         try {
           await fetchCombinationProfile(sunSign, moonSignName);
@@ -467,6 +486,22 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           {/* Form card */}
           <div className="p-8 md:p-10 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)] animate-fade-up stagger-1">
             <form onSubmit={handleSubmit} className="space-y-5">
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label htmlFor="firstName" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
+                    First Name
+                  </label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    placeholder="e.g. Maya"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
                   Email

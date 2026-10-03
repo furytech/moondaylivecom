@@ -8,7 +8,7 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSignAsync, calculateSunSign } from "@/lib/moonSign";
-import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell, Globe } from "lucide-react";
+import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell, Globe, User as UserIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -28,6 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, parseISO } from "date-fns";
 
 interface ProfileRow {
+  first_name?: string | null;
   email: string | null;
   birthday: string | null;
   moon_sign: string | null;
@@ -83,7 +84,7 @@ const Account = () => {
       }
       const { data, error } = await supabase
         .from("user_profiles")
-        .select("email, birthday, moon_sign, subscription_status, is_subscriber, moon_alert_frequency, timezone")
+        .select("first_name, email, birthday, moon_sign, subscription_status, is_subscriber, moon_alert_frequency, timezone")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -295,6 +296,19 @@ const Account = () => {
                 </h2>
 
                 <div className="space-y-5">
+                  {/* First Name */}
+                  <div className="flex items-start gap-3">
+                    <UserIcon className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-display text-xs uppercase tracking-widest text-cream-muted/60 mb-1">
+                        First Name
+                      </p>
+                      <p className="font-serif text-base text-foreground">
+                        {profile?.first_name || (user?.user_metadata?.first_name as string) || "Not provided"}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Email */}
                   <div className="flex items-start gap-3">
                     <Mail className="w-5 h-5 text-primary mt-0.5 shrink-0" />

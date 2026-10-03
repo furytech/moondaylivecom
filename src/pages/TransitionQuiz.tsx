@@ -42,6 +42,7 @@ const TransitionQuiz = () => {
   const [result, setResult] = useState<QuizResult | null>(null);
   const [saving, setSaving] = useState(false);
   const [signupMode, setSignupMode] = useState(false);
+  const [signupFirstName, setSignupFirstName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupConfirm, setSignupConfirm] = useState("");
@@ -111,7 +112,13 @@ const TransitionQuiz = () => {
   useEffect(() => {
     if (autoSignupAttempted.current) return;
     if (!result || user || signupSuccess) return;
-    let pending: { email?: string; password?: string; birthday?: string; timezone?: string } | null = null;
+    let pending: {
+      email?: string;
+      password?: string;
+      birthday?: string;
+      timezone?: string;
+      firstName?: string;
+    } | null = null;
     try {
       const raw = sessionStorage.getItem("pendingSignup");
       if (raw) pending = JSON.parse(raw);
@@ -133,7 +140,8 @@ const TransitionQuiz = () => {
           bd,
           result.primarySign,
           pending!.timezone || detectTimezoneOption(),
-          sunSign
+          sunSign,
+          pending!.firstName
         );
         setSignupSuccess(true);
       } catch (err) {
@@ -217,6 +225,10 @@ const TransitionQuiz = () => {
     e.preventDefault();
     setSignupError("");
     if (!result) return;
+    if (!signupFirstName.trim()) {
+      setSignupError("Please enter your first name.");
+      return;
+    }
     if (!signupEmail || !signupPassword) {
       setSignupError("Please enter your email and a password.");
       return;
@@ -232,7 +244,15 @@ const TransitionQuiz = () => {
     setSignupSubmitting(true);
     try {
       const sunSign = birthdayParam ? calculateSunSign(new Date(`${birthdayParam.split("T")[0]}T12:00:00`)) : undefined;
-      await signUp(signupEmail, signupPassword, birthdayParam, result.primarySign, detectTimezoneOption(), sunSign);
+      await signUp(
+        signupEmail,
+        signupPassword,
+        birthdayParam,
+        result.primarySign,
+        detectTimezoneOption(),
+        sunSign,
+        signupFirstName.trim()
+      );
       setSignupSuccess(true);
     } catch (err) {
       const msg = (err as { message?: string }).message || "Could not create account.";
@@ -434,6 +454,14 @@ const TransitionQuiz = () => {
                 </div>
 
                 <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={signupFirstName}
+                    onChange={(e) => setSignupFirstName(e.target.value)}
+                    placeholder="First Name"
+                    autoComplete="given-name"
+                    className="w-full h-12 px-4 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
+                  />
                   <input
                     type="email"
                     value={signupEmail}

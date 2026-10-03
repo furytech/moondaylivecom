@@ -26,7 +26,8 @@ interface AuthContextType {
     birthday?: string,
     moonSign?: string,
     timezone?: string,
-    natalSunSign?: string
+    natalSunSign?: string,
+    firstName?: string
   ) => Promise<void>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
@@ -202,7 +203,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     birthday?: string,
     moonSign?: string,
     timezone?: string,
-    natalSunSign?: string
+    natalSunSign?: string,
+    firstName?: string
   ) => {
     let resolvedSunSign = natalSunSign;
     let resolvedMoonSign = moonSign;
@@ -226,31 +228,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: birthday
-          ? {
-              birthday,
-              moon_sign: resolvedMoonSign ?? null,
-              natal_moon_sign: resolvedMoonSign ?? null,
-              natal_sun_sign: resolvedSunSign ?? null,
-              timezone: timezone ?? "UTC",
-            }
-          : timezone
-            ? { timezone }
-            : undefined,
+        data: {
+          first_name: firstName || undefined,
+          birthday: birthday || undefined,
+          moon_sign: resolvedMoonSign ?? null,
+          natal_moon_sign: resolvedMoonSign ?? null,
+          natal_sun_sign: resolvedSunSign ?? null,
+          timezone: timezone ?? "UTC",
+        },
       },
     });
     if (error) throw error;
 
-    // Persist birthday + natal signs immediately so it's saved even before email verification.
+    // Persist first name + birthday + natal signs immediately so it's saved even before email verification.
     // Upsert in case the handle_new_user trigger hasn't created the row yet.
-    if (data.user && birthday) {
+    if (data.user) {
       await supabase
         .from("user_profiles")
         .upsert(
           {
             user_id: data.user.id,
             email,
-            birthday,
+            first_name: firstName || null,
+            birthday: birthday || null,
             moon_sign: resolvedMoonSign ?? null,
             natal_moon_sign: resolvedMoonSign ?? null,
             natal_sun_sign: resolvedSunSign ?? null,

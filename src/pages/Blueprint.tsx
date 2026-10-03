@@ -34,6 +34,7 @@ import { fetchCombinationProfile } from "@/services/combinationService";
 import type { CombinationProfile } from "@/types";
 
 interface UserProfile {
+  first_name?: string | null;
   moon_sign: string | null;
   natal_moon_sign?: string | null;
   natal_sun_sign?: string | null;
@@ -83,8 +84,12 @@ const Blueprint = () => {
   const displayedMoonSign = userProfile?.natal_moon_sign || userProfile?.moon_sign || tempMoonSign;
   const displayedSunSign = userProfile?.natal_sun_sign || (userProfile?.birthday ? calculateSunSign(new Date(`${userProfile.birthday.split("T")[0]}T12:00:00`)) : null) || tempSunSign;
 
-  // Extract name from email
-  const userName = user?.email?.split("@")[0] || "Cosmic Traveler";
+  // Extract display name (prefers first_name from profile, falls back to auth metadata or email handle)
+  const userName =
+    userProfile?.first_name?.trim() ||
+    (user?.user_metadata?.first_name as string)?.trim() ||
+    user?.email?.split("@")[0] ||
+    "Cosmic Traveler";
 
   // Fetch user profile with birth moon sign
   useEffect(() => {
@@ -97,7 +102,7 @@ const Blueprint = () => {
       try {
         const { data, error } = await supabase
           .from("user_profiles")
-          .select("moon_sign, birthday, subscription_status, is_subscriber, natal_sun_sign, natal_moon_sign")
+          .select("first_name, moon_sign, birthday, subscription_status, is_subscriber, natal_sun_sign, natal_moon_sign")
           .eq("user_id", user.id)
           .maybeSingle();
         
