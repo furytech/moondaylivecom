@@ -111,4 +111,58 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
     expect(screen.queryByText("Your body today")).toBeNull();
     expect(screen.queryByText("Today's practice")).toBeNull();
   });
+
+  it("restructures free/paid boundary: renders body preview and LuminaryGate, gates all deeper sections for free users", () => {
+    vi.spyOn(useLunarForecastModule, "useLunarForecast").mockReturnValue({
+      forecast: null,
+      triadData: {
+        ...mockTriadData,
+        physical_guidance: "First sentence of body guidance. Second sentence of body guidance. Third sentence should be blurred.",
+      },
+      loading: false,
+      error: null,
+    });
+
+    const handleSelectPlan = vi.fn();
+
+    render(
+      <DailyForecast
+        birthMoonSign="Cancer"
+        currentMoon={mockCurrentMoon}
+        natalSunSign="Cancer"
+        isPro={false}
+        onSelectPlan={handleSelectPlan}
+      />
+    );
+
+    // Free users see: Bridge sentence
+    expect(screen.getByText(/Air Moon/i)).toBeDefined();
+
+    // Free users see: Body section preview
+    expect(screen.getByText("Your body today")).toBeDefined();
+    expect(screen.getByText(/First sentence of body guidance\. Second sentence of body guidance\./)).toBeDefined();
+
+    // Free users see: Gate component with dynamic moon signs and checkout button
+    expect(screen.getByText("Now you know who you are.")).toBeDefined();
+    expect(
+      screen.getByText(
+        /Today's Gemini Moon is moving through your Cancer\. Luminary shows you how that's shaping your emotions/i
+      )
+    ).toBeDefined();
+    expect(screen.getByText("UNLOCK LUMINARY — $6.88/month")).toBeDefined();
+    expect(screen.getByText("or $58.88/year · cancel anytime")).toBeDefined();
+
+    // Everything below body preview is Luminary only — verify NOT rendered for free users:
+    expect(screen.queryByText("Your emotional field")).toBeNull();
+    expect(screen.queryByText(mockTriadData.emotional_guidance)).toBeNull();
+    expect(screen.queryByText("The deeper invitation")).toBeNull();
+    expect(screen.queryByText(mockTriadData.spiritual_guidance)).toBeNull();
+    expect(screen.queryByText("Today's practice")).toBeNull();
+    expect(screen.queryByText(mockTriadData.daily_ritual)).toBeNull();
+    expect(screen.queryByText("Shadow & Integration")).toBeNull();
+    expect(screen.queryByText("What to watch for")).toBeNull();
+    expect(screen.queryByText(mockTriadData.shadow_activation)).toBeNull();
+    expect(screen.queryByText("The integration opportunity")).toBeNull();
+    expect(screen.queryByText(mockTriadData.integration_invitation)).toBeNull();
+  });
 });

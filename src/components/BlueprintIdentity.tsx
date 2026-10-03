@@ -29,12 +29,14 @@ interface BlueprintIdentityProps {
   profile: CombinationProfile | null;
   className?: string;
   currentMoonSign?: string | null;
+  isPro?: boolean;
 }
 
 export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
   profile,
   className,
   currentMoonSign,
+  isPro = true,
 }) => {
   if (!profile) return null;
 
@@ -143,8 +145,8 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
             </div>
         )}
 
-        {/* 3. combination_synthesis: Explicitly left-aligned paragraph chunks filling full width */}
-        {synthesisParagraphs.length > 0 && (
+        {/* 3. combination_synthesis: Explicitly left-aligned paragraph chunks filling full width (Luminary only) */}
+        {isPro && synthesisParagraphs.length > 0 && (
             <div
                 className="w-full mb-10 text-left !text-left"
                 style={{ textAlign: "left", width: "100%" }}
@@ -165,8 +167,8 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
             </div>
         )}
 
-        {/* 4. solar_essence + lunar_essence: Side by side descriptors */}
-        {(profile.solar_essence || profile.lunar_essence) && (
+        {/* 4. solar_essence + lunar_essence: Side by side descriptors (Luminary only) */}
+        {isPro && (profile.solar_essence || profile.lunar_essence) && (
             <div className="grid md:grid-cols-2 gap-6 pt-8 border-t border-primary/15">
               {profile.solar_essence && (
                   <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">

@@ -27,7 +27,6 @@ import VoidIntervalSection from "@/components/VoidIntervalSection";
 import LunarReturnCard from "@/components/sovereign/LunarReturnCard";
 import type { ZodiacSign } from "@/lib/sovereignEngine";
 import ClimateGauge from "@/components/ClimateGauge";
-import SovereignUpgradeCTA from "@/components/SovereignUpgradeCTA";
 import FirstRunOnboarding from "@/components/FirstRunOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MoonSignResult, calculateSunSign } from "@/lib/moonSign";
@@ -496,14 +495,8 @@ const Blueprint = () => {
               <BlueprintIdentity
                 profile={combinationProfile}
                 currentMoonSign={lunar?.sign.name}
+                isPro={isPro}
               />
-            </div>
-          )}
-
-          {/* Sovereign upgrade CTA — only for non-subscribers, only after Moon is revealed */}
-          {displayedMoonSign && !isPro && (
-            <div className="mt-12">
-              <SovereignUpgradeCTA onUpgradeClick={handleOpenPricing} />
             </div>
           )}
 
@@ -515,13 +508,17 @@ const Blueprint = () => {
                   birthMoonSign={displayedMoonSign}
                   currentMoon={moonDataCompat}
                   natalSunSign={displayedSunSign}
+                  isPro={isPro}
+                  onUpgradeClick={handleOpenPricing}
+                  onSelectPlan={handleSelectPlan}
+                  checkoutLoading={checkoutLoading}
                 />
               </CalculationBoundary>
             </div>
           )}
 
-          {/* Lunar sections — all depend on a successful ephemeris read */}
-          {lunar ? (
+          {/* Lunar sections — Luminary only */}
+          {isPro && lunar ? (
             <CalculationBoundary scope="LunarSections" title="Your lunar readings are unavailable">
               {/* Daily Ritual */}
               <div className="mt-12 animate-fade-up stagger-3">
@@ -534,7 +531,7 @@ const Blueprint = () => {
                 />
               </div>
 
-              {/* Emotional Climate Gauge */}
+              {/* Emotional Climate Gauge (Today's Frequency) */}
               <div className="mt-12">
                 <ClimateGauge illumination={lunar.phase.illumination} sign={lunar.sign.name} />
               </div>
@@ -564,7 +561,7 @@ const Blueprint = () => {
                 />
               </div>
             </CalculationBoundary>
-          ) : (
+          ) : isPro && !lunar ? (
             <div className="mt-12">
               <MoonCalculationFallback
                 title="Your lunar readings are unavailable"
@@ -573,7 +570,7 @@ const Blueprint = () => {
                 retrying={retrying}
               />
             </div>
-          )}
+          ) : null}
 
 
           {/* Lunar Return Tracker — Sovereign only */}

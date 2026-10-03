@@ -116,4 +116,19 @@ describe("BlueprintIdentity Component (Layer 1)", () => {
     const archetypeTitle = screen.getByText("The Ocean Sovereign");
     expect(hook.compareDocumentPosition(archetypeTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
+
+  it("renders archetype title, hook, and trait chips for free users while gating synthesis and essences", () => {
+    render(<BlueprintIdentity profile={mockProfile} currentMoonSign="Virgo" isPro={false} />);
+
+    // Free users see: Archetype title + hook + trait chips
+    expect(screen.getByText("The Ocean Sovereign")).toBeDefined();
+    expect(screen.getByText("✦ YOUR LUNAR SIGNATURE · 474 OF 1,728 ✦")).toBeDefined();
+    expect(screen.getByText("Perceptive")).toBeDefined();
+    expect(screen.getByText("Nurturing")).toBeDefined();
+
+    // Synthesis & essences are gated (Luminary only)
+    expect(screen.queryByText(/The Cancer Sun creates deep instinctual tidal rhythm/i)).toBeNull();
+    expect(screen.queryByText("Natal Sun · Conscious Drive")).toBeNull();
+    expect(screen.queryByText("Natal Moon · Instinctual Sanctuary")).toBeNull();
+  });
 });
