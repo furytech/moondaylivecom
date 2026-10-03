@@ -84,11 +84,10 @@ const Blueprint = () => {
   const displayedMoonSign = userProfile?.natal_moon_sign || userProfile?.moon_sign || tempMoonSign;
   const displayedSunSign = userProfile?.natal_sun_sign || (userProfile?.birthday ? calculateSunSign(new Date(`${userProfile.birthday.split("T")[0]}T12:00:00`)) : null) || tempSunSign;
 
-  // Extract display name (prefers first_name from profile, falls back to auth metadata or email handle)
+  // Extract display name (prefers first_name from profile or auth metadata, falls back to Cosmic Traveler — never email)
   const userName =
     userProfile?.first_name?.trim() ||
     (user?.user_metadata?.first_name as string)?.trim() ||
-    user?.email?.split("@")[0] ||
     "Cosmic Traveler";
 
   // Fetch user profile with birth moon sign
