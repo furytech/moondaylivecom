@@ -2,10 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Moon, Sparkles, CalendarIcon, Eye, EyeOff } from "lucide-react";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Moon, Sparkles, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
@@ -26,6 +23,32 @@ import {
 } from "@/components/ui/select";
 import { TIMEZONE_OPTIONS, detectTimezoneOption, zoneAbbreviation } from "@/lib/timezone";
 import { cacheTimezone } from "@/hooks/useUserTimezone";
+
+const MONTH_OPTIONS = [
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
+
+const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => {
+  const d = String(i + 1).padStart(2, "0");
+  return { value: d, label: String(i + 1) };
+});
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - 1920 + 1 }, (_, i) => {
+  const y = String(CURRENT_YEAR - i);
+  return { value: y, label: y };
+});
 
 interface PortalProps {
   defaultMode?: "login" | "signup";
@@ -48,7 +71,15 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [birthday, setBirthday] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay, setBirthDay] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+
+  const birthday =
+    birthYear && birthMonth && birthDay
+      ? `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`
+      : "";
+
   const [timezone, setTimezone] = useState<string>(() => detectTimezoneOption());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -155,9 +186,20 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
       setError("Please enter your first name");
       return;
     }
-    if (!isLogin && !birthday) {
-      setError("Please enter your birthday — it's needed to chart your moon sign.");
+    if (!isLogin && (!birthMonth || !birthDay || !birthYear)) {
+      setError("Please select your Month, Day, and Year of birth.");
       return;
+    }
+    if (!isLogin) {
+      const birthDate = new Date(`${birthday}T12:00:00`);
+      if (isNaN(birthDate.getTime())) {
+        setError("Please select a valid birthday date.");
+        return;
+      }
+      if (birthDate > new Date()) {
+        setError("Birthday cannot be in the future.");
+        return;
+      }
     }
     if (!isLogin && password !== confirmPassword) {
       setError("Passwords do not match");
@@ -567,46 +609,70 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 )}
 
               {!isLogin && (
-                <div className="space-y-2">
-                  <label htmlFor="birthday" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
-                    Birthday
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        id="birthday"
-                        className={cn(
-                          "w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-left flex items-center justify-between focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300",
-                          !birthday && "text-muted-foreground/80"
-                        )}
-                      >
-                        {birthday ? format(new Date(`${birthday}T12:00:00`), "PPP") : "Pick your birth date"}
-                        <CalendarIcon className="w-4 h-4 text-lilac/60" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-navy-dark border-lilac/30" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={birthday ? new Date(`${birthday}T12:00:00`) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            const y = date.getFullYear();
-                            const m = String(date.getMonth() + 1).padStart(2, "0");
-                            const d = String(date.getDate()).padStart(2, "0");
-                            setBirthday(`${y}-${m}-${d}`);
-                          }
-                        }}
-                        defaultMonth={birthday ? new Date(`${birthday}T12:00:00`) : new Date(1990, 0)}
-                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <p className="text-xs text-muted-foreground/70 pl-1 pt-1">
-                    Used to chart your natal moon sign — saved to your profile.
-                  </p>
+                <>
+                  <div className="space-y-2">
+                    <label className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
+                      Birthday
+                    </label>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                      {/* Month dropdown */}
+                      <Select value={birthMonth} onValueChange={setBirthMonth}>
+                        <SelectTrigger
+                          id="birthMonth"
+                          aria-label="Birth Month"
+                          className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-lilac/20 text-xs sm:text-sm text-foreground text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                        >
+                          <SelectValue placeholder="Month" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-navy-dark border-lilac/30 max-h-60">
+                          {MONTH_OPTIONS.map((m) => (
+                            <SelectItem key={m.value} value={m.value} className="text-foreground">
+                              {m.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Day dropdown */}
+                      <Select value={birthDay} onValueChange={setBirthDay}>
+                        <SelectTrigger
+                          id="birthDay"
+                          aria-label="Birth Day"
+                          className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-lilac/20 text-xs sm:text-sm text-foreground text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                        >
+                          <SelectValue placeholder="Day" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-navy-dark border-lilac/30 max-h-60">
+                          {DAY_OPTIONS.map((d) => (
+                            <SelectItem key={d.value} value={d.value} className="text-foreground">
+                              {d.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Year dropdown */}
+                      <Select value={birthYear} onValueChange={setBirthYear}>
+                        <SelectTrigger
+                          id="birthYear"
+                          aria-label="Birth Year"
+                          className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-lilac/20 text-xs sm:text-sm text-foreground text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                        >
+                          <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-navy-dark border-lilac/30 max-h-60">
+                          {YEAR_OPTIONS.map((y) => (
+                            <SelectItem key={y.value} value={y.value} className="text-foreground">
+                              {y.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <p className="text-xs text-muted-foreground/70 pl-1 pt-1">
+                      Used to chart your natal moon sign — saved to your profile.
+                    </p>
+                  </div>
 
                   <div className="space-y-2 pt-4">
                     <label
@@ -645,8 +711,6 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                     </p>
                   </div>
 
-
-
                   {transitionInfo?.isTransitionDay && (
                     <Alert className="mt-3 bg-lilac/5 border-lilac/30 text-left">
                       <SparklesIcon className="w-4 h-4 text-lilac" />
@@ -664,7 +728,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                       </AlertDescription>
                     </Alert>
                   )}
-                </div>
+                </>
               )}
 
               {error && (
