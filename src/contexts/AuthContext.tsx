@@ -77,7 +77,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return;
     }
 
-
     try {
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
@@ -140,7 +139,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
 
-
     // Then set up auth state listener for future changes
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -161,8 +159,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Redirect to reset page on PASSWORD_RECOVERY event
         if (event === "PASSWORD_RECOVERY") {
           // Only redirect if not already on the reset page to avoid stripping the hash fragment
-          if (!window.location.pathname.startsWith("/auth/reset-password")) {
-            window.location.href = "/auth/reset-password" + window.location.hash;
+          if (
+            !window.location.pathname.startsWith("/auth/reset-password") &&
+            !window.location.pathname.startsWith("/reset-password")
+          ) {
+            window.location.href = "/reset-password" + window.location.hash;
           }
         }
       }
@@ -273,7 +274,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (error) throw error;
     setSubscription({ subscribed: false, productId: null, priceId: null, subscriptionEnd: null, subscriptionStart: null });
   };
-
 
   // Dev-only tier override (no-op in production — tree-shaken).
   const [devTierTick, setDevTierTick] = useState(0);

@@ -26,7 +26,7 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}/reset-password`,
         expiresIn: 300,
       });
       if (error) throw error;
@@ -118,32 +118,19 @@ const ForgotPassword = () => {
               </div>
             </form>
           ) : (
-            <div className="text-center space-y-6">
-              <div className="w-16 h-16 mx-auto rounded-full border border-primary/30 flex items-center justify-center">
-                <span className="text-3xl">✦</span>
+            <div className="text-center space-y-6 py-2">
+              <div className="w-16 h-16 mx-auto rounded-full border border-primary/30 flex items-center justify-center bg-primary/5">
+                <span className="text-2xl text-primary">✦</span>
               </div>
-              <p className="font-serif text-base text-cream-muted/80 leading-relaxed">
-                A secure reset link has been sent to{" "}
-                <span className="text-primary/90">{email}</span>. Check your mail to maintain your access.
+              <p className="font-serif text-lg text-cream-muted leading-relaxed">
+                Recovery link sent — check your email.
               </p>
-              <div className="flex flex-col gap-3">
-                <Button
-                  onClick={() => navigate("/login")}
-                  className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
-                >
-                  Return to Portal
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSent(false);
-                    setEmail("");
-                  }}
-                  className="font-serif text-sm text-cream-muted/60 hover:text-primary transition-colors"
-                >
-                  Use a different email
-                </button>
-              </div>
+              <Button
+                onClick={() => navigate("/login")}
+                className="w-full h-14 font-display text-sm tracking-[0.15em] uppercase border border-primary/40 bg-transparent hover:bg-primary/10 text-primary rounded-xl transition-all duration-500"
+              >
+                Return to Sign In
+              </Button>
             </div>
           )}
         </GlassmorphismCard>
@@ -151,7 +138,7 @@ const ForgotPassword = () => {
         {/* Decorative */}
         <div className="mt-12 flex items-center gap-4">
           <div className="w-16 h-px bg-gradient-to-r from-transparent to-primary/30" />
-          <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+          <span className="text-primary/70 text-xs">✦</span>
           <div className="w-16 h-px bg-gradient-to-l from-transparent to-primary/30" />
         </div>
       </main>

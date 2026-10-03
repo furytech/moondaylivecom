@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -45,6 +47,53 @@ import IdleSessionGuard from "./components/IdleSessionGuard";
 
 const queryClient = new QueryClient();
 
+// Synchronous top-level check: if URL hash carries recovery token, redirect directly to /reset-password
+if (typeof window !== "undefined") {
+  const hash = window.location.hash;
+  if (hash && hash.includes("type=recovery")) {
+    const pathname = window.location.pathname;
+    if (!pathname.startsWith("/reset-password") && !pathname.startsWith("/auth/reset-password")) {
+      window.location.replace(`/reset-password${hash}`);
+    }
+  }
+}
+
+// Router-level recovery handler: extracts access_token and manages session/routing
+const AuthRecoveryHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token") || "";
+
+      if (accessToken) {
+        supabase.auth
+          .setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          .catch((err) => {
+            console.error("Failed to set recovery session:", err);
+          });
+      }
+
+      if (
+        !location.pathname.startsWith("/reset-password") &&
+        !location.pathname.startsWith("/auth/reset-password")
+      ) {
+        navigate(`/reset-password${hash}`, { replace: true });
+      }
+    }
+  }, [location, navigate]);
+
+  return null;
+};
+
 export const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -52,6 +101,7 @@ export const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <AuthRecoveryHandler />
           <ScrollToTop />
           <IdleSessionGuard />
           <BottomTabBar />
@@ -132,6 +182,7 @@ export const App = () => (
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/update-password" element={<ResetPassword />} />
             <Route path="/welcome-sovereign" element={
               <ProtectedRoute>

@@ -2,7 +2,6 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MoonLoader from "./MoonLoader";
 import GlassmorphismCard from "./GlassmorphismCard";
-import moonLogo from "@/assets/moon-logo-new.webp";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -47,21 +46,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         </div>
 
         <main className="flex-1 flex flex-col items-center justify-start pt-[68px] pb-6 px-6 relative z-10">
-          {/* Moon Logo */}
-          <div className="animate-float mb-4">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-background logo-halo">
-              <img
-                src={moonLogo}
-                alt="Moonday"
-                className="w-full h-full object-cover"
-              />
-            </div>
+          {/* Hero flourish */}
+          <div className="mb-4 flex items-center justify-center">
+            <span className="text-3xl text-primary">✦</span>
           </div>
 
           <GlassmorphismCard className="max-w-md w-full animate-fade-up">
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full border border-primary/30 flex items-center justify-center">
-                <span className="text-3xl">🔒</span>
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full border border-primary/30 flex items-center justify-center bg-primary/5">
+                <span className="text-2xl text-primary">✦</span>
               </div>
               
               <h1 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-[0.06em] mb-4">

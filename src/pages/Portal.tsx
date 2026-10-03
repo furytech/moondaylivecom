@@ -127,6 +127,12 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   }, []);
 
   useEffect(() => {
+    // If arriving with password recovery parameters, reroute immediately to /reset-password
+    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
+      navigate(`/reset-password${window.location.hash}`, { replace: true });
+      return;
+    }
+
     if (user && !authLoading) {
       // Apply any pending Moon sign captured from the Between Phases quiz
       // before the user verified their email.
@@ -576,31 +582,31 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 </div>
               </div>
 
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <label htmlFor="confirmPassword" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
-                      Confirm Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full h-12 px-4 pr-12 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword((s) => !s)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors"
-                        tabIndex={-1}
-                      >
-                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full h-12 px-4 pr-12 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
-                )}
+                </div>
+              )}
 
               {!isLogin && (
                 <>

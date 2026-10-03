@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentMoon, getNextMoonSign } from "@/lib/currentMoon";
-import { Moon, Sparkles, Compass } from "lucide-react";
+import { Moon } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -175,7 +175,6 @@ const Index = () => {
               </button>
             </div>
 
-
             <h1 className="font-display text-4xl md:text-6xl font-semibold tracking-tight leading-[1.1] mb-6 animate-fade-up stagger-2">
               Stop wondering why
               <br />
@@ -273,7 +272,7 @@ const Index = () => {
           className="py-20 md:py-28 px-6 text-center border-t border-lilac/10"
         >
           <div className="max-w-3xl mx-auto">
-            <Sparkles className="w-6 h-6 text-lilac mx-auto mb-6" strokeWidth={1.5} />
+            <div className="text-lilac text-2xl mx-auto mb-6 font-display">✦</div>
             <h2 className="font-display text-3xl md:text-5xl font-semibold tracking-tight mb-6">
               Unlock your birth moon sign —
               <br />
@@ -322,7 +321,7 @@ const Index = () => {
         {/* Sovereign Tier teaser */}
         <section className="pt-8 pb-20 md:pt-12 md:pb-28 px-6 text-center border-t border-lilac/10">
           <div className="max-w-4xl mx-auto">
-            <Compass className="w-6 h-6 text-lilac mx-auto mb-6" strokeWidth={1.5} />
+            <div className="text-lilac text-2xl mx-auto mb-6 font-display">✦</div>
             <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-4">
               Go Deeper
             </p>

@@ -73,7 +73,7 @@ const Contact = () => {
             <div className="flex justify-center">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-px bg-primary/30" />
-                <div className="w-1.5 h-1.5 rotate-45 bg-primary/50" />
+                <span className="text-primary/60 text-xs">✦</span>
                 <div className="w-8 h-px bg-primary/30" />
               </div>
             </div>

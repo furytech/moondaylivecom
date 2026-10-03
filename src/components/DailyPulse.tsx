@@ -331,7 +331,7 @@ function DecoDivider() {
   return (
     <div className="flex items-center justify-center gap-3 my-5" aria-hidden>
       <span className="h-px w-16 bg-gradient-to-r from-transparent to-[hsl(var(--gold-medium)/0.7)]" />
-      <span className="inline-block h-2 w-2 rotate-45 border border-[hsl(var(--gold-medium))]" />
+      <span className="text-[hsl(var(--gold-medium))] text-xs">✦</span>
       <span className="h-px w-16 bg-gradient-to-l from-transparent to-[hsl(var(--gold-medium)/0.7)]" />
     </div>
   );

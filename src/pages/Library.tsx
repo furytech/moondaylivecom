@@ -62,7 +62,7 @@ const Library = () => {
 
             <div className="flex items-center justify-center gap-3 mt-5">
               <div className="w-20 md:w-32 h-px bg-gradient-to-r from-transparent to-primary/40" />
-              <div className="w-3 h-3 rotate-45 border border-primary/50" />
+              <span className="text-primary/60 text-xs">✦</span>
               <div className="w-20 md:w-32 h-px bg-gradient-to-l from-transparent to-primary/40" />
             </div>
           </div>

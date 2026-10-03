@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 
-
 const SUPPORT_EMAIL = "support@moondaylive.com";
 
 const Footer = () => {
@@ -15,7 +14,7 @@ const Footer = () => {
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-3">
             <div className="w-8 h-px bg-primary/30" />
-            <div className="w-1.5 h-1.5 rotate-45 bg-primary/50" />
+            <span className="text-primary/60 text-xs">✦</span>
             <div className="w-8 h-px bg-primary/30" />
           </div>
         </div>

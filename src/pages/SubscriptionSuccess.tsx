@@ -107,7 +107,7 @@ const SubscriptionSuccess = () => {
           {/* Decorative divider */}
           <div className="flex items-center justify-center gap-4 my-5 animate-fade-up stagger-2">
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/40" />
-            <div className="w-2 h-2 rotate-45 border border-primary/40" />
+            <span className="text-primary/70 text-xs">✦</span>
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/40" />
           </div>
 

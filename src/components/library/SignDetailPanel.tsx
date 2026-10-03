@@ -58,7 +58,7 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
               {/* Art Deco divider */}
               <div className="flex items-center justify-center gap-2 mt-2">
                 <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent to-primary/50" />
-                <div className="w-2 h-2 rotate-45 border border-primary/50" />
+                <span className="text-primary/70 text-xs">✦</span>
                 <div className="w-16 md:w-24 h-px bg-gradient-to-l from-transparent to-primary/50" />
               </div>
             </header>
