@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Moon, Sparkles, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
@@ -499,18 +499,12 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           {/* Header */}
           <div className="text-center mb-6 animate-fade-up">
             <div className="relative inline-block mb-4">
-              <div
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-lilac/30"
-                style={{
-                  background:
-                    "radial-gradient(circle at 35% 30%, hsl(var(--cream) / 0.85), hsl(var(--lilac) / 0.4) 45%, hsl(var(--navy-dark)) 80%)",
-                  boxShadow:
-                    "0 0 60px -10px hsl(var(--lilac) / 0.6), inset -10px -15px 40px hsl(var(--navy-deep) / 0.8)",
-                }}
+              <img
+                src="/assets/MoondayLive-Logo.png"
+                alt="Moonday Live Logo"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border border-lilac/30 shadow-[0_0_50px_-10px_hsl(var(--lilac)/0.5)]"
+                style={{ borderRadius: "50%", objectFit: "cover" }}
               />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Moon className="w-8 h-8 text-cream/80" strokeWidth={1.2} />
-              </div>
             </div>
             <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
               {isLogin ? "Welcome Back" : "Begin the Journey"}
