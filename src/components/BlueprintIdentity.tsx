@@ -2,16 +2,40 @@ import React from "react";
 import { Sparkles, Sun, Moon } from "lucide-react";
 import GlassmorphismCard from "./GlassmorphismCard";
 import type { CombinationProfile } from "@/types";
+import { safeLunarIntelligence } from "@/lib/safeLunar";
+
+export const ZODIAC_SIGNS = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+] as const;
+
+export function getTriadStateNumber(
+  sunSign?: string | null,
+  moonSign?: string | null,
+  transitSign?: string | null
+): number | null {
+  if (!sunSign || !moonSign || !transitSign) return null;
+  const normalize = (s: string) =>
+    ZODIAC_SIGNS.findIndex((sign) => sign.toLowerCase() === s.toLowerCase().trim());
+  const si = normalize(sunSign);
+  const mi = normalize(moonSign);
+  const ti = normalize(transitSign);
+
+  if (si === -1 || mi === -1 || ti === -1) return null;
+  return si * 144 + mi * 12 + ti + 1;
+}
 
 interface BlueprintIdentityProps {
   profile: CombinationProfile | null;
   className?: string;
+  currentMoonSign?: string | null;
 }
 
 export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
-                                                                      profile,
-                                                                      className,
-                                                                    }) => {
+  profile,
+  className,
+  currentMoonSign,
+}) => {
   if (!profile) return null;
 
   // Extract archetype display title and pairing subtitle
@@ -25,6 +49,15 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
   } else if (profile.sun_sign && profile.moon_sign) {
     pairingSubtitle = `${profile.sun_sign} Sun • ${profile.moon_sign} Moon`;
   }
+
+  const sunSign =
+    profile.sun_sign ||
+    (pairingSubtitle ? pairingSubtitle.split("Sun")[0]?.trim() : null);
+  const moonSign =
+    profile.moon_sign ||
+    (pairingSubtitle ? pairingSubtitle.split("•")?.[1]?.replace("Moon", "")?.trim() : null);
+  const transitSign = currentMoonSign || safeLunarIntelligence().data?.sign.name;
+  const triadNumber = getTriadStateNumber(sunSign, moonSign, transitSign);
 
   // Parse luminous expression chips safely
   const traits: string[] = (() => {
@@ -81,6 +114,11 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
 
         {/* 1. combination_title: Evocative identity label in gold */}
         <div className="text-center mb-4">
+          {triadNumber !== null && (
+            <p className="font-display text-xs text-primary/80 uppercase tracking-widest mb-2">
+              ✦ YOUR LUNAR SIGNATURE · {triadNumber.toLocaleString()} OF 1,728 ✦
+            </p>
+          )}
           <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wide mb-2 leading-tight">
             {displayTitle}
           </h2>

@@ -490,17 +490,20 @@ const Blueprint = () => {
             </div>
           )}
 
+          {/* Layer 1 — Blueprint Identity (Archetype Reveal) */}
+          {combinationProfile && (
+            <div className="mt-12 animate-fade-up stagger-2">
+              <BlueprintIdentity
+                profile={combinationProfile}
+                currentMoonSign={lunar?.sign.name}
+              />
+            </div>
+          )}
+
           {/* Sovereign upgrade CTA — only for non-subscribers, only after Moon is revealed */}
           {displayedMoonSign && !isPro && (
             <div className="mt-12">
               <SovereignUpgradeCTA onUpgradeClick={handleOpenPricing} />
-            </div>
-          )}
-
-          {/* Layer 1 — Blueprint Identity */}
-          {combinationProfile && (
-            <div className="mt-12 animate-fade-up stagger-2">
-              <BlueprintIdentity profile={combinationProfile} />
             </div>
           )}
 

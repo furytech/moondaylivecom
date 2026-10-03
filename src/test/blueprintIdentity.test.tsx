@@ -91,4 +91,29 @@ describe("BlueprintIdentity Component (Layer 1)", () => {
     expect(screen.getByText("Natal Moon · Instinctual Sanctuary")).toBeDefined();
     expect(screen.getByText(mockProfile.lunar_essence)).toBeDefined();
   });
+
+  it("calculates deterministic triad numbers across the 1-1,728 range correctly", async () => {
+    const { getTriadStateNumber } = await import("../components/BlueprintIdentity");
+    // First state: Aries Sun (0) * 144 + Aries Moon (0) * 12 + Aries Transit (0) + 1 = 1
+    expect(getTriadStateNumber("Aries", "Aries", "Aries")).toBe(1);
+    // Last state: Pisces Sun (11) * 144 + Pisces Moon (11) * 12 + Pisces Transit (11) + 1 = 1728
+    expect(getTriadStateNumber("Pisces", "Pisces", "Pisces")).toBe(1728);
+    // Cancer (3) * 144 + Cancer (3) * 12 + Virgo (5) + 1 = 432 + 36 + 5 + 1 = 474
+    expect(getTriadStateNumber("Cancer", "Cancer", "Virgo")).toBe(474);
+  });
+
+  it("renders '✦ YOUR LUNAR SIGNATURE · [X] OF 1,728 ✦' directly above the archetype title", () => {
+    render(<BlueprintIdentity profile={mockProfile} currentMoonSign="Virgo" />);
+    // Cancer Sun + Cancer Moon + Virgo Transit = 474
+    const hook = screen.getByText("✦ YOUR LUNAR SIGNATURE · 474 OF 1,728 ✦");
+    expect(hook).toBeDefined();
+    expect(hook.className).toContain("font-display");
+    expect(hook.className).toContain("text-xs");
+    expect(hook.className).toContain("uppercase");
+    expect(hook.className).toContain("tracking-widest");
+
+    // Verify it is positioned directly above the archetype title
+    const archetypeTitle = screen.getByText("The Ocean Sovereign");
+    expect(hook.compareDocumentPosition(archetypeTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
