@@ -433,9 +433,9 @@ const Blueprint = () => {
                 </span>
               )}
             </div>
-            <h1 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-wider mb-2">
+            <h2 className="font-display text-4xl md:text-5xl text-gold-gradient tracking-wider mb-2">
               Your Blueprint
-            </h1>
+            </h2>
             <p className="font-serif text-lg md:text-xl text-cream-muted">
               Welcome back, {userName}
             </p>

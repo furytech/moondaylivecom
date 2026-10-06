@@ -48,9 +48,9 @@ export const BlueprintPreviewCard: React.FC<BlueprintPreviewCardProps> = ({
       </div>
 
       {/* The combination_title in gold */}
-      <h3 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wide mb-4">
+      <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wide mb-4">
         {combinationTitle}
-      </h3>
+      </h2>
 
       {/* The first two sentences of combination_synthesis only */}
       {previewSynthesis && (

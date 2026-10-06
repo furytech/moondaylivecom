@@ -117,23 +117,23 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
         {/* 1. Dominant Triad Hook & Identity Reveal */}
         <div className="text-center mb-6">
           {/* Dominant Triad Hook: Crisp gold (#c9a84c) without glow or blur */}
-          <h2
+          <p
             className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight md:tracking-wide leading-tight mb-2"
             style={{ color: "#c9a84c" }}
           >
             ✦ {triadNumber !== null ? triadNumber.toLocaleString() : "401"} of 1,728 ✦
-          </h2>
+          </p>
 
           {/* Line 2: Rarity text in smaller italic */}
           <p className="font-serif italic text-sm md:text-base text-cream-muted/90 mb-5 max-w-md mx-auto leading-relaxed">
             Your combination exists in less than 0.06% of people
           </p>
 
-          {/* Archetype Name: Identity reveal below the Triad Hook */}
+          {/* Archetype Name: Primary H1 identity reveal */}
           <div className="pt-1">
-            <h3 className="font-display text-2xl sm:text-3xl md:text-4xl text-cream tracking-wide mb-2 leading-tight">
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-cream tracking-wide mb-2 leading-tight">
               {displayTitle}
-            </h3>
+            </h1>
             {pairingSubtitle && (
               <p className="font-display text-xs md:text-sm text-primary/70 tracking-widest uppercase">
                 {pairingSubtitle}
@@ -185,9 +185,9 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
                   <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
                     <div className="flex items-center gap-2 mb-2 text-primary">
                       <Sun className="w-4 h-4 text-primary" />
-                      <span className="font-display text-xs uppercase tracking-widest text-primary">
-                  Natal Sun · Conscious Drive
-                </span>
+                      <h2 className="font-display text-xs uppercase tracking-widest text-primary">
+                        Natal Sun · Conscious Drive
+                      </h2>
                     </div>
                     <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
                       {profile.solar_essence}
@@ -199,9 +199,9 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
                   <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
                     <div className="flex items-center gap-2 mb-2 text-primary">
                       <Moon className="w-4 h-4 text-primary" />
-                      <span className="font-display text-xs uppercase tracking-widest text-primary">
-                  Natal Moon · Instinctual Sanctuary
-                </span>
+                      <h2 className="font-display text-xs uppercase tracking-widest text-primary">
+                        Natal Moon · Instinctual Sanctuary
+                      </h2>
                     </div>
                     <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
                       {profile.lunar_essence}

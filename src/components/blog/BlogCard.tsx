@@ -39,13 +39,13 @@ const BlogCard = ({ post, featured = false }: { post: BlogPost; featured?: boole
       </div>
 
       <div className={`p-5 md:p-6 ${featured ? "md:p-8" : ""}`}>
-        <h3
+        <h2
           className={`font-display tracking-wide text-foreground group-hover:text-primary transition-colors ${
             featured ? "text-2xl md:text-3xl leading-snug" : "text-lg md:text-xl leading-snug"
           }`}
         >
           {post.title}
-        </h3>
+        </h2>
         <p className="mt-3 text-xs tracking-wider uppercase text-cream-muted/70">
           {formatDateTime(post.date)}
         </p>

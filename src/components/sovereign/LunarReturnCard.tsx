@@ -24,9 +24,9 @@ export default function LunarReturnCard({ natalMoon }: Props) {
       <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--sov-champagne))] mb-2 text-center">
         Lunar Return
       </div>
-      <h3 className="font-display text-2xl tracking-wide text-[hsl(var(--sov-ivory))] text-center mb-1">
+      <h2 className="font-display text-2xl tracking-wide text-[hsl(var(--sov-ivory))] text-center mb-1">
         Your Next Resets
-      </h3>
+      </h2>
       <p className="text-sm text-[hsl(var(--sov-ivory)/0.55)] text-center max-w-xl mx-auto mb-6">
         Every ~27 days the Moon returns to your natal sign of{" "}
         <span className="text-[hsl(var(--sov-champagne))]">{natalMoon}</span>. These are your next three reset windows.

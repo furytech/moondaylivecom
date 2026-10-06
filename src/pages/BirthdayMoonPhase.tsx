@@ -243,9 +243,9 @@ const BirthdayMoonPhase = () => {
           <div className="font-serif text-cream-muted leading-relaxed space-y-5 text-sm md:text-base text-left max-w-xl mx-auto">
             {FAQS.map((f) => (
               <div key={f.q}>
-                <p className="text-foreground font-display text-[13px] tracking-widest uppercase mb-1.5">
+                <h3 className="text-foreground font-display text-[13px] tracking-widest uppercase mb-1.5">
                   {f.q}
-                </p>
+                </h3>
                 <p>{f.a}</p>
               </div>
             ))}

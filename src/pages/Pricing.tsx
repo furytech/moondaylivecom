@@ -216,7 +216,7 @@ const Pricing = () => {
               Precise astrology without a birth time
            </p>
             <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-[0.06em] mb-2">
-              Step into your personal moon
+              Moonday Luminary
             </h1>
             <p className="font-serif text-lg text-cream-muted/70 max-w-2xl mx-auto">
               Start free with the universal lunar climate, or unlock your fully personalized sanctuary — no birth time required.
