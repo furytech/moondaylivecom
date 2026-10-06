@@ -114,21 +114,42 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
           </p>
         </div>
 
-        {/* 1. combination_title: Evocative identity label in gold */}
-        <div className="text-center mb-4">
-          {triadNumber !== null && (
-            <p className="font-display text-xs text-primary/80 uppercase tracking-widest mb-2">
-              ✦ YOUR LUNAR SIGNATURE · {triadNumber.toLocaleString()} OF 1,728 ✦
-            </p>
-          )}
-          <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wide mb-2 leading-tight">
-            {displayTitle}
-          </h2>
-          {pairingSubtitle && (
+        {/* 1. Dominant Triad Hook & Identity Reveal */}
+        <div className="text-center mb-6">
+          {/* Dominant Triad Hook: Large gold (#c9a84c) with subtle shimmer/glow */}
+          <div className="relative inline-block mx-auto mb-2">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-2 blur-xl opacity-35 rounded-full"
+              style={{ backgroundColor: "#c9a84c" }}
+            />
+            <h1
+              className="relative font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight md:tracking-wide leading-none py-1"
+              style={{
+                color: "#c9a84c",
+                textShadow: "0 0 24px rgba(201, 168, 76, 0.55), 0 0 48px rgba(201, 168, 76, 0.25)",
+              }}
+            >
+              ✦ {triadNumber !== null ? triadNumber.toLocaleString() : "401"} of 1,728 ✦
+            </h1>
+          </div>
+
+          {/* Line 2: Rarity text in smaller italic */}
+          <p className="font-serif italic text-sm md:text-base text-cream-muted/90 mb-5 max-w-md mx-auto leading-relaxed">
+            Your combination exists in less than 0.06% of people
+          </p>
+
+          {/* Archetype Name: Identity reveal below the Triad Hook */}
+          <div className="pt-1">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-cream tracking-wide mb-2 leading-tight">
+              {displayTitle}
+            </h2>
+            {pairingSubtitle && (
               <p className="font-display text-xs md:text-sm text-primary/70 tracking-widest uppercase">
                 {pairingSubtitle}
               </p>
-          )}
+            )}
+          </div>
         </div>
 
         {/* 2. luminous_expression: Horizontal row of trait chips */}

@@ -102,19 +102,23 @@ describe("BlueprintIdentity Component (Layer 1)", () => {
     expect(getTriadStateNumber("Cancer", "Cancer", "Virgo")).toBe(474);
   });
 
-  it("renders '✦ YOUR LUNAR SIGNATURE · [X] OF 1,728 ✦' directly above the archetype title", () => {
+  it("renders '✦ [X] of 1,728 ✦' and rarity line directly above the archetype title in large gold", () => {
     render(<BlueprintIdentity profile={mockProfile} currentMoonSign="Virgo" />);
     // Cancer Sun + Cancer Moon + Virgo Transit = 474
-    const hook = screen.getByText("✦ YOUR LUNAR SIGNATURE · 474 OF 1,728 ✦");
+    const hook = screen.getByText("✦ 474 of 1,728 ✦");
     expect(hook).toBeDefined();
     expect(hook.className).toContain("font-display");
-    expect(hook.className).toContain("text-xs");
-    expect(hook.className).toContain("uppercase");
-    expect(hook.className).toContain("tracking-widest");
+    expect(hook.className).toContain("font-bold");
+    expect(hook.style.color).toBe("rgb(201, 168, 76)");
+
+    // Rarity line
+    const rarity = screen.getByText("Your combination exists in less than 0.06% of people");
+    expect(rarity).toBeDefined();
 
     // Verify it is positioned directly above the archetype title
     const archetypeTitle = screen.getByText("The Ocean Sovereign");
     expect(hook.compareDocumentPosition(archetypeTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(rarity.compareDocumentPosition(archetypeTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("renders archetype title, hook, and trait chips for free users while gating synthesis and essences", () => {
@@ -122,7 +126,8 @@ describe("BlueprintIdentity Component (Layer 1)", () => {
 
     // Free users see: Archetype title + hook + trait chips
     expect(screen.getByText("The Ocean Sovereign")).toBeDefined();
-    expect(screen.getByText("✦ YOUR LUNAR SIGNATURE · 474 OF 1,728 ✦")).toBeDefined();
+    expect(screen.getByText("✦ 474 of 1,728 ✦")).toBeDefined();
+    expect(screen.getByText("Your combination exists in less than 0.06% of people")).toBeDefined();
     expect(screen.getByText("Perceptive")).toBeDefined();
     expect(screen.getByText("Nurturing")).toBeDefined();
 
