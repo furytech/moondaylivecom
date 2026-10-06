@@ -116,23 +116,13 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
 
         {/* 1. Dominant Triad Hook & Identity Reveal */}
         <div className="text-center mb-6">
-          {/* Dominant Triad Hook: Large gold (#c9a84c) with subtle shimmer/glow */}
-          <div className="relative inline-block mx-auto mb-2">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-2 blur-xl opacity-35 rounded-full"
-              style={{ backgroundColor: "#c9a84c" }}
-            />
-            <h1
-              className="relative font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight md:tracking-wide leading-none py-1"
-              style={{
-                color: "#c9a84c",
-                textShadow: "0 0 24px rgba(201, 168, 76, 0.55), 0 0 48px rgba(201, 168, 76, 0.25)",
-              }}
-            >
-              ✦ {triadNumber !== null ? triadNumber.toLocaleString() : "401"} of 1,728 ✦
-            </h1>
-          </div>
+          {/* Dominant Triad Hook: Crisp gold (#c9a84c) without glow or blur */}
+          <h1
+            className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight md:tracking-wide leading-tight mb-2"
+            style={{ color: "#c9a84c" }}
+          >
+            ✦ {triadNumber !== null ? triadNumber.toLocaleString() : "401"} of 1,728 ✦
+          </h1>
 
           {/* Line 2: Rarity text in smaller italic */}
           <p className="font-serif italic text-sm md:text-base text-cream-muted/90 mb-5 max-w-md mx-auto leading-relaxed">
