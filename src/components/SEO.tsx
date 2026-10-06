@@ -7,6 +7,7 @@ interface SEOProps {
   ogImage?: string;
   ogType?: string;
   noindex?: boolean;
+  schema?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
 const SITE_URL = "https://moondaylive.com";
@@ -14,7 +15,7 @@ const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 /**
  * Per-route SEO component using react-helmet-async.
- * Sets title, meta description, canonical, Open Graph + Twitter Card tags.
+ * Sets title, meta description, canonical, Open Graph + Twitter Card tags, and JSON-LD schema.
  * Keep titles < 60 chars and descriptions < 160 chars.
  */
 const SEO = ({
@@ -24,6 +25,7 @@ const SEO = ({
   ogImage = DEFAULT_OG_IMAGE,
   ogType = "website",
   noindex = false,
+  schema,
 }: SEOProps) => {
   const url =
     canonical ||
@@ -51,6 +53,13 @@ const SEO = ({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+
+      {/* JSON-LD Structured Data */}
+      {schema && (
+        <script type="application/ld+json">
+          {JSON.stringify(schema)}
+        </script>
+      )}
     </Helmet>
   );
 };

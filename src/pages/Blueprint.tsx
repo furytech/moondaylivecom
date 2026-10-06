@@ -326,12 +326,68 @@ const Blueprint = () => {
       }
     : null;
 
+  // Dynamic SEO & Structured Data per current transiting moon sign
+  const currentSign = lunar?.sign.name || "Aries";
+  const natalSign = displayedMoonSign || "natal";
+  const seoTitle = `Moon in ${currentSign} Today — What It Means For You | Moonday Live`;
+  const seoDescription = `The Moon is in ${currentSign}. Discover what this transit means for your ${natalSign} energy today. Get your personalized lunar reading at Moonday Live.`;
+
+  const todayIso = new Date().toISOString().split("T")[0];
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://moondaylive.com/#app",
+        name: "Moonday Live",
+        applicationCategory: "LifestyleApplication",
+        operatingSystem: "All",
+        url: "https://moondaylive.com/blueprint",
+        description:
+          "Conscious astrology web application tracking real-time lunar transits, circadian rhythms, and personalized natal lunar signatures.",
+      },
+      {
+        "@type": "Article",
+        "@id": `https://moondaylive.com/blueprint#moon-${currentSign.toLowerCase()}`,
+        isPartOf: { "@id": "https://moondaylive.com/#app" },
+        headline: `Moon in ${currentSign} Today — What It Means For You`,
+        name: `Moon in ${currentSign} Today`,
+        description: seoDescription,
+        url: "https://moondaylive.com/blueprint",
+        datePublished: todayIso,
+        dateModified: new Date().toISOString(),
+        inLanguage: "en-US",
+        author: {
+          "@type": "Organization",
+          name: "Moonday Live",
+          url: "https://moondaylive.com",
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "Moonday Live",
+          url: "https://moondaylive.com",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://moondaylive.com/moonday-logo.png",
+          },
+        },
+        mainEntityOfPage: "https://moondaylive.com/blueprint",
+        about: {
+          "@type": "Thing",
+          name: `Moon in ${currentSign}`,
+          description: `Astrological transit of the Moon through the zodiac sign of ${currentSign}`,
+        },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
-        title="Your Lunar Blueprint — Moonday Live"
-        description="Your personalized lunar blueprint: today's phase, sign, and the rituals tuned to your unique signature."
-        noindex
+        title={seoTitle}
+        description={seoDescription}
+        canonical="https://moondaylive.com/blueprint"
+        schema={structuredData}
       />
       {/* Decorative stars background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

@@ -150,9 +150,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
               <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
                 <div className="flex items-center gap-2 mb-2 text-primary">
                   <Activity className="w-4 h-4 text-primary" />
-                  <span className="font-display text-xs uppercase tracking-widest text-primary font-medium">
+                  <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">
                     Your body today
-                  </span>
+                  </h3>
                 </div>
                 {isPro ? (
                   <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
@@ -193,9 +193,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                   <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
                     <div className="flex items-center gap-2 mb-2 text-primary">
                       <Heart className="w-4 h-4 text-primary" />
-                      <span className="font-display text-xs uppercase tracking-widest text-primary font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">
                         Your emotional field
-                      </span>
+                      </h3>
                     </div>
                     <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
                       {activeTriad.emotional_guidance}
@@ -208,9 +208,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                   <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
                     <div className="flex items-center gap-2 mb-2 text-primary">
                       <Compass className="w-4 h-4 text-primary" />
-                      <span className="font-display text-xs uppercase tracking-widest text-primary font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">
                         The deeper invitation
-                      </span>
+                      </h3>
                     </div>
                     <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
                       {activeTriad.spiritual_guidance}
@@ -229,9 +229,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                 <div className="mb-10 rounded-xl p-6 bg-primary/10 border border-primary/30 shadow-lg relative overflow-hidden">
                   <div className="flex items-center gap-2.5 mb-3 text-primary">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    <span className="font-display text-sm uppercase tracking-widest font-semibold text-primary">
+                    <h3 className="font-display text-sm uppercase tracking-widest font-semibold text-primary">
                       Today's practice
-                    </span>
+                    </h3>
                   </div>
                   <p className="font-serif text-lg md:text-xl text-cream leading-relaxed font-light">
                     {activeTriad.daily_ritual}
@@ -252,9 +252,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                   <div className="rounded-xl p-5 md:p-6 bg-navy-medium/15 border border-primary/10">
                     <div className="flex items-center gap-2 mb-2 text-primary/80">
                       <Eye className="w-4 h-4 text-primary/80" />
-                      <span className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium">
                         What to watch for
-                      </span>
+                      </h3>
                     </div>
                     <p className="font-serif text-base text-cream-muted/90 leading-relaxed">
                       {activeTriad.shadow_activation}
@@ -266,9 +266,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                   <div className="rounded-xl p-5 md:p-6 bg-navy-medium/15 border border-primary/10">
                     <div className="flex items-center gap-2 mb-2 text-primary/80">
                       <Shield className="w-4 h-4 text-primary/80" />
-                      <span className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium">
                         The integration opportunity
-                      </span>
+                      </h3>
                     </div>
                     <p className="font-serif text-base text-cream-muted/90 leading-relaxed">
                       {activeTriad.integration_invitation}
