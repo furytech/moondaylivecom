@@ -262,15 +262,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         );
     }
 
-    // Trigger Blueprint email capture flow for new free signups
-    if (resolvedSunSign && resolvedMoonSign) {
-      triggerBlueprintEmail({
-        email,
-        firstName: firstName || null,
-        sunSign: resolvedSunSign,
-        moonSign: resolvedMoonSign,
-      }).catch((err) => console.warn("Background blueprint email capture error:", err));
-    }
+    // Trigger Blueprint email capture flow for new free signups (waits for confirmed natal signs in user_profiles)
+    triggerBlueprintEmail({
+      email,
+      userId: data.user?.id || null,
+      firstName: firstName || null,
+      sunSign: resolvedSunSign,
+      moonSign: resolvedMoonSign,
+    }).catch((err) => console.warn("Background blueprint email capture error:", err));
 
     trackEvent("sign_up", { method: "email" });
   };

@@ -3,6 +3,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 interface RequestBody {
   email: string;
+  userId?: string | null;
   firstName?: string;
   sunSign: string;
   moonSign: string;
@@ -221,6 +222,34 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'email, sunSign, and moonSign are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Ensure user_profiles has natal_sun_sign and natal_moon_sign persisted
+    if (body.userId || email) {
+      try {
+        const profileUpdates: Record<string, unknown> = {
+          natal_sun_sign: sunSign,
+          natal_moon_sign: moonSign,
+          moon_sign: moonSign,
+        };
+        if (firstName && firstName !== 'Cosmic Traveler') {
+          profileUpdates.first_name = firstName;
+        }
+
+        if (body.userId) {
+          await supabase
+            .from('user_profiles')
+            .update(profileUpdates)
+            .eq('user_id', body.userId);
+        } else {
+          await supabase
+            .from('user_profiles')
+            .update(profileUpdates)
+            .eq('email', email);
+        }
+      } catch (profileUpdateErr) {
+        console.warn('[send-blueprint-email] Warning persisting natal signs to user_profiles:', profileUpdateErr);
+      }
     }
 
     // 1. Query combination_profiles table if blueprint data is missing
