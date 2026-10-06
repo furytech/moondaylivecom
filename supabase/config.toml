@@ -24,3 +24,6 @@ project_id = "hzlpnmvboqhzthvjlves"
 
 [functions.send-transit-review]
 verify_jwt = false
+
+[functions.auto-approve-transit]
+verify_jwt = false

@@ -14,7 +14,8 @@ $noJwt = @(
     "verify-turnstile",
     "stripe-webhook",
     "handle-email-events",
-    "make-social-bridge"
+    "make-social-bridge",
+    "auto-approve-transit"
 )
 
 $withJwt = @(
