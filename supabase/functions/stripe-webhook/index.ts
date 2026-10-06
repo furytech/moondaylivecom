@@ -100,7 +100,7 @@ serve(async (req) => {
           .from("user_profiles")
           .update({
             is_subscriber: true,
-            subscription_status: "sovereign",
+            subscription_status: "luminary",
           })
           .eq("user_id", profiles[0].user_id);
 
@@ -162,7 +162,7 @@ serve(async (req) => {
         .from("user_profiles")
         .update({
           is_subscriber: grant,
-          subscription_status: grant ? "sovereign" : "free",
+          subscription_status: grant ? "luminary" : "free",
         })
         .eq("email", customer.email);
 
