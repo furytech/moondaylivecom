@@ -38,6 +38,7 @@ interface DailyForecastProps {
   onUpgradeClick?: () => void;
   onSelectPlan?: (priceId: string) => Promise<void> | void;
   checkoutLoading?: boolean;
+  showGate?: boolean;
 }
 
 const DailyForecast: React.FC<DailyForecastProps> = ({
@@ -49,6 +50,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
   onUpgradeClick,
   onSelectPlan,
   checkoutLoading = false,
+  showGate = true,
 }) => {
   const { forecast, triadData: hookTriadData, loading } = useLunarForecast(
     birthMoonSign,
@@ -173,7 +175,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
             )}
 
             {/* Gate Component rendered immediately after the Body preview fade for free users */}
-            {!isPro && (
+            {!isPro && showGate && (
               <LuminaryGate
                 currentMoonSign={currentMoon.sign}
                 birthMoonSign={birthMoonSign}
@@ -330,7 +332,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
               )}
             </div>
 
-            {!isPro && (
+            {!isPro && showGate && (
               <LuminaryGate
                 currentMoonSign={currentMoon.sign}
                 birthMoonSign={birthMoonSign}

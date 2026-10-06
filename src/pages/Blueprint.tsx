@@ -534,6 +534,7 @@ const Blueprint = () => {
                   currentMoon={moonDataCompat}
                   natalSunSign={displayedSunSign}
                   isPro={isPro}
+                  showGate={false}
                   onUpgradeClick={handleOpenPricing}
                   onSelectPlan={handleSelectPlan}
                   checkoutLoading={checkoutLoading}
