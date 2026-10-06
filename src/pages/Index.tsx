@@ -1,8 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentMoon, getNextMoonSign } from "@/lib/currentMoon";
-import { Moon } from "lucide-react";
+import { Moon, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -10,6 +10,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublishedPosts, categoryPath } from "@/lib/blog/posts";
+import { supabase } from "@/integrations/supabase/client";
 
 const pillars = [
   {
@@ -37,6 +38,39 @@ const Index = () => {
     queryFn: fetchPublishedPosts,
     staleTime: 5 * 60 * 1000,
   });
+
+  const [currentTransitSign, setCurrentTransitSign] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCurrentTransit = async () => {
+      try {
+        const nowIso = new Date().toISOString();
+        const { data, error } = await supabase
+          .from("moon_transitions")
+          .select("sign, to_sign")
+          .lte("start_time", nowIso)
+          .gte("end_time", nowIso)
+          .order("start_time", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!error && data) {
+          const sign = data.sign || data.to_sign;
+          if (isMounted && sign) {
+            setCurrentTransitSign(sign);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not query current moon transition for home link:", err);
+      }
+    };
+
+    fetchCurrentTransit();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (user && !loading) {
@@ -174,6 +208,19 @@ const Index = () => {
                 Discover what it means for you →
               </button>
             </div>
+
+            {/* Dynamic Current Moon Transit Link */}
+            {currentTransitSign && (
+              <div className="mb-6 animate-fade-up">
+                <Link
+                  to={`/transit/${currentTransitSign.toLowerCase()}`}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-lilac/30 bg-lilac/10 hover:bg-lilac/20 text-cream hover:text-white text-xs md:text-sm font-display tracking-widest uppercase transition-all duration-300 shadow-[0_0_30px_-5px_hsl(var(--lilac)/0.4)] hover:scale-[1.02]"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span>Moon is in {currentTransitSign} right now — read today's transit →</span>
+                </Link>
+              </div>
+            )}
 
             <h1 className="font-display text-4xl md:text-6xl font-semibold tracking-tight leading-[1.1] mb-6 animate-fade-up stagger-2">
               Stop wondering why

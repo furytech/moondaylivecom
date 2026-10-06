@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import UTCNotice from "@/components/UTCNotice";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Calendar, ChevronRight, Clock } from "lucide-react";
@@ -9,6 +10,22 @@ import EmailCaptureBlock from "@/components/EmailCaptureBlock";
 import BlogCard from "@/components/blog/BlogCard";
 import MoonLoader from "@/components/MoonLoader";
 import { fetchPostBySlug, getRelated, categoryPath, resolveSignImage } from "@/lib/blog/posts";
+import { getFAQsBySlug } from "@/data/transitFAQs";
+
+const ZODIAC_SIGNS = [
+  { sign: "Aries", slug: "aries" },
+  { sign: "Taurus", slug: "taurus" },
+  { sign: "Gemini", slug: "gemini" },
+  { sign: "Cancer", slug: "cancer" },
+  { sign: "Leo", slug: "leo" },
+  { sign: "Virgo", slug: "virgo" },
+  { sign: "Libra", slug: "libra" },
+  { sign: "Scorpio", slug: "scorpio" },
+  { sign: "Sagittarius", slug: "sagittarius" },
+  { sign: "Capricorn", slug: "capricorn" },
+  { sign: "Aquarius", slug: "aquarius" },
+  { sign: "Pisces", slug: "pisces" },
+];
 
 
 const formatDate = (iso: string) =>
@@ -93,6 +110,45 @@ const BlogPost = () => {
 
   const signImage = resolveSignImage(post);
 
+  const transitSignInfo = useMemo(() => {
+    if (post?.category !== "Transits") return null;
+    const tag = post.zodiacSignTag?.toLowerCase();
+    const slugLower = post.slug.toLowerCase();
+    const titleLower = post.title.toLowerCase();
+
+    const idx = ZODIAC_SIGNS.findIndex(
+      (z) =>
+        z.slug === tag ||
+        z.sign.toLowerCase() === tag ||
+        slugLower.includes(z.slug) ||
+        titleLower.includes(z.sign.toLowerCase())
+    );
+    if (idx === -1) return null;
+
+    const current = ZODIAC_SIGNS[idx];
+    const prev = ZODIAC_SIGNS[(idx - 1 + 12) % 12];
+    const next = ZODIAC_SIGNS[(idx + 1) % 12];
+    const faqs = getFAQsBySlug(current.slug);
+
+    return { current, prev, next, faqs };
+  }, [post]);
+
+  const faqPageLd =
+    transitSignInfo && transitSignInfo.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: transitSignInfo.faqs.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: f.answer,
+            },
+          })),
+        }
+      : null;
+
   return (
     <PageLayout>
       <SEO
@@ -104,6 +160,9 @@ const BlogPost = () => {
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      {faqPageLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageLd) }} />
+      )}
 
       <article className="w-full max-w-3xl mx-auto">
         {/* Breadcrumb */}
@@ -201,6 +260,98 @@ const BlogPost = () => {
         </div>
 
         {post.category === "Transits" && <EmailCaptureBlock />}
+
+        {/* Transit Cross-Links & FAQs */}
+        {transitSignInfo && (
+          <>
+            {/* Cross-Links: Blueprint, Pricing, and Neighboring Signs */}
+            <section className="mt-14 p-6 md:p-8 rounded-2xl border border-primary/20 bg-navy-medium/30 space-y-6">
+              <div className="text-center">
+                <h2 className="font-display text-xl md:text-2xl text-cream tracking-wide mb-1">
+                  Related Pathways
+                </h2>
+                <p className="font-serif text-sm text-cream-muted">
+                  Connect today's Moon in {transitSignInfo.current.sign} to your personal sky
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Link
+                  to="/blueprint"
+                  className="p-4 rounded-xl border border-primary/15 bg-background/40 hover:border-primary/40 transition block"
+                >
+                  <span className="font-display text-xs uppercase tracking-widest text-primary block mb-1">
+                    Natal Architecture
+                  </span>
+                  <span className="font-display text-base text-cream block hover:text-primary transition">
+                    Discover Your Moon Blueprint →
+                  </span>
+                </Link>
+
+                <Link
+                  to="/pricing"
+                  className="p-4 rounded-xl border border-primary/15 bg-background/40 hover:border-primary/40 transition block"
+                >
+                  <span className="font-display text-xs uppercase tracking-widest text-primary block mb-1">
+                    Daily Guidance
+                  </span>
+                  <span className="font-display text-base text-cream block hover:text-primary transition">
+                    Unlock Luminary Access →
+                  </span>
+                </Link>
+              </div>
+
+              {/* Neighboring Signs */}
+              <div className="pt-3 border-t border-primary/10 flex items-center justify-between gap-4 text-xs font-display uppercase tracking-wider">
+                <Link
+                  to={`/transit/${transitSignInfo.prev.slug}`}
+                  className="text-cream-muted hover:text-primary transition"
+                >
+                  ← Moon in {transitSignInfo.prev.sign}
+                </Link>
+                <Link
+                  to={`/transit/${transitSignInfo.next.slug}`}
+                  className="text-cream-muted hover:text-primary transition text-right"
+                >
+                  Moon in {transitSignInfo.next.sign} →
+                </Link>
+              </div>
+            </section>
+
+            {/* FAQ Section */}
+            {transitSignInfo.faqs.length > 0 && (
+              <section
+                aria-label={`Frequently asked questions about Moon in ${transitSignInfo.current.sign}`}
+                className="mt-14 space-y-6"
+              >
+                <div className="text-center">
+                  <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wide mb-2">
+                    Frequently Asked Questions
+                  </h2>
+                  <p className="font-serif text-sm md:text-base text-cream-muted/80">
+                    Understanding the mechanics of Moon in {transitSignInfo.current.sign}
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {transitSignInfo.faqs.map((faq, idx) => (
+                    <div
+                      key={idx}
+                      className="p-5 md:p-6 rounded-xl border border-primary/15 bg-navy-medium/20 space-y-2"
+                    >
+                      <h3 className="font-display text-base md:text-lg text-cream">
+                        {faq.question}
+                      </h3>
+                      <p className="font-serif text-sm md:text-base text-cream-muted leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
 
         {/* Related */}
         {related.length > 0 && (

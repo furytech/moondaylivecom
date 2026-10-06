@@ -43,6 +43,7 @@ import BlogPost from "./pages/BlogPost";
 import MissionControl from "./pages/admin/MissionControl";
 
 import GuestStudio from "./pages/GuestStudio";
+import Transit from "./pages/Transit";
 import IdleSessionGuard from "./components/IdleSessionGuard";
 
 const queryClient = new QueryClient();
@@ -116,6 +117,8 @@ export const App = () => (
             <Route path="/lunar-climate" element={<LunarClimate />} />
             <Route path="/lunar-cycle-tracking" element={<LunarCycleTracking />} />
             <Route path="/birthday-moon-phase" element={<BirthdayMoonPhase />} />
+            <Route path="/transit/:sign" element={<Transit />} />
+            <Route path="/transit" element={<Navigate to="/transit/aries" replace />} />
             <Route path="/login" element={<Portal defaultMode="login" />} />
             <Route path="/signup" element={<Portal defaultMode="signup" />} />
             <Route path="/blog" element={<Blog />} />
