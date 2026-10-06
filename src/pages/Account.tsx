@@ -107,7 +107,11 @@ const Account = () => {
     load();
   }, [user]);
 
-  const isPro = profile?.subscription_status === "sovereign" || subscription.subscribed;
+  const isPro =
+    profile?.subscription_status === "luminary" ||
+    profile?.subscription_status === "sovereign" ||
+    Boolean(profile?.is_subscriber) ||
+    subscription.subscribed;
 
   const handleSaveBirthday = async () => {
     if (!user || !birthday) return;
@@ -202,9 +206,16 @@ const Account = () => {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (err) {
       console.error("Portal error:", err);
+      toast({
+        title: "Billing portal unavailable",
+        description: (err as Error)?.message || "Please try again in a few moments.",
+        variant: "destructive",
+      });
     } finally {
       setPortalLoading(false);
     }

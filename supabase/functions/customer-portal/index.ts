@@ -34,33 +34,55 @@ serve(async (req) => {
     if (!authHeader) throw new Error("No authorization header provided");
     logStep("Authorization header found");
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authHeader.replace("Bearer ", "").trim();
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Verify active Luminary subscription status from Supabase
+    const { data: profile } = await supabaseClient
+      .from("user_profiles")
+      .select("subscription_status, is_subscriber, stripe_customer_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const isLuminary = profile?.subscription_status === "luminary" ||
+                       profile?.subscription_status === "sovereign" ||
+                       Boolean(profile?.is_subscriber);
+
+    if (!isLuminary) {
+      logStep("User does not have an active Luminary subscription", { profile });
+      return new Response(
+        JSON.stringify({ error: "Active Luminary subscription required to manage subscription" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        }
+      );
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    if (customers.data.length === 0) {
+
+    // Find Stripe customer ID
+    let customerId = profile?.stripe_customer_id;
+    if (!customerId) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+      }
+    }
+
+    if (!customerId) {
       throw new Error("No Stripe customer found for this user");
     }
-    const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Hardcoded allowlist — never trust client Origin header for return URLs
-    const ALLOWED_ORIGINS = new Set<string>([
-      "https://moondaylive.com",
-      "https://www.moondaylive.com",
-      "https://moondaylivecom.lovable.app",
-    ]);
-    const reqOrigin = req.headers.get("origin") ?? "";
-    const origin = ALLOWED_ORIGINS.has(reqOrigin) ? reqOrigin : "https://moondaylive.com";
-
+    // Create billing portal session with return_url: 'https://moondaylive.com/blueprint'
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${origin}/blueprint`,
+      return_url: "https://moondaylive.com/blueprint",
     });
     logStep("Customer portal session created", { sessionId: portalSession.id });
 
