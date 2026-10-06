@@ -16,81 +16,50 @@ interface RequestBody {
   } | null;
 }
 
-function formatBehaviors(raw: unknown): string[] {
-  if (!raw) return [];
-  if (Array.isArray(raw)) {
-    return raw
-      .map((item) => {
-        if (typeof item === 'string') return item.trim();
-        if (typeof item === 'object' && item !== null) {
-          const obj = item as Record<string, unknown>;
-          return String(obj.title || obj.behavior || obj.name || obj.text || '').trim();
-        }
-        return String(item).trim();
-      })
-      .filter(Boolean);
-  }
-  if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw);
-      return formatBehaviors(parsed);
-    } catch {
-      return [raw.trim()];
-    }
-  }
-  return [];
+function getFirstSentence(text?: string | null): string {
+  if (!text) return "";
+  const normalized = text
+    .replace(/\r\n/g, "\n")
+    .replace(/\.\s*\n+/g, ". ")
+    .replace(/\n+/g, " ")
+    .trim();
+  const match = normalized.match(/^.*?[.!?](\s|$)/);
+  if (match) return match[0].trim();
+  const firstDot = normalized.indexOf(".");
+  if (firstDot !== -1) return normalized.slice(0, firstDot + 1).trim();
+  return normalized ? `${normalized}.` : "";
 }
 
-function buildBlueprintEmailHtml({
+function buildWelcomeTeaserEmailHtml({
   firstName,
   sunSign,
   moonSign,
   combinationTitle,
-  solarEssence,
-  lunarEssence,
-  combinationSynthesis,
-  behaviors,
+  firstSentence,
   email,
 }: {
   firstName: string;
   sunSign: string;
   moonSign: string;
   combinationTitle: string;
-  solarEssence: string;
-  lunarEssence: string;
-  combinationSynthesis: string;
-  behaviors: string[];
+  firstSentence: string;
   email: string;
 }): string {
-  // Format synthesis paragraphs
-  const synthesisParagraphs = combinationSynthesis
-    .split(/\n+/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  const synthesisHtml = synthesisParagraphs.length > 0
-    ? synthesisParagraphs.map((p) => `<p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.75; color: #e2e8f0; font-family: Georgia, serif; font-style: italic;">${p}</p>`).join('')
-    : `<p style="margin: 0; font-size: 16px; line-height: 1.75; color: #e2e8f0; font-family: Georgia, serif; font-style: italic;">${combinationSynthesis}</p>`;
-
-  const behaviorsListHtml = behaviors.length > 0
-    ? behaviors.map((b) => `<li style="margin-bottom: 10px; color: #cbd5e1; font-size: 14px; line-height: 1.6;">${b}</li>`).join('')
-    : '';
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Moonday Blueprint is here, ${firstName}</title>
+  <title>Welcome to Moonday, ${firstName} — your Blueprint is waiting</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #060d17; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #e2e8f0;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #060d17; padding: 32px 16px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #060d17; padding: 36px 16px;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #0d1726; border: 1px solid #1f2d42; border-radius: 16px; overflow: hidden; padding: 36px 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 580px; background-color: #0d1726; border: 1px solid #1f2d42; border-radius: 16px; overflow: hidden; padding: 40px 32px; text-align: center;">
           <!-- Top Eyebrow -->
           <tr>
-            <td align="center" style="padding-bottom: 20px;">
+            <td align="center" style="padding-bottom: 24px;">
               <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #f3d077; font-weight: 600; margin-bottom: 6px;">
                 ✦ NATAL BLUEPRINT · CORE IDENTITY ✦
               </div>
@@ -100,11 +69,11 @@ function buildBlueprintEmailHtml({
             </td>
           </tr>
 
-          <!-- Hero Heading: combination_title in gold -->
+          <!-- Hero Heading: You are [combination_title] in large text -->
           <tr>
-            <td align="center" style="padding-bottom: 24px; border-bottom: 1px solid rgba(243, 208, 119, 0.2);">
-              <h1 style="margin: 0 0 10px 0; font-size: 28px; line-height: 1.25; color: #f3d077; font-weight: 700; font-family: Georgia, serif; text-shadow: 0 0 20px rgba(243, 208, 119, 0.25);">
-                ${combinationTitle}
+            <td align="center" style="padding-bottom: 24px; border-bottom: 1px solid rgba(243, 208, 119, 0.15);">
+              <h1 style="margin: 0 0 12px 0; font-size: 32px; line-height: 1.25; color: #f3d077; font-weight: 700; font-family: Georgia, serif; text-shadow: 0 0 24px rgba(243, 208, 119, 0.25);">
+                You are ${combinationTitle}
               </h1>
               <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8;">
                 ${sunSign} Sun • ${moonSign} Moon
@@ -112,84 +81,32 @@ function buildBlueprintEmailHtml({
             </td>
           </tr>
 
-          <!-- Greeting -->
+          <!-- Teaser Synthesis: One sentence only -->
           <tr>
-            <td style="padding: 24px 0 18px 0; font-size: 15px; line-height: 1.6; color: #cbd5e1;">
-              Greetings ${firstName},<br><br>
-              Your natal blueprint maps the profound architecture of your inner cosmos. Here is your archetypal essence:
-            </td>
-          </tr>
-
-          <!-- Solar & Lunar Essences Side-by-Side -->
-          <tr>
-            <td style="padding-bottom: 24px;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td width="48%" valign="top" style="background-color: #111e33; border: 1px solid #1e2c45; border-radius: 12px; padding: 18px;">
-                    <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #f3d077; font-weight: 600; margin-bottom: 8px;">
-                      ☀️ Natal Sun · Conscious Drive
-                    </div>
-                    <div style="font-size: 14px; line-height: 1.55; color: #e2e8f0;">
-                      ${solarEssence}
-                    </div>
-                  </td>
-                  <td width="4%"></td>
-                  <td width="48%" valign="top" style="background-color: #111e33; border: 1px solid #1e2c45; border-radius: 12px; padding: 18px;">
-                    <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #c4b5fd; font-weight: 600; margin-bottom: 8px;">
-                      🌙 Natal Moon · Instinctual Sanctuary
-                    </div>
-                    <div style="font-size: 14px; line-height: 1.55; color: #e2e8f0;">
-                      ${lunarEssence}
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Full combination_synthesis -->
-          <tr>
-            <td style="padding: 24px 0; border-top: 1px solid #1e2c45; border-bottom: 1px solid #1e2c45;">
-              <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #f3d077; font-weight: 600; margin-bottom: 14px;">
-                Archetypal Synthesis
-              </div>
-              <div>
-                ${synthesisHtml}
-              </div>
-            </td>
-          </tr>
-
-          <!-- default_behaviors as a list -->
-          ${behaviorsListHtml ? `
-          <tr>
-            <td style="padding: 24px 0;">
-              <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8; font-weight: 600; margin-bottom: 12px;">
-                Core Instincts & Behavioral Patterns
-              </div>
-              <ul style="margin: 0; padding-left: 20px;">
-                ${behaviorsListHtml}
-              </ul>
-            </td>
-          </tr>
-          ` : ''}
-
-          <!-- CTA Button: Unlock Your Daily Activation -->
-          <tr>
-            <td align="center" style="padding: 28px 0 16px 0; border-top: 1px solid #1e2c45;">
-              <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #94a3b8; max-width: 440px;">
-                Every day, transiting lunar degrees activate your natal placements. Unlock your full daily forecast, somatic rituals, and personal triad intelligence.
+            <td align="center" style="padding: 28px 0 16px 0;">
+              ${firstSentence ? `
+              <p style="margin: 0 0 24px 0; font-size: 18px; line-height: 1.7; color: #e2e8f0; font-family: Georgia, serif; font-style: italic; max-width: 480px;">
+                "${firstSentence}"
               </p>
-              <a href="https://moondaylive.com/pricing" style="display: inline-block; background-color: #f3d077; color: #060d17; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; padding: 16px 36px; border-radius: 999px; box-shadow: 0 4px 16px rgba(243, 208, 119, 0.35);">
-                Unlock Your Daily Activation
+              ` : ''}
+
+              <!-- Teaser Line -->
+              <p style="margin: 0 0 32px 0; font-size: 15px; line-height: 1.6; color: #94a3b8; max-width: 460px;">
+                Your full Blueprint — your behaviors, your patterns, your shadow — is inside the app
+              </p>
+
+              <!-- Single CTA Button -->
+              <a href="https://moondaylive.com/blueprint" style="display: inline-block; background-color: #f3d077; color: #060d17; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.12em; padding: 16px 36px; border-radius: 999px; box-shadow: 0 4px 16px rgba(243, 208, 119, 0.35);">
+                See Your Full Blueprint
               </a>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td align="center" style="padding-top: 32px; border-top: 1px solid #1f2d42; color: #64748b; font-size: 12px; line-height: 1.6;">
+            <td align="center" style="padding-top: 36px; border-top: 1px solid #1f2d42; color: #64748b; font-size: 12px; line-height: 1.6;">
               Moonday Live · Conscious Astrology<br>
-              Sent to ${email} · <a href="https://moondaylive.com/pricing" style="color: #94a3b8; text-decoration: underline;">Upgrade to Luminary</a> · <a href="https://moondaylive.com/account" style="color: #94a3b8; text-decoration: underline;">Manage Account</a>
+              Sent to ${email} · <a href="https://moondaylive.com/blueprint" style="color: #94a3b8; text-decoration: underline;">Open Blueprint</a> · <a href="https://moondaylive.com/account" style="color: #94a3b8; text-decoration: underline;">Manage Account</a>
             </td>
           </tr>
         </table>
@@ -257,7 +174,7 @@ Deno.serve(async (req) => {
     if (!blueprint?.combination_title || !blueprint?.combination_synthesis) {
       const { data, error } = await supabase
         .from('combination_profiles')
-        .select('combination_title, combination_synthesis, solar_essence, lunar_essence, default_behaviors')
+        .select('combination_title, combination_synthesis')
         .eq('sun_sign', sunSign)
         .eq('moon_sign', moonSign)
         .maybeSingle();
@@ -271,22 +188,18 @@ Deno.serve(async (req) => {
     }
 
     const combinationTitle = blueprint?.combination_title || `${sunSign} Sun • ${moonSign} Moon Archetype`;
-    const solarEssence = blueprint?.solar_essence || `Conscious vitality, core identity, and purpose powered by ${sunSign}.`;
-    const lunarEssence = blueprint?.lunar_essence || `Instinctual sanctuary, emotional landscape, and subconscious processing tuned to ${moonSign}.`;
-    const combinationSynthesis = blueprint?.combination_synthesis ||
-      `The synergy of ${sunSign} and ${moonSign} weaves outward ambition with inward sanctuary. Living in conscious alignment requires recognizing both your solar path and your lunar resting place.`;
-    const behaviors = formatBehaviors(blueprint?.default_behaviors);
+    const rawSynthesis = blueprint?.combination_synthesis ||
+      `The synergy of ${sunSign} and ${moonSign} weaves outward ambition with inward sanctuary.`;
+    const firstSentence = getFirstSentence(rawSynthesis);
 
-    const subject = `Your Moonday Blueprint is here, ${firstName}`;
-    const emailHtml = buildBlueprintEmailHtml({
+    // Subject: "Welcome to Moonday, [first_name] — your Blueprint is waiting"
+    const subject = `Welcome to Moonday, ${firstName} — your Blueprint is waiting`;
+    const emailHtml = buildWelcomeTeaserEmailHtml({
       firstName,
       sunSign,
       moonSign,
       combinationTitle,
-      solarEssence,
-      lunarEssence,
-      combinationSynthesis,
-      behaviors,
+      firstSentence,
       email,
     });
 
@@ -316,7 +229,7 @@ Deno.serve(async (req) => {
         if (resendRes.ok) {
           sendSuccess = true;
           sendResult = await resendRes.json();
-          console.log('[send-blueprint-email] Email sent via Resend API successfully to', email);
+          console.log('[send-blueprint-email] Welcome teaser email sent via Resend API to', email);
         } else {
           const errText = await resendRes.text();
           errorMessage = `Resend API returned ${resendRes.status}: ${errText}`;
@@ -336,7 +249,7 @@ Deno.serve(async (req) => {
     await supabase
       .from('email_send_log')
       .insert({
-        template_name: 'blueprint-welcome',
+        template_name: 'blueprint-welcome-teaser',
         recipient_email: email,
         status: sendSuccess ? 'sent' : 'failed',
         error_message: errorMessage,
@@ -353,7 +266,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Blueprint email processed successfully',
+        message: 'Welcome teaser email processed successfully',
         recipient: email,
         subject,
         result: sendResult,
