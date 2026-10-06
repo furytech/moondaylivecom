@@ -27,3 +27,6 @@ verify_jwt = false
 
 [functions.auto-approve-transit]
 verify_jwt = false
+
+[functions.send-blueprint-email]
+verify_jwt = false

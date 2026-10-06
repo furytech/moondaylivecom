@@ -44,6 +44,9 @@ supabase.cmd functions deploy make-social-bridge --no-verify-jwt
 echo =^> auto-approve-transit (no jwt)
 supabase.cmd functions deploy auto-approve-transit --no-verify-jwt
 
+echo =^> send-blueprint-email (no jwt)
+supabase.cmd functions deploy send-blueprint-email --no-verify-jwt
+
 echo =^> admin-delete-user
 supabase.cmd functions deploy admin-delete-user
 

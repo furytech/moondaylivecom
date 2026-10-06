@@ -20,6 +20,8 @@ import { INNER_CIRCLE, PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 
 import DailyForecast from "@/components/DailyForecast";
 import BlueprintIdentity from "@/components/BlueprintIdentity";
+import BlueprintPreviewCard from "@/components/BlueprintPreviewCard";
+import LuminaryGate from "@/components/LuminaryGate";
 import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
@@ -136,7 +138,7 @@ const Blueprint = () => {
       try {
         const { data, error } = await supabase
           .from("combination_profiles")
-          .select("combination_title, luminous_expression, combination_synthesis, solar_essence, lunar_essence, shadow_synthesis")
+          .select("combination_title, luminous_expression, combination_synthesis, solar_essence, lunar_essence, shadow_synthesis, default_behaviors")
           .eq("sun_sign", sunSign)
           .eq("moon_sign", moonSign)
           .maybeSingle();
@@ -153,6 +155,7 @@ const Blueprint = () => {
             solar_essence: data.solar_essence,
             lunar_essence: data.lunar_essence,
             shadow_synthesis: data.shadow_synthesis,
+            default_behaviors: Array.isArray(data.default_behaviors) ? data.default_behaviors : [],
           });
         } else {
           const fallback = await fetchCombinationProfile(sunSign, moonSign);
@@ -501,6 +504,24 @@ const Blueprint = () => {
                 currentMoonSign={lunar?.sign.name}
                 isPro={isPro}
               />
+
+              {/* Free tier: On-screen preview card immediately after archetype reveal & before Luminary gate */}
+              {!isPro && (
+                <div className="mt-8 space-y-8 animate-fade-up">
+                  <BlueprintPreviewCard
+                    combinationTitle={combinationProfile.combination_title}
+                    combinationSynthesis={combinationProfile.combination_synthesis}
+                  />
+
+                  <LuminaryGate
+                    currentMoonSign={lunar?.sign.name || displayedMoonSign || "Current"}
+                    birthMoonSign={displayedMoonSign || "Birth"}
+                    onSelectPlan={handleSelectPlan}
+                    onUnlockClick={handleOpenPricing}
+                    loading={checkoutLoading}
+                  />
+                </div>
+              )}
             </div>
           )}
 

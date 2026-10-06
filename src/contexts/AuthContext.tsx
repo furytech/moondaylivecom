@@ -5,6 +5,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { trackEvent } from "@/lib/analytics";
 import { getDevTierOverride, subscribeDevTier } from "@/lib/devTier";
 import { calculateSunSign, calculateMoonSignAsync } from "@/lib/moonSign";
+import { triggerBlueprintEmail } from "@/services/blueprintEmailService";
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -259,6 +260,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           },
           { onConflict: "user_id" }
         );
+    }
+
+    // Trigger Blueprint email capture flow for new free signups
+    if (resolvedSunSign && resolvedMoonSign) {
+      triggerBlueprintEmail({
+        email,
+        firstName: firstName || null,
+        sunSign: resolvedSunSign,
+        moonSign: resolvedMoonSign,
+      }).catch((err) => console.warn("Background blueprint email capture error:", err));
     }
 
     trackEvent("sign_up", { method: "email" });
