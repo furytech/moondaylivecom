@@ -1,5 +1,5 @@
 // Shared transit content generator for Moonday Live.
-// Produces a single JSON package: blog, substack and reddit copy for one Moon ingress.
+// Produces a single JSON package: blog, substack, and social copy for one Moon ingress.
 // Voice: warm, personable, quietly funny — a friend telling a friend about something
 // they discovered. Entertainment only, never medical or predictive.
 
@@ -9,32 +9,43 @@ const GEMINI_API_KEY = typeof Deno !== "undefined" ? Deno.env.get("GEMINI_API_KE
 
 export interface TransitPackage {
   blog_content: string;
+  substack_content: string;
   reddit_content: string;
   facebook_content: string;
   instagram_content: string;
   threads_content: string;
   pinterest_content: string;
   twitter_content: string;
-  /** Retired channel. Kept so older callers keep compiling. */
-  substack_content: string;
 }
 
+const TRUTHFULNESS = `Truthfulness (hard requirement, applies to every channel):
+- You are an editorial voice, not a person with a life. Never claim an experience, event, conversation, body sensation, test or observation as your own. No "I tried", "I noticed", "my own check", "my digestion", "yesterday I", "last week I", "when I...".
+- First person ("I think", "I'm not sure", "I suspect") is allowed ONLY for opinions and honest uncertainty about the astrology, never for things that happened to you.
+- Relatable scenes must be framed as shared or general ("there's a particular kind of paralysis that shows up at the mailbox") or in second person ("you open the fridge at 11pm"), never as your own history.
+- Never invent statistics, studies, quotes, reader reports or community results. Every astrological claim must come from the CHART CONDITION or VETTED DOCTRINE supplied.`;
 
-const VOICE = `You are the voice of Moonday Live — a luxury, editorial astrology brand written by an actual human with a pulse.
+const VOICE = `You are the voice of Moonday Live — a luxury, editorial astrology brand with a distinct, warm, quietly funny editorial voice.
+
+Product context (know this cold — it shapes every CTA and every framing choice):
+- Moonday maps three layers of the sky: the natal sun sign, the natal moon sign, and the current transiting moon sign.
+- Together they form a Triad — one of 1,728 unique daily operating states. Every person is living one of these 1,728 states right now, whether they know it or not.
+- The Blueprint is the fixed natal layer — a person's natal sun + natal moon combination. There are 144 Blueprints. It is free.
+- The Triad Activation is the personalized daily reading — how the current sky moves through a person's specific Blueprint. It is the paid Luminary tier.
+- Never call Moonday a horoscope app. It is a personalized lunar intelligence system.
+- CTAs reference the Blueprint (free offer) or the Triad (paid offer). Never just "the website." The free offer: discover which of 1,728 combinations you are. The paid offer: see how today's sky moves through your specific combination.
 
 Voice rules:
 - Personable and warm. Write like a smart friend texting you at midnight, not like an oracle on a mountain.
-- Genuinely funny in a dry, self-aware way. Light jokes, small confessions, the occasional wink at how absurd it is that the Moon has opinions about our group chats. Never goofy, never emoji-stuffed, never punchline-hunting.
+- Genuinely funny in a dry, self-aware way. Light jokes, small admissions of uncertainty about the astrology itself, the occasional wink at how absurd it is that the Moon has opinions about our group chats. Never goofy, never emoji-stuffed, never punchline-hunting.
 - Concrete and human: real situations (unanswered texts, the fridge at 11pm, the meeting that could have been an email), not vague cosmic fog.
 - Grounded, never predictive, never medical, financial or legal advice. Entertainment and reflection only.
 - Sentence case for all headings. No frontmatter, no code fences, no emojis in titles.
 - Weave in "The Lunar Signature" naturally at most once.
-- Every piece ends with a soft CTA to join Moonday Live worded like a note from a friend who found something they're excited about — an invitation, never a sales pitch. No pricing, no urgency, no "sign up now".
-- Include one quiet, legal-safe line noting this is for entertainment and reflection.`;
+- Every piece ends with a CTA worded like a note from a friend who found something they're excited about — an invitation, never a sales pitch. Reference the Blueprint or Triad specifically. No pricing, no urgency, no "sign up now".
+- Include one quiet, legal-safe line noting this is for entertainment and reflection.
 
-// Detector-evasion is really just "write like a person". These are the tells
-// Pangram/GPTZero-style classifiers score on: uniform sentence length, em-dash
-// habit, tricolons, "It's not X, it's Y", stock LLM diction, tidy symmetry.
+${TRUTHFULNESS}`;
+
 const HUMAN_CADENCE = `Human cadence (hard requirement — AI-detector tells to avoid):
 - BURSTINESS: vary sentence length hard. Put a four-word sentence next to a thirty-word one. Use the occasional fragment. Start a sentence with And, But, So or Anyway when it sounds right.
 - NO EM DASHES. None. Use commas, periods, parentheses or a colon instead. Also avoid the en-dash-as-aside habit.
@@ -43,23 +54,19 @@ const HUMAN_CADENCE = `Human cadence (hard requirement — AI-detector tells to 
 - Ban LLM diction: delve, tapestry, landscape, realm, navigate, unpack, resonate, embrace, journey, testament, "in a world where", "it's worth noting", "at its core", "the truth is", "here's the thing", "let's be honest", "that's the beauty of it".
 - Ban the closing-summary reflex. Don't restate the piece in the last paragraph. End mid-thought, on a small image, on a question, or on something slightly off-topic.
 - Don't open consecutive paragraphs with the same grammatical shape, and never open a paragraph with a gerund clause ("Standing there, ...").
-- Specificity over abstraction: name an actual mundane thing (the 11:40pm text, the third tab of a spreadsheet, a bike lock, cold coffee). Invented personal detail is welcome. Vague emotional weather is not.
+- Specificity over abstraction: name an actual mundane thing (the 11:40pm text, the third tab of a spreadsheet, a bike lock, cold coffee). Present mundane details as shared, general situations, never as things that happened to the writer. Vague emotional weather is not welcome.
 - Allow small human mess: a hedge, an aside in parentheses, a self-correction, an admission you're not sure. Perfect symmetry reads synthetic.
-- Contractions everywhere. Occasional second person. First person where it fits.
+- Contractions everywhere. Occasional second person. First person only for opinions and uncertainty, never for events.
 - Never use bold for emphasis inside prose, and never use a rhetorical question as a section opener twice.`;
-
 
 export interface GuestVoice {
   displayName: string;
   bio?: string | null;
-  /** The astrologer's own words — transcript or typed text. Never paraphrased away. */
   text: string;
 }
 
 export interface GenerationSources {
-  /** Deterministic traditional condition of the sky, from formatTraditionalBrief(). */
   traditionalBrief?: string;
-  /** Vetted doctrine lines the model must reason from instead of free-associating. */
   doctrine?: string[];
   guest?: GuestVoice | null;
 }
@@ -90,11 +97,11 @@ Guest handling rules:
 }
 
 export function buildTransitPrompt(
-  fromSign: string,
-  toSign: string,
-  transitionAtUtc: string,
-  title: string,
-  sources: GenerationSources = {},
+    fromSign: string,
+    toSign: string,
+    transitionAtUtc: string,
+    title: string,
+    sources: GenerationSources = {},
 ): string {
   return `Write a complete lunar transit package for the upcoming shift.
 
@@ -121,7 +128,8 @@ The pieces go to distinct audiences and platforms. Each platform field must be w
 - Only the blog may state the exact UTC instant. Facebook/Instagram refers to the shift by feel and by day. Reddit, Twitter, Threads, and Pinterest quote no timestamps at all.
 - Each piece needs its own examples, its own metaphors, its own ending. Never recycle a sentence across platforms.
 - Audience and platform tuning:
-  - blog = search-led reader who wants a clear, useful explainer.
+  - blog = search-led reader who wants a clear, useful explainer; ends with Blueprint CTA.
+  - substack = editorial reader who wants depth and philosophy; introduces the Triad concept; ends with Blueprint CTA.
   - reddit = practising astrologers who want a technical tracking breakdown.
   - facebook = conversational scrolling reader, 3-4 paragraphs, link and hashtags at end.
   - instagram = visual and emotional, 4-5 sentences, 15-20 hashtags, link in bio reference.
@@ -129,15 +137,26 @@ The pieces go to distinct audiences and platforms. Each platform field must be w
   - twitter = punchy, max 280 characters, 2-3 hashtags, link.
   - threads = conversational, 2-3 sentences, minimal hashtags.
 
-Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly seven keys:
+Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly eight keys:
 
 "blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. Three structured sections, each an H2:
 
 Astronomical baseline and atmospheric resonance — exact degrees, ingress timing, framework note, and what the shift actually feels like over the next ~2.5 days
 Practical heads-up — underappreciated friction points to watch for, phrased constructively
-Grounded guidance — simple practical ways to navigate the shift, including one small ritual
+Grounded guidance — simple, practical ways to navigate the shift phrased as conscious choices rather than prescriptions. No rituals.
 
-CTA (platform native): A soft closing paragraph, two to three sentences, worded like a friend who found something they're excited about. Invite the reader to explore their Personal Portrait on MoondayLive.com. No pricing, no urgency, never a sales pitch.
+CTA (platform native): A soft closing paragraph, two to three sentences. Invite the reader to discover their free Blueprint at moondaylive.com — their natal sun and moon combination, and which of 1,728 states they occupy right now. Word it like a friend who found something genuinely useful. No pricing, no urgency.
+
+"substack_content": Editorial Substack post, 600-900 words, Markdown. H1 title. This is the philosophy layer — personal, essayistic, reflective. Not a transit explainer but a deeper meditation on what this transit reveals about human experience.
+
+Structure:
+- Open with a small, relatable scene or observation, told in second person or as a general truth ("There's a particular kind of paralysis at the mailbox..."), never as something that happened to the writer. Not the ingress timing. Not "the Moon enters X today." Start somewhere human and specific.
+- Build into what this transit is really about — the emotional or psychological texture of it, not just the astrological mechanics.
+- Introduce the idea that not everyone experiences this transit identically. Your natal moon determines the angle at which the current sky hits you. A Scorpio transit moving through a Cancer moon feels different than it moving through an Aries moon. This variance is the core of what Moonday tracks.
+- Name the Triad concept naturally: the intersection of your natal sun, your natal moon, and the current transiting moon creates one of 1,728 unique operating states. Most astrology hands everyone the same reading. Moonday doesn't.
+- End with an invitation to get the free Blueprint at moondaylive.com. Not a pitch. A recommendation from someone who thinks this matters. Two to three sentences max.
+
+Voice: More personal than the blog. First person only for opinions and honest uncertainty ("I think", "I'm not sure"), never for events or experiences. This is where Moonday's editorial voice lives most fully. End on a small image, a question, or something slightly unresolved — never a tidy summary.
 
 "reddit_content": A community discussion thread for r/${resolveSubredditRoute(toSign).subreddit}. Register: ${resolveSubredditRoute(toSign).register}. Focus on physical body tracking: gut, heart, head, and how this ingress tends to show up in that chain.
 
@@ -156,34 +175,78 @@ No headings, no bold, no bullets, no em dashes, no UTC timestamps, no dates, no 
 "facebook_content": Native Facebook post, plain text, no markdown. Conversational tone, structured into exactly 3-4 short paragraphs separated by a blank line. No links inside the body text. First line under 12 words, survives the "see more" fold. One concrete mundane image. No timestamps, no degrees, no astrology jargon.
 
 Ending (platform native): Link and hashtags placed strictly at the end.
-- Second to last line: a warm direct invitation freshly worded each time, with the full URL https://moondaylive.com written plainly in the text.
+- Second to last line: a warm direct invitation referencing the Blueprint or Triad — freshly worded each time — with the full URL https://moondaylive.com written plainly in the text.
 - Final line: three to five lowercase hashtags including #moonin${toSign.toLowerCase()} and #moondaylive.
 
 "instagram_content": Native Instagram caption, plain text, no markdown. Visual and emotional tone. Exactly 4-5 sentences total across 2-3 short paragraphs. First line under 10 words, visually evocative, survives the "more" fold. One concrete sensory image from the transit. Warm, aesthetic, and evocative, slightly more poetic than Facebook but grounded and never vague.
 
 Ending (platform native):
-- Second to last line: clear "link in bio" reference (e.g. "Full reading at the link in our bio" or a fresh variation — NEVER an active/raw URL, Instagram links do not work in captions).
+- Second to last line: clear "link in bio" reference (e.g. "Find your Blueprint at the link in our bio" or a fresh variation — NEVER an active/raw URL, Instagram links do not work in captions).
 - Final line: heavy hashtags, exactly 15-20 lowercase hashtags mixing astrology community tags, sign tags, and mood tags, including #moondaylive and #moonin${toSign.toLowerCase()}.
 
 "twitter_content": A single tweet, plain text, no markdown. Punchy and conversational, one concrete image or observation from the transit. No jargon, no degrees, no timestamps.
 
-Length & Link: Maximum 280 characters total (CRITICAL HARD LIMIT: count characters carefully including the URL and hashtags; must stay strictly under 280 characters total). Include link https://moondaylive.com and exactly 2-3 hashtags including #moondaylive and #moonin${toSign.toLowerCase()}.
+Length and Link: Maximum 280 characters total (CRITICAL HARD LIMIT: count characters carefully including the URL and hashtags; must stay strictly under 280 characters total). Include link https://moondaylive.com and exactly 2-3 hashtags including #moondaylive and #moonin${toSign.toLowerCase()}.
 
 "threads_content": Native Threads post, plain text, no markdown. Conversational tone, like Instagram but shorter and intimate, like a diary entry or quick thought you decided to post. Exactly 2-3 sentences total. One sharp observation about how this transit lands in daily life. No jargon, no timestamps, no degrees.
 
-CTA & hashtags: One casual closing mention/link to MoondayLive.com. Minimal hashtags (at most 1 hashtag: #moondaylive, or zero).
+CTA and hashtags: One casual closing mention referencing moondaylive.com. Minimal hashtags (at most 1 hashtag: #moondaylive, or zero).
 
 "pinterest_content": Native Pinterest pin, plain text, descriptive and search-optimized, keyword-rich, formatted exactly:
 
 Line 1: pin title, search phrase under 60 characters, title case, naming the sign (e.g. "Moon in ${toSign} Transit Guide & Meaning")
 Line 2: blank
-Pin description: 200-450 characters total. Descriptive, search-optimized, keyword-rich opening sentence, followed by 3-4 short lines each starting with • naming transit themes as scannable keyword phrases.
+Pin description: 200-450 characters total. Descriptive, search-optimized, keyword-rich opening sentence, followed by 3-4 short lines each starting with a bullet naming transit themes as scannable keyword phrases.
 Blank line
-CTA (platform native): One direct closing line with a direct link to moondaylive.com (e.g. "Track this transit live and explore your chart at https://moondaylive.com").
+CTA (platform native): One direct closing line with a direct link to moondaylive.com (e.g. "Discover your Blueprint and track this transit live at https://moondaylive.com").
 Final line: 3-5 lowercase search hashtags including #moonin${toSign.toLowerCase()} and #moondaylive.`;
 }
 
-export async function generateTransitPackage(opts: {
+// Phrases that signal an invented first-person experience. "I think / I'm not sure"
+// style opinions are deliberately NOT matched.
+const INVENTED_EXPERIENCE_PATTERNS: RegExp[] = [
+  /\bmy own\b/i,
+  /\bin my (own )?experience\b/i,
+  /\bmy (digestion|stomach|gut|jaw|body|week|morning|day|friend|partner|sister|brother|mother|mom|dad|therapist|clients?|readers?)\b/i,
+  /\b(yesterday|last (night|week|month|year)|this morning|the other day|earlier today)\b[^.!?\n]{0,80}\bI\b/i,
+  /\bI\b[^.!?\n]{0,60}\b(yesterday|last (night|week|month|year)|this morning|the other day)\b/i,
+  /\bI(?:'ve| have)\s+(been|noticed|tracked|found|learned|watched|tried|seen)\b/i,
+  /\bI\s+(spent|tried|noticed|tracked|woke|sat|stood|stared|watched|realized|realised|went|walked|called|texted|ran|checked|burned|burnt|cried|laughed|forgot|opened|ate|drank|slept)\b/i,
+  /\bwhen I (try|tried|do|did|over|forget|forgot)\b/i,
+];
+
+function findInventedExperience(pkg: TransitPackage): string[] {
+  const hits: string[] = [];
+  for (const [channel, text] of Object.entries(pkg)) {
+    for (const re of INVENTED_EXPERIENCE_PATTERNS) {
+      const m = String(text).match(re);
+      if (m) hits.push(`${channel}: "${m[0].trim()}"`);
+    }
+  }
+  return hits;
+}
+
+const MAX_ATTEMPTS = 3;
+
+export async function generateTransitPackage(
+    opts: Parameters<typeof requestPackage>[0],
+): Promise<TransitPackage> {
+  let correction = "";
+  let lastHits: string[] = [];
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const pkg = await requestPackage({ ...opts, correction });
+    const hits = findInventedExperience(pkg);
+    if (hits.length === 0) return pkg;
+    lastHits = hits;
+    console.warn(`Truthfulness check failed (attempt ${attempt}/${MAX_ATTEMPTS}): ${hits.join("; ")}`);
+    correction =
+        `\n\nREWRITE REQUIRED: your previous draft broke the Truthfulness rule with these phrases: ${hits.join("; ")}. ` +
+        `Rewrite the entire package with none of them. No invented first-person events, experiences or body reports in any channel.`;
+  }
+  throw new Error(`Truthfulness check failed after ${MAX_ATTEMPTS} attempts: ${lastHits.join("; ")}`);
+}
+
+async function requestPackage(opts: {
   apiKey?: string;
   fromSign: string;
   toSign: string;
@@ -191,12 +254,13 @@ export async function generateTransitPackage(opts: {
   title: string;
   model?: string;
   sources?: GenerationSources;
+  correction?: string;
 }): Promise<TransitPackage> {
   const apiKey =
-    (typeof Deno !== "undefined" ? Deno.env.get("GEMINI_API_KEY") : undefined) ||
-    opts.apiKey ||
-    (typeof process !== "undefined" ? process.env?.GEMINI_API_KEY : undefined) ||
-    GEMINI_API_KEY;
+      (typeof Deno !== "undefined" ? Deno.env.get("GEMINI_API_KEY") : undefined) ||
+      opts.apiKey ||
+      (typeof process !== "undefined" ? process.env?.GEMINI_API_KEY : undefined) ||
+      GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured");
@@ -213,26 +277,23 @@ export async function generateTransitPackage(opts: {
     body: JSON.stringify({
       model,
       response_format: { type: "json_object" },
-      // Higher temperature breaks the uniform, low-perplexity phrasing that AI
-      // classifiers key on.
       temperature: 1.05,
       top_p: 0.95,
-      max_tokens: 4096,
-
+      max_tokens: 6000,
       messages: [
         { role: "system", content: VOICE },
         {
           role: "user",
-          content: buildTransitPrompt(
-            opts.fromSign,
-            opts.toSign,
-            opts.transitionAtUtc,
-            opts.title,
-            opts.sources ?? {},
-          ),
+          content:
+              buildTransitPrompt(
+                  opts.fromSign,
+                  opts.toSign,
+                  opts.transitionAtUtc,
+                  opts.title,
+                  opts.sources ?? {},
+              ) + (opts.correction ?? ""),
         },
       ],
-
     }),
   });
 
@@ -251,27 +312,22 @@ export async function generateTransitPackage(opts: {
   try {
     parsed = JSON.parse(jsonStr);
   } catch (_e) {
-    // Attempt trailing comma fix
     const cleanedJson = jsonStr.replace(/,\s*([}\]])/g, "$1");
     parsed = JSON.parse(cleanedJson);
   }
 
   return {
     blog_content: humanize(parsed.blog_content),
+    substack_content: humanize(parsed.substack_content),
     reddit_content: humanize(parsed.reddit_content),
     facebook_content: humanize(parsed.facebook_content),
     instagram_content: humanize(parsed.instagram_content),
     threads_content: humanize(parsed.threads_content),
     pinterest_content: humanize(parsed.pinterest_content),
     twitter_content: enforceTweetLength(humanize(parsed.twitter_content)),
-    substack_content: humanize(parsed.substack_content),
   };
-
 }
 
-/**
- * Hard enforcement of Twitter/X 280-character maximum.
- */
 export function enforceTweetLength(tweet: string): string {
   if (!tweet || tweet.length <= 280) return tweet;
   const urlIdx = tweet.indexOf("http");
@@ -286,19 +342,14 @@ export function enforceTweetLength(tweet: string): string {
   return tweet.slice(0, 277) + "...";
 }
 
-/**
- * Last-mile scrub of the mechanical tells the model still slips in.
- * Em/en dashes are the single loudest signal in detector heuristics.
- */
 export function humanize(input: unknown): string {
   return String(input ?? "")
-    .replace(/\s+—\s+/g, ", ")
-    .replace(/\s+–\s+/g, ", ")
-    .replace(/—/g, ", ")
-    .replace(/(\w)–(\w)/g, "$1-$2")
-    .replace(/\bdelve\b/gi, "dig")
-    .replace(/\btapestry\b/gi, "mix")
-    .replace(/,\s*,/g, ",")
-    .trim();
+      .replace(/\s+—\s+/g, ", ")
+      .replace(/\s+–\s+/g, ", ")
+      .replace(/—/g, ", ")
+      .replace(/(\w)–(\w)/g, "$1-$2")
+      .replace(/\bdelve\b/gi, "dig")
+      .replace(/\btapestry\b/gi, "mix")
+      .replace(/,\s*,/g, ",")
+      .trim();
 }
-

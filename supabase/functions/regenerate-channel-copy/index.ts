@@ -20,16 +20,16 @@ const ZODIAC = [
 ];
 
 const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  { auth: { persistSession: false } },
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { persistSession: false } },
 );
 
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -40,7 +40,11 @@ Deno.serve(async (req) => {
 
   const token = authHeader.replace("Bearer ", "");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const isServiceRole = Boolean(serviceRoleKey && token === serviceRoleKey);
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  const isServiceRole = Boolean(
+      (serviceRoleKey && token === serviceRoleKey) ||
+      (cronSecret && token === cronSecret)
+  );
 
   if (!isServiceRole) {
     const { data: claims, error: claimsError } = await supabase.auth.getClaims(token);
@@ -58,16 +62,16 @@ Deno.serve(async (req) => {
     if (!postId) return json({ error: "post_id is required" }, 400);
 
     const { data: post, error } = await supabase
-      .from("blog_posts")
-      .select("id, title, zodiac_sign_tag, publish_at, published_at, content, substack_post, reddit_post, facebook_post, pinterest_post, twitter_post, threads_post, instagram_post")
-      .eq("id", postId)
-      .maybeSingle();
+        .from("blog_posts")
+        .select("id, title, zodiac_sign_tag, publish_at, published_at, content, substack_post, reddit_post, facebook_post, pinterest_post, twitter_post, threads_post, instagram_post")
+        .eq("id", postId)
+        .maybeSingle();
     if (error) throw error;
     if (!post) return json({ error: "Post not found" }, 404);
 
     const toSign = post.zodiac_sign_tag && ZODIAC.includes(post.zodiac_sign_tag)
-      ? post.zodiac_sign_tag
-      : null;
+        ? post.zodiac_sign_tag
+        : null;
     if (!toSign) return json({ error: "Post has no zodiac sign tag to regenerate from" }, 400);
 
     const fromSign = ZODIAC[(ZODIAC.indexOf(toSign) + 11) % 12];
@@ -86,8 +90,8 @@ Deno.serve(async (req) => {
     });
 
     const want: string[] = Array.isArray(channels) && channels.length
-      ? channels
-      : ["reddit", "facebook", "pinterest", "twitter", "threads", "instagram"];
+        ? channels
+        : ["reddit", "facebook", "pinterest", "twitter", "threads", "instagram"];
 
     const update: Record<string, unknown> = {};
     if (want.includes("blog") && pkg.blog_content) update.content = pkg.blog_content;
@@ -104,9 +108,9 @@ Deno.serve(async (req) => {
     }
 
     const { error: updateError } = await supabase
-      .from("blog_posts")
-      .update(update)
-      .eq("id", postId);
+        .from("blog_posts")
+        .update(update)
+        .eq("id", postId);
     if (updateError) throw updateError;
 
     return json({ ok: true, ...update });

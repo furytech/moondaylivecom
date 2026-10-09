@@ -1,4 +1,4 @@
-project_id = "hzlpnmvboqhzthvjlves"
+project_id = "ggrhuhwxbwrfbbcwcrmv"
 
 [functions]
   [functions.auth-email-hook]
@@ -29,4 +29,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-blueprint-email]
+verify_jwt = false
+
+[functions.regenerate-channel-copy]
 verify_jwt = false
