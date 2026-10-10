@@ -33,3 +33,6 @@ verify_jwt = false
 
 [functions.regenerate-channel-copy]
 verify_jwt = false
+
+[functions.auto-publish-posts]
+verify_jwt = false
