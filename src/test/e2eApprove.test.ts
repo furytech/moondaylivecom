@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { approveTransit, sendMakeWebhook } from '../services/transitService';
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
+import { blogPostsClient, DRAFT_ARTICLE } from './blogPostsMock';
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
@@ -30,13 +31,11 @@ describe('E2E Approval Flow, Make.com Webhook & Status Feedback', () => {
 
   it('verifies state (a): Successful approval with 200 webhook response', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const blog = blogPostsClient(DRAFT_ARTICLE);
     vi.mocked(supabase.from).mockReturnValue({
       upsert: upsertMock,
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
+      select: blog.select,
+      update: blog.update,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const originalFetch = global.fetch;
@@ -77,13 +76,11 @@ describe('E2E Approval Flow, Make.com Webhook & Status Feedback', () => {
 
   it('verifies state (b): Approval saved in DB but Make.com webhook failed to respond', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const blog = blogPostsClient(DRAFT_ARTICLE);
     vi.mocked(supabase.from).mockReturnValue({
       upsert: upsertMock,
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
+      select: blog.select,
+      update: blog.update,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const originalFetch = global.fetch;

@@ -148,6 +148,20 @@ export function buildTransitBlogPostPayload(transit: ZodiacSignTransit, publish:
   };
 }
 
+// A journal article is eligible while its ingress is still upcoming, or at most this many
+// hours old. Keeps a stale article from an earlier cycle from being touched by surprise.
+const ARTICLE_LOOKBACK_HOURS = 6;
+
+/**
+ * Queues (or un-queues) the REAL journal article for this sign's upcoming ingress.
+ *
+ * The nightly generator (fill-transit-schedule) writes one full article per ingress, with
+ * its Substack/Reddit/social editions, as a draft whose publish_at is the ingress instant.
+ * Approving here marks that article 'approved'; auto-publish-posts then publishes it at
+ * publish_at and fires the channel hand-offs. Revoking returns it to 'draft'.
+ *
+ * This no longer builds a separate legacy "transit-<sign>" post from the short transit copy.
+ */
 export async function syncTransitToBlogPost(
   transit: ZodiacSignTransit,
   publish: boolean = true
@@ -156,41 +170,61 @@ export async function syncTransitToBlogPost(
     return { success: true };
   }
 
-  const payload = buildTransitBlogPostPayload(transit, publish);
+  const oldestAllowed = new Date(Date.now() - ARTICLE_LOOKBACK_HOURS * 60 * 60 * 1000).toISOString();
 
   try {
-    const { data: existing } = await supabase
+    const { data: article, error: lookupError } = await supabase
       .from('blog_posts')
-      .select('id')
-      .eq('slug', payload.slug)
+      .select('id, slug, status, publish_at')
+      .eq('category', 'Transits')
+      .eq('zodiac_sign_tag', transit.sign)
+      .gte('publish_at', oldestAllowed)
+      .order('publish_at', { ascending: true })
+      .limit(1)
       .maybeSingle();
 
-    if (existing?.id) {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .update(payload)
-        .eq('id', existing.id)
-        .select()
-        .single();
+    if (lookupError) {
+      console.error(`[transitService] Error looking up journal article for ${transit.sign}:`, lookupError);
+      return { success: false, error: lookupError.message };
+    }
 
-      if (error) {
-        console.error(`[transitService] Error updating blog post for transit ${transit.id}:`, error);
-        return { success: false, error: error.message };
+    if (!article) {
+      return { success: false, error: `No upcoming journal article found for ${transit.sign}` };
+    }
+
+    if (publish) {
+      // Already approved, scheduled or live — nothing to change.
+      if (article.status !== 'draft') {
+        return { success: true, data: article };
       }
-      return { success: true, data };
-    } else {
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert(payload)
-        .select()
+        .update({ status: 'approved' })
+        .eq('id', article.id)
+        .select('id, slug, status, publish_at')
         .single();
-
       if (error) {
-        console.error(`[transitService] Error inserting blog post for transit ${transit.id}:`, error);
+        console.error(`[transitService] Error approving journal article for ${transit.sign}:`, error);
         return { success: false, error: error.message };
       }
       return { success: true, data };
     }
+
+    // Revoke: return the article to draft.
+    if (article.status === 'draft') {
+      return { success: true, data: article };
+    }
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .update({ status: 'draft', published_at: null })
+      .eq('id', article.id)
+      .select('id, slug, status, publish_at')
+      .single();
+    if (error) {
+      console.error(`[transitService] Error reverting journal article for ${transit.sign}:`, error);
+      return { success: false, error: error.message };
+    }
+    return { success: true, data };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error syncing transit to blog';
     console.error(`[transitService] Exception syncing blog post:`, err);
@@ -282,6 +316,7 @@ export async function approveTransit(
   const isPublished = target.status === 'published';
   const newStatus = isPublished ? 'pending' : 'published';
   const publishedAt = isPublished ? null : new Date().toISOString();
+  let blogSync: { success: boolean; error?: string } | null = null;
 
   // If Supabase credentials are present, execute live upsert
   if (import.meta.env.VITE_SUPABASE_URL) {
@@ -303,12 +338,13 @@ export async function approveTransit(
 
     console.log('[approveTransit] Supabase upsert succeeded for transit ID:', id);
 
-    // Automatically sync / publish corresponding blog post in the journal
+    // Queue (or un-queue) the real journal article for this sign's upcoming ingress
     try {
       const updatedTransitForBlog = { ...target, status: newStatus as any, publishedAt };
-      await syncTransitToBlogPost(updatedTransitForBlog, newStatus === 'published');
-      console.log('[approveTransit] Automatically synced journal blog post for sign:', target.sign, 'published:', newStatus === 'published');
+      blogSync = await syncTransitToBlogPost(updatedTransitForBlog, newStatus === 'published');
+      console.log('[approveTransit] Journal article sync for sign:', target.sign, blogSync);
     } catch (blogErr) {
+      blogSync = { success: false, error: blogErr instanceof Error ? blogErr.message : 'Journal sync failed' };
       console.error('[approveTransit] Error during journal blog post sync:', blogErr);
     }
   } else {
@@ -328,10 +364,11 @@ export async function approveTransit(
   if (newStatus === 'published') {
     const webhookRes = await sendMakeWebhook(updatedTarget, publishedAt!);
     const webhookSuccess = webhookRes.success;
+    const blogNote = blogSync && !blogSync.success ? ` Journal article not queued: ${blogSync.error}.` : '';
     const feedbackMessage = webhookSuccess
-      ? 'Approved. Sent to Make.com for syndication.'
-      : 'Approval saved but Make.com webhook did not respond. Check your automation.';
-    const feedbackType = webhookSuccess ? 'success' : 'warning';
+      ? `Approved. Sent to Make.com for syndication.${blogNote}`
+      : `Approval saved but Make.com webhook did not respond. Check your automation.${blogNote}`;
+    const feedbackType = webhookSuccess && !blogNote ? 'success' : 'warning';
 
     return {
       success: true,
@@ -378,14 +415,15 @@ export async function batchApproveAllTransits(
 
     console.log('[batchApproveAllTransits] Supabase batch upsert succeeded for all transits.');
 
-    // Automatically sync / publish all 12 blog posts to the journal
+    // Queue each sign's upcoming journal article (signs with no upcoming article are skipped)
     try {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         currentTransits.map((t) =>
           syncTransitToBlogPost({ ...t, status: 'published', publishedAt: timestamp }, true)
         )
       );
-      console.log('[batchApproveAllTransits] Successfully synced all 12 journal blog posts.');
+      const queued = results.filter((r) => r.status === 'fulfilled' && r.value.success).length;
+      console.log(`[batchApproveAllTransits] Queued ${queued} of ${currentTransits.length} journal articles.`);
     } catch (blogErr) {
       console.error('[batchApproveAllTransits] Error during batch journal blog post sync:', blogErr);
     }

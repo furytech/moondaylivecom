@@ -12,6 +12,7 @@ import {
 } from '../services/transitService';
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
+import { blogPostsClient, DRAFT_ARTICLE, APPROVED_ARTICLE, PUBLISHED_ARTICLE } from './blogPostsMock';
 
 vi.mock('../lib/supabase', () => {
   const upsertMock = vi.fn();
@@ -75,30 +76,10 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('approveTransit publishes a pending transit with exact database column names via upsert', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const selectMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
-      }),
-    });
-    const updateMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
-        }),
-      }),
-    });
-
-    vi.mocked(supabase.from).mockImplementation((table: string) => {
-      if (table === 'transits') {
-        return {
-          upsert: upsertMock,
-        } as any;
-      }
-      return {
-        select: selectMock,
-        update: updateMock,
-      } as any;
-    });
+    const blog = blogPostsClient(DRAFT_ARTICLE);
+    vi.mocked(supabase.from).mockImplementation((table: string) =>
+      (table === 'transits' ? { upsert: upsertMock } : { select: blog.select, update: blog.update }) as any
+    );
 
     const result = await approveTransit('aries', mockTransits);
 
@@ -120,30 +101,10 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('approveTransit revokes a published transit back to pending', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const selectMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
-      }),
-    });
-    const updateMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
-        }),
-      }),
-    });
-
-    vi.mocked(supabase.from).mockImplementation((table: string) => {
-      if (table === 'transits') {
-        return {
-          upsert: upsertMock,
-        } as any;
-      }
-      return {
-        select: selectMock,
-        update: updateMock,
-      } as any;
-    });
+    const blog = blogPostsClient(APPROVED_ARTICLE);
+    vi.mocked(supabase.from).mockImplementation((table: string) =>
+      (table === 'transits' ? { upsert: upsertMock } : { select: blog.select, update: blog.update }) as any
+    );
 
     const result = await approveTransit('taurus', mockTransits);
 
@@ -162,30 +123,10 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('batchApproveAllTransits marks all transits as published with database timestamp via upsert', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const selectMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
-      }),
-    });
-    const updateMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'blog-1' }, error: null }),
-        }),
-      }),
-    });
-
-    vi.mocked(supabase.from).mockImplementation((table: string) => {
-      if (table === 'transits') {
-        return {
-          upsert: upsertMock,
-        } as any;
-      }
-      return {
-        select: selectMock,
-        update: updateMock,
-      } as any;
-    });
+    const blog = blogPostsClient(DRAFT_ARTICLE);
+    vi.mocked(supabase.from).mockImplementation((table: string) =>
+      (table === 'transits' ? { upsert: upsertMock } : { select: blog.select, update: blog.update }) as any
+    );
 
     const result = await batchApproveAllTransits(mockTransits);
 
@@ -257,13 +198,11 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('approveTransit returns success feedback when Make.com webhook responds 200', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const blog = blogPostsClient(DRAFT_ARTICLE);
     vi.mocked(supabase.from).mockReturnValue({
       upsert: upsertMock,
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
+      select: blog.select,
+      update: blog.update,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const originalFetch = global.fetch;
@@ -290,13 +229,11 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
 
   it('approveTransit returns warning feedback when Make.com webhook does not respond', async () => {
     const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const blog = blogPostsClient(DRAFT_ARTICLE);
     vi.mocked(supabase.from).mockReturnValue({
       upsert: upsertMock,
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
+      select: blog.select,
+      update: blog.update,
     } as unknown as ReturnType<typeof supabase.from>);
 
     const originalFetch = global.fetch;
@@ -403,31 +340,97 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(payload.keywords).toContain('AriesSeason');
   });
 
-  it('syncTransitToBlogPost handles blog_posts table synchronization', async () => {
-    const selectMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'post-123' }, error: null }),
-      }),
-    });
-    const updateMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'post-123', status: 'published' }, error: null }),
-        }),
-      }),
-    });
-
+  it('approveTransit warns when no journal article is queued for the sign', async () => {
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const blog = blogPostsClient(null);
     vi.mocked(supabase.from).mockReturnValue({
-      select: selectMock,
-      update: updateMock,
+      upsert: upsertMock,
+      select: blog.select,
+      update: blog.update,
     } as unknown as ReturnType<typeof supabase.from>);
 
-    const transit = mockTransits[0];
-    const result = await syncTransitToBlogPost(transit, true);
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    localStorage.setItem('moonday.makeWebhook', 'https://hook.us1.make.com/test-endpoint');
 
-    expect(result.success).toBe(true);
-    if (import.meta.env.VITE_SUPABASE_URL) {
-      expect(supabase.from).toHaveBeenCalledWith('blog_posts');
+    try {
+      const result = await approveTransit('aries', mockTransits);
+      expect(result.success).toBe(true);
+      expect(result.webhookSuccess).toBe(true);
+      if (import.meta.env.VITE_SUPABASE_URL) {
+        expect(result.feedbackType).toBe('warning');
+        expect(result.feedbackMessage).toContain('Approved. Sent to Make.com for syndication.');
+        expect(result.feedbackMessage).toContain('Journal article not queued: No upcoming journal article found for Aries');
+      }
+    } finally {
+      global.fetch = originalFetch;
+      localStorage.removeItem('moonday.makeWebhook');
     }
+  });
+
+  describe('syncTransitToBlogPost - queues the real journal article', () => {
+    const aries = mockTransits[0];
+
+    it('marks the upcoming draft article approved', async () => {
+      const blog = blogPostsClient(DRAFT_ARTICLE);
+      vi.mocked(supabase.from).mockReturnValue({
+        select: blog.select,
+        update: blog.update,
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      const result = await syncTransitToBlogPost(aries, true);
+
+      expect(result.success).toBe(true);
+      if (import.meta.env.VITE_SUPABASE_URL) {
+        expect(supabase.from).toHaveBeenCalledWith('blog_posts');
+        expect(blog.query.eq).toHaveBeenCalledWith('category', 'Transits');
+        expect(blog.query.eq).toHaveBeenCalledWith('zodiac_sign_tag', 'Aries');
+        expect(blog.updateMock).toHaveBeenCalledWith({ status: 'approved' });
+      }
+    });
+
+    it('leaves an article that is already published alone', async () => {
+      const blog = blogPostsClient(PUBLISHED_ARTICLE);
+      vi.mocked(supabase.from).mockReturnValue({
+        select: blog.select,
+        update: blog.update,
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      const result = await syncTransitToBlogPost(aries, true);
+
+      expect(result.success).toBe(true);
+      expect(blog.updateMock).not.toHaveBeenCalled();
+    });
+
+    it('returns an error and changes nothing when no upcoming article exists', async () => {
+      const blog = blogPostsClient(null);
+      vi.mocked(supabase.from).mockReturnValue({
+        select: blog.select,
+        update: blog.update,
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      const result = await syncTransitToBlogPost(aries, true);
+
+      if (import.meta.env.VITE_SUPABASE_URL) {
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('No upcoming journal article found for Aries');
+      }
+      expect(blog.updateMock).not.toHaveBeenCalled();
+    });
+
+    it('revoking returns an approved article to draft', async () => {
+      const blog = blogPostsClient(APPROVED_ARTICLE);
+      vi.mocked(supabase.from).mockReturnValue({
+        select: blog.select,
+        update: blog.update,
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      const result = await syncTransitToBlogPost(aries, false);
+
+      expect(result.success).toBe(true);
+      if (import.meta.env.VITE_SUPABASE_URL) {
+        expect(blog.updateMock).toHaveBeenCalledWith({ status: 'draft', published_at: null });
+      }
+    });
   });
 });
