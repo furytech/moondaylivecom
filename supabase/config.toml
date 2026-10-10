@@ -36,3 +36,6 @@ verify_jwt = false
 
 [functions.auto-publish-posts]
 verify_jwt = false
+
+[functions.fill-transit-schedule]
+verify_jwt = false
