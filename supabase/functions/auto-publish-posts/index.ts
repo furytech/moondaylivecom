@@ -9,6 +9,11 @@ import { logDispatch } from '../_shared/dispatchLog.ts';
 import { buildBlogPayload } from '../_shared/dispatchPayloads.ts';
 
 
+// Reddit is posted by the Devvit app (moonday-transit-post) on its own scheduler,
+// with the sign image attached. Leave this true so this publisher does not also
+// hand the same transit to the n8n Reddit webhook (which would double-post).
+const REDDIT_VIA_DEVVIT = true;
+
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -103,23 +108,25 @@ Deno.serve(async (req) => {
       // Substack hand-off is a paste instead of a rebuild.
       // Reddit hands off to the approval webhook. Failures are stamped on the
       // row so the audit page can show them.
-      const reddit = await publishPostToReddit(supabase, post.id, { triggerSource: 'scheduler' });
-      if (reddit.ok) {
-        redditPosted += 1;
-        await notifyTelegram({
-          kind: 'published',
-          post_id: post.id,
-          title: post.title,
-          channel: `Reddit — sent to the approval webhook${reddit.permalink ? `: ${reddit.permalink}` : ''}`,
-        });
-      } else if (!reddit.skipped) {
-        redditFailed += 1;
-        await notifyTelegram({
-          kind: 'missed',
-          post_id: post.id,
-          title: post.title,
-          channel: `Reddit failed — ${reddit.reason ?? 'unknown error'}`,
-        });
+      if (!REDDIT_VIA_DEVVIT) {
+        const reddit = await publishPostToReddit(supabase, post.id, { triggerSource: 'scheduler' });
+        if (reddit.ok) {
+          redditPosted += 1;
+          await notifyTelegram({
+            kind: 'published',
+            post_id: post.id,
+            title: post.title,
+            channel: `Reddit — sent to the approval webhook${reddit.permalink ? `: ${reddit.permalink}` : ''}`,
+          });
+        } else if (!reddit.skipped) {
+          redditFailed += 1;
+          await notifyTelegram({
+            kind: 'missed',
+            post_id: post.id,
+            title: post.title,
+            channel: `Reddit failed — ${reddit.reason ?? 'unknown error'}`,
+          });
+        }
       }
 
       const bridge = await sendSubstackDraft(supabase, post);
@@ -156,11 +163,13 @@ Deno.serve(async (req) => {
 
     // Reddit editions queued for a future instant: dispatch the moment that
     // instant arrives, exactly like the blog's own scheduled publisher.
-    const { data: dueReddit } = await supabase
-      .from('blog_posts')
-      .select('id, title')
-      .eq('reddit_status', 'scheduled')
-      .lte('reddit_scheduled_at', now);
+    const { data: dueReddit } = REDDIT_VIA_DEVVIT
+      ? { data: [] as { id: string; title: string }[] }
+      : await supabase
+          .from('blog_posts')
+          .select('id, title')
+          .eq('reddit_status', 'scheduled')
+          .lte('reddit_scheduled_at', now);
 
     for (const post of dueReddit ?? []) {
       const reddit = await publishPostToReddit(supabase, post.id, { triggerSource: 'scheduler' });

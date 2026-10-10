@@ -3,16 +3,25 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { reportError } from '../_shared/errorTracking.ts';
 
 // auto-approve-transit
-// Automatically approves and publishes the transit for the current moon sign.
+// Automatically approves the current moon sign's transit AND its journal article.
 // 1. Reads current moon sign from moon_transitions (where now() is between start_time and end_time)
-// 2. Finds matching pending transit record in transits table (sign matches current moon sign and status = 'pending')
-// 3. Sets that record's status to 'published'
-// 4. Returns JSON response with the approved transit id and sign
+// 2. Transits table: if the sign's record is 'pending', sets it to 'published' (unchanged behavior;
+//    already-published is fine and no longer stops the run).
+// 3. Journal article: finds the newest draft Transits article for that sign whose publish_at
+//    (the ingress) has arrived, and sets it to 'approved'. auto-publish-posts then publishes it
+//    on its next run and fires the channel hand-offs.
+// 4. Returns JSON with what was approved.
+//
+// The article step is idempotent and only looks at articles whose ingress is recent
+// (MAX_ARTICLE_AGE_HOURS), so a stale draft from an earlier cycle is never approved by surprise.
 
 const ZODIAC_SIGNS = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
   'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
 ];
+
+// An article is only auto-approved while its ingress is this recent.
+const MAX_ARTICLE_AGE_HOURS = 6;
 
 function normalizeSign(raw: string): string {
   const clean = raw.trim().toLowerCase();
@@ -89,6 +98,7 @@ Deno.serve(async (req) => {
 
     // 1. Reads the current moon sign from the moon_transitions table (where now() is between start_time and end_time)
     let currentMoonSign: string | null = null;
+    let ingressStartIso: string | null = null;
 
     const { data: windowRow, error: windowError } = await supabase
       .from('moon_transitions')
@@ -101,6 +111,7 @@ Deno.serve(async (req) => {
 
     if (windowRow) {
       currentMoonSign = windowRow.sign || windowRow.to_sign || null;
+      ingressStartIso = windowRow.start_time ?? null;
     }
 
     // Fallback if start_time / end_time columns are empty or during transition table migration:
@@ -116,6 +127,7 @@ Deno.serve(async (req) => {
 
       if (transitionRow) {
         currentMoonSign = transitionRow.sign || transitionRow.to_sign || null;
+        ingressStartIso = transitionRow.transition_at ?? null;
       }
     }
 
@@ -159,70 +171,167 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!pendingTransit) {
-      // Check whether the transit is already published
+    // 3. Transits table: publish the pending record. Already-published is fine —
+    //    the journal article below is what actually drives the channels.
+    let transitResult: { id: string | null; status: string | null; transitApproved: boolean } = {
+      id: null,
+      status: null,
+      transitApproved: false,
+    };
+
+    if (pendingTransit) {
+      const publishedAt = new Date().toISOString();
+      const { data: updatedTransit, error: updateError } = await supabase
+        .from('transits')
+        .update({
+          status: 'published',
+          published_at: publishedAt,
+          updated_at: publishedAt,
+        })
+        .eq('id', pendingTransit.id)
+        .select('id, sign, status, published_at')
+        .single();
+
+      if (updateError) {
+        await reportError({
+          source: 'auto-approve-transit',
+          severity: 'critical',
+          message: `Failed to update transit status: ${updateError.message}`,
+          context: { id: pendingTransit.id, sign: pendingTransit.sign },
+        });
+        return new Response(
+          JSON.stringify({ error: updateError.message }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      transitResult = { id: updatedTransit.id, status: updatedTransit.status, transitApproved: true };
+    } else {
       const { data: publishedTransit } = await supabase
         .from('transits')
-        .select('id, sign, status, published_at')
+        .select('id, status')
         .ilike('sign', targetSign)
         .eq('status', 'published')
         .limit(1)
         .maybeSingle();
-
-      return new Response(
-        JSON.stringify({
-          message: publishedTransit
-            ? `Transit for ${targetSign} is already published`
-            : `No pending transit found for ${targetSign}`,
-          id: publishedTransit?.id ?? null,
-          sign: targetSign,
-          status: publishedTransit?.status ?? null,
-          approved: false,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      transitResult = {
+        id: publishedTransit?.id ?? null,
+        status: publishedTransit?.status ?? null,
+        transitApproved: false,
+      };
     }
 
-    // 3. Sets that record's status to 'published'
-    const publishedAt = new Date().toISOString();
-    const { data: updatedTransit, error: updateError } = await supabase
-      .from('transits')
-      .update({
-        status: 'published',
-        published_at: publishedAt,
-        updated_at: publishedAt,
-      })
-      .eq('id', pendingTransit.id)
-      .select('id, sign, status, published_at')
-      .single();
+    // 4. Journal article: approve the newest draft Transits article for this sign
+    //    whose ingress (publish_at) has arrived and is recent.
+    const oldestAllowed = new Date(Date.now() - MAX_ARTICLE_AGE_HOURS * 60 * 60 * 1000).toISOString();
+    const { data: article, error: articleLookupError } = await supabase
+      .from('blog_posts')
+      .select('id, slug, status, publish_at, content, substack_post')
+      .eq('category', 'Transits')
+      .eq('zodiac_sign_tag', targetSign)
+      .gte('publish_at', oldestAllowed)
+      .lte('publish_at', nowIso)
+      .order('publish_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (updateError) {
+    if (articleLookupError) {
       await reportError({
         source: 'auto-approve-transit',
-        severity: 'critical',
-        message: `Failed to update transit status: ${updateError.message}`,
-        context: { id: pendingTransit.id, sign: pendingTransit.sign },
+        severity: 'error',
+        message: `Failed to look up journal article: ${articleLookupError.message}`,
+        context: { targetSign },
       });
       return new Response(
-        JSON.stringify({ error: updateError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ error: articleLookupError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // 4. Returns a JSON response with the approved transit id and sign
+    let articleResult: { id: string | null; slug: string | null; status: string | null; approved: boolean; note?: string } = {
+      id: null,
+      slug: null,
+      status: null,
+      approved: false,
+    };
+
+    if (!article) {
+      articleResult.note = `No Transits article for ${targetSign} with an ingress in the last ${MAX_ARTICLE_AGE_HOURS} hours`;
+      // This job runs every 30 minutes, so only raise an alert while the ingress is
+      // fresh (an article should exist by now). Later in the sign's window a missing
+      // article is expected and stays quiet.
+      const ingressAgeMs = ingressStartIso ? Date.now() - new Date(ingressStartIso).getTime() : Infinity;
+      if (ingressAgeMs >= 0 && ingressAgeMs <= MAX_ARTICLE_AGE_HOURS * 60 * 60 * 1000) {
+        await reportError({
+          source: 'auto-approve-transit',
+          severity: 'error',
+          message: articleResult.note,
+          context: { targetSign, nowIso, ingressStartIso },
+          throttleMinutes: 120,
+        });
+      }
+    } else if (article.status !== 'draft') {
+      // Already approved / scheduled / published — nothing to do.
+      articleResult = {
+        id: article.id,
+        slug: article.slug,
+        status: article.status,
+        approved: false,
+        note: `Article already ${article.status}`,
+      };
+    } else if (!article.content?.trim()) {
+      articleResult = {
+        id: article.id,
+        slug: article.slug,
+        status: article.status,
+        approved: false,
+        note: 'Article has no content — not approved',
+      };
+      await reportError({
+        source: 'auto-approve-transit',
+        severity: 'error',
+        message: `Article for ${targetSign} has no content; not approved`,
+        context: { id: article.id, slug: article.slug },
+        throttleMinutes: 120,
+      });
+    } else {
+      const { data: approvedArticle, error: approveError } = await supabase
+        .from('blog_posts')
+        .update({ status: 'approved' })
+        .eq('id', article.id)
+        .eq('status', 'draft')
+        .select('id, slug, status')
+        .single();
+
+      if (approveError) {
+        await reportError({
+          source: 'auto-approve-transit',
+          severity: 'critical',
+          message: `Failed to approve journal article: ${approveError.message}`,
+          context: { id: article.id, slug: article.slug },
+        });
+        return new Response(
+          JSON.stringify({ error: approveError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      articleResult = {
+        id: approvedArticle.id,
+        slug: approvedArticle.slug,
+        status: approvedArticle.status,
+        approved: true,
+      };
+    }
+
+    // 5. Return what happened
     return new Response(
       JSON.stringify({
-        id: updatedTransit.id,
-        sign: updatedTransit.sign,
-        status: updatedTransit.status,
-        published_at: updatedTransit.published_at,
-        approved: true,
+        sign: targetSign,
+        transit: transitResult,
+        article: articleResult,
+        approved: transitResult.transitApproved || articleResult.approved,
       }),
       {
         status: 200,
