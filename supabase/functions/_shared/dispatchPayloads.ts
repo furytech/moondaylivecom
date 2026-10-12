@@ -132,7 +132,7 @@ export function buildSubstackPayload(post: DispatchPost) {
   const sourceUrl = resolveSourceUrl(post)
   const imageUrl = resolveImageUrl(post)
   const buttonHtml = brandButtonHtml(sourceUrl)
-  const copy = wrapBrand(post.substack_post?.trim() ?? '', sourceUrl, brandButtonMarkdown(sourceUrl))
+  const copy = `${post.substack_post?.trim() ?? ''}\n\n${brandButtonMarkdown(sourceUrl)}`
 
   return {
     post_id: post.id,
