@@ -45,6 +45,7 @@ import MissionControl from "./pages/admin/MissionControl";
 import GuestStudio from "./pages/GuestStudio";
 import Transit from "./pages/Transit";
 import IdleSessionGuard from "./components/IdleSessionGuard";
+import TriadPreview from "./pages/TriadPreview";
 
 const queryClient = new QueryClient();
 
@@ -74,18 +75,18 @@ const AuthRecoveryHandler = () => {
 
       if (accessToken) {
         supabase.auth
-          .setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          })
-          .catch((err) => {
-            console.error("Failed to set recovery session:", err);
-          });
+            .setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            })
+            .catch((err) => {
+              console.error("Failed to set recovery session:", err);
+            });
       }
 
       if (
-        !location.pathname.startsWith("/reset-password") &&
-        !location.pathname.startsWith("/auth/reset-password")
+          !location.pathname.startsWith("/reset-password") &&
+          !location.pathname.startsWith("/auth/reset-password")
       ) {
         navigate(`/reset-password${hash}`, { replace: true });
       }
@@ -96,109 +97,111 @@ const AuthRecoveryHandler = () => {
 };
 
 export const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthRecoveryHandler />
-          <ScrollToTop />
-          <IdleSessionGuard />
-          <BottomTabBar />
-          <DevTierPanel />
-          <Routes>
-            {/* Public Landing Page */}
-            <Route path="/" element={<Index />} />
-            
-            {/* Public App Routes */}
-            <Route path="/pulse" element={<Pulse />} />
-            <Route path="/moon-sign-horoscope" element={<MoonSignHoroscope />} />
-            <Route path="/lunar-climate" element={<LunarClimate />} />
-            <Route path="/lunar-cycle-tracking" element={<LunarCycleTracking />} />
-            <Route path="/birthday-moon-phase" element={<BirthdayMoonPhase />} />
-            <Route path="/transit/:sign" element={<Transit />} />
-            <Route path="/transit" element={<Navigate to="/transit/aries" replace />} />
-            <Route path="/login" element={<Portal defaultMode="login" />} />
-            <Route path="/signup" element={<Portal defaultMode="signup" />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:category/:slug" element={<BlogPost />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthRecoveryHandler />
+            <ScrollToTop />
+            <IdleSessionGuard />
+            <BottomTabBar />
+            <DevTierPanel />
+            <Routes>
+              {/* Public Landing Page */}
+              <Route path="/" element={<Index />} />
 
-            {/* Mission Control Admin Dashboard (gated at /admin) */}
-            <Route path="/admin" element={<MissionControl />} />
-            <Route path="/admin/mission-control" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/login" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/blog" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/subscribers" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/channel-audit" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/errors" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/guests" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/guest-applications" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/eclipse-campaign" element={<Navigate to="/admin" replace />} />
-            <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
+              {/* Public App Routes */}
+              <Route path="/pulse" element={<Pulse />} />
+              <Route path="/moon-sign-horoscope" element={<MoonSignHoroscope />} />
+              <Route path="/lunar-climate" element={<LunarClimate />} />
+              <Route path="/lunar-cycle-tracking" element={<LunarCycleTracking />} />
+              <Route path="/birthday-moon-phase" element={<BirthdayMoonPhase />} />
+              <Route path="/transit/:sign" element={<Transit />} />
+              <Route path="/transit" element={<Navigate to="/transit/aries" replace />} />
+              <Route path="/login" element={<Portal defaultMode="login" />} />
+              <Route path="/signup" element={<Portal defaultMode="signup" />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:category/:slug" element={<BlogPost />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
 
-            <Route path="/guest" element={
-              <ProtectedRoute>
-                <GuestStudio />
-              </ProtectedRoute>
-            } />
+              {/* Mission Control Admin Dashboard (gated at /admin) */}
+              <Route path="/admin" element={<MissionControl />} />
+              <Route path="/admin/mission-control" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/login" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/blog" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/subscribers" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/channel-audit" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/errors" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/guests" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/guest-applications" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/eclipse-campaign" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
 
-            {/* Legacy redirect */}
-            <Route path="/portal" element={<Navigate to="/login" replace />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/blueprint" element={
-              <ProtectedRoute>
-                <Blueprint />
-              </ProtectedRoute>
-            } />
-            <Route path="/sovereign" element={
-              <ProtectedRoute>
-                <Sovereign />
-              </ProtectedRoute>
-            } />
-            <Route path="/lenses" element={
-              <ProtectedRoute>
-                <Lenses />
-              </ProtectedRoute>
-            } />
-            <Route path="/triad" element={<Navigate to="/lenses" replace />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/my-moon-card" element={
-              <ProtectedRoute>
-                <MyMoonCard />
-              </ProtectedRoute>
-            } />
-            <Route path="/account" element={
-              <ProtectedRoute>
-                <Account />
-              </ProtectedRoute>
-            } />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/refund" element={<Refund />} />
-            <Route path="/disclaimer" element={<Disclaimer />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/transition-quiz" element={<TransitionQuiz />} />
-            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/update-password" element={<ResetPassword />} />
-            <Route path="/welcome-sovereign" element={
-              <ProtectedRoute>
-                <SubscriptionSuccess />
-              </ProtectedRoute>
-            } />
-            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+              <Route path="/guest" element={
+                                      <ProtectedRoute>
+                                       <GuestStudio />
+                                     </ProtectedRoute>
+                                   } />
+
+              {/* Legacy redirect */}
+              <Route path="/portal" element={<Navigate to="/login" replace />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/blueprint" element={
+                                          <ProtectedRoute>
+                                           <Blueprint />
+                                         </ProtectedRoute>
+                                       } />
+              <Route path="/sovereign" element={
+                                          <ProtectedRoute>
+                                           <Sovereign />
+                                         </ProtectedRoute>
+                                       } />
+              <Route path="/lenses" element={
+                                       <ProtectedRoute>
+                                        <Lenses />
+                                      </ProtectedRoute>
+                                    } />
+              <Route path="/triad" element={<Navigate to="/lenses" replace />} />
+              <Route path="/triad-preview" element={<TriadPreview />} />
+              <Route path="/luminary" element={<Navigate to="/pricing" replace />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/my-moon-card" element={
+                                             <ProtectedRoute>
+                                              <MyMoonCard />
+                                            </ProtectedRoute>
+                                          } />
+              <Route path="/account" element={
+                                        <ProtectedRoute>
+                                         <Account />
+                                       </ProtectedRoute>
+                                     } />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/refund" element={<Refund />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/transition-quiz" element={<TransitionQuiz />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/update-password" element={<ResetPassword />} />
+              <Route path="/welcome-sovereign" element={
+                                                  <ProtectedRoute>
+                                                   <SubscriptionSuccess />
+                                                 </ProtectedRoute>
+                                               } />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
 );
 
 export default App;

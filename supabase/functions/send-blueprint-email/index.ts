@@ -1,284 +1,307 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+// supabase/functions/send-blueprint-email/index.ts
+// Triggered via Supabase Database Webhook on INSERT/UPDATE to public.user_profiles
+// Sends the Blueprint combination email via Resend
 
-interface RequestBody {
-  email: string;
-  userId?: string | null;
-  firstName?: string;
-  sunSign: string;
-  moonSign: string;
-  blueprint?: {
-    combination_title?: string;
-    combination_synthesis?: string;
-    solar_essence?: string;
-    lunar_essence?: string;
-    default_behaviors?: unknown;
-  } | null;
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+
+// ─── Env ───────────────────────────────────────────────────────────────────
+const RESEND_API_KEY            = Deno.env.get("RESEND_API_KEY")!;
+const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Optional: set SEND_BLUEPRINT_SECRET in Supabase secrets and match it in the
+// webhook header to prevent unauthorized calls.
+const FUNCTION_SECRET = Deno.env.get("SEND_BLUEPRINT_SECRET");
+
+// ─── Constants ─────────────────────────────────────────────────────────────
+const FROM_ADDRESS   = "Moonday Live <noreply@moondaylive.com>";
+const LUMINARY_URL   = "https://moondaylive.com/luminary";
+const TRIAD_URL      = "https://moondaylive.com/triad-preview"; // ← update once Triad preview page is live
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+function cap(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
 }
 
-function getFirstSentence(text?: string | null): string {
-  if (!text) return "";
-  const normalized = text
-    .replace(/\r\n/g, "\n")
-    .replace(/\.\s*\n+/g, ". ")
-    .replace(/\n+/g, " ")
-    .trim();
-  const match = normalized.match(/^.*?[.!?](\s|$)/);
-  if (match) return match[0].trim();
-  const firstDot = normalized.indexOf(".");
-  if (firstDot !== -1) return normalized.slice(0, firstDot + 1).trim();
-  return normalized ? `${normalized}.` : "";
-}
-
-function buildWelcomeTeaserEmailHtml({
-  firstName,
-  sunSign,
-  moonSign,
-  combinationTitle,
-  firstSentence,
-  email,
-}: {
+// ─── Email HTML ────────────────────────────────────────────────────────────
+function buildEmailHtml(opts: {
   firstName: string;
   sunSign: string;
   moonSign: string;
   combinationTitle: string;
-  firstSentence: string;
-  email: string;
+  synthesisText: string;
 }): string {
+  const { firstName, sunSign, moonSign, combinationTitle, synthesisText } = opts;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Moonday, ${firstName} — your Blueprint is waiting</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Your Blueprint is ready</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #060d17; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #e2e8f0;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #060d17; padding: 36px 16px;">
-    <tr>
-      <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 580px; background-color: #0d1726; border: 1px solid #1f2d42; border-radius: 16px; overflow: hidden; padding: 40px 32px; text-align: center;">
-          <!-- Top Eyebrow -->
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #f3d077; font-weight: 600; margin-bottom: 6px;">
-                ✦ NATAL BLUEPRINT · CORE IDENTITY ✦
-              </div>
-              <div style="font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: 0.08em;">
-                MOONDAY LIVE
-              </div>
-            </td>
-          </tr>
+<body style="margin:0;padding:0;background:#0d0d14;font-family:Georgia,serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="background:#0d0d14;min-width:100%;">
+  <tr><td align="center" style="padding:40px 16px;">
 
-          <!-- Hero Heading: You are [combination_title] in large text -->
-          <tr>
-            <td align="center" style="padding-bottom: 24px; border-bottom: 1px solid rgba(243, 208, 119, 0.15);">
-              <h1 style="margin: 0 0 12px 0; font-size: 32px; line-height: 1.25; color: #f3d077; font-weight: 700; font-family: Georgia, serif; text-shadow: 0 0 24px rgba(243, 208, 119, 0.25);">
-                You are ${combinationTitle}
-              </h1>
-              <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8;">
-                ${sunSign} Sun • ${moonSign} Moon
-              </div>
-            </td>
-          </tr>
+    <table role="presentation" width="100%" style="max-width:560px;
+           background:#13131f;border:1px solid rgba(212,175,55,.25);
+           border-radius:12px;overflow:hidden;">
 
-          <!-- Teaser Synthesis: One sentence only -->
-          <tr>
-            <td align="center" style="padding: 28px 0 16px 0;">
-              ${firstSentence ? `
-              <p style="margin: 0 0 24px 0; font-size: 18px; line-height: 1.7; color: #e2e8f0; font-family: Georgia, serif; font-style: italic; max-width: 480px;">
-                "${firstSentence}"
-              </p>
-              ` : ''}
+      <!-- HEADER -->
+      <tr><td style="padding:36px 40px 24px;text-align:center;
+                     border-bottom:1px solid rgba(212,175,55,.15);">
+        <p style="margin:0 0 6px;color:#d4af37;font-size:11px;
+                  letter-spacing:.15em;text-transform:uppercase;">
+          Moonday Live
+        </p>
+        <h1 style="margin:0;color:#f0e8cc;font-size:26px;font-weight:normal;
+                   line-height:1.35;">
+          Your Blueprint is ready,&nbsp;${firstName}
+        </h1>
+      </td></tr>
 
-              <!-- Teaser Line -->
-              <p style="margin: 0 0 32px 0; font-size: 15px; line-height: 1.6; color: #94a3b8; max-width: 460px;">
-                Your full Blueprint — your behaviors, your patterns, your shadow — is inside the app
-              </p>
+      <!-- NATAL BADGE -->
+      <tr><td style="padding:28px 40px 0;text-align:center;">
+        <p style="margin:0 0 6px;color:#8a7a5a;font-size:11px;
+                  letter-spacing:.14em;text-transform:uppercase;">
+          Your natal combination
+        </p>
+        <p style="margin:0;color:#d4af37;font-size:14px;letter-spacing:.1em;">
+          ☀&thinsp;${cap(sunSign)} Sun &nbsp;&middot;&nbsp; ☽&thinsp;${cap(moonSign)} Moon
+        </p>
+      </td></tr>
 
-              <!-- Single CTA Button -->
-              <a href="https://moondaylive.com/blueprint" style="display: inline-block; background-color: #f3d077; color: #060d17; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.12em; padding: 16px 36px; border-radius: 999px; box-shadow: 0 4px 16px rgba(243, 208, 119, 0.35);">
-                See Your Full Blueprint
-              </a>
-            </td>
-          </tr>
+      <!-- COMBINATION TITLE -->
+      <tr><td style="padding:10px 40px 24px;text-align:center;">
+        <h2 style="margin:0;color:#f0e8cc;font-size:22px;font-weight:normal;
+                   font-style:italic;line-height:1.4;">
+          ${combinationTitle}
+        </h2>
+      </td></tr>
 
-          <!-- Footer -->
-          <tr>
-            <td align="center" style="padding-top: 36px; border-top: 1px solid #1f2d42; color: #64748b; font-size: 12px; line-height: 1.6;">
-              Moonday Live · Conscious Astrology<br>
-              Sent to ${email} · <a href="https://moondaylive.com/blueprint" style="color: #94a3b8; text-decoration: underline;">Open Blueprint</a> · <a href="https://moondaylive.com/account" style="color: #94a3b8; text-decoration: underline;">Manage Account</a>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+      <!-- DIVIDER -->
+      <tr><td style="padding:0 40px;">
+        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.4),transparent);"></div>
+      </td></tr>
+
+      <!-- SYNTHESIS TEXT -->
+      <tr><td style="padding:28px 40px;">
+        <p style="margin:0;color:#c4b89a;font-size:15px;line-height:1.85;">
+          ${synthesisText}
+        </p>
+      </td></tr>
+
+      <!-- DIVIDER -->
+      <tr><td style="padding:0 40px 28px;">
+        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.4),transparent);"></div>
+      </td></tr>
+
+      <!-- WHAT NEXT LABEL -->
+      <tr><td style="padding:0 40px 18px;text-align:center;">
+        <p style="margin:0;color:#8a7a5a;font-size:12px;letter-spacing:.12em;
+                  text-transform:uppercase;">
+          What happens next?
+        </p>
+      </td></tr>
+
+      <!-- PRIMARY CTA — LUMINARY -->
+      <tr><td style="padding:0 40px 10px;text-align:center;">
+        <a href="${LUMINARY_URL}"
+           style="display:inline-block;background:#d4af37;color:#0d0d14;
+                  text-decoration:none;font-family:Georgia,serif;font-size:14px;
+                  font-weight:bold;letter-spacing:.07em;padding:15px 36px;
+                  border-radius:6px;">
+          ✦&nbsp; Yes — unlock Luminary
+        </a>
+        <p style="margin:8px 0 0;color:#6a5e42;font-size:11px;">
+          Activate your full Luminary profile &amp; daily practice
+        </p>
+      </td></tr>
+
+      <!-- SECONDARY CTA — TRIAD -->
+      <tr><td style="padding:0 40px 36px;text-align:center;">
+        <a href="${TRIAD_URL}"
+           style="display:inline-block;border:1px solid rgba(212,175,55,.4);
+                  color:#d4af37;text-decoration:none;font-family:Georgia,serif;
+                  font-size:13px;letter-spacing:.06em;padding:13px 30px;
+                  border-radius:6px;">
+          Not yet — show me my Triad
+        </a>
+        <p style="margin:8px 0 0;color:#6a5e42;font-size:11px;">
+          Preview the three forces shaping your path
+        </p>
+      </td></tr>
+
+      <!-- FOOTER -->
+      <tr><td style="padding:18px 40px 26px;text-align:center;
+                     border-top:1px solid rgba(212,175,55,.15);">
+        <p style="margin:0 0 3px;color:#6a5e42;font-size:11px;">
+          You received this because you signed up at moondaylive.com
+        </p>
+        <p style="margin:0;color:#6a5e42;font-size:11px;">
+          &copy; 2026 Moonday Live
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
 </body>
 </html>`;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
+// ─── Main handler ──────────────────────────────────────────────────────────
+Deno.serve(async (req: Request) => {
+  const headers = { "Content-Type": "application/json" };
 
   try {
-    const body: RequestBody = await req.json();
-    const { email, sunSign, moonSign } = body;
-    const firstName = body.firstName?.trim() || 'Cosmic Traveler';
-
-    if (!email || !sunSign || !moonSign) {
-      return new Response(
-        JSON.stringify({ error: 'email, sunSign, and moonSign are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Ensure user_profiles has natal_sun_sign and natal_moon_sign persisted
-    if (body.userId || email) {
-      try {
-        const profileUpdates: Record<string, unknown> = {
-          natal_sun_sign: sunSign,
-          natal_moon_sign: moonSign,
-          moon_sign: moonSign,
-        };
-        if (firstName && firstName !== 'Cosmic Traveler') {
-          profileUpdates.first_name = firstName;
-        }
-
-        if (body.userId) {
-          await supabase
-            .from('user_profiles')
-            .update(profileUpdates)
-            .eq('user_id', body.userId);
-        } else {
-          await supabase
-            .from('user_profiles')
-            .update(profileUpdates)
-            .eq('email', email);
-        }
-      } catch (profileUpdateErr) {
-        console.warn('[send-blueprint-email] Warning persisting natal signs to user_profiles:', profileUpdateErr);
+    // Optional webhook secret check
+    if (FUNCTION_SECRET) {
+      const auth = req.headers.get("authorization");
+      if (auth !== `Bearer ${FUNCTION_SECRET}`) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
       }
     }
 
-    // 1. Query combination_profiles table if blueprint data is missing
-    let blueprint = body.blueprint;
-    if (!blueprint?.combination_title || !blueprint?.combination_synthesis) {
-      const { data, error } = await supabase
-        .from('combination_profiles')
-        .select('combination_title, combination_synthesis')
-        .eq('sun_sign', sunSign)
-        .eq('moon_sign', moonSign)
+    const payload = await req.json();
+
+    // Handle INSERT and UPDATE on user_profiles
+    if ((payload.type !== "INSERT" && payload.type !== "UPDATE") || payload.table !== "user_profiles") {
+      return new Response(
+          JSON.stringify({ skipped: true, reason: "not a user_profiles INSERT/UPDATE" }),
+          { status: 200, headers }
+      );
+    }
+
+    const record = payload.record as {
+      id: string;
+      user_id: string;
+      natal_sun_sign: string;
+      natal_moon_sign: string;
+      first_name?: string;
+      email?: string;
+    };
+
+    const { user_id, natal_sun_sign: sun_sign, natal_moon_sign: moon_sign } = record;
+    let email = record.email ?? null;
+
+    // Friendly first name — use first_name, fallback to "friend"
+    const firstName = record.first_name?.trim() || "friend";
+
+    if (!sun_sign || !moon_sign) {
+      console.error("Missing natal_sun_sign or natal_moon_sign", record);
+      return new Response(
+          JSON.stringify({ error: "Missing sun_sign or moon_sign" }),
+          { status: 400, headers }
+      );
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Fetch email from auth.users if not on profile record
+    if (!email) {
+      const { data: authData, error: authError } = await supabase.auth.admin.getUserById(user_id);
+      if (authError || !authData?.user?.email) {
+        console.error("Could not fetch email for user:", user_id, authError);
+        return new Response(
+            JSON.stringify({ error: "Could not resolve user email" }),
+            { status: 500, headers }
+        );
+      }
+      email = authData.user.email!;
+    }
+
+    // ── Idempotency: skip if blueprint email already sent for this user ──
+    const { data: existingLog } = await supabase
+        .from("email_send_log")
+        .select("id")
+        .eq("user_id", user_id)
+        .eq("email_type", "blueprint")
         .maybeSingle();
 
-      if (error) {
-        console.warn('[send-blueprint-email] Error fetching combination profile:', error.message);
-      }
-      if (data) {
-        blueprint = data;
-      }
-    }
-
-    const combinationTitle = blueprint?.combination_title || `${sunSign} Sun • ${moonSign} Moon Archetype`;
-    const rawSynthesis = blueprint?.combination_synthesis ||
-      `The synergy of ${sunSign} and ${moonSign} weaves outward ambition with inward sanctuary.`;
-    const firstSentence = getFirstSentence(rawSynthesis);
-
-    // Subject: "Welcome to Moonday, [first_name] — your Blueprint is waiting"
-    const subject = `Welcome to Moonday, ${firstName} — your Blueprint is waiting`;
-    const emailHtml = buildWelcomeTeaserEmailHtml({
-      firstName,
-      sunSign,
-      moonSign,
-      combinationTitle,
-      firstSentence,
-      email,
-    });
-
-    // 2. Send via Resend setup (sender: noreply@moondaylive.com)
-    const resendApiKey = Deno.env.get('RESEND_API_KEY') || Deno.env.get('SMTP_PASS') || Deno.env.get('RESEND_KEY');
-
-    let sendSuccess = false;
-    let sendResult: unknown = null;
-    let errorMessage: string | null = null;
-
-    if (resendApiKey) {
-      try {
-        const resendRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'Moonday Live <noreply@moondaylive.com>',
-            to: [email],
-            subject,
-            html: emailHtml,
-          }),
-        });
-
-        if (resendRes.ok) {
-          sendSuccess = true;
-          sendResult = await resendRes.json();
-          console.log('[send-blueprint-email] Welcome teaser email sent via Resend API to', email);
-        } else {
-          const errText = await resendRes.text();
-          errorMessage = `Resend API returned ${resendRes.status}: ${errText}`;
-          console.error('[send-blueprint-email] Resend API error:', errorMessage);
-        }
-      } catch (sendErr) {
-        errorMessage = (sendErr as Error)?.message || String(sendErr);
-        console.error('[send-blueprint-email] Exception sending via Resend API:', errorMessage);
-      }
-    } else {
-      console.warn('[send-blueprint-email] RESEND_API_KEY or SMTP_PASS not set. Logging email payload.');
-      sendSuccess = true;
-      sendResult = { simulated: true, recipient: email };
-    }
-
-    // Log to email_send_log
-    await supabase
-      .from('email_send_log')
-      .insert({
-        template_name: 'blueprint-welcome-teaser',
-        recipient_email: email,
-        status: sendSuccess ? 'sent' : 'failed',
-        error_message: errorMessage,
-      })
-      .catch(() => undefined);
-
-    if (!sendSuccess && errorMessage) {
+    if (existingLog) {
+      console.log("Blueprint already sent, skipping:", user_id);
       return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ skipped: true, reason: "already_sent" }),
+          { status: 200, headers }
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Welcome teaser email processed successfully',
-        recipient: email,
-        subject,
-        result: sendResult,
+    // ── Fetch combination profile ──────────────────────────────────────────
+    const { data: combo, error: comboError } = await supabase
+        .from("combination_profiles")
+        .select("combination_title, combination_synthesis")
+        .eq("sun_sign", sun_sign)
+        .eq("moon_sign", moon_sign)
+        .maybeSingle();
+
+    if (comboError || !combo) {
+      console.error("Combination profile not found:", { sun_sign, moon_sign }, comboError);
+      return new Response(
+          JSON.stringify({ error: "Combination profile not found", sun_sign, moon_sign }),
+          { status: 404, headers }
+      );
+    }
+
+    // Resolve synthesis text
+    const synthesisText: string =
+        combo.combination_synthesis ??
+        "Your unique natal combination carries a signature only you embody. Explore it fully in your Luminary profile.";
+
+    const combinationTitle: string =
+        combo.combination_title ?? `${cap(sun_sign)} Sun · ${cap(moon_sign)} Moon`;
+
+    // ── Build & send email via Resend ─────────────────────────────────────
+    const html = buildEmailHtml({ firstName, sunSign: sun_sign, moonSign: moon_sign, combinationTitle, synthesisText });
+
+    const resendRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [email],
+        subject: `Your Blueprint is ready, ${firstName}`,
+        html,
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (err) {
-    const errorMsg = (err as Error)?.message || 'Internal server error';
-    console.error('[send-blueprint-email] Unhandled error:', errorMsg);
+    });
+
+    const resendBody = await resendRes.json();
+
+    // ── Log to email_send_log ─────────────────────────────────────────────
+    if (!resendRes.ok) {
+      console.error("Resend error:", resendBody);
+      await supabase.from("email_send_log").insert({
+        user_id,
+        email_type: "blueprint",
+        status: "failed",
+        error_detail: JSON.stringify(resendBody),
+      });
+      return new Response(
+          JSON.stringify({ error: "Email delivery failed", detail: resendBody }),
+          { status: 500, headers }
+      );
+    }
+
+    await supabase.from("email_send_log").insert({
+      user_id,
+      email_type: "blueprint",
+      status: "sent",
+      resend_id: resendBody.id,
+    });
+
+    console.log("Blueprint email sent:", { user_id, email, resend_id: resendBody.id });
     return new Response(
-      JSON.stringify({ error: errorMsg }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: true, resend_id: resendBody.id }),
+        { status: 200, headers }
     );
+
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Unhandled error:", message);
+    return new Response(JSON.stringify({ error: message }), { status: 500, headers });
   }
 });

@@ -5,67 +5,110 @@ describe('auto-approve-transit logic', () => {
     vi.clearAllMocks();
   });
 
-  it('identifies current moon sign from window and approves pending transit', async () => {
-    const mockMoonTransition = {
-      id: 'trans-1',
-      sign: 'Aries',
-      start_time: '2026-10-06T00:00:00.000Z',
-      end_time: '2026-10-08T12:00:00.000Z',
-    };
+  it('identifies current moon sign from ingress_time <= now() and approves pending transit', async () => {
+    const nowIso = '2026-10-11T16:00:00.000Z';
+    const mockMoonTransitions = [
+      {
+        id: 'trans-libra',
+        sign: 'Libra',
+        ingress_time: '2026-10-09T08:30:00.000Z',
+      },
+      {
+        id: 'trans-scorpio',
+        sign: 'Scorpio',
+        ingress_time: '2026-10-11T15:21:00.000Z',
+      },
+      {
+        id: 'trans-sagittarius',
+        sign: 'Sagittarius',
+        ingress_time: '2026-10-14T01:00:00.000Z',
+      },
+    ];
 
-    const mockPendingTransit = {
-      id: 'aries',
-      sign: 'Aries',
-      status: 'pending',
-    };
+    // 1. Query moon_transitions table: ingress_time <= now() ordered by ingress_time DESC limit 1
+    const pastTransitions = mockMoonTransitions
+      .filter((m) => m.ingress_time <= nowIso)
+      .sort((a, b) => b.ingress_time.localeCompare(a.ingress_time));
+    const currentTransition = pastTransitions[0];
 
-    const mockUpdatedTransit = {
-      id: 'aries',
-      sign: 'Aries',
+    expect(currentTransition).toBeDefined();
+    expect(currentTransition.sign).toBe('Scorpio');
+
+    // 2. Find matching record in transits table where sign = current moon sign and status != 'published'
+    const mockTransitsTable = [
+      { id: 'scorpio', sign: 'Scorpio', status: 'pending', published_at: null },
+      { id: 'libra', sign: 'Libra', status: 'published', published_at: '2026-10-09T08:30:00.000Z' },
+    ];
+
+    const pendingTransit = mockTransitsTable.find(
+      (t) => t.sign.toLowerCase() === currentTransition.sign.toLowerCase() && t.status !== 'published'
+    );
+
+    expect(pendingTransit).toBeDefined();
+    expect(pendingTransit?.id).toBe('scorpio');
+
+    // 3. If found, set status = 'published' on that record
+    const updatedTransit = {
+      ...pendingTransit,
       status: 'published',
-      published_at: '2026-10-06T14:00:00.000Z',
+      published_at: nowIso,
     };
 
-    // Simulate edge function logic
-    const currentMoonSign = mockMoonTransition.sign;
-    expect(currentMoonSign).toBe('Aries');
+    expect(updatedTransit.status).toBe('published');
+    expect(updatedTransit.published_at).toBe(nowIso);
 
-    // Matching pending transit found
-    expect(mockPendingTransit.sign).toBe(currentMoonSign);
-    expect(mockPendingTransit.status).toBe('pending');
-
-    // Update status to published
-    const updated = {
-      ...mockPendingTransit,
-      status: 'published',
-      published_at: mockUpdatedTransit.published_at,
+    // 5. Response contract
+    const responsePayload = {
+      success: true,
+      current_moon_sign: currentTransition.sign,
+      ingress_time: currentTransition.ingress_time,
+      action: 'published',
+      transit: {
+        id: updatedTransit.id,
+        sign: updatedTransit.sign,
+        status: updatedTransit.status,
+        published_at: updatedTransit.published_at,
+        updated: true,
+      },
     };
 
-    expect(updated.status).toBe('published');
-    expect(updated.id).toBe('aries');
-    expect(updated.sign).toBe('Aries');
+    expect(responsePayload.success).toBe(true);
+    expect(responsePayload.action).toBe('published');
+    expect(responsePayload.transit.status).toBe('published');
   });
 
-  it('handles already published transit without error', async () => {
+  it('handles already published transit without modifying it (idempotent)', async () => {
+    const currentMoonSign = 'Scorpio';
     const mockPublishedTransit = {
-      id: 'aries',
-      sign: 'Aries',
+      id: 'scorpio',
+      sign: 'Scorpio',
       status: 'published',
+      published_at: '2026-10-11T15:30:00.000Z',
     };
 
-    const isPending = mockPublishedTransit.status === 'pending';
+    // Pending check returns undefined
+    const isPending = mockPublishedTransit.status !== 'published';
     expect(isPending).toBe(false);
 
+    // Idempotent response
     const response = {
-      message: `Transit for ${mockPublishedTransit.sign} is already published`,
-      id: mockPublishedTransit.id,
-      sign: mockPublishedTransit.sign,
-      status: mockPublishedTransit.status,
-      approved: false,
+      success: true,
+      current_moon_sign: currentMoonSign,
+      ingress_time: '2026-10-11T15:21:00.000Z',
+      action: 'already_published',
+      transit: {
+        id: mockPublishedTransit.id,
+        sign: mockPublishedTransit.sign,
+        status: mockPublishedTransit.status,
+        published_at: mockPublishedTransit.published_at,
+        updated: false,
+      },
     };
 
-    expect(response.approved).toBe(false);
-    expect(response.id).toBe('aries');
+    expect(response.success).toBe(true);
+    expect(response.action).toBe('already_published');
+    expect(response.transit.updated).toBe(false);
+    expect(response.transit.status).toBe('published');
   });
 
   it('normalizes zodiac signs for matching case-insensitively', () => {
@@ -82,6 +125,7 @@ describe('auto-approve-transit logic', () => {
 
     expect(normalizeSign('aries')).toBe('Aries');
     expect(normalizeSign('SCORPIO')).toBe('Scorpio');
+    expect(normalizeSign(' Scorpio ')).toBe('Scorpio');
     expect(normalizeSign(' Gemini ')).toBe('Gemini');
   });
 });
