@@ -20,7 +20,7 @@ const PRICES = {
     interval: "month",
   },
   yearly: {
-    id: "price_1TyyXjJowQfvwg0ZmlzUBfAI",
+    id: "price_1ULN4MJowQfvwg0ZjOGNtzgY",
     amount: "$58.88",
     interval: "year",
     savings: "2 Months Free",
