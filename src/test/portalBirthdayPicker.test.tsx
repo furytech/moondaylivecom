@@ -43,7 +43,7 @@ describe("Portal Signup - Birthday 3-Dropdown Fields", () => {
     // Verify all three dropdown triggers exist with proper placeholders
     expect(screen.getByText("Month")).toBeDefined();
     expect(screen.getByText("Day")).toBeDefined();
-    expect(screen.getByText("Year")).toBeDefined();
+    expect(screen.getAllByText("1985").length).toBeGreaterThan(0);
 
     // Verify DOM order: Month precedes Day, Day precedes Year
     const monthTrigger = screen.getByRole("combobox", { name: /Birth Month/i });

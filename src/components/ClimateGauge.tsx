@@ -78,7 +78,7 @@ export default function ClimateGauge({ illumination, sign }: Props) {
             onClick={fetchClimate}
             className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full btn-lime font-display text-sm tracking-widest uppercase transition-all duration-300"
           >
-            <span>View Today's Frequency</span>
+            <span>Show today's frequency</span>
             <ChevronRight className="w-4 h-4 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
           </button>
         </div>
@@ -146,6 +146,11 @@ export default function ClimateGauge({ illumination, sign }: Props) {
               CLIMATE
             </text>
           </svg>
+
+          {/* One-line meaning */}
+          <div className="mt-2 text-center font-serif text-xs text-cream-muted tracking-wide">
+            {score} · {score < 30 ? "Calm" : score < 60 ? "Stable" : score < 85 ? "Active" : "Volatile"} — {score < 30 ? "The emotional current is still and deeply restful." : score < 60 ? "The atmosphere holds steady rhythm and clear focus." : score < 85 ? "Currents are moving fast with palpable creative friction." : "Energy is intensely charged and demanding conscious navigation."}
+          </div>
 
           {/* Status indicator */}
           <div className="flex items-center gap-2 mt-3">

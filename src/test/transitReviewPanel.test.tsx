@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TransitReviewPanel } from '../components/TransitReviewPanel';
@@ -14,34 +14,34 @@ vi.mock('../lib/supabase', () => ({
           Promise.resolve({
             data: [
               {
-                transition_at: '2026-09-28T14:40:02Z',
+                transition_at: '2026-10-10T14:40:02Z',
                 from_sign: 'Aries',
                 to_sign: 'Taurus',
-                transition_date: '2026-09-28'
+                transition_date: '2026-10-10'
               },
               {
-                transition_at: '2026-09-30T17:26:03Z',
+                transition_at: '2026-10-12T17:26:03Z',
                 from_sign: 'Taurus',
                 to_sign: 'Gemini',
-                transition_date: '2026-09-30'
+                transition_date: '2026-10-12'
               },
               {
-                transition_at: '2026-10-02T19:54:06Z',
+                transition_at: '2026-10-14T19:54:06Z',
                 from_sign: 'Gemini',
                 to_sign: 'Cancer',
-                transition_date: '2026-10-02'
+                transition_date: '2026-10-14'
               },
               {
-                transition_at: '2026-10-04T22:54:11Z',
+                transition_at: '2026-10-16T22:54:11Z',
                 from_sign: 'Cancer',
                 to_sign: 'Leo',
-                transition_date: '2026-10-04'
+                transition_date: '2026-10-16'
               },
               {
-                transition_at: '2026-10-07T02:52:36Z',
+                transition_at: '2026-10-19T02:52:36Z',
                 from_sign: 'Leo',
                 to_sign: 'Virgo',
-                transition_date: '2026-10-07'
+                transition_date: '2026-10-19'
               }
             ],
             error: null

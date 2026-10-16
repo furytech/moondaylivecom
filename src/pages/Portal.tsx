@@ -73,7 +73,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay, setBirthDay] = useState("");
-  const [birthYear, setBirthYear] = useState("");
+  const [birthYear, setBirthYear] = useState("1985");
 
   const birthday =
     birthYear && birthMonth && birthDay
@@ -521,7 +521,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
             <p className="text-base text-muted-foreground leading-relaxed">
               {isLogin
                 ? "Step back into rhythm with the sky."
-                : "Three details. A lifetime of clarity."}
+                : "A few details. A lifetime of clarity."}
             </p>
           </div>
 

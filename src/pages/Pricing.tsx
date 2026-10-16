@@ -46,7 +46,9 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, session, subscription, checkSubscription } = useAuth();
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("yearly");
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">(
+    searchParams.get("plan") === "yearly" ? "yearly" : "yearly"
+  );
   const [loading, setLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState("");
@@ -387,10 +389,13 @@ const Pricing = () => {
             </ul>
 
             <button
-              onClick={() => navigate(user ? "/blueprint" : "/login")}
-              className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3"
+              onClick={() => {
+                if (!user) navigate("/signup");
+              }}
+              disabled={!!user}
+              className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-75 disabled:cursor-default"
             >
-              {user ? "Continue Free" : "Start Free"}
+              {user ? "Your current plan" : "Start Free"}
             </button>
           </GlassmorphismCard>
 

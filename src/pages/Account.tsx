@@ -23,9 +23,33 @@ import { Switch } from "@/components/ui/switch";
 
 import SovereignSecurity from "@/components/SovereignSecurity";
 import SEO from "@/components/SEO";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
+
+const MONTH_OPTIONS = [
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
+
+const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => {
+  const d = String(i + 1).padStart(2, "0");
+  return { value: d, label: String(i + 1) };
+});
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - 1920 + 1 }, (_, i) => {
+  const y = String(CURRENT_YEAR - i);
+  return { value: y, label: y };
+});
 
 interface ProfileRow {
   first_name?: string | null;
@@ -46,7 +70,13 @@ const Account = () => {
 
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
-  const [birthday, setBirthday] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay, setBirthDay] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const birthday =
+    birthYear && birthMonth && birthDay
+      ? `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`
+      : "";
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -93,7 +123,14 @@ const Account = () => {
         console.error("Error loading profile:", error);
       } else if (data) {
         setProfile(data);
-        if (data.birthday) setBirthday(data.birthday);
+        if (data.birthday) {
+          const parts = data.birthday.split("T")[0].split("-");
+          if (parts.length === 3) {
+            setBirthYear(parts[0]);
+            setBirthMonth(parts[1]);
+            setBirthDay(parts[2]);
+          }
+        }
         setAlertFrequency(
           data.moon_alert_frequency === "natal" ? "natal" : "all"
         );
@@ -359,42 +396,61 @@ const Account = () => {
                         </>
                       ) : (
                         <>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button
-                                id="birthday"
-                                type="button"
-                                className="w-full px-4 py-3 bg-background/40 border border-primary/20 rounded-md font-serif text-base text-foreground text-left focus:outline-none focus:border-primary/60 transition-colors flex items-center justify-between"
+                          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                            {/* Month dropdown */}
+                            <Select value={birthMonth} onValueChange={setBirthMonth}>
+                              <SelectTrigger
+                                id="birthMonth"
+                                aria-label="Birth Month"
+                                className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-primary/20 text-xs sm:text-sm text-foreground text-left focus:border-primary/65 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
                               >
-                                <span>
-                                  {birthday
-                                    ? format(parseISO(birthday), "MMMM d, yyyy")
-                                    : "Select your birthday"}
-                                </span>
-                                <CalendarIcon className="w-4 h-4 text-primary/70" />
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 bg-navy-dark border-primary/30" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={birthday ? parseISO(birthday) : undefined}
-                                onSelect={(d) => {
-                                  if (d) {
-                                    const y = d.getFullYear();
-                                    const m = String(d.getMonth() + 1).padStart(2, "0");
-                                    const day = String(d.getDate()).padStart(2, "0");
-                                    setBirthday(`${y}-${m}-${day}`);
-                                  }
-                                }}
-                                disabled={(date) =>
-                                  date > new Date() || date < new Date("1920-01-01")
-                                }
-                                defaultMonth={birthday ? parseISO(birthday) : new Date(1990, 0, 1)}
-                                initialFocus
-                                className="pointer-events-auto"
-                              />
-                            </PopoverContent>
-                          </Popover>
+                                <SelectValue placeholder="Month" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-navy-dark border-primary/30 max-h-60">
+                                {MONTH_OPTIONS.map((m) => (
+                                  <SelectItem key={m.value} value={m.value} className="text-foreground">
+                                    {m.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            {/* Day dropdown */}
+                            <Select value={birthDay} onValueChange={setBirthDay}>
+                              <SelectTrigger
+                                id="birthDay"
+                                aria-label="Birth Day"
+                                className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-primary/20 text-xs sm:text-sm text-foreground text-left focus:border-primary/65 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                              >
+                                <SelectValue placeholder="Day" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-navy-dark border-primary/30 max-h-60">
+                                {DAY_OPTIONS.map((d) => (
+                                  <SelectItem key={d.value} value={d.value} className="text-foreground">
+                                    {d.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            {/* Year dropdown */}
+                            <Select value={birthYear} onValueChange={setBirthYear}>
+                              <SelectTrigger
+                                id="birthYear"
+                                aria-label="Birth Year"
+                                className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-primary/20 text-xs sm:text-sm text-foreground text-left focus:border-primary/65 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                              >
+                                <SelectValue placeholder="Year" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-navy-dark border-primary/30 max-h-60">
+                                {YEAR_OPTIONS.map((y) => (
+                                  <SelectItem key={y.value} value={y.value} className="text-foreground">
+                                    {y.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                           <p className="font-serif text-xs text-cream-muted/50 mt-2">
                             Used to calculate your natal moon sign. This can only be set once.
                           </p>

@@ -240,7 +240,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                     {SIGN_ELEMENT[sign]} · {SIGN_MODALITY[sign]}
                   </div>
                   <div className={`mt-3 inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.3em] ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--gold-medium)/0.8)]"}`}>
-                    {isOpen ? "Hide details" : "Expose alignment details"}
+                    {isOpen ? "Hide details" : "Show details"}
                     <ChevronDown
                       size={11}
                       className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -320,7 +320,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
         </div>
 
         <p className="mt-6 text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.4)]">
-          For self-reflection and learning · Not predictive
+          No predictions here. The simulation runs on probabilities — you're the one who collapses the wavefunction into your next reality.
         </p>
       </section>
     </TooltipProvider>

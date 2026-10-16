@@ -4,9 +4,12 @@ import SEO from "@/components/SEO";
 import DailyPulse from "@/components/DailyPulse";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 /* Public entry portal — UTC-noon global pulse, accessible to all visitors. */
 export default function Pulse() {
+  const { user } = useAuth();
+
   return (
     <div className="sov-shell min-h-screen">
       <SEO
@@ -19,13 +22,13 @@ export default function Pulse() {
         <div className="max-w-3xl mx-auto">
           <header className="text-center mb-6">
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--gold-medium))] mb-2">
-              The Portal
+              {user ? "Today's Pulse" : "The Portal"}
             </div>
             <h1 className="font-display text-3xl md:text-4xl tracking-tight text-[hsl(var(--cream))]">
-              Begin Here
+              {user ? "Today's Pulse" : "Begin Here"}
             </h1>
             <p className="mt-3 text-sm sm:text-base text-[hsl(var(--cream)/0.7)] max-w-xl mx-auto leading-relaxed">
-              A standardized global pulse on UTC time — the same live reading the world is moving through together.
+              The global moon pulse, updated in real time.
             </p>
           </header>
 

@@ -38,7 +38,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
     <GlassmorphismCard size="lg" className="animate-fade-up stagger-4 shadow-glow">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/90 uppercase tracking-[0.2em] mb-3">
-          Between Phases
+          Lunar Signal
         </p>
         <div className="flex items-center justify-center gap-3 mb-2">
           <StatusIcon className={`w-6 h-6 ${statusColor}`} />
@@ -76,8 +76,11 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
         <p className="font-serif text-base text-cream-muted mb-3 text-center">
           This period peaks at <span className="text-primary font-display">{formatTime(vocTiming.peakTime)}</span> on <span className="text-primary font-display">{formatDate(vocTiming.peakTime)}</span>.
         </p>
-        <p className="font-serif text-sm text-muted-foreground italic text-center">
+        <p className="font-serif text-sm text-muted-foreground italic text-center mb-3">
           Note: These transitions are gradual rather than black and white; you may feel the shift slightly before or after these times.
+        </p>
+        <p className="font-serif text-xs text-primary/80 text-center tracking-wide">
+          Times shown in your local timezone (Moon content published in UTC).
         </p>
       </div>
 

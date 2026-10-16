@@ -1,5 +1,6 @@
 import React from "react";
 import { Sparkles, Crown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface LuminaryGateProps {
   currentMoonSign: string;
@@ -11,7 +12,6 @@ interface LuminaryGateProps {
 }
 
 const MONTHLY_PRICE_ID = "price_1ULN2GJowQfvwg0ZtYxb5Th5";
-const YEARLY_PRICE_ID = "price_1ULN4MJowQfvwg0ZjOGNtzgY";
 
 export const LuminaryGate: React.FC<LuminaryGateProps> = ({
   currentMoonSign,
@@ -21,6 +21,13 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
   loading = false,
   className = "",
 }) => {
+  let navigate: ReturnType<typeof import("react-router-dom").useNavigate> | null = null;
+  try {
+    navigate = useNavigate();
+  } catch {
+    // outside router context (e.g. unit tests)
+  }
+
   const transitingSign = currentMoonSign?.replace(/\s*Moon$/i, "").trim() || "Current";
   const natalSign = birthMoonSign?.replace(/\s*Moon$/i, "").trim() || "Birth";
 
@@ -33,7 +40,9 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
   };
 
   const handleYearlyClick = () => {
-    if (onSelectPlan) {
+    if (navigate) {
+      navigate("/pricing?plan=yearly");
+    } else if (onSelectPlan) {
       onSelectPlan(YEARLY_PRICE_ID);
     } else if (onUnlockClick) {
       onUnlockClick();
@@ -67,7 +76,7 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
         </h3>
 
         <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed mb-8">
-          Today's {transitingSign} Moon is moving through your {natalSign}. Luminary
+          The {transitingSign} Moon is moving through the sky — and your natal {natalSign} Moon is feeling it. Luminary
           shows you how that's shaping your emotions, your energy, and the way you're
           relating to everyone around you — right now, under this sky.
         </p>

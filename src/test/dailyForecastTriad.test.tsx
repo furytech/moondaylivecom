@@ -146,7 +146,7 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
     expect(screen.getByText("Now you know who you are.")).toBeDefined();
     expect(
       screen.getByText(
-        /Today's Gemini Moon is moving through your Cancer\. Luminary shows you how that's shaping your emotions/i
+        /The Gemini Moon is moving through the sky — and your natal Cancer Moon is feeling it\. Luminary shows you how that's shaping your emotions/i
       )
     ).toBeDefined();
     expect(screen.getByText("UNLOCK LUMINARY — $6.88/month")).toBeDefined();

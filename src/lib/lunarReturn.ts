@@ -94,6 +94,10 @@ export function computeLunarReturns(
         if (computeTriadMoon(mid).tropical.sign === natalSign) elo = mid;
         else ehi = mid;
       }
+      // TODO: Investigate Lunar Return 3 duration anomaly.
+      // Egress binary search bounds initialization (elo = ingress + 2 days)
+      // can occasionally clamp or resolve to exactly 48h if the midpoint test
+      // condition or sign boundary falls exactly on the 48-hour boundary.
       const egress = elo;
 
       results.push({ ingress, egress, reading, prompt });

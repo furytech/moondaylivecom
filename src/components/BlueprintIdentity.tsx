@@ -118,10 +118,13 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
         <div className="text-center mb-6">
           {/* Dominant Triad Hook: Crisp gold (#c9a84c) without glow or blur */}
           <p
-            className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight md:tracking-wide leading-tight mb-2"
+            className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight md:tracking-wide leading-tight mb-1"
             style={{ color: "#c9a84c" }}
           >
             ✦ {triadNumber !== null ? triadNumber.toLocaleString() : "401"} of 1,728 ✦
+          </p>
+          <p className="font-serif text-xs text-cream-muted/80 mb-2">
+            Your natal Sun · your natal Moon · today's transiting Moon
           </p>
 
           {/* Line 2: Rarity text in smaller italic */}
@@ -131,9 +134,15 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
 
           {/* Archetype Name: Primary H1 identity reveal */}
           <div className="pt-1">
-            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-cream tracking-wide mb-2 leading-tight">
+            <p className="font-display text-xs uppercase tracking-[0.2em] text-primary/80 mb-1">
+              Your Triad Identity
+            </p>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-cream tracking-wide mb-1 leading-tight">
               {displayTitle}
             </h1>
+            <p className="font-serif text-xs text-cream-muted/70 mb-2">
+              Your Sun + Moon combination · 1 of 144
+            </p>
             {pairingSubtitle && (
               <p className="font-display text-xs md:text-sm text-primary/70 tracking-widest uppercase">
                 {pairingSubtitle}
@@ -145,14 +154,17 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
         {/* 2. luminous_expression: Horizontal row of trait chips */}
         {traits.length > 0 && (
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-2.5 mb-8 max-w-2xl mx-auto">
-              {traits.map((trait, index) => (
+              {traits.map((trait, index) => {
+                const capitalized = trait ? trait.charAt(0).toUpperCase() + trait.slice(1) : "";
+                return (
                   <span
                       key={index}
-                      className="px-3.5 py-1 rounded-full text-xs md:text-sm font-display tracking-wider uppercase bg-primary/10 border border-primary/20 text-cream"
+                      className="px-3.5 py-1 rounded-full text-xs md:text-sm font-display tracking-wider bg-primary/10 border border-primary/20 text-cream normal-case"
                   >
-              {trait}
-            </span>
-              ))}
+                    {capitalized}
+                  </span>
+                );
+              })}
             </div>
         )}
 
