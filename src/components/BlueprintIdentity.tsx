@@ -135,7 +135,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
           {/* Archetype Name: Primary H1 identity reveal */}
           <div className="pt-1">
             <p className="font-display text-xs uppercase tracking-[0.2em] text-primary/80 mb-1">
-              Your Triad Identity
+              Your Blueprint Identity
             </p>
             <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-cream tracking-wide mb-1 leading-tight">
               {displayTitle}

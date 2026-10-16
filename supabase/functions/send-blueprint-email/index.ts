@@ -15,7 +15,7 @@ const FUNCTION_SECRET = Deno.env.get("SEND_BLUEPRINT_SECRET");
 // ─── Constants ─────────────────────────────────────────────────────────────
 const FROM_ADDRESS   = "Moonday Live <noreply@moondaylive.com>";
 const LUMINARY_URL   = "https://moondaylive.com/luminary";
-const TRIAD_URL      = "https://moondaylive.com/triad-preview"; // ← update once Triad preview page is live
+const BLUEPRINT_URL  = "https://moondaylive.com/blueprint";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function cap(s: string): string {
@@ -119,17 +119,17 @@ function buildEmailHtml(opts: {
         </p>
       </td></tr>
 
-      <!-- SECONDARY CTA — TRIAD -->
+      <!-- SECONDARY CTA — BLUEPRINT -->
       <tr><td style="padding:0 40px 36px;text-align:center;">
-        <a href="${TRIAD_URL}"
+        <a href="${BLUEPRINT_URL}"
            style="display:inline-block;border:1px solid rgba(212,175,55,.4);
                   color:#d4af37;text-decoration:none;font-family:Georgia,serif;
                   font-size:13px;letter-spacing:.06em;padding:13px 30px;
                   border-radius:6px;">
-          Not yet — show me my Triad
+          Not yet — take me to my Blueprint
         </a>
         <p style="margin:8px 0 0;color:#6a5e42;font-size:11px;">
-          Preview the three forces shaping your path
+          Explore your natal combination
         </p>
       </td></tr>
 
