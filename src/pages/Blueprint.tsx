@@ -572,6 +572,7 @@ const Blueprint = () => {
                   <LuminaryGate
                     currentMoonSign={lunar?.sign.name || displayedMoonSign || "Current"}
                     birthMoonSign={displayedMoonSign || "Birth"}
+                    onPrimaryClick={() => navigate("/pricing")}
                     onSelectPlan={handleSelectPlan}
                     onUnlockClick={handleOpenPricing}
                     loading={checkoutLoading}

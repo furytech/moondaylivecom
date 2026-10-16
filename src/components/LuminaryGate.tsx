@@ -7,6 +7,7 @@ interface LuminaryGateProps {
   birthMoonSign: string;
   onSelectPlan?: (priceId: string) => Promise<void> | void;
   onUnlockClick?: () => void;
+  onPrimaryClick?: () => void;
   loading?: boolean;
   className?: string;
 }
@@ -18,6 +19,7 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
   birthMoonSign,
   onSelectPlan,
   onUnlockClick,
+  onPrimaryClick,
   loading = false,
   className = "",
 }) => {
@@ -32,7 +34,9 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
   const natalSign = birthMoonSign?.replace(/\s*Moon$/i, "").trim() || "Birth";
 
   const handleMonthlyClick = () => {
-    if (onSelectPlan) {
+    if (onPrimaryClick) {
+      onPrimaryClick();
+    } else if (onSelectPlan) {
       onSelectPlan(MONTHLY_PRICE_ID);
     } else if (onUnlockClick) {
       onUnlockClick();

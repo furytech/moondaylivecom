@@ -190,7 +190,7 @@ const SovereignSecurity = () => {
         </h2>
       </div>
       <p className="font-serif text-sm text-cream-muted/70 text-center mb-6">
-        A second key for the gate. Required after sign-in.
+        Optional: add a second step at sign-in.
       </p>
 
       {loading ? (
