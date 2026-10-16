@@ -14,7 +14,6 @@ const FUNCTION_SECRET = Deno.env.get("SEND_BLUEPRINT_SECRET");
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const FROM_ADDRESS   = "Moonday Live <noreply@moondaylive.com>";
-const LUMINARY_URL   = "https://moondaylive.com/luminary";
 const BLUEPRINT_URL  = "https://moondaylive.com/blueprint";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -105,31 +104,17 @@ function buildEmailHtml(opts: {
         </p>
       </td></tr>
 
-      <!-- PRIMARY CTA — LUMINARY -->
-      <tr><td style="padding:0 40px 10px;text-align:center;">
-        <a href="${LUMINARY_URL}"
+      <!-- PRIMARY CTA — BLUEPRINT -->
+      <tr><td style="padding:0 40px 36px;text-align:center;">
+        <a href="${BLUEPRINT_URL}"
            style="display:inline-block;background:#d4af37;color:#0d0d14;
                   text-decoration:none;font-family:Georgia,serif;font-size:14px;
                   font-weight:bold;letter-spacing:.07em;padding:15px 36px;
                   border-radius:6px;">
-          ✦&nbsp; Yes — unlock Luminary
+          Open my Blueprint
         </a>
-        <p style="margin:8px 0 0;color:#6a5e42;font-size:11px;">
-          Activate your full Luminary profile &amp; daily practice
-        </p>
-      </td></tr>
-
-      <!-- SECONDARY CTA — BLUEPRINT -->
-      <tr><td style="padding:0 40px 36px;text-align:center;">
-        <a href="${BLUEPRINT_URL}"
-           style="display:inline-block;border:1px solid rgba(212,175,55,.4);
-                  color:#d4af37;text-decoration:none;font-family:Georgia,serif;
-                  font-size:13px;letter-spacing:.06em;padding:13px 30px;
-                  border-radius:6px;">
-          Not yet — take me to my Blueprint
-        </a>
-        <p style="margin:8px 0 0;color:#6a5e42;font-size:11px;">
-          Explore your natal combination
+        <p style="margin:12px 0 0;color:#6a5e42;font-size:11px;line-height:1.5;">
+          When you're ready to see how each Moon shift meets your chart, Luminary is here.
         </p>
       </td></tr>
 
