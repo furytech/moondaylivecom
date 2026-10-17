@@ -380,7 +380,7 @@ const TransitionQuiz = () => {
                   />
                 </div>
 
-                <h2 className="font-display text-xl md:text-2xl text-center leading-snug pt-2">
+                <h2 className="font-sans font-normal normal-case tracking-normal text-xl md:text-2xl text-center leading-snug pt-2">
                   {questions[step].question}
                 </h2>
 

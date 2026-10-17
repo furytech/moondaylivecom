@@ -220,7 +220,7 @@ const BirthdayMoonPhase = () => {
 
         {/* 8 phases */}
         <GlassmorphismCard>
-          <h2 className="font-display text-lg tracking-widest uppercase text-foreground text-center mb-4">
+          <h2 className="font-sans text-lg font-normal normal-case tracking-normal text-foreground text-center mb-4">
             The 8 Moon Phases and What They Mean
           </h2>
           <div className="font-serif text-cream-muted leading-relaxed space-y-3 text-sm md:text-base text-left max-w-xl mx-auto">
@@ -243,7 +243,7 @@ const BirthdayMoonPhase = () => {
           <div className="font-serif text-cream-muted leading-relaxed space-y-5 text-sm md:text-base text-left max-w-xl mx-auto">
             {FAQS.map((f) => (
               <div key={f.q}>
-                <h3 className="text-foreground font-display text-[13px] tracking-widest uppercase mb-1.5">
+                <h3 className="text-foreground font-sans font-normal normal-case text-[15px] md:text-base tracking-normal mb-1.5">
                   {f.q}
                 </h3>
                 <p>{f.a}</p>

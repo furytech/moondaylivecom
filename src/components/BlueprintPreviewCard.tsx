@@ -60,7 +60,7 @@ export const BlueprintPreviewCard: React.FC<BlueprintPreviewCardProps> = ({
       )}
 
       {/* A line that says "Your full Blueprint is on its way to your inbox" */}
-      <div className="pt-4 border-t border-primary/15 flex items-center justify-center gap-2 text-primary font-display text-xs md:text-sm uppercase tracking-widest">
+      <div className="pt-4 border-t border-primary/15 flex items-center justify-center gap-2 text-primary font-sans text-[15px] md:text-base normal-case tracking-normal leading-relaxed text-left">
         <Mail className="w-4 h-4 text-primary shrink-0" />
         <span>Your full Blueprint is on its way to your inbox</span>
       </div>

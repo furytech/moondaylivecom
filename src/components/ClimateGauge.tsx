@@ -171,9 +171,9 @@ export default function ClimateGauge({ illumination, sign }: Props) {
           </div>
 
           {data.breakdown.volatility_alert && (
-            <div className="flex items-center gap-2 px-4 py-2 mt-3 rounded-full border border-amber-signal/30 bg-amber-signal/5">
-              <AlertTriangle className="w-4 h-4 text-amber-signal-soft" />
-              <span className="font-serif text-sm text-cream-muted">
+            <div className="flex items-start gap-2 px-4 py-3 mt-3 rounded-xl border border-amber-signal/30 bg-amber-signal/5">
+              <AlertTriangle className="w-4 h-4 mt-1 shrink-0 text-amber-signal-soft" />
+              <span className="font-sans text-left text-[15px] leading-relaxed text-cream-muted">
                 Volatility window — sign transition within 2h (+15)
               </span>
             </div>

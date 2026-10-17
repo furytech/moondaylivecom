@@ -72,7 +72,7 @@ export default function TriadPreview() {
             <h1 className="font-display text-4xl md:text-5xl tracking-tight text-[hsl(var(--sov-ivory))] mb-5">
               The Triad
             </h1>
-            <p className="text-base italic font-display text-[hsl(var(--sov-ivory)/0.62)] max-w-md mx-auto leading-relaxed">
+            <p className="text-base font-sans not-italic text-[hsl(var(--sov-ivory)/0.7)] max-w-md mx-auto leading-relaxed">
               Where your Blueprint revealed the tone of your nature,
               the Triad reveals its structure — three forces that govern
               everything you pursue, protect, and present.

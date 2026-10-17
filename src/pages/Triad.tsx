@@ -217,7 +217,7 @@ export default function Triad() {
                   experience to deliver you toward.
                 </li>
               </ul>
-              <p className="mt-5 text-[11px] uppercase tracking-[0.2em] text-[hsl(var(--sov-ivory)/0.45)]">
+              <p className="mt-5 text-sm normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.6)]">
                 For self-reflection and entertainment ·{" "}
                 <a href="/disclaimer" className="underline hover:text-[hsl(var(--sov-champagne))]">
                   Read the disclaimer

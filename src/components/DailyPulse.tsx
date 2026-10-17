@@ -270,7 +270,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                     {lens.title} in {sign}
                   </div>
                   <DecoDivider />
-                  <p className="font-display text-[15px] leading-snug text-[hsl(var(--lime-accent-light))] text-center mb-3">
+                  <p className="font-sans font-normal normal-case text-base leading-relaxed text-[hsl(var(--lime-accent-light))] text-center mb-3">
                     {attr.headline}
                   </p>
                   <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-center">
@@ -313,13 +313,13 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
             {synthesis.body}
           </p>
           {synthesis.frictionCue && (
-            <div className="mt-4 mx-auto max-w-lg text-[11px] uppercase tracking-[0.25em] text-[hsl(var(--gold-medium)/0.85)] border-t border-[hsl(var(--gold-medium)/0.3)] pt-3">
+            <div className="mt-4 mx-auto max-w-lg text-sm leading-relaxed normal-case tracking-normal text-[hsl(var(--gold-medium)/0.95)] border-t border-[hsl(var(--gold-medium)/0.3)] pt-3">
               {synthesis.frictionCue}
             </div>
           )}
         </div>
 
-        <p className="mt-6 text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--cream)/0.4)]">
+        <p className="mt-6 text-sm leading-relaxed text-[hsl(var(--cream)/0.55)] normal-case tracking-normal">
           No predictions here. The simulation runs on probabilities — you're the one who collapses the wavefunction into your next reality.
         </p>
       </section>

@@ -82,7 +82,7 @@ const FAQ = () => {
                 value={`item-${idx}`}
                 className="border-border/30"
               >
-                <AccordionTrigger className="font-display text-left text-sm md:text-base text-foreground tracking-wide hover:text-primary">
+                <AccordionTrigger className="font-sans font-normal normal-case text-left text-[15px] md:text-base leading-relaxed text-foreground tracking-normal hover:text-primary">
                   {item.q}
                 </AccordionTrigger>
                 <AccordionContent className="font-serif text-cream-muted leading-relaxed text-sm md:text-base">

@@ -214,7 +214,7 @@ const Index = () => {
               <div className="mb-6 animate-fade-up">
                 <Link
                   to={`/transit/${currentTransitSign.toLowerCase()}`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-lilac/30 bg-lilac/10 hover:bg-lilac/20 text-cream hover:text-white text-xs md:text-sm font-display tracking-widest uppercase transition-all duration-300 shadow-[0_0_30px_-5px_hsl(var(--lilac)/0.4)] hover:scale-[1.02]"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-left leading-snug border border-lilac/30 bg-lilac/10 hover:bg-lilac/20 text-cream hover:text-white text-[15px] md:text-base font-sans normal-case tracking-normal transition-all duration-300 shadow-[0_0_30px_-5px_hsl(var(--lilac)/0.4)] hover:scale-[1.02]"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
                   <span>Moon is in {currentTransitSign} right now — read today's transit →</span>
@@ -320,7 +320,7 @@ const Index = () => {
         >
           <div className="max-w-3xl mx-auto">
             <div className="text-lilac text-2xl mx-auto mb-6 font-display">✦</div>
-            <h2 className="font-display text-3xl md:text-5xl font-semibold tracking-tight mb-6">
+            <h2 className="font-sans normal-case text-3xl md:text-5xl font-normal tracking-tight mb-6 leading-tight">
               Unlock your birth moon sign —
               <br />
               <span className="text-lilac">for free.</span>

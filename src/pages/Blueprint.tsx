@@ -476,7 +476,7 @@ const Blueprint = () => {
                 <div className="border-t border-primary/10 pt-6 mt-auto">
                   <button
                     onClick={() => setMoonSignModalOpen(true)}
-                    className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl btn-lime font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                    className="w-full group inline-flex items-center justify-between gap-2 px-5 py-3 rounded-xl btn-lime font-sans text-[15px] md:text-base font-medium normal-case tracking-normal transition-all duration-300 min-h-[56px] text-left leading-snug"
                   >
                     <span>Your Emotional Blueprint, Set at Birth</span>
                     <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
@@ -518,7 +518,7 @@ const Blueprint = () => {
                   <div className="border-t border-primary/10 pt-6 mt-auto">
                     <button
                       onClick={() => setTodaysMoonModalOpen(true)}
-                      className="w-full group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl btn-lime font-display text-sm uppercase tracking-widest transition-all duration-300 min-h-[64px] text-center leading-tight"
+                      className="w-full group inline-flex items-center justify-between gap-2 px-5 py-3 rounded-xl btn-lime font-sans text-[15px] md:text-base font-medium normal-case tracking-normal transition-all duration-300 min-h-[56px] text-left leading-snug"
                     >
                       <span>About Today's Moon Energy</span>
                       <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />

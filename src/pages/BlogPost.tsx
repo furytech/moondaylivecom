@@ -339,7 +339,7 @@ const BlogPost = () => {
                       key={idx}
                       className="p-5 md:p-6 rounded-xl border border-primary/15 bg-navy-medium/20 space-y-2"
                     >
-                      <h3 className="font-display text-base md:text-lg text-cream">
+                      <h3 className="font-sans font-normal normal-case tracking-normal text-base md:text-lg leading-relaxed text-cream">
                         {faq.question}
                       </h3>
                       <p className="font-serif text-sm md:text-base text-cream-muted leading-relaxed">

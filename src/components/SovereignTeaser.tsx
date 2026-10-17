@@ -48,7 +48,7 @@ const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: Sover
           </span>
         </span>
 
-        <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider mb-3 leading-tight">
+        <h2 className="font-sans font-normal normal-case text-2xl md:text-3xl text-gold-gradient tracking-normal mb-3 leading-snug">
           You don't need your birth time.
           <br className="hidden md:block" />
           <span className="text-primary"> A real astrologer never did.</span>
@@ -74,7 +74,7 @@ const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: Sover
           <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
         </Link>
 
-        <p className="mt-3 font-serif text-[10px] uppercase tracking-widest text-muted-foreground">
+        <p className="mt-3 font-sans text-sm normal-case tracking-normal leading-relaxed text-muted-foreground">
           Entertainment, with discipline. Cancel anytime.
         </p>
       </div>

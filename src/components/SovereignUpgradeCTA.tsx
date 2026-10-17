@@ -28,7 +28,7 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
           </span>
         </span>
 
-        <h2 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-4">
+        <h2 className="font-sans font-normal normal-case text-3xl md:text-4xl text-gold-gradient tracking-normal mb-4 leading-snug">
           You don't need your birth time.
           <br className="hidden md:block" />
           <span className="text-primary"> A real astrologer never did.</span>
@@ -86,7 +86,7 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
           <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
         </button>
 
-        <p className="mt-4 font-serif text-xs uppercase tracking-widest text-muted-foreground">
+        <p className="mt-4 font-sans text-sm normal-case tracking-normal leading-relaxed text-muted-foreground">
           Entertainment, with discipline. Cancel anytime.
         </p>
       </div>

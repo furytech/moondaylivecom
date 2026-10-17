@@ -159,7 +159,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
                 return (
                   <span
                       key={index}
-                      className="px-3.5 py-1 rounded-full text-xs md:text-sm font-display tracking-wider bg-primary/10 border border-primary/20 text-cream normal-case"
+                      className="px-4 py-2.5 rounded-xl text-left text-[15px] md:text-base font-sans font-normal normal-case leading-relaxed tracking-normal bg-primary/10 border border-primary/20 text-cream max-w-full"
                   >
                     {capitalized}
                   </span>
@@ -177,7 +177,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
               {synthesisParagraphs.map((paragraph, index) => (
                   <p
                       key={index}
-                      className="w-full font-serif text-xl md:text-2xl text-cream-muted leading-relaxed italic font-light text-left !text-left indent-0 !indent-0"
+                      className="w-full font-serif text-base md:text-lg text-cream-muted leading-relaxed not-italic font-normal text-left !text-left indent-0 !indent-0"
                       style={{
                         marginBottom: "1.2em",
                         textIndent: 0,
