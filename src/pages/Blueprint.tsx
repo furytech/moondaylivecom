@@ -329,7 +329,7 @@ const Blueprint = () => {
   // Dynamic SEO & Structured Data per current transiting moon sign
   const currentSign = lunar?.sign.name || "Aries";
   const natalSign = displayedMoonSign || "natal";
-  const seoTitle = `Moon in ${currentSign} Today — What It Means For You | Moonday Live`;
+  const seoTitle = "Your Blueprint | Moonday Live";
   const seoDescription = `The Moon is in ${currentSign}. Discover what this transit means for your ${natalSign} energy today. Get your personalized lunar reading at Moonday Live.`;
 
   const todayIso = new Date().toISOString().split("T")[0];
