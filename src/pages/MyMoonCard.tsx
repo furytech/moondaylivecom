@@ -139,7 +139,7 @@ export default function MyMoonCard() {
       />
       <Navigation />
 
-      <main className="flex-1 flex flex-col items-center pt-[80px] pb-12 px-6 relative z-10">
+      <main className="flex-1 flex flex-col items-center pt-[80px] lg:pt-[72px] pb-12 px-6 relative z-10">
         <div className="max-w-2xl w-full text-center mb-6">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-2">
             Your Moon Sign Card
