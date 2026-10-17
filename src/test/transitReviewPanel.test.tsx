@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TransitReviewPanel } from '../components/TransitReviewPanel';
@@ -136,8 +136,15 @@ function renderWithClient(ui: React.ReactElement) {
 
 describe('TransitReviewPanel - Sorting & Filtering Controls', () => {
   beforeEach(() => {
+    // Pin "now" to a date that fits the mock ingress times (after Taurus ends, before Cancer ends); only Date is faked
+    // so waitFor/react-query timers keep running.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-13T12:00:00Z') });
     sessionStorage.clear();
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders sort control with "Current → Future" active by default and visual indication', async () => {
