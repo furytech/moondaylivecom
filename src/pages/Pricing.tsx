@@ -39,7 +39,7 @@ const COMPARISON: { label: string; free: boolean; Luminary: boolean }[] = [
   { label: "Crystal & element guidance", free: false, Luminary: true },
   { label: "Moon transition alerts", free: false, Luminary: true },
   { label: "Sacred practice library", free: false, Luminary: true },
-  { label: "Honest Chart — no birth time required", free: false, Luminary: true },
+  { label: "Honest Chart — no birth time required", free: true, Luminary: true },
 ];
 
 const Pricing = () => {
