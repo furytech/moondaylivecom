@@ -5,10 +5,10 @@ import { calculateMoonSignAsync, MoonSignResult } from "@/lib/moonSign";
 import { CALCULATION_ERROR_MESSAGE } from "@/lib/safeLunar";
 import MoonCalculationFallback from "@/components/MoonCalculationFallback";
 import MoonLoader from "@/components/MoonLoader";
-import { Calendar, Clock, MapPin, Sparkles } from "lucide-react";
+import { Calendar, Sparkles } from "lucide-react";
 
 interface MoonSignLookupProps {
-  onMoonSignCalculated: (result: MoonSignResult & { birthDate: Date; birthTime?: string; birthCity?: string }) => void;
+  onMoonSignCalculated: (result: MoonSignResult & { birthDate: Date }) => void;
   isPro: boolean;
   onUpgradeClick: () => void;
 }
@@ -17,8 +17,6 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay, setBirthDay] = useState("");
   const [birthYear, setBirthYear] = useState("");
-  const [birthTime, setBirthTime] = useState("");
-  const [birthCity, setBirthCity] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [calcFailed, setCalcFailed] = useState(false);
@@ -58,12 +56,6 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
       return;
     }
 
-    // Pro users need to provide time and city for saving
-    if (isPro && (!birthTime || !birthCity)) {
-      setError("Please provide your birth time and city for your profile");
-      return;
-    }
-
     setLoading(true);
     setCalcFailed(false);
 
@@ -80,8 +72,6 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
       onMoonSignCalculated({
         ...result,
         birthDate,
-        birthTime: birthTime || undefined,
-        birthCity: birthCity || undefined,
       });
     } catch (err) {
       // The form stays filled in and interactive so a retry is one click away.
@@ -142,36 +132,6 @@ const MoonSignLookup = ({ onMoonSignCalculated, isPro, onUpgradeClick }: MoonSig
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      {/* Birth Time - Optional for free, required for Pro */}
-      <div className="space-y-3">
-        <label className="flex items-center gap-2 font-display text-xs uppercase tracking-widest text-primary/80">
-          <Clock className="w-4 h-4" />
-          Birth Time {!isPro && <span className="text-cream-muted/50">(optional)</span>}
-        </label>
-        <Input
-          type="time"
-          value={birthTime}
-          onChange={(e) => setBirthTime(e.target.value)}
-          className="bg-navy-medium/50 border-primary/20 text-foreground h-12"
-          placeholder="Enter birth time"
-        />
-      </div>
-
-      {/* Birth City - Optional for free, required for Pro */}
-      <div className="space-y-3">
-        <label className="flex items-center gap-2 font-display text-xs uppercase tracking-widest text-primary/80">
-          <MapPin className="w-4 h-4" />
-          Birth City {!isPro && <span className="text-cream-muted/50">(optional)</span>}
-        </label>
-        <Input
-          type="text"
-          value={birthCity}
-          onChange={(e) => setBirthCity(e.target.value)}
-          className="bg-navy-medium/50 border-primary/20 text-foreground placeholder:text-muted-foreground h-12"
-          placeholder="e.g., New York, NY"
-        />
       </div>
 
       {calcFailed ? (

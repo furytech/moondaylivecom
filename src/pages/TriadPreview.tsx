@@ -44,8 +44,7 @@ const FORCES = [
       "Your Rising sign is the quality of your presence before you speak — the signature that forms " +
       "before anyone knows you. It shapes which opportunities find their way to you, and the " +
       "resistance you may have mistaken for bad luck. The Threshold is not a performance; it is the " +
-      "energetic interface between your inner world and everything outside it. It responds to the " +
-      "exact time and place of your first breath.",
+      "energetic interface between your inner world and everything outside it.",
   },
 ];
 
@@ -143,8 +142,7 @@ export default function TriadPreview() {
             </h2>
             <p className="text-[15px] text-[hsl(var(--sov-ivory)/0.62)] max-w-sm mx-auto leading-relaxed mb-5">
               Your Luminary and Tide are already assembled from your Blueprint.
-              Your Threshold requires your exact birth time. Luminary calculates it,
-              completes your Triad, and shows you where all three converge —
+              Your Threshold is the third force. Luminary completes your Triad, and shows you where all three converge —
               and where they pull against each other.
             </p>
             <blockquote className="text-[13px] italic text-[hsl(var(--sov-champagne)/0.62)]

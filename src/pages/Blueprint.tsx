@@ -272,7 +272,7 @@ const Blueprint = () => {
     }
   };
 
-  const handleMoonSignCalculated = async (result: MoonSignResult & { birthDate: Date; birthTime?: string; birthCity?: string }) => {
+  const handleMoonSignCalculated = async (result: MoonSignResult & { birthDate: Date }) => {
     setTempMoonSign(result.sign);
     const sunSign = calculateSunSign(result.birthDate);
     setTempSunSign(sunSign);
@@ -280,15 +280,12 @@ const Blueprint = () => {
     if (!user) return;
 
     // Save birthday + natal signs for EVERY logged-in user (free or Sovereign).
-    // Birth time and city stay Sovereign-only since they require precision calc.
     const updatePayload: Record<string, string> = {
       moon_sign: result.sign,
       natal_moon_sign: result.sign,
       natal_sun_sign: sunSign,
       birthday: result.birthDate.toISOString().split("T")[0],
     };
-    if (isPro && result.birthTime) updatePayload.birth_time = result.birthTime;
-    if (isPro && result.birthCity) updatePayload.birth_city = result.birthCity;
 
     try {
       const { error } = await supabase

@@ -47,7 +47,7 @@ const SovereignUpgradeCTA = ({ onUpgradeClick }: SovereignUpgradeCTAProps) => {
           From your birthday alone we can read you <em>remarkably</em> close —
           the kind of read you'd pay an astrologer hundreds for. Perfect for the friend
           you just met, the family member who shrugs at &ldquo;what time were you born?&rdquo;,
-          or you, right now, with no clock and no certificate. Know the city? We sharpen it.
+          or you, right now, with no clock and no certificate.
           You still get more dots connected than any horoscope app will ever offer.
         </p>
 
