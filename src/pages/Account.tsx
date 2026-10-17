@@ -8,6 +8,7 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSignAsync, calculateSunSign } from "@/lib/moonSign";
+import { getLocalCuspDay } from "@/lib/cuspDay";
 import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell, Globe, User as UserIcon } from "lucide-react";
 import {
   Select,
@@ -143,6 +144,16 @@ const Account = () => {
     };
     load();
   }, [user]);
+
+  // Was the birthday a day the Moon changed signs (in the member's own timezone)?
+  const isCuspBirthday = useMemo(() => {
+    if (!profile?.birthday) return false;
+    try {
+      return getLocalCuspDay(profile.birthday, timezone).isCuspDay;
+    } catch {
+      return false;
+    }
+  }, [profile?.birthday, timezone]);
 
   const isPro =
     profile?.subscription_status === "luminary" ||
@@ -470,6 +481,19 @@ const Account = () => {
                         <p className="font-display text-2xl text-primary">
                           {profile.moon_sign}
                         </p>
+                        {isCuspBirthday && profile.birthday && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(
+                                `/transition-quiz?birthday=${profile.birthday!.split("T")[0]}&tz=${encodeURIComponent(timezone)}`
+                              )
+                            }
+                            className="mt-2 font-sans text-[15px] text-primary underline underline-offset-4 hover:text-primary/80 transition-colors text-left"
+                          >
+                            Retake the Moon-change quiz
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}

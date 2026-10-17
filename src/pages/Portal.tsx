@@ -10,7 +10,7 @@ import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSignAsync, calculateNatalSigns, calculateSunSign, type TransitionInfo } from "@/lib/moonSign";
 import { fetchCombinationProfile } from "@/services/combinationService";
-import { getCombinedTransitionInfo } from "@/lib/moonTransitions";
+import { getLocalCuspDay } from "@/lib/cuspDay";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEO from "@/components/SEO";
 import { Sparkles as SparklesIcon, Globe } from "lucide-react";
@@ -90,25 +90,33 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const [mfaSubmitting, setMfaSubmitting] = useState(false);
   const [transitionInfo, setTransitionInfo] = useState<TransitionInfo | null>(null);
 
-  // Detect Moon-sign transition days as soon as the user picks a birthday
+  // Detect Moon-change days as soon as the user picks a birthday. The day is
+  // the person's LOCAL birthday, so it depends on the chosen timezone too.
   useEffect(() => {
     if (isLogin || !birthday) {
       setTransitionInfo(null);
       return;
     }
-    let cancelled = false;
-    const birthDate = new Date(`${birthday}T12:00:00`);
-    getCombinedTransitionInfo(birthDate)
-      .then((info) => {
-        if (!cancelled) setTransitionInfo(info);
-      })
-      .catch(() => {
-        if (!cancelled) setTransitionInfo(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [birthday, isLogin]);
+    try {
+      const day = getLocalCuspDay(birthday, timezone);
+      setTransitionInfo(
+        day.isCuspDay
+          ? {
+              isTransitionDay: true,
+              signAtStart: day.from,
+              signAtEnd: day.to,
+              ingressHour: null,
+              majoritySign: day.from,
+              majorityHours: 0,
+              minoritySign: day.to,
+              minorityHours: 0,
+            }
+          : null
+      );
+    } catch {
+      setTransitionInfo(null);
+    }
+  }, [birthday, isLogin, timezone]);
 
   // Sync mode if route prop changes (e.g. /signup -> /login)
   useEffect(() => {
@@ -252,7 +260,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           } catch { /* ignore */ }
           cacheTimezone(timezone);
           navigate(
-            `/transition-quiz?signA=${transitionInfo.signAtStart}&signB=${transitionInfo.signAtEnd}&birthday=${birthday}`
+            `/transition-quiz?birthday=${birthday}&tz=${encodeURIComponent(timezone)}`
           );
           return;
         }
