@@ -116,6 +116,6 @@ describe("helpers", () => {
   });
 
   it("formats the ingress time in the given timezone", () => {
-    expect(formatIngressTime(new Date("2026-03-03T07:14:00Z"), "America/New_York")).toMatch(/^3:14\s?AM$/);
+    expect(formatIngressTime(new Date("2026-03-03T07:14:00Z"), "America/New_York")).toMatch(/^2:14\s?AM$/);
   });
 });
