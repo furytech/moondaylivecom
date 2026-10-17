@@ -6,7 +6,7 @@ import SEO from "@/components/SEO";
 /* ────────────────────────────────────────────────────────────
    Triad Preview — public conversion page
    Linked from the Blueprint email's "Not yet" CTA.
-   Shows the three natal forces (Sun / Moon / Rising) with
+   Shows the natal forces (Sun / Moon) with
    blurred synthesis text and a gate CTA to /pricing.
    ──────────────────────────────────────────────────────────── */
 
@@ -35,17 +35,6 @@ const FORCES = [
       "you acknowledge it. Understanding it changes what you ask of the people closest to you — " +
       "and of yourself.",
   },
-  {
-    ordinal: "The Third Force",
-    glyph: "↑",
-    name: "The Threshold",
-    role: "Your arrival · how the world receives you",
-    synthesis:
-      "Your Rising sign is the quality of your presence before you speak — the signature that forms " +
-      "before anyone knows you. It shapes which opportunities find their way to you, and the " +
-      "resistance you may have mistaken for bad luck. The Threshold is not a performance; it is the " +
-      "energetic interface between your inner world and everything outside it.",
-  },
 ];
 
 export default function TriadPreview() {
@@ -54,8 +43,8 @@ export default function TriadPreview() {
   return (
     <div className="sov-shell min-h-screen">
       <SEO
-        title="Your Triad — Three Forces Shaping Your Path"
-        description="Preview the three cosmic forces that structure your nature: The Luminary, The Tide, and The Threshold. Unlock the full Triad with Luminary."
+        title="Your Triad — Forces Shaping Your Path"
+        description="Preview the cosmic forces that structure your nature: The Luminary and The Tide. Unlock the full Triad with Luminary."
         canonical="https://moondaylive.com/triad-preview"
       />
       <Navigation />
@@ -73,7 +62,7 @@ export default function TriadPreview() {
             </h1>
             <p className="text-base font-sans not-italic text-[hsl(var(--sov-ivory)/0.7)] max-w-md mx-auto leading-relaxed">
               Where your Blueprint revealed the tone of your nature,
-              the Triad reveals its structure — three forces that govern
+              the Triad reveals its structure — the forces that govern
               everything you pursue, protect, and present.
             </p>
           </header>
@@ -138,11 +127,11 @@ export default function TriadPreview() {
               ✦ &thinsp; ✦ &thinsp; ✦
             </div>
             <h2 className="font-display text-2xl md:text-3xl italic text-[hsl(var(--sov-ivory))] mb-4 leading-snug">
-              Three forces. One coherent signature.
+              Two forces. One coherent signature.
             </h2>
             <p className="text-[15px] text-[hsl(var(--sov-ivory)/0.62)] max-w-sm mx-auto leading-relaxed mb-5">
               Your Luminary and Tide are already assembled from your Blueprint.
-              Your Threshold is the third force. Luminary completes your Triad, and shows you where all three converge —
+              Luminary completes your Triad, and shows you where they converge —
               and where they pull against each other.
             </p>
             <blockquote className="text-[13px] italic text-[hsl(var(--sov-champagne)/0.62)]
