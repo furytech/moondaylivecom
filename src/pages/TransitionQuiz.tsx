@@ -67,6 +67,9 @@ const TransitionQuiz = () => {
   const [signupError, setSignupError] = useState("");
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  // Signup coming from /signup is only submitted after the person has seen
+  // their result and clicked the confirm button.
+  const [autoSignupRequested, setAutoSignupRequested] = useState(false);
 
   // Work out the Moon-change day in the person's OWN timezone:
   // ?tz= (from signup) > saved profile timezone > stashed signup > this device.
@@ -142,11 +145,22 @@ const TransitionQuiz = () => {
     }
   };
 
+  const hasPendingSignup = () => {
+    try {
+      const pending = JSON.parse(sessionStorage.getItem("pendingSignup") || "null");
+      return !!(pending?.email && pending?.password);
+    } catch {
+      return false;
+    }
+  };
+
   const handlePickSign = (sign: MoonSign) => {
     setResult((r) => (r ? { ...r, sign } : r));
     persistPendingSign(sign);
     if (user) {
       void handleSaveAndContinue(sign);
+    } else if (hasPendingSignup()) {
+      setAutoSignupRequested(true);
     } else {
       setSignupMode(true);
     }
@@ -160,7 +174,7 @@ const TransitionQuiz = () => {
   const autoSignupAttempted = useRef(false);
   useEffect(() => {
     if (autoSignupAttempted.current) return;
-    if (!chosen || user || signupSuccess) return;
+    if (!autoSignupRequested || !chosen || user || signupSuccess) return;
     let pending: {
       email?: string;
       password?: string;
@@ -213,11 +227,15 @@ const TransitionQuiz = () => {
         setSignupSubmitting(false);
       }
     })();
-  }, [chosen, user, signupSuccess, signUp, birthdayParam, toast]);
+  }, [autoSignupRequested, chosen, user, signupSuccess, signUp, birthdayParam, toast]);
 
   const handleSaveAndContinue = async (signToSave: string | null = chosen) => {
     if (!signToSave) return;
     if (!user) {
+      if (hasPendingSignup()) {
+        setAutoSignupRequested(true);
+        return;
+      }
       // Account not yet created — render inline signup form. The quiz result is
       // already in localStorage and will be applied after email verification.
       setSignupMode(true);
@@ -387,7 +405,7 @@ const TransitionQuiz = () => {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
       <SEO
-        title="Between Phases — Refine Your Moon Sign"
+        title="Moon-change birthday — Find Your True Moon"
         description="A five-question Moon quiz for people born on a day the Moon changed signs."
         noindex
       />
@@ -413,10 +431,10 @@ const TransitionQuiz = () => {
               </div>
             </div>
             <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
-              Between Phases
+              Moon-change birthday
             </p>
             <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-2">
-              Refine your Moon Sign
+              Find your true Moon
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed">
               {noSigns
@@ -522,7 +540,7 @@ const TransitionQuiz = () => {
                 <MoonLoader size="md" />
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
                   Anchoring your {chosen} Moon and sending your
-                  authentication link…
+                  confirmation link…
                 </p>
               </div>
             )}
@@ -540,7 +558,7 @@ const TransitionQuiz = () => {
                     Your Lunar Signature awaits
                   </h2>
                   <p className="text-sm md:text-base text-cream/85 leading-relaxed max-w-md mx-auto">
-                    An authentication link has been sent to your email. Please
+                    We've sent a confirmation link to your email. Please
                     check your inbox and click the link to anchor your Lunar
                     Signature and enter your Blueprint.
                   </p>
@@ -730,7 +748,7 @@ const TransitionQuiz = () => {
                     {saving ? <MoonLoader size="sm" /> : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        {user ? "Anchor this sign" : "Create my account"}
+                        {user ? "Anchor this sign" : `Save my ${chosen} Moon & create my account`}
                       </>
                     )}
                   </button>

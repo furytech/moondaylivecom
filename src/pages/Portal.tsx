@@ -724,7 +724,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                       <SparklesIcon className="w-4 h-4 text-lilac" />
                       <AlertDescription className="text-xs leading-relaxed text-cream/85">
                         <span className="block font-display tracking-[0.2em] uppercase text-lilac mb-1.5">
-                          Between Phases
+                          Moon-change birthday
                         </span>
                         On this date the Moon was crossing from{" "}
                         <span className="text-lilac font-medium">{transitionInfo.signAtStart}</span>{" "}
