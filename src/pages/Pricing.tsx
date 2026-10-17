@@ -451,7 +451,7 @@ const Pricing = () => {
               disabled={loading}
               className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-50"
             >
-              {loading ? <MoonLoader size="sm" /> : "Become Luminary"}
+              {loading ? <MoonLoader size="sm" /> : "Unlock Luminary"}
             </button>
           </GlassmorphismCard>
         </div>

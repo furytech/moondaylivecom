@@ -1,10 +1,11 @@
 import { Crown, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SovereignTeaserProps {
-  /** Where the CTA button points. Defaults to /signup. Use /pricing for logged-in free users. */
+  /** Where the CTA button points for logged-out visitors. Defaults to /signup. Signed-in users always go to /pricing. */
   to?: string;
-  /** Custom button label. */
+  /** Custom button label for logged-out visitors. Signed-in users always see "Unlock Luminary". */
   label?: string;
 }
 
@@ -16,6 +17,21 @@ interface SovereignTeaserProps {
  * curiosity to conversion.
  */
 const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: SovereignTeaserProps) => {
+  let user: ReturnType<typeof useAuth>["user"] = null;
+  let isMember = false;
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    isMember = Boolean(auth.subscription?.subscribed);
+  } catch {
+    // outside AuthProvider (e.g. unit tests) — treat as logged out
+  }
+
+  if (isMember) return null;
+
+  const ctaTo = user ? "/pricing" : to;
+  const ctaLabel = user ? "Unlock Luminary" : label;
+
   return (
     <div
       className="relative overflow-hidden rounded-2xl border border-primary/30 backdrop-blur-sm animate-fade-up"
@@ -50,11 +66,11 @@ const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: Sover
         </p>
 
         <Link
-          to={to}
+          to={ctaTo}
           className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_0_32px_hsl(var(--primary)/0.5)] font-display text-xs uppercase tracking-[0.25em] transition-all duration-300"
         >
           <Crown className="w-3.5 h-3.5" />
-          <span>{label}</span>
+          <span>{ctaLabel}</span>
           <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
         </Link>
 

@@ -36,6 +36,8 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
   const handleMonthlyClick = () => {
     if (onPrimaryClick) {
       onPrimaryClick();
+    } else if (navigate) {
+      navigate("/pricing");
     } else if (onSelectPlan) {
       onSelectPlan(MONTHLY_PRICE_ID);
     } else if (onUnlockClick) {
