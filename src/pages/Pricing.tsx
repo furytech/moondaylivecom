@@ -23,7 +23,7 @@ const PRICES = {
     id: "price_1ULN4MJowQfvwg0ZjOGNtzgY",
     amount: "$58.88",
     interval: "year",
-    savings: "2 Months Free",
+    savings: "SAVE 29%",
   },
 };
 
