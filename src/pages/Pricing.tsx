@@ -33,6 +33,7 @@ const COMPARISON: { label: string; free: boolean; Luminary: boolean }[] = [
   { label: "General earthwide moon meaning", free: true, Luminary: true },
   { label: "Daily lunar climate gauge", free: true, Luminary: true },
   { label: "Lunar Library (zodiac archives)", free: true, Luminary: true },
+  { label: "Your Sun + Moon Blueprint (1 of 144)", free: true, Luminary: false },
   { label: "Personalized Birth Moon × Current Moon Forecast", free: false, Luminary: true },
   { label: "Mind, Soul & Body Lunar Pillars", free: false, Luminary: true },
   { label: "Daily Luminary Insight & ritual", free: false, Luminary: true },
@@ -433,7 +434,7 @@ const Pricing = () => {
             </div>
 
             <ul className="space-y-3 flex-1 mb-6">
-              {COMPARISON.map((row) => (
+              {COMPARISON.filter((row) => row.Luminary).map((row) => (
                 <li key={row.label} className="flex items-start gap-3">
                   <Check className="w-4 h-4 text-primary mt-1 flex-shrink-0" strokeWidth={2} />
                   <span className="font-serif text-sm text-cream-muted/90">{row.label}</span>
