@@ -347,6 +347,40 @@ const TransitionQuiz = () => {
     </div>
   );
 
+  // Revealed only on the results screen; hidden while answering.
+  const answersReview =
+    cusp?.isCuspDay && questions.length > 0 && answers.length === questions.length ? (
+      <div className="space-y-3 text-left">
+        <p className="text-lilac text-xs tracking-[0.3em] uppercase text-center">
+          How your answers read
+        </p>
+        <ul className="space-y-3">
+          {questions.map((q, i) => {
+            const side = answers[i];
+            const isEarlier = side === "earlier";
+            return (
+              <li
+                key={q.id}
+                className="p-4 rounded-2xl border border-lilac/15 bg-background/30 space-y-2"
+              >
+                <p className="text-xs text-muted-foreground leading-relaxed">{q.prompt}</p>
+                <p className="text-[15px] text-cream/90 leading-relaxed">{q[side]}</p>
+                <span
+                  className={
+                    isEarlier
+                      ? "inline-block text-[11px] tracking-[0.15em] uppercase px-2.5 py-1 rounded-full border border-lilac/40 bg-lilac/10 text-lilac"
+                      : "inline-block text-[11px] tracking-[0.15em] uppercase px-2.5 py-1 rounded-full border border-gold-medium/40 bg-gold-medium/10 text-gold-light"
+                  }
+                >
+                  {isEarlier ? cusp.from : cusp.to}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    ) : null;
+
   // ---- States ----
   const noSigns = !birthdayParam || (!resolving && !!cusp?.isCuspDay && !pair);
 
@@ -629,6 +663,8 @@ const TransitionQuiz = () => {
                   </p>
                 </div>
 
+                {answersReview}
+
                 <div className="space-y-4">
                   {[cusp.from, cusp.to].map((sign) => (
                     <div
@@ -682,6 +718,8 @@ const TransitionQuiz = () => {
                 <p className="text-[15px] md:text-base text-cream/85 leading-relaxed text-left">
                   {getMoonSignByName(chosen)?.description}
                 </p>
+
+                {answersReview}
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
