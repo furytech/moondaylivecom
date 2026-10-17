@@ -492,7 +492,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         description={
           isLogin
             ? "Sign in to your Moonday Live blueprint and continue your lunar journey."
-            : "Create your Moonday Live account and find your moon sign in three details."
+            : "Create your Moonday Live account and find your moon sign in a few details."
         }
         noindex
       />
