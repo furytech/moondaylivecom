@@ -51,18 +51,18 @@ const BottomTabBar = () => {
             "0 -8px 24px -12px hsl(var(--sov-obsidian) / 0.6), inset 0 1px 0 hsl(var(--sov-champagne) / 0.08)",
         }}
       >
-        <ul className="flex items-stretch justify-around max-w-md mx-auto px-2">
+        <ul className="flex items-stretch justify-around max-w-md mx-auto px-1 sm:px-2">
           {TABS.map((tab) => {
             const active = isActive(tab.path);
             const Icon = tab.icon;
             return (
-              <li key={tab.path} className="flex-1">
+              <li key={tab.path} className="flex-1 basis-0 min-w-0">
                 <Link
                   to={tab.path}
                   onClick={(e) => handleClick(e, tab)}
                   aria-label={tab.label}
                   aria-current={active ? "page" : undefined}
-                  className="group flex flex-col items-center justify-center gap-1 py-2.5 px-1 transition-transform duration-300 active:scale-95"
+                  className="group flex flex-col items-center justify-center gap-1 py-2.5 px-0 transition-transform duration-300 active:scale-95"
                   style={{
                     transform: active ? "translateY(-2px)" : "translateY(0)",
                   }}
@@ -80,7 +80,7 @@ const BottomTabBar = () => {
                     }}
                   />
                   <span
-                    className="text-[9px] font-display uppercase tracking-widest transition-colors duration-300"
+                    className="text-[8px] min-[400px]:text-[9px] font-display uppercase tracking-[0.04em] min-[400px]:tracking-wider whitespace-nowrap transition-colors duration-300"
                     style={{
                       color: active
                         ? "hsl(var(--sov-champagne))"

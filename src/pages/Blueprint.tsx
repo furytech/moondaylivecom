@@ -8,7 +8,7 @@ import { safeLunarIntelligence, safeTimeUntilNextSign } from "@/lib/safeLunar";
 import MoonCalculationFallback from "@/components/MoonCalculationFallback";
 import CalculationBoundary from "@/components/CalculationBoundary";
 import { getSignSymbol } from "@/lib/forecastEngine";
-import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight, Share2 } from "lucide-react";
+import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
@@ -540,11 +540,10 @@ const Blueprint = () => {
             <div className="mt-8 flex justify-center animate-fade-up stagger-2">
               <button
                 onClick={() => navigate("/my-moon-card")}
-                className="group inline-flex items-center gap-2 px-6 py-3 rounded-full btn-lime font-display text-sm uppercase tracking-widest transition-all duration-300"
+                className="group inline-flex items-center justify-between gap-2 px-5 py-3 rounded-xl btn-lime font-sans text-[15px] md:text-base font-medium normal-case tracking-normal transition-all duration-300 min-h-[56px] text-left leading-snug"
               >
-                <Share2 className="w-4 h-4" />
                 <span>Share Your Moon Sign</span>
-                <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
               </button>
             </div>
           )}
