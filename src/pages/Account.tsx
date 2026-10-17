@@ -544,14 +544,14 @@ const Account = () => {
                       <button
                         onClick={handleManageSubscription}
                         disabled={portalLoading}
-                        className="inline-flex items-center gap-3 font-serif text-base text-cream-muted elegant-hover"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 font-sans text-[15px] md:text-base text-primary transition-all duration-300 disabled:opacity-50 min-h-[48px]"
                       >
                         {portalLoading ? (
                           <MoonLoader size="sm" />
                         ) : (
                           <>
                             <ExternalLink className="w-4 h-4" />
-                            Manage Subscription
+                            Manage subscription
                           </>
                         )}
                       </button>

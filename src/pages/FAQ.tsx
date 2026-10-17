@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     q: "How is my Lunar Signature calculated?",
-    a: "Your Lunar Signature is generated from the precise date, time, and location of your birth using astronomical engines. The more accurate the data, the more nuanced your blueprint.",
+    a: "Your Lunar Signature is calculated from your birthday using astronomical engines. Moonday never needs your birth time or location.",
   },
   {
     q: "What is the Luminary Tier?",
@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     q: "Can I cancel my subscription?",
-    a: "Yes — you may cancel at any time from your Account page. Your access continues until the end of the current billing period. Please review our Refund Policy for details.",
+    a: "Yes. Members can cancel anytime online: go to Account → Manage subscription. Your access continues until the end of the paid period. Please review our Refund Policy for details.",
   },
   {
     q: "Do you offer refunds?",
@@ -36,7 +36,7 @@ const faqs = [
   },
   {
     q: "How do I update my birth details?",
-    a: "Visit your Account page to refine your birth date, time, and location. Your blueprint will recalibrate automatically.",
+    a: "Your birthday is locked once it's set, because it anchors your natal Moon sign. If you entered it incorrectly, email support@moondaylive.com from your account address and we'll correct it. Moonday never needs your birth time or location.",
   },
   {
     q: "How do I delete my account?",
