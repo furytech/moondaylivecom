@@ -41,14 +41,18 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
   if (!profile) return null;
 
   // Extract archetype display title and pairing subtitle
-  let displayTitle = profile.combination_title || "The Sovereign";
+  let displayTitle =
+    profile.combination_title ||
+    (profile.sun_sign && profile.moon_sign
+      ? `${profile.sun_sign} Sun · ${profile.moon_sign} Moon`
+      : "Your Blueprint");
   let pairingSubtitle: string | null = null;
 
   if (displayTitle.includes("—")) {
     const parts = displayTitle.split("—").map((p) => p.trim());
     pairingSubtitle = parts[0];
     displayTitle = parts[1];
-  } else if (profile.sun_sign && profile.moon_sign) {
+  } else if (profile.combination_title && profile.sun_sign && profile.moon_sign) {
     pairingSubtitle = `${profile.sun_sign} Sun • ${profile.moon_sign} Moon`;
   }
 

@@ -197,7 +197,7 @@ export const zodiacDeepContent: Record<string, ZodiacDeepContent> = {
     element: "Air",
     ruling: "Mercury",
     essence: {
-      title: "The Sacred Witness",
+      title: "The Quicksilver Witness",
       poetry: "You are the universe observing itself through infinite lenses. Your soul carries the gift of translation—bridging worlds that cannot speak to each other. In you lives the holy curiosity that preceded language, the questions that created consciousness.",
       coreWounds: [
         "Feeling like no one truly knows the 'real' you",
@@ -343,7 +343,7 @@ export const zodiacDeepContent: Record<string, ZodiacDeepContent> = {
     element: "Fire",
     ruling: "Sun",
     essence: {
-      title: "The Sovereign Heart",
+      title: "The Golden Heart",
       poetry: "You are the universe's standing ovation for itself—proof that existence deserves to be celebrated. Your soul carries the sacred duty of modeling self-love in a world that teaches shame. In you lives the original light that makes all seeing possible.",
       coreWounds: [
         "The devastating belief that love must be earned through performance",
@@ -416,7 +416,7 @@ export const zodiacDeepContent: Record<string, ZodiacDeepContent> = {
     element: "Earth",
     ruling: "Mercury",
     essence: {
-      title: "The Sacred Tender",
+      title: "The Devoted Tender",
       poetry: "You are the universe's devoted caretaker—the one who notices what others overlook, who tends what others abandon. Your soul carries the holy work of making the mundane sacred. In you lives the ancient knowledge that devotion is expressed through details.",
       coreWounds: [
         "The belief that you are inherently flawed and must constantly improve",
@@ -489,7 +489,7 @@ export const zodiacDeepContent: Record<string, ZodiacDeepContent> = {
     element: "Air",
     ruling: "Venus",
     essence: {
-      title: "The Sacred Mediator",
+      title: "The Graceful Mediator",
       poetry: "You are the universe's quest for equilibrium—the living proof that harmony is not passive but actively created. Your soul carries the sacred contract of beauty, the duty to remind a harsh world that grace is possible. In you lives the ancient knowing that relationship is the crucible of evolution.",
       coreWounds: [
         "Losing yourself to keep the peace",
@@ -562,7 +562,7 @@ export const zodiacDeepContent: Record<string, ZodiacDeepContent> = {
     element: "Water",
     ruling: "Pluto",
     essence: {
-      title: "The Keeper of Death",
+      title: "The Keeper of Depths",
       poetry: "You are the universe's alchemist—the one who descends into darkness so others don't have to go alone. Your soul carries the forbidden knowledge that death is a doorway, that destruction precedes creation. In you lives the ancient courage to face what others cannot bear to acknowledge.",
       coreWounds: [
         "Betrayal that taught you trust is dangerous",
@@ -781,7 +781,7 @@ export const zodiacDeepContent: Record<string, ZodiacDeepContent> = {
     element: "Air",
     ruling: "Uranus",
     essence: {
-      title: "The Sacred Outsider",
+      title: "The Electric Outsider",
       poetry: "You are the universe's mutant—the evolutionary leap that arrives before its time. Your soul carries the frequency of tomorrow, the signal that most cannot yet receive. In you lives the alien perspective that shocks systems into growth, the love that is too vast for single relationships.",
       coreWounds: [
         "Never fitting in, no matter how you tried",
@@ -854,7 +854,7 @@ export const zodiacDeepContent: Record<string, ZodiacDeepContent> = {
     element: "Water",
     ruling: "Neptune",
     essence: {
-      title: "The Holy Dissolver",
+      title: "The Holy Dreamer",
       poetry: "You are the universe returning to itself—the drop that remembers it is the ocean. Your soul carries the final wisdom: that separation is illusion, that all suffering is a forgetting. In you lives the dreamer and the dream, the prayer and the answer, the wound and the healer.",
       coreWounds: [
         "Absorbing others' pain as if it were your own",

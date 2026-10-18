@@ -154,7 +154,7 @@ export const moonSignDeepDiveContent: Record<string, MoonSignDeepDive> = {
     symbol: "♌",
     element: "Fire",
     ruling: "Sun",
-    archetype: "The Sovereign",
+    archetype: "The Radiant Heart",
     headline: "Your heart is a sun that warms everyone in its orbit",
     overview: "With the Moon in Leo, your emotional nature craves recognition, creativity, and the warmth of genuine appreciation. You feel most yourself when you're shining—not from ego, but from the deep need to give your light to others. Your emotions are grand, theatrical, and utterly sincere. There's nothing small about the way you love.",
     emotionalNeeds: [

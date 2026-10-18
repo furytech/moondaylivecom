@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { ZodiacDeepContent } from "@/lib/zodiacDeepContent";
+import { moonSignDeepDiveContent } from "@/lib/moonSignContent";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ interface SignDetailPanelProps {
 
 export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
   const [activeTab, setActiveTab] = useState("essence");
+  const officialArchetype = moonSignDeepDiveContent[content.sign]?.archetype;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
@@ -93,6 +95,16 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
               <TabsContent value="essence" className="animate-fade-up">
                 <div className="space-y-8">
                   <div className="text-center">
+                    {officialArchetype && (
+                      <div className="mb-6">
+                        <p className="font-display text-xs tracking-[0.2em] uppercase text-primary/70 mb-1">
+                          Your Moon Archetype
+                        </p>
+                        <p className="font-display text-2xl md:text-3xl text-gold-gradient">
+                          {officialArchetype}
+                        </p>
+                      </div>
+                    )}
                     <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4">
                       {content.essence.title}
                     </h3>
