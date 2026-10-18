@@ -19,6 +19,10 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 - Finish with a short plain-language summary of what changed, plus anything that needs the owner's decision.
 - Don't invent product decisions. Report the options and ask.
 
+## Ask first
+- Before any irreversible or destructive action, stop and ask the owner first. That includes: dropping or truncating tables, deleting rows in bulk, deleting files permanently, changing production environment variables or secrets in Vercel or Supabase (such as STRIPE_SECRET_KEY), deleting users, or anything git revert can't undo.
+- Routine edits, builds, tests, commits and pushes don't need asking.
+
 ## Product rules
 - Birthday only. Never ask for, require, or store birth time or birth place. Moon sign assumes noon on the birth date. No Rising sign / Ascendant features or promises.
 - The paid tier is "Luminary" in all visible copy. The database value subscription_status = 'sovereign' stays as-is (don't rename DB values, routes, or variables). Treat 'sovereign', 'luminary', or is_subscriber = true as paid.
