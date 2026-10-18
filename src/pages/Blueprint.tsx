@@ -83,7 +83,7 @@ const Blueprint = () => {
   const success = searchParams.get("success") === "true";
 
   // The displayed moon sign - either from profile or temp lookup
-  const displayedMoonSign = userProfile?.natal_moon_sign || userProfile?.moon_sign || tempMoonSign;
+  const displayedMoonSign = tempMoonSign || userProfile?.natal_moon_sign || userProfile?.moon_sign;
   const displayedSunSign = userProfile?.natal_sun_sign || (userProfile?.birthday ? calculateSunSign(new Date(`${userProfile.birthday.split("T")[0]}T12:00:00`)) : null) || tempSunSign;
 
   // Extract display name (prefers first_name from profile or auth metadata, falls back to Cosmic Traveler — never email)
@@ -279,7 +279,11 @@ const Blueprint = () => {
 
     if (!user) return;
 
-    // Save birthday + natal signs for EVERY logged-in user (free or Sovereign).
+    // A saved natal Moon sign (e.g. chosen in the Moon Cusp Quiz) is never
+    // overwritten by a lookup: show the result only.
+    if (userProfile?.natal_moon_sign) return;
+
+    // First-time save of birthday + natal signs for a logged-in user with no saved Moon sign.
     const updatePayload: Record<string, string> = {
       moon_sign: result.sign,
       natal_moon_sign: result.sign,

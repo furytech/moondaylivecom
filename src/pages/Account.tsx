@@ -169,27 +169,38 @@ const Account = () => {
       const moon = await calculateMoonSignAsync(birthDate);
       const sunSign = calculateSunSign(birthDate);
 
+      // Only write the computed Moon sign when none is saved yet; a sign chosen
+      // in the Moon Cusp Quiz is changed only by retaking the quiz.
+      const { data: existing } = await supabase
+        .from("user_profiles")
+        .select("natal_moon_sign")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const savedMoon = existing?.natal_moon_sign || profile?.natal_moon_sign || null;
+      const moonToKeep = savedMoon ?? moon.sign;
+
+      const payload: Record<string, string> = {
+        user_id: user.id,
+        email: user.email ?? "",
+        birthday,
+        natal_sun_sign: sunSign,
+      };
+      if (!savedMoon) {
+        payload.moon_sign = moon.sign;
+        payload.natal_moon_sign = moon.sign;
+      }
+
       const { error } = await supabase
         .from("user_profiles")
-        .upsert(
-          {
-            user_id: user.id,
-            email: user.email,
-            birthday,
-            moon_sign: moon.sign,
-            natal_moon_sign: moon.sign,
-            natal_sun_sign: sunSign,
-          },
-          { onConflict: "user_id" }
-        );
+        .upsert(payload, { onConflict: "user_id" });
 
       if (error) throw error;
 
       setProfile((prev) => ({
         email: user.email ?? prev?.email ?? null,
         birthday,
-        moon_sign: moon.sign,
-        natal_moon_sign: moon.sign,
+        moon_sign: savedMoon ? (prev?.moon_sign ?? savedMoon) : moon.sign,
+        natal_moon_sign: moonToKeep,
         natal_sun_sign: sunSign,
         subscription_status: prev?.subscription_status ?? "free",
         is_subscriber: prev?.is_subscriber ?? false,
@@ -199,7 +210,7 @@ const Account = () => {
 
       toast({
         title: "Profile saved",
-        description: `Your sun sign is ${sunSign} and moon sign is ${moon.sign}.`,
+        description: `Your sun sign is ${sunSign} and moon sign is ${moonToKeep}.`,
       });
     } catch (err) {
       console.error("Save error:", err);
