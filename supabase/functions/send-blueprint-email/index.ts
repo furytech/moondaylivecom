@@ -1,5 +1,5 @@
 // supabase/functions/send-blueprint-email/index.ts
-// Triggered via Supabase Database Webhook on INSERT/UPDATE to public.user_profiles
+// Triggered by the on_auth_user_email_confirmed DB trigger (auth.users.email_confirmed_at NULL -> value)
 // Sends the Blueprint combination email via Resend
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
@@ -8,8 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 const RESEND_API_KEY            = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-// Optional: set SEND_BLUEPRINT_SECRET in Supabase secrets and match it in the
-// webhook header to prevent unauthorized calls.
+// Optional alternate auth: Bearer SEND_BLUEPRINT_SECRET.
 const FUNCTION_SECRET = Deno.env.get("SEND_BLUEPRINT_SECRET");
 
 // ─── Constants ─────────────────────────────────────────────────────────────
@@ -141,50 +140,67 @@ Deno.serve(async (req: Request) => {
   const headers = { "Content-Type": "application/json" };
 
   try {
-    // Optional webhook secret check
-    if (FUNCTION_SECRET) {
-      const auth = req.headers.get("authorization");
-      if (auth !== `Bearer ${FUNCTION_SECRET}`) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
-      }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Auth: DB trigger sends X-Cron-Secret (stored in public.cron_secrets);
+    // Bearer SEND_BLUEPRINT_SECRET is also accepted if configured.
+    let authorized = false;
+    const cronSecret = req.headers.get("x-cron-secret");
+    if (cronSecret) {
+      const { data: secretRow } = await supabase
+          .from("cron_secrets")
+          .select("secret_value")
+          .eq("name", "send-blueprint-email")
+          .maybeSingle();
+      authorized = !!secretRow && secretRow.secret_value === cronSecret;
+    }
+    if (!authorized && FUNCTION_SECRET) {
+      authorized = req.headers.get("authorization") === `Bearer ${FUNCTION_SECRET}`;
+    }
+    if (!authorized) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
     }
 
     const payload = await req.json();
 
-    // Handle INSERT and UPDATE on user_profiles
-    if ((payload.type !== "INSERT" && payload.type !== "UPDATE") || payload.table !== "user_profiles") {
+    // Only the email-confirmation trigger sends the Blueprint email.
+    // Legacy user_profiles INSERT/UPDATE webhooks are ignored.
+    if (payload.type !== "EMAIL_CONFIRMED" || !payload.user_id) {
       return new Response(
-          JSON.stringify({ skipped: true, reason: "not a user_profiles INSERT/UPDATE" }),
+          JSON.stringify({ skipped: true, reason: "not an EMAIL_CONFIRMED event" }),
           { status: 200, headers }
       );
     }
 
-    const record = payload.record as {
-      id: string;
-      user_id: string;
-      natal_sun_sign: string;
-      natal_moon_sign: string;
-      first_name?: string;
-      email?: string;
-    };
+    const user_id: string = payload.user_id;
 
-    const { user_id, natal_sun_sign: sun_sign, natal_moon_sign: moon_sign } = record;
-    let email = record.email ?? null;
+    const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("natal_sun_sign, natal_moon_sign, first_name, email, blueprint_email_sent_at")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+    if (!profile) {
+      console.error("No profile for confirmed user:", user_id);
+      return new Response(JSON.stringify({ error: "Profile not found" }), { status: 404, headers });
+    }
+
+    const sun_sign = profile.natal_sun_sign;
+    const moon_sign = profile.natal_moon_sign;
+    let email: string | null = profile.email ?? payload.email ?? null;
 
     // Friendly first name — use first_name, fallback to "friend"
-    const firstName = record.first_name?.trim() || "friend";
+    const firstName = profile.first_name?.trim() || "friend";
 
     if (!sun_sign || !moon_sign) {
-      console.error("Missing natal_sun_sign or natal_moon_sign", record);
+      console.error("Missing natal_sun_sign or natal_moon_sign", user_id);
       return new Response(
           JSON.stringify({ error: "Missing sun_sign or moon_sign" }),
           { status: 400, headers }
       );
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Fetch email from auth.users if not on profile record
+    // Fetch email from auth.users if not available
     if (!email) {
       const { data: authData, error: authError } = await supabase.auth.admin.getUserById(user_id);
       if (authError || !authData?.user?.email) {
@@ -197,21 +213,24 @@ Deno.serve(async (req: Request) => {
       email = authData.user.email!;
     }
 
-    // ── Idempotency: skip if blueprint email already sent for this user ──
-    const { data: existingLog } = await supabase
-        .from("email_send_log")
-        .select("id")
+    // ── Idempotency: atomically claim the send (once per user) ──
+    const { data: claimed } = await supabase
+        .from("user_profiles")
+        .update({ blueprint_email_sent_at: new Date().toISOString() })
         .eq("user_id", user_id)
-        .eq("email_type", "blueprint")
-        .maybeSingle();
+        .is("blueprint_email_sent_at", null)
+        .select("user_id");
 
-    if (existingLog) {
+    if (!claimed || claimed.length === 0) {
       console.log("Blueprint already sent, skipping:", user_id);
       return new Response(
           JSON.stringify({ skipped: true, reason: "already_sent" }),
           { status: 200, headers }
       );
     }
+
+    const releaseClaim = () =>
+        supabase.from("user_profiles").update({ blueprint_email_sent_at: null }).eq("user_id", user_id);
 
     // ── Fetch combination profile ──────────────────────────────────────────
     const { data: combo, error: comboError } = await supabase
@@ -223,6 +242,7 @@ Deno.serve(async (req: Request) => {
 
     if (comboError || !combo) {
       console.error("Combination profile not found:", { sun_sign, moon_sign }, comboError);
+      await releaseClaim();
       return new Response(
           JSON.stringify({ error: "Combination profile not found", sun_sign, moon_sign }),
           { status: 404, headers }
@@ -259,6 +279,7 @@ Deno.serve(async (req: Request) => {
     // ── Log to email_send_log ─────────────────────────────────────────────
     if (!resendRes.ok) {
       console.error("Resend error:", resendBody);
+      await releaseClaim();
       await supabase.from("email_send_log").insert({
         user_id,
         email_type: "blueprint",

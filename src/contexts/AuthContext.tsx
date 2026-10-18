@@ -5,7 +5,6 @@ import { User, Session } from "@supabase/supabase-js";
 import { trackEvent } from "@/lib/analytics";
 import { getDevTierOverride, subscribeDevTier } from "@/lib/devTier";
 import { calculateSunSign, calculateMoonSignAsync } from "@/lib/moonSign";
-import { triggerBlueprintEmail } from "@/services/blueprintEmailService";
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -262,15 +261,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         );
     }
 
-    // Trigger Blueprint email capture flow for new free signups (waits for confirmed natal signs in user_profiles)
-    triggerBlueprintEmail({
-      email,
-      userId: data.user?.id || null,
-      firstName: firstName || null,
-      sunSign: resolvedSunSign,
-      moonSign: resolvedMoonSign,
-    }).catch((err) => console.warn("Background blueprint email capture error:", err));
-
+    // The Blueprint email is sent server-side after the user confirms their email
+    // (DB trigger on auth.users -> send-blueprint-email).
     trackEvent("sign_up", { method: "email" });
   };
 
