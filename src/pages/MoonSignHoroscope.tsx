@@ -55,7 +55,7 @@ const MoonSignHoroscope = () => {
             </p>
             <p>
               We don't write twelve generic blurbs. Your horoscope is generated against the live lunar climate score, the
-              current phase of the Great Cycle, and any void-of-course intervals between phases. That is why the same
+              current phase of the Great Cycle, and any void-of-course intervals. That is why the same
               moon sign can read very differently from one Tuesday to the next.
             </p>
           </div>

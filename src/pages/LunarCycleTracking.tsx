@@ -64,7 +64,7 @@ const LunarCycleTracking = () => {
             <p>
               Inside your blueprint, every phase of the Great Cycle is mapped to a ritual for Mind, Soul, and Body —
               tuned to your natal moon sign. You'll see exactly where you are in the cycle, what phase comes next, and
-              when the Moon is Between Phases and asking for stillness.
+              when the Lunar Signal is quiet and asking for stillness.
             </p>
             <p>
               You can preview the current global pulse on the <Link to="/pulse" className="text-primary/90 hover:text-primary underline underline-offset-2">live

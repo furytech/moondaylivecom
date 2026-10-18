@@ -31,7 +31,7 @@ const LunarClimate = () => {
               The <strong className="text-foreground">lunar climate</strong> is the felt sense of the day —
               the difference between a morning that flows and one that drags for reasons you cannot name. It is set
               by the sign the Moon is currently transiting, the phase of the Great Cycle, and the small void
-              intervals when the Moon is briefly Between Phases.
+              intervals when the Moon is briefly quiet (the Lunar Signal).
             </p>
             <p>
               Unlike sun-sign astrology, which moves in months, the lunar climate moves in hours. Reading it is the
@@ -49,7 +49,7 @@ const LunarClimate = () => {
               Three live signals: the <strong className="text-foreground">current moon sign</strong> (where the Moon sits
               in the zodiac right now), the <strong className="text-foreground">current phase</strong> (waxing, full,
               waning, dark), and any <strong className="text-foreground">void-of-course interval</strong> — the quiet
-              moments Between Phases when the Moon is making no aspects to other planets.
+              moments of Lunar Signal quiet when the Moon is making no aspects to other planets.
             </p>
             <p>
               Moonday Live composes these into a single climate score, refreshed continuously. You can see the global

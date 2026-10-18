@@ -635,7 +635,7 @@ const Blueprint = () => {
                 />
               </div>
 
-              {/* 3. Between Phases (VoC) */}
+              {/* 3. Lunar Signal (VoC) */}
               <div className="mt-12">
                 <VoidIntervalSection
                   lunar={lunar}

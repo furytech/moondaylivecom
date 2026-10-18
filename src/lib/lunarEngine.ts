@@ -119,7 +119,7 @@ export function getTimeUntilNextSign(date: Date = new Date()): { hours: number; 
 }
 
 /**
- * Get the VoC (Between Phases) timing window.
+ * Get the VoC (Lunar Signal) timing window.
  * Returns start time, end time (next sign entry), and peak time.
  */
 export function getVocTimingWindow(date: Date = new Date()): {

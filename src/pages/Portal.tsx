@@ -142,7 +142,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     }
 
     if (user && !authLoading) {
-      // Apply any pending Moon sign captured from the Between Phases quiz
+      // Apply any pending Moon sign captured from the Moon-change quiz
       // before the user verified their email.
       (async () => {
         try {
@@ -242,7 +242,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
         navigate(redirectTo, { replace: true });
       } else {
         // Transition-day path: don't create the account yet. Stash the
-        // credentials and route the user into the Between Phases quiz. The
+        // credentials and route the user into the Moon-change quiz. The
         // quiz screen will finalize signUp with the disambiguated sign so
         // the user never has to re-enter email/password.
         if (transitionInfo?.isTransitionDay) {

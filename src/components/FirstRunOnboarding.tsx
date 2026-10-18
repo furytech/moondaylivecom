@@ -21,7 +21,7 @@ const steps = [
     icon: Sparkles,
     label: "Born on a sign-change day?",
     body:
-      "If the Moon changed signs on your birthday, you were born Between Phases. We'll walk you through five short questions so your signature reflects the sign you actually live in.",
+      "If the Moon changed signs on your birthday, you have a Moon-change birthday. We'll walk you through five short questions so your signature reflects the sign you actually live in.",
   },
 ];
 

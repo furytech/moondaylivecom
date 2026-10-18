@@ -104,7 +104,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
     <EducationModal
       isOpen={infoOpen}
       onClose={() => setInfoOpen(false)}
-      eyebrow="Between Phases"
+      eyebrow="Lunar Signal"
       title={isVoid ? "Void of Course Moon" : "Connected Moon"}
       subtitle={statusLabel}
       intro={

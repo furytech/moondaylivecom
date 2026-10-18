@@ -257,7 +257,7 @@ export default function ClimateGauge({ illumination, sign }: Props) {
           },
           {
             label: "Volatility · V",
-            body: "A +15 offset applied only when the Moon is within two hours of changing signs — the brief window Between Phases when the emotional weather is unsettled and the reading is likeliest to shift. Outside that window, V is zero.",
+            body: "A +15 offset applied only when the Moon is within two hours of changing signs — the brief Lunar Signal window when the emotional weather is unsettled and the reading is likeliest to shift. Outside that window, V is zero.",
           },
         ]}
         closing="The result is a single number — your Climate. Read it as a temperature, not a verdict."
