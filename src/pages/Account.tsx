@@ -176,19 +176,16 @@ const Account = () => {
         .select("natal_moon_sign")
         .eq("user_id", user.id)
         .maybeSingle();
-      const savedMoon = existing?.natal_moon_sign || profile?.natal_moon_sign || null;
+      const savedMoon = existing?.natal_moon_sign || null;
       const moonToKeep = savedMoon ?? moon.sign;
 
-      const payload: Record<string, string> = {
+      const payload = {
         user_id: user.id,
         email: user.email ?? "",
         birthday,
         natal_sun_sign: sunSign,
+        ...(savedMoon ? {} : { moon_sign: moon.sign, natal_moon_sign: moon.sign }),
       };
-      if (!savedMoon) {
-        payload.moon_sign = moon.sign;
-        payload.natal_moon_sign = moon.sign;
-      }
 
       const { error } = await supabase
         .from("user_profiles")
