@@ -8,7 +8,7 @@ import {
   isLuminaryMember,
   natalSiderealMoon,
   normalizeSign,
-  personalHeaderLine,
+  personalHero,
   resolveTriadPanel,
   safeTimeZone,
   siderealForYou,
@@ -48,18 +48,19 @@ describe("isLuminaryMember", () => {
   });
 });
 
-describe("personalHeaderLine", () => {
-  it("uses the archetype name from the stored combination_title", () => {
+describe("personalHero", () => {
+  it("puts the archetype name in the hero with a small signs line above", () => {
     expect(
-      personalHeaderLine("Leo", "Sagittarius", "Leo Sun • Sagittarius Moon — The Luminary Archer"),
-    ).toBe("Your Sun in Leo · Moon in Sagittarius · The Luminary Archer");
+      personalHero("Leo", "Sagittarius", "Leo Sun • Sagittarius Moon — The Luminary Archer"),
+    ).toEqual({ kicker: "Your Sun in Leo · Moon in Sagittarius", headline: "The Luminary Archer" });
   });
   it("keeps a title that has no pairing prefix as is", () => {
     expect(archetypeName("The Ocean Sovereign")).toBe("The Ocean Sovereign");
+    expect(personalHero("Cancer", "Cancer", "The Sovereign Sentinel").headline).toBe("The Sovereign Sentinel");
   });
-  it("falls back to the signs when there is no title", () => {
-    expect(personalHeaderLine("Leo", "Cancer", null)).toBe("Leo Sun · Cancer Moon");
-    expect(personalHeaderLine("Leo", "Cancer", "  ")).toBe("Leo Sun · Cancer Moon");
+  it("falls back to the signs in the hero when there is no title", () => {
+    expect(personalHero("Leo", "Cancer", null)).toEqual({ kicker: null, headline: "Leo Sun · Cancer Moon" });
+    expect(personalHero("Leo", "Cancer", "  ").headline).toBe("Leo Sun · Cancer Moon");
   });
 });
 
@@ -162,25 +163,49 @@ describe("resolveTriadPanel (triad fallback)", () => {
     ).toEqual({ kind: "generic" });
   });
 
-  it("shows the member's row when present", () => {
-    const panel = resolveTriadPanel({
-      combination_title: "Leo Sun • Cancer Moon • Gemini Moon",
-      triad_number: 421,
-      integration_invitation: "Let logic and instinct hold hands.",
-      daily_ritual: "Write three pages before sunrise.",
-    });
+  it("leads with the number and shows no title when the row repeats the Blueprint title", () => {
+    const panel = resolveTriadPanel(
+      {
+        combination_title: "Leo Sun • Cancer Moon — The Sovereign Sentinel",
+        triad_number: 421,
+        integration_invitation: "Let logic and instinct hold hands.",
+        daily_ritual: "Write three pages before sunrise.",
+      },
+      "Leo Sun • Cancer Moon — The Sovereign Sentinel",
+    );
     expect(panel).toEqual({
       kind: "personal",
-      title: "Leo Sun • Cancer Moon • Gemini Moon",
-      numberLabel: "#421 of 1,728",
+      heading: "#421 of 1,728 · Today's Triad",
+      subheading: null,
       integrationInvitation: "Let logic and instinct hold hands.",
       dailyRitual: "Write three pages before sunrise.",
     });
   });
 
-  it("omits what is missing without falling back", () => {
+  it("treats the same archetype name as a repeat even when the pairing prefix differs", () => {
+    const panel = resolveTriadPanel(
+      { combination_title: "The Sovereign Sentinel", integration_invitation: "x" },
+      "Leo Sun • Cancer Moon — The Sovereign Sentinel",
+    );
+    expect(panel).toMatchObject({ kind: "personal", subheading: null });
+  });
+
+  it("shows a smaller subheading only when the row's title differs", () => {
+    const panel = resolveTriadPanel(
+      { combination_title: "Leo Sun • Cancer Moon • Gemini Moon — The Quick Tide", triad_number: 7, daily_ritual: "r" },
+      "The Sovereign Sentinel",
+    );
+    expect(panel).toMatchObject({ kind: "personal", subheading: "The Quick Tide" });
+  });
+
+  it("shows the row's title when there is no Blueprint title to repeat", () => {
+    const panel = resolveTriadPanel({ combination_title: "The Quick Tide", daily_ritual: "r" }, null);
+    expect(panel).toMatchObject({ subheading: "The Quick Tide" });
+  });
+
+  it("omits the number without falling back", () => {
     const panel = resolveTriadPanel({ triad_number: null, integration_invitation: "Invite.", daily_ritual: null });
-    expect(panel).toMatchObject({ kind: "personal", numberLabel: null, dailyRitual: null, title: null });
+    expect(panel).toMatchObject({ kind: "personal", heading: "Today's Triad", subheading: null, dailyRitual: null });
   });
 });
 

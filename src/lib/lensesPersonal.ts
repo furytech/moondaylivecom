@@ -63,15 +63,22 @@ export function archetypeName(title: string | null | undefined): string | null {
   return t;
 }
 
-export function personalHeaderLine(
+export interface PersonalHero {
+  /** Small line above the hero; null when the headline already names the signs. */
+  kicker: string | null;
+  /** The anchor metaphor: archetype name, or "[X] Sun · [Y] Moon" without a title. */
+  headline: string;
+}
+
+export function personalHero(
   sun: ZodiacSign,
   moon: ZodiacSign,
   combinationTitle?: string | null,
-): string {
+): PersonalHero {
   const name = archetypeName(combinationTitle);
   return name
-    ? `Your Sun in ${sun} · Moon in ${moon} · ${name}`
-    : `${sun} Sun · ${moon} Moon`;
+    ? { kicker: `Your Sun in ${sun} · Moon in ${moon}`, headline: name }
+    : { kicker: null, headline: `${sun} Sun · ${moon} Moon` };
 }
 
 /* ── "For you" lines ──────────────────────────────────────── */
@@ -223,27 +230,46 @@ export interface TriadStateRow {
 export type TriadPanelContent =
   | {
       kind: "personal";
-      title: string | null;
-      numberLabel: string | null;
+      /** "#X of 1,728 · Today's Triad", or "Today's Triad" without a number. */
+      heading: string;
+      /** Only when the row's title differs from the Blueprint title shown as the hero. */
+      subheading: string | null;
       integrationInvitation: string | null;
       dailyRitual: string | null;
     }
   | { kind: "generic" };
 
 const clean = (s: string | null | undefined) => (s && s.trim() ? s.trim() : null);
+const sameTitle = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /** Personal panel when today's triad_states row has something to show;
- *  otherwise the generic synthesis stays. */
-export function resolveTriadPanel(row: TriadStateRow | null | undefined): TriadPanelContent {
+ *  otherwise the generic synthesis stays. `blueprintTitle` is the hero title
+ *  already on the page, so the panel never repeats it. */
+export function resolveTriadPanel(
+  row: TriadStateRow | null | undefined,
+  blueprintTitle?: string | null,
+): TriadPanelContent {
   if (!row) return { kind: "generic" };
   const integrationInvitation = clean(row.integration_invitation);
   const dailyRitual = clean(row.daily_ritual);
   if (!integrationInvitation && !dailyRitual) return { kind: "generic" };
+
+  const rowTitle = clean(row.combination_title);
+  const blueprintFull = clean(blueprintTitle);
+  const blueprintName = archetypeName(blueprintTitle);
+  const rowName = archetypeName(rowTitle);
+  const duplicate =
+    !rowTitle ||
+    (!!blueprintFull && sameTitle(rowTitle, blueprintFull)) ||
+    (!!blueprintName && !!rowName && sameTitle(rowName, blueprintName));
+
   return {
     kind: "personal",
-    title: clean(row.combination_title),
-    numberLabel:
-      typeof row.triad_number === "number" ? `#${row.triad_number} of 1,728` : null,
+    heading:
+      typeof row.triad_number === "number"
+        ? `#${row.triad_number} of 1,728 · Today's Triad`
+        : "Today's Triad",
+    subheading: duplicate ? null : rowName,
     integrationInvitation,
     dailyRitual,
   };

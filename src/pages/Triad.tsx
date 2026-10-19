@@ -14,7 +14,7 @@ import {
   isLuminaryMember,
   natalSiderealMoon,
   normalizeSign,
-  personalHeaderLine,
+  personalHero,
   resolveTriadPanel,
   safeTimeZone,
   withTimeout,
@@ -186,17 +186,15 @@ function CalibratingScreen() {
 function PersonalTriadCard({ panel }: { panel: Extract<TriadPanelContent, { kind: "personal" }> }) {
   return (
     <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.45)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
-      <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-1">
-        Your Triad today
-      </div>
-      {panel.numberLabel && (
-        <div className="font-display text-lg tracking-wide text-[hsl(var(--gold-light))] tabular-nums">
-          {panel.numberLabel}
-        </div>
-      )}
-      {panel.title && (
-        <p className="mt-2 text-[15px] font-medium normal-case tracking-normal leading-snug text-violet-200">
-          {panel.title}
+      <h3
+        className="font-display text-base sm:text-lg tracking-wide text-[#d4af37] tabular-nums"
+        style={{ textWrap: "balance" }}
+      >
+        {panel.heading}
+      </h3>
+      {panel.subheading && (
+        <p className="mt-1 text-sm normal-case tracking-normal leading-snug text-violet-200">
+          {panel.subheading}
         </p>
       )}
       <div className="mt-4 space-y-4 text-left">
@@ -223,7 +221,7 @@ function PersonalTriadCard({ panel }: { panel: Extract<TriadPanelContent, { kind
       </div>
       <Link
         to="/blueprint"
-        className="mt-5 inline-block text-sm normal-case tracking-normal text-[hsl(var(--gold-light))] underline-offset-4 hover:underline"
+        className="mt-5 inline-block text-sm normal-case tracking-normal text-[#d4af37] underline-offset-4 hover:underline"
       >
         Read your full Triad on Blueprint →
       </Link>
@@ -235,7 +233,7 @@ function TriadLoadingCard() {
   return (
     <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.3)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
       <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))]">
-        Your Triad today
+        Today's Triad
       </div>
       <p className="mt-2 text-sm normal-case tracking-normal text-[hsl(var(--cream)/0.55)]">
         Reading your Triad…
@@ -307,6 +305,7 @@ export default function Triad() {
   const [triadRow, setTriadRow] = useState<TriadRowState>({ status: "loading" });
   const sunKey = member?.sun;
   const moonKey = member?.moon;
+  const blueprintTitle = member?.combinationTitle;
   useEffect(() => {
     if (!sunKey || !moonKey || !isLuminary) return;
     let cancelled = false;
@@ -322,7 +321,7 @@ export default function Triad() {
       TRIAD_TIMEOUT_MS,
     )
       .then(({ data }) => {
-        if (!cancelled) setTriadRow({ status: "done", panel: resolveTriadPanel(data) });
+        if (!cancelled) setTriadRow({ status: "done", panel: resolveTriadPanel(data, blueprintTitle) });
       })
       .catch((err) => {
         console.error("Lenses: could not load today's Triad", err);
@@ -331,7 +330,7 @@ export default function Triad() {
     return () => {
       cancelled = true;
     };
-  }, [sunKey, moonKey, transitSign, isLuminary]);
+  }, [sunKey, moonKey, transitSign, isLuminary, blueprintTitle]);
 
   if (memberState.status === "error") {
     return (
@@ -386,6 +385,8 @@ export default function Triad() {
     );
   }
 
+  const hero = personalHero(member.sun, member.moon, member.combinationTitle);
+
   const synthesisSlot =
     triadRow.status === "loading" ? (
       <TriadLoadingCard />
@@ -413,9 +414,17 @@ export default function Triad() {
             <p className="mt-3 text-sm sm:text-base text-[hsl(var(--sov-ivory)/0.65)] max-w-xl mx-auto leading-relaxed">
               The same Moon, read through three lenses — Persona, Wiring, Soul.
             </p>
-            <p className="mt-4 mx-auto max-w-md rounded-xl border border-violet-400/30 bg-violet-500/5 px-4 py-2 text-sm normal-case tracking-normal leading-snug text-violet-200">
-              {personalHeaderLine(member.sun, member.moon, member.combinationTitle)}
-            </p>
+            <div className="mt-6 mx-auto max-w-xl">
+              {hero.kicker && (
+                <p className="text-sm normal-case tracking-normal text-violet-200">{hero.kicker}</p>
+              )}
+              <h2
+                className="mt-2 font-display text-[1.75rem] sm:text-4xl md:text-5xl leading-[1.15] tracking-wide text-[#d4af37] break-words"
+                style={{ textWrap: "balance", textShadow: "0 0 22px rgba(212, 175, 55, 0.35)" }}
+              >
+                {hero.headline}
+              </h2>
+            </div>
             <div className="mt-4 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--sov-ivory)/0.4)]">
               Lahiri Ayanamsha · {triad.ayanamsha.toFixed(4)}°
             </div>
