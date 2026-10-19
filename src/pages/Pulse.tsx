@@ -5,10 +5,12 @@ import DailyPulse from "@/components/DailyPulse";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLuminaryStatus } from "@/hooks/useLuminaryStatus";
 
 /* Public entry portal — UTC-noon global pulse, accessible to all visitors. */
 export default function Pulse() {
   const { user } = useAuth();
+  const { isLuminary, ready } = useLuminaryStatus();
 
   return (
     <div className="sov-shell min-h-screen">
@@ -34,13 +36,19 @@ export default function Pulse() {
 
           <DailyPulse useUtcNoon />
 
-          <div className="mt-8 text-center">
-            <Link
-              to="/lenses"
-              className="inline-block font-display text-[11px] tracking-[0.35em] uppercase text-[hsl(var(--gold-light))] border border-[hsl(var(--gold-medium)/0.55)] px-5 py-2 rounded-sm hover:bg-[hsl(var(--gold-medium)/0.08)] transition-colors"
-            >
-              Personalize the Lenses →
-            </Link>
+          <div className="mt-8 text-center min-h-[2.5rem]">
+            {ready && (
+              <Link
+                to={user && !isLuminary ? "/pricing" : "/lenses"}
+                className="inline-block font-display text-[11px] tracking-[0.35em] uppercase text-[hsl(var(--gold-light))] border border-[hsl(var(--gold-medium)/0.55)] px-5 py-2 rounded-sm hover:bg-[hsl(var(--gold-medium)/0.08)] transition-colors"
+              >
+                {!user
+                  ? "Personalize the Lenses →"
+                  : isLuminary
+                    ? "Open your Lenses →"
+                    : "Unlock Luminary"}
+              </Link>
+            )}
           </div>
 
           <div className="mt-10">

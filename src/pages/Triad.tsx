@@ -1,17 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { computeTriadMoon, type TriadMoon } from "@/lib/sovereignEngine";
 import DailyPulse from "@/components/DailyPulse";
+import { getDevTierOverride } from "@/lib/devTier";
+import { calculateSunSign } from "@/lib/moonSign";
+import { cachedTriad, usePulseNow } from "@/lib/pulseClock";
+import {
+  buildForYou,
+  isLuminaryMember,
+  normalizeSign,
+  personalHeaderLine,
+  resolveTriadPanel,
+  safeTimeZone,
+  withTimeout,
+  type TriadPanelContent,
+} from "@/lib/lensesPersonal";
+import type { ZodiacSign } from "@/lib/sovereignEngine";
 
 /* ────────────────────────────────────────────────────────────
    Triad Lunar Position — dedicated breakdown page
    Explains the three lunar coordinate systems in plain language:
    Tropical · Sidereal · Draconic
+   Luminary members also see "For you" lines and today's Triad.
    ──────────────────────────────────────────────────────────── */
 
 function PositionBlock({
@@ -88,67 +102,291 @@ function PositionBlock({
   );
 }
 
+const LOAD_TIMEOUT_MS = 12_000;
+const TRIAD_TIMEOUT_MS = 8_000;
+/** Stripe-only members have no profile flag; give the subscription check a moment. */
+const SUBSCRIPTION_GRACE_MS = 3_000;
+
+interface Member {
+  sun: ZodiacSign;
+  moon: ZodiacSign;
+  timeZone: string | undefined;
+  combinationTitle: string | null;
+  profilePaid: boolean;
+}
+
+type MemberState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; member: Member };
+
+type TriadRowState =
+  | { status: "loading" }
+  | { status: "done"; panel: TriadPanelContent };
+
+async function loadMember(userId: string): Promise<Member> {
+  const { data: profile, error } = await supabase
+    .from("user_profiles")
+    .select(
+      "natal_sun_sign, natal_moon_sign, moon_sign, birthday, timezone, is_subscriber, subscription_status",
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!profile) throw new Error("no profile");
+
+  const moon = normalizeSign(profile.natal_moon_sign ?? profile.moon_sign);
+  const sun =
+    normalizeSign(profile.natal_sun_sign) ??
+    (profile.birthday
+      ? normalizeSign(calculateSunSign(new Date(`${profile.birthday.split("T")[0]}T12:00:00`)))
+      : null);
+  if (!sun || !moon) throw new Error("no natal signs");
+
+  // The title is a nicety: a failed lookup never blocks the page.
+  let combinationTitle: string | null = null;
+  try {
+    const { data } = await withTimeout(
+      supabase
+        .from("combination_profiles")
+        .select("combination_title")
+        .eq("sun_sign", sun)
+        .eq("moon_sign", moon)
+        .maybeSingle(),
+      TRIAD_TIMEOUT_MS,
+    );
+    combinationTitle = data?.combination_title ?? null;
+  } catch {
+    combinationTitle = null;
+  }
+
+  return {
+    sun,
+    moon,
+    timeZone: safeTimeZone(profile.timezone),
+    combinationTitle,
+    profilePaid: isLuminaryMember(profile, false),
+  };
+}
+
+function CalibratingScreen() {
+  return (
+    <div className="sov-shell min-h-screen flex items-center justify-center">
+      <div className="text-[hsl(var(--sov-ivory)/0.5)] text-xs uppercase tracking-[0.4em]">
+        Calibrating
+      </div>
+    </div>
+  );
+}
+
+function PersonalTriadCard({ panel }: { panel: Extract<TriadPanelContent, { kind: "personal" }> }) {
+  return (
+    <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.45)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
+      <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-1">
+        Your Triad today
+      </div>
+      {panel.numberLabel && (
+        <div className="font-display text-lg tracking-wide text-[hsl(var(--gold-light))] tabular-nums">
+          {panel.numberLabel}
+        </div>
+      )}
+      {panel.title && (
+        <p className="mt-2 text-[15px] font-medium normal-case tracking-normal leading-snug text-violet-200">
+          {panel.title}
+        </p>
+      )}
+      <div className="mt-4 space-y-4 text-left">
+        {panel.integrationInvitation && (
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--gold-medium))] mb-1">
+              Integration invitation
+            </div>
+            <p className="text-left text-[14px] sm:text-[15px] normal-case tracking-normal leading-relaxed text-[hsl(var(--cream)/0.85)]">
+              {panel.integrationInvitation}
+            </p>
+          </div>
+        )}
+        {panel.dailyRitual && (
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--gold-medium))] mb-1">
+              Daily ritual
+            </div>
+            <p className="text-left text-[14px] sm:text-[15px] normal-case tracking-normal leading-relaxed text-[hsl(var(--cream)/0.85)]">
+              {panel.dailyRitual}
+            </p>
+          </div>
+        )}
+      </div>
+      <Link
+        to="/blueprint"
+        className="mt-5 inline-block text-sm normal-case tracking-normal text-[hsl(var(--gold-light))] underline-offset-4 hover:underline"
+      >
+        Read your full Triad on Blueprint →
+      </Link>
+    </div>
+  );
+}
+
+function TriadLoadingCard() {
+  return (
+    <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.3)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
+      <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))]">
+        Your Triad today
+      </div>
+      <p className="mt-2 text-sm normal-case tracking-normal text-[hsl(var(--cream)/0.55)]">
+        Reading your Triad…
+      </p>
+    </div>
+  );
+}
+
 export default function Triad() {
-  const navigate = useNavigate();
-  const { subscription, checkSubscription } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+  // ProtectedRoute guarantees a verified, signed-in user. The one membership
+  // check is below: useAuth subscription + profile flags + dev tier override.
+  const { user, subscription } = useAuth();
+  const userId = user?.id;
+  const now = usePulseNow();
+  const [attempt, setAttempt] = useState(0);
+  const [memberState, setMemberState] = useState<MemberState>({ status: "loading" });
+  const [graceOver, setGraceOver] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login?from=/lenses");
-        return;
-      }
+    if (!userId) return;
+    let cancelled = false;
+    setMemberState({ status: "loading" });
+    setGraceOver(false);
+    withTimeout(loadMember(userId), LOAD_TIMEOUT_MS)
+      .then((member) => {
+        if (!cancelled) setMemberState({ status: "ready", member });
+      })
+      .catch((err) => {
+        console.error("Lenses: could not load member", err);
+        if (!cancelled) setMemberState({ status: "error" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, attempt]);
 
-      // Trust either the user_profiles flag OR the live Stripe-derived subscription.
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("is_subscriber, subscription_status")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
+  const member = memberState.status === "ready" ? memberState.member : null;
+  const isLuminary = isLuminaryMember(
+    member ? { is_subscriber: member.profilePaid } : null,
+    subscription.subscribed,
+    getDevTierOverride(),
+  );
 
-      const profileSub =
-        !!profile?.is_subscriber || profile?.subscription_status === "sovereign";
+  useEffect(() => {
+    if (!member || isLuminary) return;
+    const id = setTimeout(() => setGraceOver(true), SUBSCRIPTION_GRACE_MS);
+    return () => clearTimeout(id);
+  }, [member, isLuminary]);
 
-      if (profileSub || subscription.subscribed) {
-        setAuthorized(true);
-        setLoading(false);
-        return;
-      }
+  const triad = useMemo(() => cachedTriad(now), [now]);
+  const transitSign = triad.tropical.sign;
 
-      // Final check: revalidate against Stripe in case context is stale.
-      await checkSubscription();
-      const { data: fresh } = await supabase
-        .from("user_profiles")
-        .select("is_subscriber, subscription_status")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
+  const forYou = useMemo(
+    () =>
+      member && isLuminary
+        ? buildForYou({
+            natalSun: member.sun,
+            natalMoon: member.moon,
+            tropical: triad.tropical.sign,
+            draconic: triad.draconic.sign,
+            at: now,
+          })
+        : undefined,
+    [member, isLuminary, triad, now],
+  );
 
-      if (fresh?.is_subscriber || fresh?.subscription_status === "sovereign") {
-        setAuthorized(true);
-        setLoading(false);
-        return;
-      }
+  // Today's triad_states row (natal Sun × natal Moon × transiting Moon).
+  const [triadRow, setTriadRow] = useState<TriadRowState>({ status: "loading" });
+  const sunKey = member?.sun;
+  const moonKey = member?.moon;
+  useEffect(() => {
+    if (!sunKey || !moonKey || !isLuminary) return;
+    let cancelled = false;
+    setTriadRow({ status: "loading" });
+    withTimeout(
+      supabase
+        .from("triad_states")
+        .select("combination_title, triad_number, integration_invitation, daily_ritual")
+        .eq("natal_sun_sign", sunKey)
+        .eq("natal_moon_sign", moonKey)
+        .eq("transiting_moon_sign", transitSign)
+        .maybeSingle(),
+      TRIAD_TIMEOUT_MS,
+    )
+      .then(({ data }) => {
+        if (!cancelled) setTriadRow({ status: "done", panel: resolveTriadPanel(data) });
+      })
+      .catch((err) => {
+        console.error("Lenses: could not load today's Triad", err);
+        if (!cancelled) setTriadRow({ status: "done", panel: { kind: "generic" } });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sunKey, moonKey, transitSign, isLuminary]);
 
-      navigate("/pricing");
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
-
-
-  const triad: TriadMoon = useMemo(() => computeTriadMoon(new Date()), []);
-
-  if (loading || !authorized) {
+  if (memberState.status === "error") {
     return (
-      <div className="sov-shell min-h-screen flex items-center justify-center">
-        <div className="text-[hsl(var(--sov-ivory)/0.5)] text-xs uppercase tracking-[0.4em]">
-          Calibrating
+      <div className="sov-shell min-h-screen flex items-center justify-center px-6">
+        <div className="max-w-sm text-center">
+          <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--sov-champagne))] mb-3">
+            Lenses unavailable
+          </div>
+          <p className="text-sm normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] mb-5">
+            We couldn't load your Lenses just now. Check your connection and try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => setAttempt((n) => n + 1)}
+            className="font-display text-[11px] tracking-[0.3em] uppercase text-[hsl(var(--sov-champagne))] border border-[hsl(var(--sov-champagne)/0.5)] px-5 py-2 rounded-sm hover:bg-[hsl(var(--sov-champagne)/0.08)] transition-colors"
+          >
+            Try again
+          </button>
         </div>
       </div>
     );
   }
+
+  if (!member || (!isLuminary && !graceOver)) return <CalibratingScreen />;
+
+  if (!isLuminary) {
+    return (
+      <div className="sov-shell min-h-screen">
+        <SEO title="The Three Lenses — Luminary" description="The Lenses are part of Luminary." noindex />
+        <Navigation />
+        <main className="pt-[68px] pb-24 px-4 sm:px-6">
+          <div className="max-w-md mx-auto text-center pt-16">
+            <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
+              The Lenses
+            </div>
+            <h1 className="font-display text-3xl tracking-tight text-[hsl(var(--sov-ivory))]">
+              Part of Luminary
+            </h1>
+            <p className="mt-3 text-sm sm:text-base normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.65)]">
+              Luminary reads today's Moon through your own Sun and Moon.
+            </p>
+            <Link
+              to="/pricing"
+              className="mt-6 inline-block font-display text-[11px] tracking-[0.35em] uppercase text-[hsl(var(--gold-light))] border border-[hsl(var(--gold-medium)/0.55)] px-5 py-2 rounded-sm hover:bg-[hsl(var(--gold-medium)/0.08)] transition-colors"
+            >
+              Unlock Luminary
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const synthesisSlot =
+    triadRow.status === "loading" ? (
+      <TriadLoadingCard />
+    ) : triadRow.panel.kind === "personal" ? (
+      <PersonalTriadCard panel={triadRow.panel} />
+    ) : undefined;
 
   return (
     <div className="sov-shell min-h-screen">
@@ -170,13 +408,21 @@ export default function Triad() {
             <p className="mt-3 text-sm sm:text-base text-[hsl(var(--sov-ivory)/0.65)] max-w-xl mx-auto leading-relaxed">
               The same Moon, read through three lenses — Persona, Wiring, Soul.
             </p>
+            <p className="mt-4 mx-auto max-w-md rounded-xl border border-violet-400/30 bg-violet-500/5 px-4 py-2 text-sm normal-case tracking-normal leading-snug text-violet-200">
+              {personalHeaderLine(member.sun, member.moon, member.combinationTitle)}
+            </p>
             <div className="mt-4 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--sov-ivory)/0.4)]">
               Lahiri Ayanamsha · {triad.ayanamsha.toFixed(4)}°
             </div>
           </header>
 
           <div className="mb-8">
-            <DailyPulse />
+            <DailyPulse
+              at={now}
+              forYou={forYou}
+              synthesisSlot={synthesisSlot}
+              timeZone={member.timeZone}
+            />
           </div>
 
           <div className="grid gap-6 grid-cols-1 items-start">
@@ -185,10 +431,10 @@ export default function Triad() {
                 Three Lenses, One Luminary View
               </div>
               <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-3">
-                The three positions rarely agree — and that is the point. When your Tropical,
-                Sidereal, and Draconic positions all land in the same sign, your day is unusually
-                unified: outer weather, inner wiring, and soul direction are pulling in one line.
-                On these days, move boldly.
+                The three positions rarely agree — and that is the point. When today's Tropical,
+                Sidereal, and Draconic Moon positions all land in the same sign, the day is
+                unusually unified: outer weather, inner wiring, and soul direction are pulling in
+                one line. On these days, move boldly.
               </p>
               <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-4">
                 Most days, however, these perspectives diverge. Read them as a sequence to

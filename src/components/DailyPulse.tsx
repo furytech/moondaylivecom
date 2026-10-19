@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  computeTriadMoon,
   SIGN_ELEMENT,
   SIGN_MODALITY,
   type TriadMoon,
@@ -13,7 +12,9 @@ import {
 } from "@/lib/pulseSynthesis";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChevronDown } from "lucide-react";
-import { getTestDate, subscribeTestDate, utcNoon } from "@/lib/testMode";
+import { subscribeTestDate } from "@/lib/testMode";
+import { cachedTriad, resolvePulseNow } from "@/lib/pulseClock";
+import type { ForYouLine, LensKey } from "@/lib/lensesPersonal";
 
 /* ────────────────────────────────────────────────────────────
    Daily Pulse — Nouveau-Deco lens panel
@@ -22,7 +23,6 @@ import { getTestDate, subscribeTestDate, utcNoon } from "@/lib/testMode";
    Sign attributes + synthesis live in @/lib/pulseSynthesis.
    ──────────────────────────────────────────────────────────── */
 
-type LensKey = "social" | "internal" | "soul";
 
 interface LensSpec {
   key: LensKey;
@@ -90,40 +90,37 @@ function alignmentVerdict(signs: ZodiacSign[]): {
   };
 }
 
-/* ── Triad cache: one hour bucket per UTC hour, keyed by ISO hour. ── */
-const triadCache = new Map<string, TriadMoon>();
-function cachedTriad(at: Date): TriadMoon {
-  const key = `${at.getUTCFullYear()}-${at.getUTCMonth()}-${at.getUTCDate()}-${at.getUTCHours()}`;
-  let v = triadCache.get(key);
-  if (!v) {
-    v = computeTriadMoon(at);
-    triadCache.set(key, v);
-    if (triadCache.size > 64) {
-      const firstKey = triadCache.keys().next().value;
-      if (firstKey) triadCache.delete(firstKey);
-    }
-  }
-  return v;
-}
-
 interface DailyPulseProps {
   /** Hard date override (test mode bypass). */
   at?: Date;
   /** Anchor to UTC noon (used for the public global teaser). */
   useUtcNoon?: boolean;
   className?: string;
+  /** Member-only "For you" line per lens card (Lenses page). */
+  forYou?: Partial<Record<LensKey, ForYouLine>>;
+  /** Replaces the generic Luminary Synthesis box (Lenses page). */
+  synthesisSlot?: ReactNode;
+  /** IANA zone for the date label (the member's timezone). */
+  timeZone?: string;
 }
 
-export default function DailyPulse({ at, useUtcNoon = false, className = "" }: DailyPulseProps) {
-  const resolveNow = (): Date => {
-    if (at) return at;
-    const test = getTestDate();
-    if (test) return useUtcNoon ? utcNoon(test) : test;
-    return useUtcNoon ? utcNoon(new Date()) : new Date();
-  };
+export default function DailyPulse({
+  at,
+  useUtcNoon = false,
+  className = "",
+  forYou,
+  synthesisSlot,
+  timeZone,
+}: DailyPulseProps) {
+  const resolveNow = (): Date => resolvePulseNow({ at, useUtcNoon });
 
   const [now, setNow] = useState<Date>(resolveNow);
   const [openLens, setOpenLens] = useState<LensKey | null>(null);
+
+  // A parent-supplied clock (Lenses page) drives the Moon directly.
+  useEffect(() => {
+    if (at) setNow(at);
+  }, [at]);
 
   // Subscribe to Test Mode changes from the footer toggle.
   useEffect(() => {
@@ -148,7 +145,7 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
     month: "long",
     day: "numeric",
     year: "numeric",
-    timeZone: useUtcNoon ? "UTC" : undefined,
+    timeZone: useUtcNoon ? "UTC" : timeZone,
   });
 
   return (
@@ -239,6 +236,19 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
                   <div className={`mt-1 text-[9px] uppercase tracking-[0.3em] ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--cream)/0.35)]"}`}>
                     {SIGN_ELEMENT[sign]} · {SIGN_MODALITY[sign]}
                   </div>
+                  {forYou?.[lens.key] && (
+                    <div className="mt-4 rounded-xl border border-violet-400/30 bg-violet-500/5 px-3 py-3 text-left">
+                      <div className="text-[10px] uppercase tracking-[0.3em] text-violet-300 mb-1.5">
+                        For you
+                      </div>
+                      <p className="text-left text-[12px] font-medium normal-case tracking-normal leading-snug text-violet-200/90 mb-1">
+                        {forYou[lens.key]!.label}
+                      </p>
+                      <p className="text-left text-[13px] normal-case tracking-normal leading-relaxed text-[hsl(var(--cream)/0.8)]">
+                        {forYou[lens.key]!.text}
+                      </p>
+                    </div>
+                  )}
                   <div className={`mt-3 inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.3em] ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--gold-medium)/0.8)]"}`}>
                     {isOpen ? "Hide details" : "Show details"}
                     <ChevronDown
@@ -302,22 +312,24 @@ export default function DailyPulse({ at, useUtcNoon = false, className = "" }: D
           </div>
         )}
 
-        <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.35)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
-          <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-1">
-            Luminary Synthesis
-          </div>
-          <div className="text-[11px] italic text-[hsl(var(--cream)/0.55)] mb-3">
-            {synthesis.subtitle}
-          </div>
-          <p className="text-[14px] sm:text-[15px] leading-relaxed text-[hsl(var(--cream)/0.85)]">
-            {synthesis.body}
-          </p>
-          {synthesis.frictionCue && (
-            <div className="mt-4 mx-auto max-w-lg text-sm leading-relaxed normal-case tracking-normal text-[hsl(var(--gold-medium)/0.95)] border-t border-[hsl(var(--gold-medium)/0.3)] pt-3">
-              {synthesis.frictionCue}
+        {synthesisSlot ?? (
+          <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.35)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
+            <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-1">
+              Luminary Synthesis
             </div>
-          )}
-        </div>
+            <div className="text-[11px] italic text-[hsl(var(--cream)/0.55)] mb-3">
+              {synthesis.subtitle}
+            </div>
+            <p className="text-[14px] sm:text-[15px] leading-relaxed text-[hsl(var(--cream)/0.85)]">
+              {synthesis.body}
+            </p>
+            {synthesis.frictionCue && (
+              <div className="mt-4 mx-auto max-w-lg text-sm leading-relaxed normal-case tracking-normal text-[hsl(var(--gold-medium)/0.95)] border-t border-[hsl(var(--gold-medium)/0.3)] pt-3">
+                {synthesis.frictionCue}
+              </div>
+            )}
+          </div>
+        )}
 
         <p className="mt-6 text-sm leading-relaxed text-[hsl(var(--cream)/0.55)] normal-case tracking-normal">
           No predictions here. The simulation runs on probabilities — you're the one who collapses the wavefunction into your next reality.
