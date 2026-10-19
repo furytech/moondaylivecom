@@ -14,7 +14,13 @@ if (typeof window !== "undefined") {
   }
 }
 
-createRoot(document.getElementById("root")!).render(
+// Pages whose content is already in the served HTML keep it until the app has its own to show.
+const rootEl = document.getElementById("root")!;
+if (rootEl.dataset.prerendered) {
+  (window as any).__PRERENDERED__ = { path: window.location.pathname, html: rootEl.innerHTML };
+}
+
+createRoot(rootEl).render(
   <HelmetProvider>
     <App />
   </HelmetProvider>

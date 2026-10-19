@@ -45,12 +45,14 @@ export const useAuth = () => {
 
 interface AuthProviderProps {
   children: ReactNode;
+  /** Build-time rendering has no session to wait for; the page renders as a signed-out visitor sees it. */
+  initialLoading?: boolean;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children, initialLoading = true }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialLoading);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     subscribed: false,
     productId: null,

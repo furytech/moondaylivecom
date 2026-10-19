@@ -4,6 +4,8 @@ import { zodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { ZodiacPortal } from "@/components/library/ZodiacPortal";
 import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
+import { Link } from "react-router-dom";
+import { libraryPath } from "@/lib/librarySeo";
 
 const zodiacSigns = [
   "Aries", "Taurus", "Gemini", "Cancer", 
@@ -66,6 +68,28 @@ const Library = () => {
               );
             })}
           </div>
+
+          <section aria-labelledby="library-meanings" className="mt-14">
+            <h2 id="library-meanings" className="font-display text-sm tracking-[0.2em] uppercase text-primary/80 mb-4 text-center">
+              Moon sign meanings
+            </h2>
+            <ul className="grid gap-4 md:grid-cols-2">
+              {zodiacSigns.map((sign) => {
+                const c = zodiacDeepContent[sign];
+                if (!c) return null;
+                return (
+                  <li key={sign} className="rounded-xl border border-primary/15 bg-navy-medium/20 p-4">
+                    <Link to={libraryPath(sign)} className="font-display text-base text-primary underline underline-offset-4">
+                      {sign} Moon
+                    </Link>
+                    <p className="mt-1 text-left font-serif text-sm text-cream-muted leading-relaxed">
+                      {c.element} sign ruled by {c.ruling}. {c.essence.poetry.split(/(?<=[.!?])\s/)[0]}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
 
           <div className="flex items-center justify-center gap-3 mt-16">
             <div className="w-16 h-px bg-gradient-to-r from-transparent to-primary/30" />

@@ -3,6 +3,7 @@
 // posts published after the last deploy (api/blog-post.ts), so both produce identical HTML.
 
 import { DEFAULT_OG_IMAGE, SITE_URL, buildPostBreadcrumb, buildPostSeo, signOgImage } from "./seo.js";
+import { articleSchema, renderPostArticle } from "./postHtml.js";
 
 export interface HeadPage {
   title: string;
@@ -29,10 +30,13 @@ export interface PostRow {
   image_url?: string | null;
   zodiac_sign_tag?: string | null;
   author?: string | null;
+  reviewed_by?: string | null;
+  read_time?: number | null;
+  updated_at?: string | null;
 }
 
 export const POST_COLUMNS =
-  "slug,category,title,excerpt,content,published_at,publish_at,created_at,meta_title,meta_description,image_url,zodiac_sign_tag,author,keywords";
+  "slug,category,title,excerpt,content,published_at,publish_at,created_at,meta_title,meta_description,image_url,zodiac_sign_tag,author,reviewed_by,read_time,updated_at,keywords";
 
 const esc = (s: string) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
@@ -69,8 +73,13 @@ export function injectHead(template: string, page: HeadPage): string {
     .replace("</head>", `    ${headFor(page)}\n  </head>`);
 }
 
-/** Path and head for a published blog post. */
-export function postPage(row: PostRow): { path: string; page: HeadPage } {
+/** Puts a page's own markup inside the SPA root. data-prerendered tells the app the content is already there. */
+export function injectRoot(html: string, inner: string): string {
+  return html.replace('<div id="root"></div>', () => `<div id="root" data-prerendered="1">${inner}</div>`);
+}
+
+/** Path, head and served body for a published blog post. */
+export function postPage(row: PostRow): { path: string; page: HeadPage; body: string } {
   const date = row.published_at || row.publish_at || row.created_at;
   const s = buildPostSeo({
     slug: row.slug || "", category: row.category, title: row.title, excerpt: row.excerpt, content: row.content,
@@ -78,6 +87,7 @@ export function postPage(row: PostRow): { path: string; page: HeadPage } {
   });
   return {
     path: s.path,
+    body: renderPostArticle(row),
     page: {
       title: s.title,
       description: s.description,
@@ -85,13 +95,7 @@ export function postPage(row: PostRow): { path: string; page: HeadPage } {
       ogType: "article",
       ogImage: row.image_url || signOgImage(row.zodiac_sign_tag) || DEFAULT_OG_IMAGE,
       schema: [
-        {
-          "@context": "https://schema.org", "@type": "BlogPosting", headline: row.title, description: s.description,
-          datePublished: date, dateModified: date, mainEntityOfPage: { "@type": "WebPage", "@id": s.canonical },
-          author: { "@type": "Organization", name: row.author || "Moonday Live Team", url: SITE_URL },
-          publisher: { "@type": "Organization", name: "Moonday Live", url: SITE_URL, logo: { "@type": "ImageObject", url: DEFAULT_OG_IMAGE } },
-          articleSection: row.category,
-        },
+        articleSchema(row, { canonical: s.canonical, description: s.description, siteUrl: SITE_URL, logo: DEFAULT_OG_IMAGE }),
         buildPostBreadcrumb({ title: row.title, canonical: s.canonical }),
       ],
     },

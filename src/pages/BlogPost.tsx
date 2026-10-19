@@ -13,6 +13,7 @@ import { fetchPostBySlug, getRelated, categoryPath, resolveSignImage } from "@/l
 import { buildPostBreadcrumb, buildPostSeo } from "@/lib/seo";
 import { getFAQsBySlug } from "@/data/transitFAQs";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
+import { articleSchema } from "@/lib/postHtml";
 import { formatLocalDate, localizeUtcTimes, repeatsTitle, stripLeadingTitle } from "@/lib/postText";
 
 const ZODIAC_SIGNS = [
@@ -35,7 +36,9 @@ const FALLBACK_SLUG = "unified-daily-moon-tracker";
 
 const BlogPost = () => {
   const { slug } = useParams();
-  const { timezone } = useUserTimezone();
+  const { timezone: readerZone } = useUserTimezone();
+  // Server-rendered pages have no reader: they show Eastern Time, the same as the served HTML.
+  const timezone = typeof window === "undefined" ? null : readerZone;
   const { pathname } = useLocation();
   // Template preview routes use literal placeholders like `:slug`.
   // Resolve them to the first live post so the preview isn't blank.
@@ -80,6 +83,11 @@ const BlogPost = () => {
   }, [post]);
 
   if (isLoading) {
+    // The served HTML already holds this article: keep showing it while the data loads, so nothing flashes.
+    const served = (window as any).__PRERENDERED__ as { path: string; html: string } | undefined;
+    if (served && served.path === pathname) {
+      return <div dangerouslySetInnerHTML={{ __html: served.html }} />;
+    }
     return (
       <PageLayout>
         <div className="py-20 flex justify-center">
@@ -113,27 +121,16 @@ const BlogPost = () => {
     return <Navigate to={seo.path} replace />;
   }
 
-  const articleLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: seo.description,
-    datePublished: post.date,
-    dateModified: post.date,
-    author: { "@type": "Organization", name: post.author, url: "https://moondaylive.com" },
-    publisher: {
-      "@type": "Organization",
-      name: "Moonday Live",
-      url: "https://moondaylive.com",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://moondaylive.com/og-image.png",
-      },
+  const articleLd = articleSchema(
+    {
+      title: post.title,
+      category: post.category,
+      published_at: post.date,
+      image_url: post.imageUrl ?? null,
+      zodiac_sign_tag: post.zodiacSignTag ?? null,
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
-    keywords: post.keywords.join(", "),
-    articleSection: post.category,
-  };
+    { canonical, description: seo.description, siteUrl: "https://moondaylive.com", logo: "https://moondaylive.com/og-image.png" },
+  );
 
   const breadcrumbLd = buildPostBreadcrumb({ title: post.title, canonical });
 

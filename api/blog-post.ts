@@ -7,7 +7,7 @@
 //     the app shell with a 404 status (the app then sends the visitor to /blog).
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { SITE_URL, transitPagePath, transitSignFromSlug } from "../src/lib/seo.js";
-import { POST_COLUMNS, injectHead, postPage, type PostRow } from "../src/lib/seoHead.js";
+import { POST_COLUMNS, injectHead, injectRoot, postPage, type PostRow } from "../src/lib/seoHead.js";
 import { fetchLivePostBySlug } from "./_lib/posts.js";
 
 const CACHE_OK = "public, s-maxage=300, stale-while-revalidate=86400";
@@ -83,10 +83,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   }
 
   if (row) {
-    const { path, page } = postPage(row);
+    const { path, page, body } = postPage(row);
     if (path !== `/blog/${category}/${slug}`) return redirect(res, 301, path, CACHE_SHORT);
     try {
-      return send(res, 200, injectHead(await appShell(host), page), CACHE_OK, req.method);
+      return send(res, 200, injectRoot(injectHead(await appShell(host), page), body), CACHE_OK, req.method);
     } catch (err) {
       console.error("blog-post: could not load the app shell:", (err as Error).message);
       res.statusCode = 502;

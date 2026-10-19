@@ -52,6 +52,7 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 - No trailing slashes. Capitalised /blog/<Category>/... paths 301 to lowercase in vercel.json. Unknown paths fall back to dist/app.html (rewrite destination is /app because cleanUrls is on), which has no canonical on purpose.
 - /sitemap.xml is served live by api/sitemap.ts (there is no static sitemap file). Posts published after the last build are served by api/blog-post.ts with their own head; unpublished or deleted transit posts redirect to /transit/<sign>. Both read published posts with the public anon key (VITE_SUPABASE_* env vars) and share src/lib/seo.ts and src/lib/seoHead.ts with the build.
 - Noindex pages stay out of the sitemap.
+- Every public page's main content must be present in the served HTML (no JavaScript required). Verify with curl after changes.
 
 ## Lessons learned (don't repeat these)
 - A global CSS rule section { py-… } padded the hidden toast container and pushed every page down ~128px on desktop. Find layout bugs with the browser's Inspect tool, not by guessing page by page.

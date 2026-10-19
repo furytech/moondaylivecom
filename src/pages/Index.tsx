@@ -94,6 +94,11 @@ const Index = () => {
   );
 
   if (loading) {
+    // The served HTML already holds this page: keep showing it while the session loads, so nothing flashes.
+    const served = (window as any).__PRERENDERED__ as { path: string; html: string } | undefined;
+    if (served && served.path === window.location.pathname) {
+      return <div dangerouslySetInnerHTML={{ __html: served.html }} />;
+    }
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <MoonLoader size="lg" text="Aligning the stars..." />
