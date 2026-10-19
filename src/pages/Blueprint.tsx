@@ -31,7 +31,7 @@ import type { ZodiacSign } from "@/lib/sovereignEngine";
 import ClimateGauge from "@/components/ClimateGauge";
 import FirstRunOnboarding from "@/components/FirstRunOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoonSignResult, calculateSunSign } from "@/lib/moonSign";
+import { calculateSunSign } from "@/lib/moonSign";
 import { fetchCombinationProfile } from "@/services/combinationService";
 import type { CombinationProfile } from "@/types";
 
@@ -65,10 +65,6 @@ const Blueprint = () => {
   const [retrying, setRetrying] = useState(false);
   const lunar = lunarState.data;
   
-  // Temporary moon sign for users who use the lookup form but don't have a saved profile
-  const [tempMoonSign, setTempMoonSign] = useState<string | null>(null);
-  const [tempSunSign, setTempSunSign] = useState<string | null>(null);
-  
   // Dev tier override wins in DEV builds; tree-shaken in production.
   const devOverride = import.meta.env.DEV
     ? (typeof window !== "undefined" ? localStorage.getItem("moonday.devTierOverride") : null)
@@ -83,8 +79,8 @@ const Blueprint = () => {
   const success = searchParams.get("success") === "true";
 
   // The displayed moon sign - either from profile or temp lookup
-  const displayedMoonSign = tempMoonSign || userProfile?.natal_moon_sign || userProfile?.moon_sign;
-  const displayedSunSign = userProfile?.natal_sun_sign || (userProfile?.birthday ? calculateSunSign(new Date(`${userProfile.birthday.split("T")[0]}T12:00:00`)) : null) || tempSunSign;
+  const displayedMoonSign = userProfile?.natal_moon_sign || userProfile?.moon_sign;
+  const displayedSunSign = userProfile?.natal_sun_sign || (userProfile?.birthday ? calculateSunSign(new Date(`${userProfile.birthday.split("T")[0]}T12:00:00`)) : null);
 
   // Extract display name (prefers first_name from profile or auth metadata, falls back to Cosmic Traveler — never email)
   const userName =
@@ -269,49 +265,6 @@ const Blueprint = () => {
       console.error("Checkout error:", err);
     } finally {
       setCheckoutLoading(false);
-    }
-  };
-
-  const handleMoonSignCalculated = async (result: MoonSignResult & { birthDate: Date }) => {
-    setTempMoonSign(result.sign);
-    const sunSign = calculateSunSign(result.birthDate);
-    setTempSunSign(sunSign);
-
-    if (!user) return;
-
-    // A saved natal Moon sign (e.g. chosen in the Moon Cusp Quiz) is never
-    // overwritten by a lookup: show the result only.
-    if (userProfile?.natal_moon_sign) return;
-
-    // First-time save of birthday + natal signs for a logged-in user with no saved Moon sign.
-    const updatePayload: Record<string, string> = {
-      moon_sign: result.sign,
-      natal_moon_sign: result.sign,
-      natal_sun_sign: sunSign,
-      birthday: result.birthDate.toISOString().split("T")[0],
-    };
-
-    try {
-      const { error } = await supabase
-        .from("user_profiles")
-        .update(updatePayload)
-        .eq("user_id", user.id);
-
-      if (error) {
-        console.error("Error saving profile:", error);
-      } else {
-        setUserProfile((prev) => ({
-          ...prev,
-          moon_sign: result.sign,
-          natal_moon_sign: result.sign,
-          natal_sun_sign: sunSign,
-          birthday: updatePayload.birthday,
-          subscription_status: prev?.subscription_status ?? "free",
-          is_subscriber: prev?.is_subscriber ?? false,
-        }));
-      }
-    } catch (err) {
-      console.error("Failed to save profile:", err);
     }
   };
 

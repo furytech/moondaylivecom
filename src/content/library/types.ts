@@ -31,8 +31,6 @@ export interface LibraryArticle {
   seoTitle?: string;
   seoDescription?: string;
   sections: ArticleSection[];
-  /** Line above the 12 Sun-sign chips. */
-  combinationLine: string;
   faqs: ArticleFaq[];
   closing: { heading: string; text: string };
 }

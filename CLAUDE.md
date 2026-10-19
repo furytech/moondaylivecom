@@ -26,6 +26,7 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 ## Product rules
 - Birthday only. Never ask for, require, or store birth time or birth place. Moon sign assumes noon on the birth date. No Rising sign / Ascendant features or promises.
 - The paid tier is "Luminary" in all visible copy. The database value subscription_status = 'sovereign' stays as-is (don't rename DB values, routes, or variables). Treat 'sovereign', 'luminary', or is_subscriber = true as paid.
+- Users only ever see the Sun × Moon combination for their own birthday. Never build pickers, lists, links or URLs that let someone browse or look up other combinations (no 'for a friend' lookups).
 - Birthdays are locked after signup (prevents looking up other people's signs for free). Corrections go through support@moondaylive.com.
 - Upgrade buttons for signed-in users say "Unlock Luminary" and go to /pricing (the pricing page starts checkout). Never send signed-in users to /signup. Never show upsells to Luminary members.
 - Cancellation must stay online: Account → "Manage subscription" opens the Stripe Customer Portal (cancels at the end of the paid period). Required by state auto-renewal laws.

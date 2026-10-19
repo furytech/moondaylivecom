@@ -104,7 +104,6 @@ export const cancerArticle: LibraryArticle = {
       listAfter: 1,
     },
   ],
-  combinationLine: "Your Sun sign changes how a Cancer Moon shows up. Pick yours:",
   faqs: [
     {
       question: "What does a Cancer Moon mean?",

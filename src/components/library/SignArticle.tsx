@@ -1,10 +1,8 @@
 // Long-form reading below the sign tabs, plus the "On this page" list. Copy lives in src/content/library/.
 // Rendered by the React page and at build time by the prerender, so it must work without auth or browser APIs
-// (the Sun-sign chips read the session, and treat a missing provider value as signed out).
+// (the Blueprint link reads the session).
 import { Link } from "react-router-dom";
 import type { LibraryArticle } from "@/content/library";
-import { LIBRARY_SIGNS } from "@/lib/librarySeo";
-import { zodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { useAuth } from "@/contexts/AuthContext";
 
 const linkClass = "text-primary underline underline-offset-4 hover:text-primary/80";
@@ -17,7 +15,6 @@ export function articleToc(article: LibraryArticle) {
   return [
     { id: PROFILE_ANCHOR, label: `${article.sign} Moon profile` },
     ...article.sections.map((s) => ({ id: s.id, label: s.heading })),
-    { id: "combination", label: "Find your combination" },
     { id: "questions", label: `${article.sign} Moon questions` },
   ];
 }
@@ -39,25 +36,20 @@ export function OnThisPage({ article }: { article: LibraryArticle }) {
   );
 }
 
-function SunSignChips({ moonSign }: { moonSign: string }) {
+/** One call to action in place of any combination lookup: a member only ever sees their own Sun + Moon. */
+function BlueprintCta() {
   const { user } = useAuth();
   // Signed-in members go to their Blueprint; everyone else starts at signup. Never /signup for a member.
   const href = user ? "/blueprint" : "/signup";
+  const label = user
+    ? "Your Sun sign shapes how your Moon shows up. See your full Sun + Moon Blueprint →"
+    : "Your Sun sign shapes how your Moon shows up. Enter your birthday to reveal your full Sun + Moon Blueprint →";
   return (
-    <ul className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 list-none p-0 m-0">
-      {LIBRARY_SIGNS.map((sun) => (
-        <li key={sun}>
-          <Link
-            to={href}
-            aria-label={`${sun} Sun, ${moonSign} Moon combination`}
-            className="block rounded-xl border border-white/15 px-2 py-3 min-h-[44px] text-center font-serif text-sm text-foreground/80 hover:border-white/35 hover:bg-white/10"
-          >
-            <span aria-hidden="true">{zodiacDeepContent[sun]?.symbol} </span>
-            {sun}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <p className="text-left font-serif text-base md:text-lg leading-relaxed">
+      <Link to={href} className={linkClass}>
+        {label}
+      </Link>
+    </p>
   );
 }
 
@@ -103,13 +95,7 @@ export function SignArticle({ article }: { article: LibraryArticle }) {
         );
       })}
 
-      <section id="combination" aria-labelledby="combination-h">
-        <h2 id="combination-h" className={h2Class}>
-          Find your combination
-        </h2>
-        <p className={pClass}>{article.combinationLine}</p>
-        <SunSignChips moonSign={sign} />
-      </section>
+      <BlueprintCta />
 
       <section id="questions" aria-labelledby="questions-h">
         <h2 id="questions-h" className={h2Class}>
