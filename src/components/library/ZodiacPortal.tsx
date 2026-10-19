@@ -1,6 +1,8 @@
 // Art Deco Zodiac Portal Card Component
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ZodiacDeepContent } from "@/lib/zodiacDeepContent";
+import { libraryPath } from "@/lib/librarySeo";
 
 import aries from "@/assets/zodiac/Aries.png";
 import taurus from "@/assets/zodiac/Taurus.png";
@@ -17,7 +19,6 @@ import pisces from "@/assets/zodiac/Pisces.png";
 
 interface ZodiacPortalProps {
   content: ZodiacDeepContent;
-  onClick: () => void;
   index: number;
 }
 
@@ -27,12 +28,13 @@ const zodiacImages: Record<string, string> = {
   Sagittarius: sagittarius, Capricorn: capricorn, Aquarius: aquarius, Pisces: pisces,
 };
 
-export function ZodiacPortal({ content, onClick, index }: ZodiacPortalProps) {
+export function ZodiacPortal({ content, index }: ZodiacPortalProps) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      to={libraryPath(content.sign)}
+      aria-label={`${content.sign} Moon meaning`}
       className={cn(
-        "group relative overflow-hidden",
+        "group relative block overflow-hidden",
         "aspect-[3/4] w-full",
         "border border-primary/20 hover:border-primary/50",
         "bg-gradient-to-b from-background/80 to-navy-dark/60",
@@ -40,7 +42,7 @@ export function ZodiacPortal({ content, onClick, index }: ZodiacPortalProps) {
         "transition-all duration-500 ease-out",
         "hover:shadow-[0_0_60px_-15px_hsl(var(--gold-medium)/0.4)]",
         "hover:-translate-y-1",
-        "focus:outline-none focus:ring-1 focus:ring-primary/50",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70",
         "animate-fade-up"
       )}
       style={{ animationDelay: `${index * 0.05}s` }}
@@ -62,12 +64,12 @@ export function ZodiacPortal({ content, onClick, index }: ZodiacPortalProps) {
           className="w-20 h-20 md:w-24 md:h-24 object-contain transition-transform duration-300 group-hover:scale-110"
         />
         <h2 className="font-display font-light text-base md:text-lg text-foreground/80 tracking-[0.15em] uppercase group-hover:text-primary transition-colors duration-300">
-          {content.sign}
+          {content.sign} Moon
         </h2>
       </div>
 
       {/* Bottom accent line */}
       <div className="absolute bottom-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-    </button>
+    </Link>
   );
 }

@@ -1,9 +1,7 @@
-import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { zodiacDeepContent, ZodiacDeepContent } from "@/lib/zodiacDeepContent";
+import { zodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { ZodiacPortal } from "@/components/library/ZodiacPortal";
-import { SignDetailPanel } from "@/components/library/SignDetailPanel";
 import SEO from "@/components/SEO";
 
 const zodiacSigns = [
@@ -13,15 +11,6 @@ const zodiacSigns = [
 ];
 
 const Library = () => {
-  const [selectedSign, setSelectedSign] = useState<ZodiacDeepContent | null>(null);
-
-  const handleSignClick = (sign: string) => {
-    const content = zodiacDeepContent[sign];
-    if (content) {
-      setSelectedSign(content);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
       <SEO
@@ -75,7 +64,6 @@ const Library = () => {
                 <ZodiacPortal
                   key={sign}
                   content={content}
-                  onClick={() => handleSignClick(sign)}
                   index={index}
                 />
               );
@@ -85,7 +73,7 @@ const Library = () => {
           <div className="flex items-center justify-center gap-3 mt-16">
             <div className="w-16 h-px bg-gradient-to-r from-transparent to-primary/30" />
             <span className="text-primary/70 text-xs tracking-[0.3em] uppercase font-display">
-              Select a Portal
+              Choose a Moon sign
             </span>
             <div className="w-16 h-px bg-gradient-to-l from-transparent to-primary/30" />
           </div>
@@ -94,12 +82,6 @@ const Library = () => {
 
       <Footer />
 
-      {selectedSign && (
-        <SignDetailPanel
-          content={selectedSign}
-          onClose={() => setSelectedSign(null)}
-        />
-      )}
     </div>
   );
 };

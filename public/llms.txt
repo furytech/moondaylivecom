@@ -10,6 +10,18 @@
 - [Lenses](/lenses): The astronomy engines and technical foundations that power Moonday's calculations.
 - [Pricing](/pricing): Free tier and the Sovereign Tier subscription — monthly and yearly plans.
 - [Lunar Library](/library): Art Deco zodiac archive with deep guidance for each Moon sign.
+- [Aries Moon](/library/aries-moon): Aries Moon sign meaning, shadow, ritual and elemental affinity.
+- [Taurus Moon](/library/taurus-moon): Taurus Moon sign meaning, shadow, ritual and elemental affinity.
+- [Gemini Moon](/library/gemini-moon): Gemini Moon sign meaning, shadow, ritual and elemental affinity.
+- [Cancer Moon](/library/cancer-moon): Cancer Moon sign meaning, shadow, ritual and elemental affinity.
+- [Leo Moon](/library/leo-moon): Leo Moon sign meaning, shadow, ritual and elemental affinity.
+- [Virgo Moon](/library/virgo-moon): Virgo Moon sign meaning, shadow, ritual and elemental affinity.
+- [Libra Moon](/library/libra-moon): Libra Moon sign meaning, shadow, ritual and elemental affinity.
+- [Scorpio Moon](/library/scorpio-moon): Scorpio Moon sign meaning, shadow, ritual and elemental affinity.
+- [Sagittarius Moon](/library/sagittarius-moon): Sagittarius Moon sign meaning, shadow, ritual and elemental affinity.
+- [Capricorn Moon](/library/capricorn-moon): Capricorn Moon sign meaning, shadow, ritual and elemental affinity.
+- [Aquarius Moon](/library/aquarius-moon): Aquarius Moon sign meaning, shadow, ritual and elemental affinity.
+- [Pisces Moon](/library/pisces-moon): Pisces Moon sign meaning, shadow, ritual and elemental affinity.
 - [FAQ](/faq): Answers about Lunar Signatures, Sovereign Tier, billing, and cancellations.
 - [Birthday Moon Phase](/birthday-moon-phase): Free calculator — enter your birth date to reveal the moon phase and moon sign you were born under.
 - [Contact](/contact): Reach the Moonday Live team.

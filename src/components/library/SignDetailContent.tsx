@@ -1,0 +1,301 @@
+// Sign detail content for the Library: shared by the public /library/[sign]-moon pages.
+import { useState } from "react";
+import { ZodiacDeepContent } from "@/lib/zodiacDeepContent";
+import { moonSignDeepDiveContent } from "@/lib/moonSignContent";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+
+interface SignDetailContentProps {
+  content: ZodiacDeepContent;
+}
+
+export function SignDetailContent({ content }: SignDetailContentProps) {
+  const [activeTab, setActiveTab] = useState("essence");
+  const officialArchetype = moonSignDeepDiveContent[content.sign]?.archetype;
+  const h1 = officialArchetype ? `${content.sign} Moon: ${officialArchetype}` : `${content.sign} Moon`;
+
+  return (
+    <div className="flex flex-col gap-6 relative">
+            {/* Header - isolated block */}
+            <header className="text-center flex flex-col items-center gap-4 pt-2">
+              <span className="text-5xl md:text-7xl text-primary/80 font-display">
+                {content.symbol}
+              </span>
+              <h1 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-[0.1em] md:tracking-[0.15em] uppercase break-words max-w-full">
+                {h1}
+              </h1>
+              <div className="flex items-center justify-center gap-4 text-muted-foreground">
+                <span className="font-serif tracking-widest uppercase text-sm">{content.element}</span>
+                <span className="w-1 h-1 rounded-full bg-primary/50" />
+                <span className="font-serif tracking-widest uppercase text-sm">Ruled by {content.ruling}</span>
+              </div>
+              
+              {/* Art Deco divider */}
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent to-primary/50" />
+                <span className="text-primary/70 text-xs">✦</span>
+                <div className="w-16 md:w-24 h-px bg-gradient-to-l from-transparent to-primary/50" />
+              </div>
+            </header>
+
+            {/* Tabbed Content - separate block */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">
+              {/* Tabs navigation - 2x2 grid on phones, one row from sm up. Radix supplies role=tablist/tab, aria-selected and arrow-key navigation. */}
+              <TabsList
+                aria-label="Sign sections"
+                className="w-full h-auto grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-transparent p-1"
+              >
+                {[
+                  { value: "essence", label: "The Essence" },
+                  { value: "shadow", label: "The Shadow" },
+                  { value: "ritual", label: "Sacred Ritual" },
+                  { value: "affinity", label: "Elemental Affinity" },
+                ].map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className={cn(
+                      "w-full whitespace-normal text-center leading-tight rounded-xl border px-3 sm:px-4 py-3 min-h-[44px] font-sans text-sm font-medium normal-case tracking-normal",
+                      "border-white/15 bg-white/[0.03] text-foreground/80",
+                      "hover:border-white/35 hover:bg-white/10 hover:text-foreground",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                      "data-[state=active]:border-[#d4af37] data-[state=active]:bg-[#d4af37] data-[state=active]:text-navy-deep data-[state=active]:font-semibold",
+                      "data-[state=active]:shadow-[0_0_16px_rgba(212,175,55,0.45)] data-[state=active]:hover:bg-[#d4af37]",
+                      "transition-all duration-200"
+                    )}
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {/* The Essence */}
+              <TabsContent value="essence" forceMount className="animate-fade-up data-[state=inactive]:hidden">
+                <div className="space-y-8">
+                  <div className="text-center">
+                    {officialArchetype && (
+                      <div className="mb-6">
+                        <p className="font-display text-xs tracking-[0.2em] uppercase text-primary/70 mb-1">
+                          Your Moon Archetype
+                        </p>
+                        <p className="font-display text-2xl md:text-3xl text-gold-gradient">
+                          {officialArchetype}
+                        </p>
+                      </div>
+                    )}
+                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4">
+                      {content.essence.title}
+                    </h3>
+                    <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed italic max-w-2xl mx-auto">
+                      {content.essence.poetry}
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8 mt-10">
+                    <div className="border border-primary/10 p-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
+                        Core Wounds
+                      </h4>
+                      <ul className="space-y-3">
+                        {content.essence.coreWounds.map((wound, i) => (
+                          <li key={i} className="font-serif text-cream-muted flex gap-3">
+                            <span className="text-primary/40 mt-1">◆</span>
+                            <span>{wound}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="border border-primary/10 p-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
+                        Soul Gifts
+                      </h4>
+                      <ul className="space-y-3">
+                        {content.essence.soulGifts.map((gift, i) => (
+                          <li key={i} className="font-serif text-cream-muted flex gap-3">
+                            <span className="text-primary/90 mt-1">◆</span>
+                            <span>{gift}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* The Shadow */}
+              <TabsContent value="shadow" forceMount className="animate-fade-up data-[state=inactive]:hidden">
+                <div className="space-y-8">
+                  <div className="text-center">
+                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4">
+                      {content.shadow.title}
+                    </h3>
+                    <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed max-w-2xl mx-auto">
+                      {content.shadow.rawTruth}
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-6 mt-10">
+                    <div className="border border-primary/10 p-5">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
+                        Triggers
+                      </h4>
+                      <ul className="space-y-2">
+                        {content.shadow.triggers.map((trigger, i) => (
+                          <li key={i} className="font-serif text-sm text-cream-muted">
+                            • {trigger}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="border border-primary/10 p-5">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
+                        Hidden Fears
+                      </h4>
+                      <ul className="space-y-2">
+                        {content.shadow.hiddenFears.map((fear, i) => (
+                          <li key={i} className="font-serif text-sm text-cream-muted">
+                            • {fear}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="border border-primary/10 p-5">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
+                        Destructive Patterns
+                      </h4>
+                      <ul className="space-y-2">
+                        {content.shadow.destructivePatterns.map((pattern, i) => (
+                          <li key={i} className="font-serif text-sm text-cream-muted">
+                            • {pattern}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* Sacred Ritual */}
+              <TabsContent value="ritual" forceMount className="animate-fade-up data-[state=inactive]:hidden">
+                <div className="space-y-8">
+                  <div className="text-center">
+                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-2">
+                      {content.ritual.title}
+                    </h3>
+                    <p className="font-serif text-muted-foreground tracking-wide uppercase text-sm">
+                      {content.ritual.element} Element Practice
+                    </p>
+                    <p className="font-serif text-cream-muted mt-4 max-w-xl mx-auto">
+                      {content.ritual.practice}
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="border border-primary/10 p-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3">
+                        Optimal Timing
+                      </h4>
+                      <p className="font-serif text-cream-muted">{content.ritual.timing}</p>
+
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3 mt-6">
+                        Sacred Tools
+                      </h4>
+                      <ul className="space-y-2">
+                        {content.ritual.tools.map((tool, i) => (
+                          <li key={i} className="font-serif text-cream-muted flex gap-2">
+                            <span className="text-primary/40">◇</span>
+                            {tool}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="border border-primary/10 p-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
+                        The Practice
+                      </h4>
+                      <ol className="space-y-3">
+                        {content.ritual.steps.map((step, i) => (
+                          <li key={i} className="font-serif text-cream-muted flex gap-3">
+                            <span className="text-primary/90 font-display text-sm">{i + 1}.</span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* Elemental Affinity */}
+              <TabsContent value="affinity" forceMount className="animate-fade-up data-[state=inactive]:hidden">
+                <div className="space-y-8">
+                  <div className="text-center mb-8">
+                    <p className="font-serif text-muted-foreground">
+                      Sacred Number: <span className="text-primary">{content.affinity.sacredNumber}</span>
+                      <span className="mx-4">•</span>
+                      Lunar Phase: <span className="text-primary">{content.affinity.moonPhase}</span>
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {/* Stones */}
+                    <div className="border border-primary/10 p-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
+                        Sacred Stones
+                      </h4>
+                      <ul className="space-y-4">
+                        {content.affinity.stones.map((stone, i) => (
+                          <li key={i}>
+                            <p className="font-display text-sm text-foreground tracking-wide">{stone.name}</p>
+                            <p className="font-serif text-xs text-muted-foreground mt-1">{stone.purpose}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Botanicals */}
+                    <div className="border border-primary/10 p-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
+                        Botanicals
+                      </h4>
+                      <ul className="space-y-4">
+                        {content.affinity.botanicals.map((plant, i) => (
+                          <li key={i}>
+                            <p className="font-display text-sm text-foreground tracking-wide">{plant.name}</p>
+                            <p className="font-serif text-xs text-muted-foreground mt-1">{plant.use}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Colors */}
+                    <div className="border border-primary/10 p-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
+                        Sacred Colors
+                      </h4>
+                      <ul className="space-y-4">
+                        {content.affinity.colors.map((color, i) => (
+                          <li key={i} className="flex items-start gap-3">
+                            <div 
+                              className="w-6 h-6 rounded-sm border border-primary/20 flex-shrink-0 mt-0.5"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                            <div>
+                              <p className="font-display text-sm text-foreground tracking-wide">{color.name}</p>
+                              <p className="font-serif text-xs text-muted-foreground mt-1">{color.meaning}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+    </div>
+  );
+}

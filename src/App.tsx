@@ -17,6 +17,7 @@ import Blueprint from "./pages/Blueprint";
 import Sovereign from "./pages/Sovereign";
 import Lenses from "./pages/Triad";
 import Library from "./pages/Library";
+import LibrarySign from "./pages/LibrarySign";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
@@ -167,6 +168,7 @@ export const App = () => (
               <Route path="/triad-preview" element={<TriadPreview />} />
               <Route path="/luminary" element={<Navigate to="/pricing" replace />} />
               <Route path="/library" element={<Library />} />
+              <Route path="/library/:slug" element={<LibrarySign />} />
               <Route path="/my-moon-card" element={
                                              <ProtectedRoute>
                                               <MyMoonCard />

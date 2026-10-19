@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/library/:slug([a-z]+-moon)",
+      "destination": "/library/:slug/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -315,6 +315,14 @@ export default function Transit() {
             </Link>
           </div>
 
+          {/* Library cross-link */}
+          <p className="font-serif text-sm md:text-base text-cream-muted text-center">
+            Want the full picture?{" "}
+            <Link to={`/library/${currentZodiac.slug}-moon`} className="text-primary underline underline-offset-4">
+              Read the {signName} Moon sign meaning
+            </Link>
+          </p>
+
           {/* Neighboring Signs Links */}
           <div className="pt-2">
             <div className="p-5 rounded-2xl border border-border/40 bg-background/40 flex flex-col sm:flex-row items-center justify-between gap-4">
