@@ -4,7 +4,9 @@ import {
   buildForYou,
   draconicForYou,
   elementModalityLine,
+  birthdayNoon,
   isLuminaryMember,
+  natalSiderealMoon,
   normalizeSign,
   personalHeaderLine,
   resolveTriadPanel,
@@ -98,15 +100,21 @@ describe("lens For you lines", () => {
     expect(f.text).toContain("soul's direction");
   });
 
-  it("sidereal reports the house from the natal Moon and its inquiry prompt", () => {
+  it("sidereal counts the house between sidereal Moons without naming the natal sign", () => {
     const at = new Date("2026-03-14T12:00:00Z");
-    const transit = computeTriadMoon(at).tropical.sign;
+    const today = computeTriadMoon(at).sidereal.sign;
     const houses = chandraLagnaHouses("Leo");
-    const expected = houses.find((h) => h.sign === transit)!;
+    const expected = houses.find((h) => h.sign === today)!;
     const f = siderealForYou("Leo", at);
     expect(f.text).toBe(expected.inquiry);
-    expect(f.label).toContain(`from your Leo Moon`);
-    expect(f.label).toMatch(/\d+(st|nd|rd|th) house/);
+    expect(f.label).toBe(`The ${["1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th","11th","12th"][expected.house - 1]} house from your natal Moon`);
+    expect(f.label).not.toMatch(/Leo|Aries|Taurus|Gemini|Cancer|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces/);
+  });
+
+  it("sidereal is the 1st house when today's sidereal Moon is in the natal sidereal sign", () => {
+    const at = new Date("2026-03-14T12:00:00Z");
+    const today = computeTriadMoon(at).sidereal.sign;
+    expect(siderealForYou(today, at).label).toBe("The 1st house from your natal Moon");
   });
 
   it("buildForYou returns all three lenses", () => {
@@ -115,6 +123,7 @@ describe("lens For you lines", () => {
     const out = buildForYou({
       natalSun: "Leo",
       natalMoon: "Cancer",
+      natalSiderealMoon: "Gemini",
       tropical: t.tropical.sign,
       draconic: t.draconic.sign,
       at,
@@ -122,6 +131,22 @@ describe("lens For you lines", () => {
     expect(Object.keys(out).sort()).toEqual(["internal", "social", "soul"]);
     expect(out.social.label).toContain("Leo Sun");
     expect(out.soul.label).toContain("Cancer Moon");
+  });
+
+  it("buildForYou omits the Sidereal line when the natal sidereal Moon is unknown", () => {
+    const at = new Date("2026-03-14T12:00:00Z");
+    const t = computeTriadMoon(at);
+    const out = buildForYou({
+      natalSun: "Leo",
+      natalMoon: "Cancer",
+      natalSiderealMoon: null,
+      tropical: t.tropical.sign,
+      draconic: t.draconic.sign,
+      at,
+    });
+    expect(out.internal).toBeUndefined();
+    expect(out.social).toBeDefined();
+    expect(out.soul).toBeDefined();
   });
 });
 
@@ -173,5 +198,29 @@ describe("withTimeout", () => {
   });
   it("resolves with the value when fast enough", async () => {
     await expect(withTimeout(Promise.resolve(7), 200)).resolves.toBe(7);
+  });
+});
+
+describe("natal sidereal Moon", () => {
+  it("birthdayNoon is UTC noon without a zone", () => {
+    expect(birthdayNoon("1990-06-15")?.toISOString()).toBe("1990-06-15T12:00:00.000Z");
+    expect(birthdayNoon("1990-06-15T00:00:00+00:00")?.toISOString()).toBe("1990-06-15T12:00:00.000Z");
+  });
+  it("birthdayNoon is local noon in the member's zone, across DST", () => {
+    expect(birthdayNoon("1990-06-15", "America/Chicago")?.toISOString()).toBe("1990-06-15T17:00:00.000Z");
+    expect(birthdayNoon("1990-01-15", "America/Chicago")?.toISOString()).toBe("1990-01-15T18:00:00.000Z");
+    expect(birthdayNoon("1990-06-15", "Asia/Kolkata")?.toISOString()).toBe("1990-06-15T06:30:00.000Z");
+  });
+  it("birthdayNoon rejects garbage and ignores invalid zones", () => {
+    expect(birthdayNoon("nope")).toBeNull();
+    expect(birthdayNoon("1990-06-15", "Not/AZone")?.toISOString()).toBe("1990-06-15T12:00:00.000Z");
+  });
+  it("matches the engine's sidereal sign at that noon", () => {
+    const noon = birthdayNoon("1990-06-15", "America/Chicago")!;
+    expect(natalSiderealMoon("1990-06-15", "America/Chicago")).toBe(computeTriadMoon(noon).sidereal.sign);
+  });
+  it("is null with no birthday", () => {
+    expect(natalSiderealMoon(null)).toBeNull();
+    expect(natalSiderealMoon("")).toBeNull();
   });
 });

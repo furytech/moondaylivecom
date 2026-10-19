@@ -1,6 +1,7 @@
 import { Crown, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLuminaryStatus } from "@/hooks/useLuminaryStatus";
 
 interface SovereignTeaserProps {
   /** Where the CTA button points for logged-out visitors. Defaults to /signup. Signed-in users always go to /pricing. */
@@ -19,15 +20,19 @@ interface SovereignTeaserProps {
 const SovereignTeaser = ({ to = "/signup", label = "Begin Your Reading" }: SovereignTeaserProps) => {
   let user: ReturnType<typeof useAuth>["user"] = null;
   let isMember = false;
+  let ready = true;
   try {
-    const auth = useAuth();
-    user = auth.user;
-    isMember = Boolean(auth.subscription?.subscribed);
+    user = useAuth().user;
+    // Same paid check as the rest of the app (Stripe, profile flags, dev override).
+    const status = useLuminaryStatus();
+    isMember = status.isLuminary;
+    ready = status.ready;
   } catch {
     // outside AuthProvider (e.g. unit tests) — treat as logged out
   }
 
-  if (isMember) return null;
+  // Signed-in visitors see nothing until we know they are not members.
+  if (isMember || !ready) return null;
 
   const ctaTo = user ? "/pricing" : to;
   const ctaLabel = user ? "Unlock Luminary" : label;

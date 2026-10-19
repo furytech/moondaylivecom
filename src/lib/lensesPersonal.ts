@@ -1,7 +1,8 @@
 import {
   SIGN_ELEMENT,
   SIGN_MODALITY,
-  dailyInternalAudit,
+  chandraLagnaHouses,
+  computeTriadMoon,
   type Element,
   type Modality,
   type ZodiacSign,
@@ -138,13 +139,49 @@ const ORDINAL: Record<number, string> = {
   7: "7th", 8: "8th", 9: "9th", 10: "10th", 11: "11th", 12: "12th",
 };
 
-/** Sidereal (wiring): which house from the natal Moon today's Moon occupies,
- *  with the inquiry prompt for that house. */
-export function siderealForYou(natalMoon: ZodiacSign, at: Date): ForYouLine {
-  const audit = dailyInternalAudit(natalMoon, at);
+/** The instant at which the wall clock in `timeZone` reads 12:00 on `birthday`
+ *  (UTC noon when the zone is missing or invalid). */
+export function birthdayNoon(birthday: string, timeZone?: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(birthday);
+  if (!m) return null;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const utcNoon = Date.UTC(y, mo - 1, d, 12, 0, 0);
+  const tz = safeTimeZone(timeZone);
+  if (!tz) return new Date(utcNoon);
+  const offsetAt = (t: number) => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hourCycle: "h23",
+      year: "numeric", month: "numeric", day: "numeric",
+      hour: "numeric", minute: "numeric", second: "numeric",
+    }).formatToParts(new Date(t));
+    const g = (type: string) => Number(parts.find((p) => p.type === type)!.value);
+    return Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"), g("second")) - t;
+  };
+  // Two passes settle the offset across a DST change.
+  let t = utcNoon - offsetAt(utcNoon);
+  t = utcNoon - offsetAt(t);
+  return new Date(t);
+}
+
+/** Sidereal Moon sign (Lahiri) at noon on the birthday — the same
+ *  ayanamsha as the Sidereal card. Null if the birthday is unusable. */
+export function natalSiderealMoon(birthday: string | null | undefined, timeZone?: string): ZodiacSign | null {
+  if (!birthday) return null;
+  const noon = birthdayNoon(birthday, timeZone);
+  return noon ? computeTriadMoon(noon).sidereal.sign : null;
+}
+
+/** Sidereal (wiring): which house from the natal sidereal Moon today's
+ *  sidereal Moon occupies, with that house's inquiry prompt. Both Moons are
+ *  sidereal, so this never disagrees with the Sidereal card. */
+export function siderealForYou(natalSidereal: ZodiacSign, at: Date): ForYouLine {
+  const todaySign = computeTriadMoon(at).sidereal.sign;
+  const houses = chandraLagnaHouses(natalSidereal);
+  const house = houses.find((h) => h.sign === todaySign) ?? houses[0];
   return {
-    label: `Moon in your ${ORDINAL[audit.house]} house from your ${natalMoon} Moon`,
-    text: audit.inquiry,
+    label: `The ${ORDINAL[house.house]} house from your natal Moon`,
+    text: house.inquiry,
   };
 }
 
@@ -159,13 +196,17 @@ export function draconicForYou(draconicMoon: ZodiacSign, natalMoon: ZodiacSign):
 export function buildForYou(args: {
   natalSun: ZodiacSign;
   natalMoon: ZodiacSign;
+  /** Sidereal Moon at noon on the birthday; null hides the Sidereal line. */
+  natalSiderealMoon: ZodiacSign | null;
   tropical: ZodiacSign;
   draconic: ZodiacSign;
   at: Date;
-}): Record<LensKey, ForYouLine> {
+}): Partial<Record<LensKey, ForYouLine>> {
   return {
     social: tropicalForYou(args.tropical, args.natalSun),
-    internal: siderealForYou(args.natalMoon, args.at),
+    ...(args.natalSiderealMoon
+      ? { internal: siderealForYou(args.natalSiderealMoon, args.at) }
+      : {}),
     soul: draconicForYou(args.draconic, args.natalMoon),
   };
 }

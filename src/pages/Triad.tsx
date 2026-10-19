@@ -12,6 +12,7 @@ import { cachedTriad, usePulseNow } from "@/lib/pulseClock";
 import {
   buildForYou,
   isLuminaryMember,
+  natalSiderealMoon,
   normalizeSign,
   personalHeaderLine,
   resolveTriadPanel,
@@ -110,6 +111,7 @@ const SUBSCRIPTION_GRACE_MS = 3_000;
 interface Member {
   sun: ZodiacSign;
   moon: ZodiacSign;
+  siderealMoon: ZodiacSign | null;
   timeZone: string | undefined;
   combinationTitle: string | null;
   profilePaid: boolean;
@@ -160,10 +162,12 @@ async function loadMember(userId: string): Promise<Member> {
     combinationTitle = null;
   }
 
+  const timeZone = safeTimeZone(profile.timezone);
   return {
     sun,
     moon,
-    timeZone: safeTimeZone(profile.timezone),
+    siderealMoon: natalSiderealMoon(profile.birthday, timeZone),
+    timeZone,
     combinationTitle,
     profilePaid: isLuminaryMember(profile, false),
   };
@@ -290,6 +294,7 @@ export default function Triad() {
         ? buildForYou({
             natalSun: member.sun,
             natalMoon: member.moon,
+            natalSiderealMoon: member.siderealMoon,
             tropical: triad.tropical.sign,
             draconic: triad.draconic.sign,
             at: now,
