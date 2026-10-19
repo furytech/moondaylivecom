@@ -9,6 +9,7 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import { useEffect } from "react";
 import { getCurrentMoon } from "@/lib/currentMoon";
 
@@ -161,11 +162,7 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      <SEO
-        title="Moon Sign Horoscope & Daily Forecast Pricing | Moonday Live"
-        description="Unlock precise astrology without a birth time. Get your daily moon sign horoscope, full Lunar Library, and personal blueprint. Luminary Tier from $6.88/month."
-        canonical="https://moondaylive.com/pricing"
-      />
+      <SEO {...seoProps("/pricing")} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

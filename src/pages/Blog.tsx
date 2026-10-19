@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import BlogCard from "@/components/blog/BlogCard";
 import { fetchPublishedPosts, CATEGORIES, BlogCategory, categoryPath } from "@/lib/blog/posts";
 import MoonLoader from "@/components/MoonLoader";
@@ -53,11 +54,7 @@ const Blog = () => {
 
   return (
     <PageLayout>
-      <SEO
-        title="Lunar Insights & Guides — Moonday Live Blog"
-        description="Guides, transits, features, and product updates from Moonday Live — the unified, ad-free lunar tracking dashboard."
-        canonical="https://moondaylive.com/blog"
-      />
+      <SEO {...seoProps("/blog")} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogLd) }} />
 
       <div className="w-full max-w-6xl mx-auto">

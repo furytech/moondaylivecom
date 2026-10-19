@@ -6,6 +6,7 @@ import { Moon, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -102,11 +103,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden">
-      <SEO
-        title="Moon Sign & Daily Lunar Guidance | Moonday Live"
-        description="Ever wonder why today feels different? The Moon's 2.5-day cycle shapes your emotional climate. Discover your moon sign — free. Daily lunar guidance."
-        canonical="https://moondaylive.com/"
-      />
+      <SEO {...seoProps("/")} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

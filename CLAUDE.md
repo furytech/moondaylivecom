@@ -43,6 +43,13 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 - Never add global element selectors (like section { ... }) to CSS.
 - Check every UI change at phone width (360–400px) and on desktop. The bottom tab bar (Pulse, Blueprint, Lenses, Library, Account) must fit at 360px.
 
+## SEO and URLs
+- All URLs are lowercase. Every public page has a self-referencing canonical, unique title and meta description in the served HTML.
+- Build URLs and page SEO only through src/lib/seo.ts (blogPostPath, canonicalUrl, seoProps, buildPostSeo). Edge functions mirror it in supabase/functions/_shared/channels.ts. Never build /blog/... URLs from the raw category ("Transits").
+- The build writes the head into the HTML for every public page (scripts/prerender-library.mjs, scripts/prerender-seo.mjs). A new public page needs an entry in PAGES in seo.ts; it is then prerendered, used by <SEO>, and listed in the sitemap.
+- No trailing slashes. Capitalised /blog/<Category>/... paths 301 to lowercase in vercel.json. Unknown paths fall back to dist/app.html, which has no canonical on purpose.
+- Noindex pages stay out of the sitemap.
+
 ## Lessons learned (don't repeat these)
 - A global CSS rule section { py-… } padded the hidden toast container and pushed every page down ~128px on desktop. Find layout bugs with the browser's Inspect tool, not by guessing page by page.
 - Pricing.tsx once sent an old yearly price ID and checkout failed. When checkout fails, read the create-checkout edge function logs first.

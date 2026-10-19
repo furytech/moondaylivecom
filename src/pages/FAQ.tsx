@@ -1,6 +1,7 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
 import {
   Accordion,
@@ -47,10 +48,7 @@ const faqs = [
 const FAQ = () => {
   return (
     <PageLayout>
-      <SEO
-        title="FAQ — Moonday Live"
-        description="Answers about your Lunar Signature, the Luminary Tier, billing, cancellations, and how Moonday guides your Great Cycle."
-      />
+      <SEO {...seoProps("/faq")} />
       <Helmet>
         <script type="application/ld+json">
           {JSON.stringify({

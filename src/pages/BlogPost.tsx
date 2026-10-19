@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import UTCNotice from "@/components/UTCNotice";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { ArrowRight, Calendar, ChevronRight, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import PageLayout from "@/components/PageLayout";
@@ -10,6 +10,7 @@ import EmailCaptureBlock from "@/components/EmailCaptureBlock";
 import BlogCard from "@/components/blog/BlogCard";
 import MoonLoader from "@/components/MoonLoader";
 import { fetchPostBySlug, getRelated, categoryPath, resolveSignImage } from "@/lib/blog/posts";
+import { buildPostSeo } from "@/lib/seo";
 import { getFAQsBySlug } from "@/data/transitFAQs";
 
 const ZODIAC_SIGNS = [
@@ -35,6 +36,7 @@ const FALLBACK_SLUG = "unified-daily-moon-tracker";
 
 const BlogPost = () => {
   const { slug } = useParams();
+  const { pathname } = useLocation();
   // Template preview routes use literal placeholders like `:slug`.
   // Resolve them to the first live post so the preview isn't blank.
   const resolvedSlug = slug && !slug.startsWith(":") ? slug : FALLBACK_SLUG;
@@ -54,6 +56,29 @@ const BlogPost = () => {
     enabled: !!post,
   });
 
+  const transitSignInfo = useMemo(() => {
+    if (post?.category !== "Transits") return null;
+    const tag = post.zodiacSignTag?.toLowerCase();
+    const slugLower = post.slug.toLowerCase();
+    const titleLower = post.title.toLowerCase();
+
+    const idx = ZODIAC_SIGNS.findIndex(
+      (z) =>
+        z.slug === tag ||
+        z.sign.toLowerCase() === tag ||
+        slugLower.includes(z.slug) ||
+        titleLower.includes(z.sign.toLowerCase())
+    );
+    if (idx === -1) return null;
+
+    const current = ZODIAC_SIGNS[idx];
+    const prev = ZODIAC_SIGNS[(idx - 1 + 12) % 12];
+    const next = ZODIAC_SIGNS[(idx + 1) % 12];
+    const faqs = getFAQsBySlug(current.slug);
+
+    return { current, prev, next, faqs };
+  }, [post]);
+
   if (isLoading) {
     return (
       <PageLayout>
@@ -67,8 +92,22 @@ const BlogPost = () => {
   if (!post || error) return <Navigate to="/blog" replace />;
 
   const canonicalCat = categoryPath(post.category);
-  // If reached via /blog/:slug or wrong category, canonicalize the URL for SEO but still render.
-  const canonical = `https://moondaylive.com/blog/${canonicalCat}/${post.slug}`;
+  const seo = buildPostSeo({
+    slug: post.slug,
+    category: post.category,
+    title: post.title,
+    excerpt: post.excerpt,
+    content: post.content,
+    date: post.date,
+    metaTitle: post.metaTitle,
+    metaDescription: post.metaDescription,
+  });
+  const canonical = seo.canonical;
+
+  // One URL per post: /blog/:slug, a wrong category or any capital letter redirects to the lowercase form.
+  if (pathname !== seo.path) {
+    return <Navigate to={seo.path} replace />;
+  }
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -110,29 +149,6 @@ const BlogPost = () => {
 
   const signImage = resolveSignImage(post);
 
-  const transitSignInfo = useMemo(() => {
-    if (post?.category !== "Transits") return null;
-    const tag = post.zodiacSignTag?.toLowerCase();
-    const slugLower = post.slug.toLowerCase();
-    const titleLower = post.title.toLowerCase();
-
-    const idx = ZODIAC_SIGNS.findIndex(
-      (z) =>
-        z.slug === tag ||
-        z.sign.toLowerCase() === tag ||
-        slugLower.includes(z.slug) ||
-        titleLower.includes(z.sign.toLowerCase())
-    );
-    if (idx === -1) return null;
-
-    const current = ZODIAC_SIGNS[idx];
-    const prev = ZODIAC_SIGNS[(idx - 1 + 12) % 12];
-    const next = ZODIAC_SIGNS[(idx + 1) % 12];
-    const faqs = getFAQsBySlug(current.slug);
-
-    return { current, prev, next, faqs };
-  }, [post]);
-
   const faqPageLd =
     transitSignInfo && transitSignInfo.faqs.length > 0
       ? {
@@ -152,8 +168,8 @@ const BlogPost = () => {
   return (
     <PageLayout>
       <SEO
-        title={`${post.title.length > 55 ? post.title.slice(0, 55) + "…" : post.title} — Moonday Live`}
-        description={post.excerpt}
+        title={seo.title}
+        description={seo.description}
         canonical={canonical}
         ogType="article"
         ogImage={signImage || undefined}

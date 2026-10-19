@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { reportError, errorText } from './errorTracking.ts'
 import { sendAppEmail } from './sendAppEmail.ts'
+import { blogPostUrl } from './channels.ts'
 
 
 /**
@@ -52,9 +53,7 @@ async function resolveRecipients(supabase: Client): Promise<string[]> {
 
 function postUrl(post: BridgePost): string | undefined {
   if (!post.slug) return undefined
-  return post.category
-    ? `${SITE_URL}/blog/${post.category}/${post.slug}`
-    : `${SITE_URL}/blog/${post.slug}`
+  return blogPostUrl(post.category, post.slug)
 }
 
 export interface BridgeResult {

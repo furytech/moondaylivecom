@@ -293,7 +293,7 @@ export const template = {
     title: 'The Moon enters Scorpio: what to feel, notice, and release',
     toSign: 'Scorpio',
     ingressTime: new Date().toISOString(),
-    postUrl: 'https://moondaylive.com/blog/the-moon-enters-scorpio',
+    postUrl: 'https://moondaylive.com/blog/transits/the-moon-enters-scorpio-what-to-feel-notice-and-release-2026-10-11',
     adminUrl: 'https://moondaylive.com/admin/blog',
     content:
       '# The week everyone reads the room\n\nThere is a particular kind of quiet that shows up when the Moon moves into Scorpio, and it is not the restful kind.\n\n## What shifts\n\nConversations get shorter and more loaded. People say the **second** thing they were thinking instead of the first.\n\n> Nobody announces this. It just happens.\n\n## The undercurrent\n\n- Patience for small talk drops\n- Loyalty questions get asked out loud\n\nIf any of this lands, your own chart has more to say about it.',

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 
 /* ────────────────────────────────────────────────────────────
    Triad Preview — public conversion page
@@ -42,11 +43,7 @@ export default function TriadPreview() {
 
   return (
     <div className="sov-shell min-h-screen">
-      <SEO
-        title="Your Triad — Forces Shaping Your Path"
-        description="Preview the cosmic forces that structure your nature: The Luminary and The Tide. Unlock the full Triad with Luminary."
-        canonical="https://moondaylive.com/triad-preview"
-      />
+      <SEO {...seoProps("/triad-preview")} />
       <Navigation />
 
       <main className="pt-[68px] pb-24 px-4 sm:px-6">

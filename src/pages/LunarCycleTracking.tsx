@@ -1,17 +1,14 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
 
 const LunarCycleTracking = () => {
   return (
     <PageLayout>
-      <SEO
-        title="Lunar Cycle Tracking — The Great Cycle, Daily | Moonday Live"
-        description="Lunar cycle tracking translates the Moon's 29.5-day journey into daily guidance for Mind, Soul, and Body. Follow the Great Cycle, live."
-        canonical="https://moondaylive.com/lunar-cycle-tracking"
-      />
+      <SEO {...seoProps("/lunar-cycle-tracking")} />
       <div className="max-w-3xl mx-auto w-full animate-fade-up space-y-6">
         <header className="text-center">
           <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--gold-medium))] mb-2">

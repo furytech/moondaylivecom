@@ -1,4 +1,13 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/blog/Transits/:slug", "destination": "/blog/transits/:slug", "permanent": true },
+    { "source": "/blog/Guides/:slug", "destination": "/blog/guides/:slug", "permanent": true },
+    { "source": "/blog/Features/:slug", "destination": "/blog/features/:slug", "permanent": true },
+    { "source": "/blog/Product%20Updates/:slug", "destination": "/blog/product-updates/:slug", "permanent": true },
+    { "source": "/blog/Product-Updates/:slug", "destination": "/blog/product-updates/:slug", "permanent": true }
+  ],
   "rewrites": [
     {
       "source": "/library/:slug([a-z]+-moon)",
@@ -6,7 +15,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/app.html"
     }
   ]
 }

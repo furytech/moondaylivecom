@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { zodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { ZodiacPortal } from "@/components/library/ZodiacPortal";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 
 const zodiacSigns = [
   "Aries", "Taurus", "Gemini", "Cancer", 
@@ -13,11 +14,7 @@ const zodiacSigns = [
 const Library = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
-      <SEO
-        title="Moon Sign Meanings — All 12 Zodiac Signs | Moonday Live"
-        description="What your moon sign means: explore all twelve zodiac moon signs — symbolism, emotional rhythm, and ritual for each."
-        canonical="https://moondaylive.com/library"
-      />
+      <SEO {...seoProps("/library")} />
       {/* Subtle star field */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(15)].map((_, i) => (

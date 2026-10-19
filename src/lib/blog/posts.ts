@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { categoryPath as seoCategoryPath, blogPostUrl } from "@/lib/seo";
 
 export type BlogCategory = "Guides" | "Transits" | "Features" | "Product Updates";
 export type CtaType = "birthday-calculator" | "dashboard" | "none";
@@ -25,6 +26,8 @@ export interface BlogPost {
   readMinutes: number;
   readTime: number;
   keywords: string[];
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   featured?: boolean;
   ctaType?: CtaType;
   imageUrl?: string;
@@ -89,9 +92,8 @@ export interface BlogPostRow {
 
 export const CATEGORIES: BlogCategory[] = ["Guides", "Transits", "Features", "Product Updates"];
 
-export function categoryPath(cat: BlogCategory | string) {
-  return cat.toLowerCase().replace(/\s+/g, "-");
-}
+/** Lowercase URL segment for a category. Same function the sitemap and prerender use. */
+export const categoryPath = (cat: BlogCategory | string) => seoCategoryPath(cat);
 
 export function capitalizeSign(sign?: string | null): string {
   if (!sign) return "";
@@ -133,6 +135,8 @@ export function rowToPost(row: BlogPostRow): BlogPost {
     readMinutes: readTime,
     readTime,
     keywords: Array.isArray(row.keywords) ? row.keywords.map(String) : [],
+    metaTitle: row.meta_title ?? null,
+    metaDescription: row.meta_description ?? null,
     featured: Boolean(row.featured),
     ctaType: (row.cta_type as CtaType) ?? (row.ctaType as CtaType) ?? "none",
     imageUrl: row.image_url || row.imageUrl || autoImage,
@@ -182,15 +186,18 @@ export async function fetchPublishedPosts(): Promise<BlogPost[]> {
 
 export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
   if (!slug || slug.startsWith(":")) return null;
-  const { data, error } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .or(liveFilter())
-    .maybeSingle();
-  if (error) return null;
-  return data ? rowToPost(data as BlogPostRow) : null;
+  const lookup = async (value: string) => {
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("slug", value)
+      .eq("status", "published")
+      .or(liveFilter())
+      .maybeSingle();
+    return error || !data ? null : rowToPost(data as BlogPostRow);
+  };
+  // Public URLs are lowercase; an old link with a capital still resolves, then redirects.
+  return (await lookup(slug)) ?? (slug !== slug.toLowerCase() ? lookup(slug.toLowerCase()) : null);
 }
 
 export async function getRelated(slug: string, category: BlogCategory, limit = 3): Promise<BlogPost[]> {
@@ -363,7 +370,7 @@ export function buildSubstackDraft(post: Partial<BlogPostRow>): string {
   const title = post.title || "Moonday Live";
   const image = post.image_url || (sign ? signImageUrl(sign) : null);
   const url = post.slug
-    ? `${SITE_URL}/blog/${categoryPath(post.category || "Guides")}/${post.slug}`
+    ? blogPostUrl(post.category || "Guides", post.slug)
     : SITE_URL;
 
   const body = (post.content || "")

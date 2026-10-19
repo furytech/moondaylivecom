@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { SITE_URL, DEFAULT_OG_IMAGE, canonicalUrl, normalizePath } from "@/lib/seo";
 
 interface SEOProps {
   title: string;
@@ -10,13 +11,14 @@ interface SEOProps {
   schema?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const SITE_URL = "https://moondaylive.com";
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
-
 /**
  * Per-route SEO component using react-helmet-async.
  * Sets title, meta description, canonical, Open Graph + Twitter Card tags, and JSON-LD schema.
  * Keep titles < 60 chars and descriptions < 160 chars.
+ *
+ * The canonical is always absolute, lowercase and without a trailing slash, whatever form the
+ * visitor's URL or the caller's string takes. Public pages are also written into the served HTML
+ * at build time (scripts/prerender-seo.mjs); this component keeps the live head in step.
  */
 const SEO = ({
   title,
@@ -27,11 +29,12 @@ const SEO = ({
   noindex = false,
   schema,
 }: SEOProps) => {
-  const url =
-    canonical ||
-    (typeof window !== "undefined"
-      ? SITE_URL + window.location.pathname
-      : SITE_URL);
+  const path = canonical
+    ? canonical.replace(SITE_URL, "")
+    : typeof window !== "undefined"
+      ? window.location.pathname
+      : "/";
+  const url = canonicalUrl(normalizePath(path || "/"));
 
   return (
     <Helmet>

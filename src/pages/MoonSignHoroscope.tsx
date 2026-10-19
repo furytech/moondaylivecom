@@ -1,17 +1,14 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
 
 const MoonSignHoroscope = () => {
   return (
     <PageLayout>
-      <SEO
-        title="Moon Sign Horoscope — Daily Lunar Reading | Moonday Live"
-        description="Your moon sign horoscope, refreshed with every lunar transit. Read today's emotional climate through the moon sign you were born under."
-        canonical="https://moondaylive.com/moon-sign-horoscope"
-      />
+      <SEO {...seoProps("/moon-sign-horoscope")} />
       <div className="max-w-3xl mx-auto w-full animate-fade-up space-y-6">
         <header className="text-center">
           <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--gold-medium))] mb-2">

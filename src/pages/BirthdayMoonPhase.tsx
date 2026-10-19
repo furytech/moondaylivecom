@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { getCurrentMoon, type CurrentMoonData } from "@/lib/currentMoon";
 import { calculateMoonSignAsync } from "@/lib/moonSign";
@@ -113,11 +114,7 @@ const BirthdayMoonPhase = () => {
 
   return (
     <PageLayout>
-      <SEO
-        title="Birthday Moon Phase Calculator — Free Moon Sign Lookup"
-        description="Free birthday moon phase calculator: enter your birth date to find the exact moon phase and moon sign you were born under. Instant result, no signup."
-        canonical={CANONICAL}
-      />
+      <SEO {...seoProps("/birthday-moon-phase")} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(softwareLd)}</script>
         <script type="application/ld+json">{JSON.stringify(faqLd)}</script>

@@ -116,7 +116,7 @@ export const template = {
         key: 'blog',
         label: 'Moonday Blog',
         text: 'Check your moon sign on MoondayLive.com → https://moondaylive.com\n\nThe Moon crosses into Virgo...',
-        shareUrl: 'https://moondaylive.com/blog/moon-enters-virgo',
+        shareUrl: 'https://moondaylive.com/blog/transits/the-moon-enters-virgo-what-to-feel-notice-and-release-2026-10-07',
         shareLabel: 'View on site',
       },
       {

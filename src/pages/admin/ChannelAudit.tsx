@@ -6,6 +6,7 @@ import PageLayout from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import MoonLoader from "@/components/MoonLoader";
 import { toast } from "sonner";
+import { blogPostPath } from "@/lib/seo";
 
 /**
  * Channel audit.
@@ -103,7 +104,7 @@ function buildChannels(row: AuditRow): ChannelView[] {
     health: blogLive ? "delivered" : isOverdue(row.publish_at) ? "overdue" : "pending",
     when: blogWhen,
     whenLabel: blogLive ? "Published" : "Scheduled",
-    link: row.slug ? `/blog/${row.category ?? ""}/${row.slug}`.replace("//", "/") : null,
+    link: row.slug ? blogPostPath(row.category, row.slug) : null,
   };
 
   const redditSent = row.reddit_status === "sent";

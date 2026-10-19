@@ -1,6 +1,7 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import DailyPulse from "@/components/DailyPulse";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
@@ -14,11 +15,7 @@ export default function Pulse() {
 
   return (
     <div className="sov-shell min-h-screen">
-      <SEO
-        title="Today's Moon Sign & Phase — Live Now | Moonday Live"
-        description="Ever wonder why today feels different? The Moon's 2.5-day cycle shapes your emotional climate. Today's live moon sign & phase — free."
-        canonical="https://moondaylive.com/pulse"
-      />
+      <SEO {...seoProps("/pulse")} />
       <Navigation />
       <main className="pt-[76px] pb-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">

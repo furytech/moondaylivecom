@@ -8,6 +8,7 @@
  */
 
 import { resolveSubreddit } from './subredditRouting.ts'
+import { blogPostUrl } from './channels.ts'
 
 export const SITE_URL = 'https://moondaylive.com'
 
@@ -28,9 +29,7 @@ export const SUBSTACK_WEBHOOK_URL =
 
 export function resolveSourceUrl(post: DispatchPost): string {
   if (!post.slug) return SITE_URL
-  return post.category
-    ? `${SITE_URL}/blog/${post.category}/${post.slug}`
-    : `${SITE_URL}/blog/${post.slug}`
+  return blogPostUrl(post.category, post.slug)
 }
 
 /** image_url first, constellation graphic second — same rule everywhere. */

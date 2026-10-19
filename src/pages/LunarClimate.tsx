@@ -1,17 +1,14 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import SovereignTeaser from "@/components/SovereignTeaser";
 import { Link } from "react-router-dom";
 
 const LunarClimate = () => {
   return (
     <PageLayout>
-      <SEO
-        title="Daily Lunar Climate — Read Today's Moon Weather | Moonday Live"
-        description="The daily lunar climate is the emotional weather the Moon creates as it moves through the zodiac. Read today's lunar climate, live."
-        canonical="https://moondaylive.com/lunar-climate"
-      />
+      <SEO {...seoProps("/lunar-climate")} />
       <div className="max-w-3xl mx-auto w-full animate-fade-up space-y-6">
         <header className="text-center">
           <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--gold-medium))] mb-2">

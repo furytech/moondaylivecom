@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
 import { trackEvent } from "@/lib/analytics";
 import { Mail, Clock, Sparkles } from "lucide-react";
@@ -22,10 +23,7 @@ const Contact = () => {
 
   return (
     <PageLayout>
-      <SEO
-        title="Contact Moonday Live — Support & Inquiries"
-        description="Reach the Moonday Live concierge for account help, billing, or partnership inquiries. We respond within 48 hours."
-      />
+      <SEO {...seoProps("/contact")} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

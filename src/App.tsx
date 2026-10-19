@@ -97,6 +97,15 @@ const AuthRecoveryHandler = () => {
   return null;
 };
 
+// All URLs are lowercase: a capital letter anywhere in the path redirects to the lowercase form.
+const LowercasePath = () => {
+  const { pathname, search, hash } = useLocation();
+  if (pathname !== pathname.toLowerCase()) {
+    return <Navigate to={`${pathname.toLowerCase()}${search}${hash}`} replace />;
+  }
+  return null;
+};
+
 export const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -105,6 +114,7 @@ export const App = () => (
           <Sonner />
           <BrowserRouter>
             <AuthRecoveryHandler />
+            <LowercasePath />
             <ScrollToTop />
             <IdleSessionGuard />
             <BottomTabBar />

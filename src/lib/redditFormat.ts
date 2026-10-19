@@ -18,12 +18,12 @@ export function redditSingleSpace(text: string): string {
     .trim();
 }
 
-const SITE_URL = "https://moondaylive.com";
+import { SITE_URL, blogPostUrl } from "./seo";
 
 /** Same source-url rule the dispatcher uses. */
 export function redditSourceUrl(post: { slug?: string | null; category?: string | null }): string {
   if (!post.slug) return SITE_URL;
-  return post.category ? `${SITE_URL}/blog/${post.category}/${post.slug}` : `${SITE_URL}/blog/${post.slug}`;
+  return blogPostUrl(post.category, post.slug);
 }
 
 /** Reddit self-posts can't render images, so the brand mark is a plain link line. */

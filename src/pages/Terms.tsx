@@ -1,6 +1,7 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
 
 const LAST_UPDATED = "2026-07-22";
@@ -8,10 +9,7 @@ const LAST_UPDATED = "2026-07-22";
 const Terms = () => {
   return (
     <PageLayout>
-      <SEO
-        title="Terms of Service — Moonday Live"
-        description="The terms governing your use of Moonday Live, the Luminary Tier subscription, and account responsibilities."
-      />
+      <SEO {...seoProps("/terms")} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

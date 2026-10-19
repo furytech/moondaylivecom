@@ -5,6 +5,7 @@ import { Sparkles, Moon, Compass, Flame, Droplets, Wind, Mountain, ChevronRight,
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { buildTransitPageSeo } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { INITIAL_TRANSIT_QUEUE } from "@/mocks/transitQueue";
 import { getFAQsBySlug, type TransitFAQ } from "@/data/transitFAQs";
@@ -129,9 +130,11 @@ export default function Transit() {
   }, [currentZodiac.slug]);
 
   // Dynamic titles and metadata
-  const pageTitle = `Moon in ${signName} Transit — What It Means Today | Moonday Live`;
-  const pageDescription = `Discover the emotional and somatic resonance of Moon in ${signName}. Read today's transit guidance, daily ritual, and astrological FAQs at Moonday Live.`;
-  const canonicalUrl = `https://moondaylive.com/transit/${currentZodiac.slug}`;
+  const {
+    title: pageTitle,
+    description: pageDescription,
+    canonical: canonicalUrl,
+  } = buildTransitPageSeo(signName);
 
   // JSON-LD structured data: WebApplication + Article + FAQPage
   const faqPageSchema = {

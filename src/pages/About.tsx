@@ -1,6 +1,7 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Moon, Sparkles, Compass } from "lucide-react";
@@ -8,10 +9,7 @@ import { Moon, Sparkles, Compass } from "lucide-react";
 const About = () => {
   return (
     <PageLayout>
-      <SEO
-        title="About Moonday Live — Moon Sign & Lunar Guidance"
-        description="Modern moon sign astrology and lunar guidance — translating the Great Cycle into rituals for Mind, Soul, and Body."
-      />
+      <SEO {...seoProps("/about")} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

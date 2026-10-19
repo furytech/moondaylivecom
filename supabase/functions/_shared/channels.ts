@@ -130,11 +130,19 @@ export function resolveZodiacAsset(zodiacSignTag?: string | null, imageUrl?: str
   }
 }
 
+/** Mirror of categoryPath in src/lib/seo.ts: blog URLs are always lowercase. */
+export function categoryPath(cat: string | null | undefined): string {
+  return (cat || 'Guides').trim().toLowerCase().replace(/\s+/g, '-')
+}
+
+/** Mirror of blogPostUrl in src/lib/seo.ts. Never build /blog/... URLs any other way. */
+export function blogPostUrl(category: string | null | undefined, slug: string): string {
+  return `${SITE_URL}/blog/${categoryPath(category)}/${slug.trim().toLowerCase()}`
+}
+
 export function postUrl(post: { slug?: string | null; category?: string | null }): string {
   if (!post.slug) return SITE_URL
-  return post.category
-    ? `${SITE_URL}/blog/${post.category}/${post.slug}`
-    : `${SITE_URL}/blog/${post.slug}`
+  return blogPostUrl(post.category, post.slug)
 }
 
 export function shareIntentUrl(

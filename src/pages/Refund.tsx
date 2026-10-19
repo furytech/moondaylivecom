@@ -1,14 +1,12 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 
 const Refund = () => {
   return (
     <PageLayout>
-      <SEO
-        title="Refund & Cancellation Policy — Moonday Live"
-        description="How cancellations, renewals, and refunds are handled for the Moonday Live Luminary Tier subscription."
-      />
+      <SEO {...seoProps("/refund")} />
       <div className="max-w-2xl mx-auto w-full animate-fade-up">
         <header className="text-center mb-8">
           <h1 className="font-display text-3xl md:text-4xl text-gold-gradient tracking-wider mb-3">

@@ -8,7 +8,9 @@
  * client-side Web Share Intents, not backend API publishers.
  */
 
-export const SITE_URL = "https://moondaylive.com";
+import { blogPostUrl, SITE_URL } from "./seo";
+
+export { SITE_URL };
 
 export type ChannelKey = "blog" | "reddit" | "facebook" | "pinterest";
 
@@ -192,10 +194,8 @@ export const SHARE_LABEL: Record<ChannelKey, string> = {
   pinterest: "Create Pin",
 };
 
-/** Canonical public URL for a transit post. */
+/** Canonical public URL for a blog post: lowercase category and slug (see blogPostPath in seo.ts). */
 export function postUrl(post: { slug?: string | null; category?: string | null }): string {
   if (!post.slug) return SITE_URL;
-  return post.category
-    ? `${SITE_URL}/blog/${post.category}/${post.slug}`
-    : `${SITE_URL}/blog/${post.slug}`;
+  return blogPostUrl(post.category, post.slug);
 }

@@ -1,6 +1,7 @@
 import PageLayout from "@/components/PageLayout";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
 
 const LAST_UPDATED = "2026-07-22";
@@ -8,10 +9,7 @@ const LAST_UPDATED = "2026-07-22";
 const Privacy = () => {
   return (
     <PageLayout>
-      <SEO
-        title="Privacy Policy — Moonday Live"
-        description="How Moonday Live collects, uses, and protects your personal and birth data — written plainly."
-      />
+      <SEO {...seoProps("/privacy")} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

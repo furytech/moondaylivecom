@@ -5,6 +5,7 @@ import { Sparkles, Moon, ArrowRight, Eye, EyeOff, MailCheck } from "lucide-react
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import { seoProps } from "@/lib/seo";
 import MoonLoader from "@/components/MoonLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -404,11 +405,7 @@ const TransitionQuiz = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
-      <SEO
-        title="Moon-change birthday — Find Your True Moon"
-        description="A five-question Moon quiz for people born on a day the Moon changed signs."
-        noindex
-      />
+      <SEO {...seoProps("/transition-quiz")} />
       <Starfield />
       <Navigation />
 

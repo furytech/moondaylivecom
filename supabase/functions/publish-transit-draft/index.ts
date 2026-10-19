@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { reportError, errorText } from '../_shared/errorTracking.ts';
+import { blogPostUrl } from '../_shared/channels.ts';
 
 // publish-transit-draft
 // Called by the n8n "Moonday Transit Approval" workflow when the user clicks
@@ -182,7 +183,7 @@ Deno.serve(async (req) => {
         id: result.data.id,
         slug: result.data.slug,
         status: result.data.status,
-        public_url: `${SITE_URL}/blog/${result.data.slug}`,
+        public_url: blogPostUrl(result.data.category ?? category, result.data.slug),
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
