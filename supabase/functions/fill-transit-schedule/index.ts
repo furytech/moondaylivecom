@@ -4,6 +4,7 @@
 // This guarantees the schedule is never empty before a transit.
 
 import { EclipticGeoMoon, AstroTime } from "https://esm.sh/astronomy-engine@2.1.19";
+import { excerptFromContent } from "../_shared/postText.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
@@ -157,8 +158,7 @@ Deno.serve(async (req) => {
       const redditPost = pkg.reddit_content;
 
       const excerpt =
-        content.replace(/[#*_>`\[\]]/g, "").split("\n").find((l) => l.trim().length > 40)?.slice(0, 180) ??
-        `The Moon moves into ${sign}. Here's what to notice.`;
+        excerptFromContent(content, title) || `The Moon moves into ${sign}. Here's what to notice.`;
 
       const { data: inserted, error } = await supabase.from("blog_posts").insert({
         slug,

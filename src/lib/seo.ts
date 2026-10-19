@@ -1,8 +1,10 @@
 // Single source of truth for public URLs and per-page SEO.
-// Pure and import-free on purpose: the React pages, the sitemap generator and the
+// Pure on purpose (its only import, postText, is pure too): the React pages, the sitemap generator and the
 // build-time prerender all use it, so the served HTML and the JS-rendered head can't drift.
 //
 // URL policy: every URL is absolute, lowercase, has no trailing slash and no query or hash.
+
+import { excerptFromContent, localizeUtcTimes, openingParagraph, repeatsTitle } from "./postText.js";
 
 export const SITE_URL = "https://moondaylive.com";
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
@@ -259,25 +261,9 @@ function clip(text: string, max: number): string {
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-/** First real paragraph of a markdown body, as plain text. */
-export function firstParagraph(markdown: string): string {
-  // Headings are dropped line by line: a heading may sit directly above its paragraph with no blank line.
-  const blocks = (markdown || "")
-    .replace(/^---[\s\S]*?---\s*/, "")
-    .split("\n")
-    .filter((line) => !line.trim().startsWith("#"))
-    .join("\n")
-    .split(/\n\s*\n/)
-    .map((b) => b.trim())
-    .filter(Boolean);
-  const first = blocks[0] || "";
-  return first
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/[*_`>]/g, "")
-    .replace(/(\d{4})-(\d{2})-(\d{2})T[\d:.]+Z?/g, (m) => shortDate(m) || m)
-    .replace(/\s+/g, " ")
-    .trim();
+/** First real paragraph of a markdown body, as plain text (a repeated title is skipped, UTC times shown in ET). */
+export function firstParagraph(markdown: string, title?: string | null): string {
+  return localizeUtcTimes(openingParagraph(markdown, title)).replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -300,18 +286,19 @@ export function buildPostSeo(post: PostSeoInput) {
     title = `${clip(headline, 55)} — ${BRAND_SUFFIX}`;
   }
 
-  const excerpt = (post.excerpt || "").trim();
-  let description: string;
-  if (post.metaDescription?.trim()) {
-    description = post.metaDescription.trim();
-  } else if (excerpt.length >= 60 && norm(excerpt) !== norm(headline)) {
-    description = excerpt;
-  } else {
-    description = firstParagraph(post.content || "") || excerpt || headline;
-  }
-  description = clip(description, 155);
+  // A stored meta description or excerpt that just repeats the title (older transit posts) is no description.
+  const usable = (text?: string | null, min = 1) => {
+    const t = (text || "").trim();
+    return t.length >= min && !repeatsTitle(t, headline) ? t : "";
+  };
+  const description =
+    usable(post.metaDescription) ||
+    usable(post.excerpt, 60) ||
+    excerptFromContent(post.content, headline, 155) ||
+    firstParagraph(post.content || "", headline) ||
+    headline;
 
-  return { path, canonical, title, description };
+  return { path, canonical, title, description: clip(localizeUtcTimes(description), 155) };
 }
 
 /**

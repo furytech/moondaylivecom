@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { reportError, errorText } from '../_shared/errorTracking.ts';
 import { blogPostUrl } from '../_shared/channels.ts';
+import { excerptFromContent, repeatsTitle, stripLeadingTitle } from '../_shared/postText.ts';
 
 // publish-transit-draft
 // Called by the n8n "Moonday Transit Approval" workflow when the user clicks
@@ -31,12 +32,6 @@ function capitalizeSign(sign?: string): string {
   const s = sign.trim().toLowerCase();
   const match = SIGNS.find((x) => x.toLowerCase() === s);
   return match || s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function excerptFromMarkdown(content: string): string {
-  const plain = content.replace(/[#*_>`\[\]]/g, '');
-  const line = plain.split('\n').map((l) => l.trim()).find((l) => l.length > 40);
-  return (line ? line.slice(0, 180) : 'A Moonday Live transit note.').replace(/\s+$/, '');
 }
 
 function normalizeKeywords(input: unknown, sign?: string): string[] {
@@ -85,7 +80,7 @@ Deno.serve(async (req) => {
     const {
       slug,
       title,
-      content,
+      content: cleanContent,
       reddit_post,
       facebook_post,
       pinterest_post,
@@ -116,10 +111,16 @@ Deno.serve(async (req) => {
 
     const safeSlug = slugify(slug);
     const sign = capitalizeSign(zodiac_sign_tag);
-    const excerpt = body.excerpt || excerptFromMarkdown(content);
+    // The page shows the title as its headline: keep it out of the body, and never let the excerpt repeat it.
+    const cleanContent = stripLeadingTitle(content, title);
+    const excerpt =
+      (typeof body.excerpt === 'string' && body.excerpt.trim() && !repeatsTitle(body.excerpt, title)
+        ? body.excerpt.trim()
+        : excerptFromContent(cleanContent, title)) || 'A Moonday Live transit note.';
     const keywordsArr = normalizeKeywords(keywords, sign);
     const metaTitle = meta_title || title;
-    const metaDescription = meta_description || excerpt;
+    const metaDescription =
+      meta_description && !repeatsTitle(meta_description, title) ? meta_description : excerpt;
     const safeImageUrl = image_url || `${SITE_URL}/assets/signs/${sign.toLowerCase()}.png`;
     const safeGraphic = constellation_graphic_path || `/assets/signs/${sign.toLowerCase()}.png`;
 
@@ -128,7 +129,7 @@ Deno.serve(async (req) => {
       title,
       category,
       excerpt,
-      content,
+      content: cleanContent,
       reddit_post: reddit_post || null,
       facebook_post: facebook_post || null,
       pinterest_post: pinterest_post || null,

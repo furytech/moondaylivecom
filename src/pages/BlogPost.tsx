@@ -12,6 +12,8 @@ import MoonLoader from "@/components/MoonLoader";
 import { fetchPostBySlug, getRelated, categoryPath, resolveSignImage } from "@/lib/blog/posts";
 import { buildPostBreadcrumb, buildPostSeo } from "@/lib/seo";
 import { getFAQsBySlug } from "@/data/transitFAQs";
+import { useUserTimezone } from "@/hooks/useUserTimezone";
+import { formatLocalDate, localizeUtcTimes, repeatsTitle, stripLeadingTitle } from "@/lib/postText";
 
 const ZODIAC_SIGNS = [
   { sign: "Aries", slug: "aries" },
@@ -29,13 +31,11 @@ const ZODIAC_SIGNS = [
 ];
 
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-
 const FALLBACK_SLUG = "unified-daily-moon-tracker";
 
 const BlogPost = () => {
   const { slug } = useParams();
+  const { timezone } = useUserTimezone();
   const { pathname } = useLocation();
   // Template preview routes use literal placeholders like `:slug`.
   // Resolve them to the first live post so the preview isn't blank.
@@ -91,6 +91,10 @@ const BlogPost = () => {
 
   if (!post || error) return <Navigate to="/blog" replace />;
 
+  // The title appears once (the H1): drop a repeated opening line from the body and a repeated excerpt,
+  // and show instants in the reader's zone so the date and the times in the text agree.
+  const body = localizeUtcTimes(stripLeadingTitle(post.content, post.title), timezone);
+  const showExcerpt = !!post.excerpt.trim() && !repeatsTitle(post.excerpt, post.title);
   const canonicalCat = categoryPath(post.category);
   const seo = buildPostSeo({
     slug: post.slug,
@@ -113,7 +117,7 @@ const BlogPost = () => {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
-    description: post.excerpt,
+    description: seo.description,
     datePublished: post.date,
     dateModified: post.date,
     author: { "@type": "Organization", name: post.author, url: "https://moondaylive.com" },
@@ -208,7 +212,7 @@ const BlogPost = () => {
             <span>{post.author}</span>
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
-              {formatDate(post.date)}
+              {formatLocalDate(post.date, timezone)}
               <UTCNotice />
             </span>
             <span className="inline-flex items-center gap-1.5">
@@ -234,14 +238,16 @@ const BlogPost = () => {
               )}
             </div>
           )}
-          <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic text-justify hyphens-auto">
-            {post.excerpt}
-          </p>
+          {showExcerpt && (
+            <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic text-justify hyphens-auto">
+              {localizeUtcTimes(post.excerpt, timezone)}
+            </p>
+          )}
         </header>
 
 
         {/* Body */}
-        <MarkdownArticle source={post.content} ctaType={post.ctaType} />
+        <MarkdownArticle source={body} ctaType={post.ctaType} />
 
         {/* Conversion Hero */}
         <div className="mt-14 rounded-xl border border-primary/30 bg-primary/[0.05] p-6 md:p-8 text-center backdrop-blur-sm">

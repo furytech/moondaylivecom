@@ -4,6 +4,7 @@
 // they discovered. Entertainment only, never medical or predictive.
 
 import { resolveSubredditRoute } from "./subredditRouting.ts";
+import { stripLeadingTitle } from "./postText.ts";
 
 const GEMINI_API_KEY = typeof Deno !== "undefined" ? Deno.env.get("GEMINI_API_KEY") : undefined;
 
@@ -96,6 +97,14 @@ Guest handling rules:
 `;
 }
 
+/** "2026-10-19T01:39:50.000Z" -> "2026-10-19 at 01:39:50 UTC", the form the post page localizes. */
+function ingressStamp(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return `${iso} UTC`;
+  const p = d.toISOString();
+  return `${p.slice(0, 10)} at ${p.slice(11, 19)} UTC`;
+}
+
 export function buildTransitPrompt(
     fromSign: string,
     toSign: string,
@@ -107,7 +116,7 @@ export function buildTransitPrompt(
 
 Current Sign: ${fromSign}
 Next Sign: ${toSign}
-Exact ingress: ${transitionAtUtc} UTC
+Exact ingress: ${ingressStamp(transitionAtUtc)}
 Transit Title: "${title}"
 
 ${DOCTRINE_RULES}
@@ -139,7 +148,7 @@ The pieces go to distinct audiences and platforms. Each platform field must be w
 
 Respond with a SINGLE JSON object and nothing else. No markdown fences. Exactly eight keys:
 
-"blog_content": A ~700-word deep-dive article in pure Markdown, titled "${title}" as an H1. Three structured sections, each an H2:
+"blog_content": A ~700-word deep-dive article in pure Markdown. The page already shows the title ("${title}") as its headline, so do NOT write the title anywhere in the body: no H1, no bold or plain title line. Begin directly with an opening paragraph of two to three sentences that works as a standalone summary of the post (it becomes the search description). State the exact ingress instant once, copied verbatim in this form: ${ingressStamp(transitionAtUtc)} (the site converts it to each reader's local time; never write it any other way and never convert it yourself). After that opening paragraph come three structured sections, each an H2:
 
 Astronomical baseline and atmospheric resonance — exact degrees, ingress timing, framework note, and what the shift actually feels like over the next ~2.5 days
 Practical heads-up — underappreciated friction points to watch for, phrased constructively
@@ -317,7 +326,7 @@ async function requestPackage(opts: {
   }
 
   return {
-    blog_content: humanize(parsed.blog_content),
+    blog_content: stripLeadingTitle(humanize(parsed.blog_content), opts.title),
     substack_content: humanize(parsed.substack_content),
     reddit_content: humanize(parsed.reddit_content),
     facebook_content: humanize(parsed.facebook_content),
