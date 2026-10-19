@@ -5,6 +5,7 @@ import { taurusArticle } from "./taurus";
 import { geminiArticle } from "./gemini";
 import { leoArticle } from "./leo";
 import { virgoArticle } from "./virgo";
+import { libraArticle } from "./libra";
 
 export type { LibraryArticle, ArticleSection, ArticleFaq, ArticleList } from "./types";
 
@@ -16,4 +17,5 @@ export const libraryArticles: Record<string, LibraryArticle> = {
   Gemini: geminiArticle,
   Leo: leoArticle,
   Virgo: virgoArticle,
+  Libra: libraArticle,
 };
