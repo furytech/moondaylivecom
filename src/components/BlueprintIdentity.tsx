@@ -141,7 +141,10 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
             <p className="font-display text-xs uppercase tracking-[0.2em] text-primary/80 mb-1">
               Your Blueprint Identity
             </p>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-cream tracking-wide mb-1 leading-tight">
+            <h1
+              className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wide mb-1 leading-tight break-words"
+              style={{ color: "#d4af37", textShadow: "0 0 22px rgba(212, 175, 55, 0.35)", textWrap: "balance" }}
+            >
               {displayTitle}
             </h1>
             <p className="font-serif text-xs text-cream-muted/70 mb-2">
