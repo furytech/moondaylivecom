@@ -156,6 +156,6 @@ describe("vercel.json", () => {
     expect(config.trailingSlash).toBe(false);
     expect(config.cleanUrls).toBe(true);
     const last = config.rewrites[config.rewrites.length - 1];
-    expect(last).toEqual({ source: "/(.*)", destination: "/app.html" });
+    expect(last).toEqual({ source: "/(.*)", destination: "/app" });
   });
 });

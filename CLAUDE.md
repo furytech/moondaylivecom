@@ -47,7 +47,7 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 - All URLs are lowercase. Every public page has a self-referencing canonical, unique title and meta description in the served HTML.
 - Build URLs and page SEO only through src/lib/seo.ts (blogPostPath, canonicalUrl, seoProps, buildPostSeo). Edge functions mirror it in supabase/functions/_shared/channels.ts. Never build /blog/... URLs from the raw category ("Transits").
 - The build writes the head into the HTML for every public page (scripts/prerender-library.mjs, scripts/prerender-seo.mjs). A new public page needs an entry in PAGES in seo.ts; it is then prerendered, used by <SEO>, and listed in the sitemap.
-- No trailing slashes. Capitalised /blog/<Category>/... paths 301 to lowercase in vercel.json. Unknown paths fall back to dist/app.html, which has no canonical on purpose.
+- No trailing slashes. Capitalised /blog/<Category>/... paths 301 to lowercase in vercel.json. Unknown paths fall back to dist/app.html (rewrite destination is /app because cleanUrls is on), which has no canonical on purpose.
 - Noindex pages stay out of the sitemap.
 
 ## Lessons learned (don't repeat these)
