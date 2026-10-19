@@ -208,7 +208,7 @@ export default function DailyPulse({
     <TooltipProvider delayDuration={150}>
       <section
         aria-label="Daily Pulse"
-        className={`relative overflow-hidden rounded-sm border border-[hsl(var(--gold-medium)/0.45)] bg-[hsl(var(--navy-deep))] p-6 sm:p-8 text-center ${className}`}
+        className={`relative sm:overflow-hidden sm:rounded-sm sm:border sm:border-[hsl(var(--gold-medium)/0.45)] sm:bg-[hsl(var(--navy-deep))] sm:p-8 text-center ${className}`}
       >
         <DecoCorners />
 
@@ -365,7 +365,7 @@ function DecoDivider() {
 }
 
 function DecoCorners() {
-  const cls = "pointer-events-none absolute h-5 w-5 border-[hsl(var(--gold-medium)/0.7)]";
+  const cls = "pointer-events-none absolute hidden sm:block h-5 w-5 border-[hsl(var(--gold-medium)/0.7)]";
   return (
     <>
       <span className={`${cls} top-2 left-2 border-t border-l`} aria-hidden />
