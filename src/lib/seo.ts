@@ -314,6 +314,31 @@ export function buildPostSeo(post: PostSeoInput) {
   return { path, canonical, title, description };
 }
 
+/**
+ * Which sign a transit post belongs to, read from its slug ("the-moon-enters-aquarius-...").
+ * Used to send removed transit posts to /transit/<sign>. Returns null when no sign is named.
+ */
+export function transitSignFromSlug(slug: string): (typeof ZODIAC_SIGNS)[number] | null {
+  const s = (slug || "").toLowerCase();
+  const entered = s.match(/moon-enters-([a-z]+)/)?.[1];
+  const byEntry = ZODIAC_SIGNS.find((z) => z.toLowerCase() === entered);
+  if (byEntry) return byEntry;
+  return ZODIAC_SIGNS.find((z) => s.split("-").includes(z.toLowerCase())) ?? null;
+}
+
+/** Breadcrumb trail for structured data. Every item is a real, indexable URL (no ?category= filters). */
+export function buildPostBreadcrumb(post: { title: string; canonical: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: canonicalUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Blog", item: canonicalUrl("/blog") },
+      { "@type": "ListItem", position: 3, name: post.title, item: post.canonical },
+    ],
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Sitemap
 // ---------------------------------------------------------------------------
@@ -343,6 +368,9 @@ export function buildSitemapEntries(posts: SitemapPost[]): SitemapEntry[] {
         entries.push({ path: libraryPagePath(sign), changefreq: "monthly", priority: "0.8" });
       }
     }
+  }
+  for (const sign of ZODIAC_SIGNS) {
+    entries.push({ path: transitPagePath(sign), changefreq: "daily", priority: "0.8" });
   }
   const seen = new Set<string>();
   for (const p of posts) {

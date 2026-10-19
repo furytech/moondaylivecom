@@ -2,6 +2,10 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
+    { "source": "/blog/transits/the-moon-enters-aquarius-what-to-feel-notice-and-release-2026-08-25", "destination": "/transit/aquarius", "permanent": true },
+    { "source": "/blog/transits/the-moon-enters-capricorn-what-to-feel-notice-and-release-2026-08-22", "destination": "/transit/capricorn", "permanent": true },
+    { "source": "/blog/Transits/the-moon-enters-aquarius-what-to-feel-notice-and-release-2026-09-21", "destination": "/transit/aquarius", "permanent": true },
+    { "source": "/blog/Transits/the-moon-enters-cancer-what-to-feel-notice-and-release-2026-09-05", "destination": "/transit/cancer", "permanent": true },
     { "source": "/blog/Transits/:slug", "destination": "/blog/transits/:slug", "permanent": true },
     { "source": "/blog/Guides/:slug", "destination": "/blog/guides/:slug", "permanent": true },
     { "source": "/blog/Features/:slug", "destination": "/blog/features/:slug", "permanent": true },
@@ -9,6 +13,14 @@
     { "source": "/blog/Product-Updates/:slug", "destination": "/blog/product-updates/:slug", "permanent": true }
   ],
   "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/blog/:category/:slug",
+      "destination": "/api/blog-post?category=:category&slug=:slug"
+    },
     {
       "source": "/library/:slug([a-z]+-moon)",
       "destination": "/library/:slug/index.html"

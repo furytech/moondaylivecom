@@ -10,7 +10,7 @@ import EmailCaptureBlock from "@/components/EmailCaptureBlock";
 import BlogCard from "@/components/blog/BlogCard";
 import MoonLoader from "@/components/MoonLoader";
 import { fetchPostBySlug, getRelated, categoryPath, resolveSignImage } from "@/lib/blog/posts";
-import { buildPostSeo } from "@/lib/seo";
+import { buildPostBreadcrumb, buildPostSeo } from "@/lib/seo";
 import { getFAQsBySlug } from "@/data/transitFAQs";
 
 const ZODIAC_SIGNS = [
@@ -131,21 +131,7 @@ const BlogPost = () => {
     articleSection: post.category,
   };
 
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://moondaylive.com/" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://moondaylive.com/blog" },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: post.category,
-        item: `https://moondaylive.com/blog?category=${canonicalCat}`,
-      },
-      { "@type": "ListItem", position: 4, name: post.title, item: canonical },
-    ],
-  };
+  const breadcrumbLd = buildPostBreadcrumb({ title: post.title, canonical });
 
   const signImage = resolveSignImage(post);
 

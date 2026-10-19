@@ -15,6 +15,7 @@ export {
   buildTransitPageSeo,
   signOgImage,
 } from "@/lib/seo";
+export { POST_COLUMNS, injectHead, postPage } from "@/lib/seoHead";
 
 export function renderSignPage(sign: string) {
   return renderToString(

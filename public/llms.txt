@@ -7,8 +7,7 @@
 - [Home](/): Live lunar climate, current Moon phase, and an introduction to your Lunar Signature.
 - [Daily Pulse](/pulse): Today's live moon sign, phase, and emotional weather — updated daily.
 - [About](/about): The vision behind Moonday Live and its luxury lunar philosophy.
-- [Lenses](/lenses): The astronomy engines and technical foundations that power Moonday's calculations.
-- [Pricing](/pricing): Free tier and the Sovereign Tier subscription — monthly and yearly plans.
+- [Pricing](/pricing): Free tier and the Luminary Tier subscription — monthly and yearly plans.
 - [Lunar Library](/library): Art Deco zodiac archive with deep guidance for each Moon sign.
 - [Aries Moon](/library/aries-moon): Aries Moon sign meaning, shadow, ritual and elemental affinity.
 - [Taurus Moon](/library/taurus-moon): Taurus Moon sign meaning, shadow, ritual and elemental affinity.
@@ -22,7 +21,7 @@
 - [Capricorn Moon](/library/capricorn-moon): Capricorn Moon sign meaning, shadow, ritual and elemental affinity.
 - [Aquarius Moon](/library/aquarius-moon): Aquarius Moon sign meaning, shadow, ritual and elemental affinity.
 - [Pisces Moon](/library/pisces-moon): Pisces Moon sign meaning, shadow, ritual and elemental affinity.
-- [FAQ](/faq): Answers about Lunar Signatures, Sovereign Tier, billing, and cancellations.
+- [FAQ](/faq): Answers about Lunar Signatures, Luminary Tier, billing, and cancellations.
 - [Birthday Moon Phase](/birthday-moon-phase): Free calculator — enter your birth date to reveal the moon phase and moon sign you were born under.
 - [Contact](/contact): Reach the Moonday Live team.
 
@@ -31,4 +30,4 @@
 - [Disclaimer](/disclaimer): Entertainment-only notice and scope of guidance.
 - [Privacy Policy](/privacy): How personal and birth data are handled.
 - [Terms of Service](/terms): Terms governing use of Moonday Live.
-- [Refund Policy](/refund): Refund and cancellation terms for the Sovereign Tier.
+- [Refund Policy](/refund): Refund and cancellation terms for the Luminary Tier.

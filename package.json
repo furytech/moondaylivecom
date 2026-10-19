@@ -12,10 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "generate:combinations": "npx tsx -- scripts/batch-generate-combinations.ts",
-    "predev": "bunx tsx scripts/generate-sitemap.ts",
     "enrich:shadow": "npx tsx -- scripts/enrich-shadow-work.ts",
-    "generate:triads": "npx tsx -- scripts/generate-triads.ts",
-    "prebuild": "bunx tsx scripts/generate-sitemap.ts"
+    "generate:triads": "npx tsx -- scripts/generate-triads.ts"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

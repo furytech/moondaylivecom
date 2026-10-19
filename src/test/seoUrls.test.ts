@@ -6,12 +6,14 @@ import {
   ZODIAC_SIGNS,
   blogPostPath,
   blogPostUrl,
+  buildPostBreadcrumb,
   buildPostSeo,
   buildSitemapEntries,
   canonicalUrl,
   normalizePath,
   renderSitemap,
   seoProps,
+  transitSignFromSlug,
 } from "@/lib/seo";
 import { LIBRARY_SIGNS } from "@/lib/librarySeo";
 import { postUrl } from "@/lib/channels";
@@ -127,10 +129,61 @@ describe("sitemap", () => {
     expect(locs).toContain("https://moondaylive.com/blog/guides/guide-one");
   });
 
+  it("lists all twelve /transit/<sign> pages", () => {
+    for (const sign of ZODIAC_SIGNS) {
+      expect(locs).toContain(`https://moondaylive.com/transit/${sign.toLowerCase()}`);
+    }
+  });
+
   it("leaves out noindex and private pages", () => {
     for (const path of ["/login", "/signup", "/transition-quiz", "/lenses", "/my-moon-card", "/blueprint", "/account", "/admin"]) {
       expect(locs).not.toContain(canonicalUrl(path));
     }
+  });
+});
+
+describe("removed transit posts", () => {
+  it("finds the sign a transit post belongs to", () => {
+    expect(transitSignFromSlug("the-moon-enters-aquarius-what-to-feel-notice-and-release-2026-08-25")).toBe("Aquarius");
+    expect(transitSignFromSlug("The-Moon-Enters-Cancer-2026-09-05")).toBe("Cancer");
+    expect(transitSignFromSlug("full-moon-in-leo-ritual")).toBe("Leo");
+    expect(transitSignFromSlug("unified-daily-moon-tracker")).toBeNull();
+  });
+});
+
+describe("blog breadcrumb structured data", () => {
+  const ld = buildPostBreadcrumb({
+    title: "The Moon Enters Leo",
+    canonical: "https://moondaylive.com/blog/transits/the-moon-enters-leo-2026-08-01",
+  });
+
+  it("points only at clean, indexable URLs", () => {
+    const urls = ld.itemListElement.map((i) => i.item);
+    expect(urls).toEqual([
+      "https://moondaylive.com/",
+      "https://moondaylive.com/blog",
+      "https://moondaylive.com/blog/transits/the-moon-enters-leo-2026-08-01",
+    ]);
+    for (const url of urls) expect(url).not.toMatch(/[?#]/);
+    expect(ld.itemListElement.map((i) => i.position)).toEqual([1, 2, 3]);
+  });
+});
+
+describe("robots.txt and llms.txt", () => {
+  const read = (file: string) => readFileSync(resolve(__dirname, "../../public", file), "utf8");
+
+  it("blocks /triad but not /triad-preview", () => {
+    const rules = read("robots.txt").split(/\r?\n/).filter((l) => l.startsWith("Disallow:")).map((l) => l.slice(9).trim());
+    // Googlebot rule matching: a trailing $ anchors the end; anything else is a prefix.
+    const blocked = (path: string) => rules.some((r) => (r.endsWith("$") ? path === r.slice(0, -1) : path.startsWith(r)));
+    expect(blocked("/triad")).toBe(true);
+    expect(blocked("/triad-preview")).toBe(false);
+  });
+
+  it("says Luminary and does not link the noindex Lenses page", () => {
+    const llms = read("llms.txt");
+    expect(llms).not.toMatch(/Sovereign/i);
+    expect(llms).not.toContain("/lenses");
   });
 });
 
@@ -150,6 +203,31 @@ describe("vercel.json", () => {
     }
     // Vercel matches paths case-sensitively; a lowercase source would redirect to itself forever.
     for (const r of config.redirects) expect(r.source).not.toBe(r.destination);
+  });
+
+  it("permanently redirects the removed transit posts to their sign page", () => {
+    const expected: Record<string, string> = {
+      "/blog/transits/the-moon-enters-aquarius-what-to-feel-notice-and-release-2026-08-25": "/transit/aquarius",
+      "/blog/transits/the-moon-enters-capricorn-what-to-feel-notice-and-release-2026-08-22": "/transit/capricorn",
+      "/blog/Transits/the-moon-enters-aquarius-what-to-feel-notice-and-release-2026-09-21": "/transit/aquarius",
+      "/blog/Transits/the-moon-enters-cancer-what-to-feel-notice-and-release-2026-09-05": "/transit/cancer",
+    };
+    const sources: string[] = config.redirects.map((r: { source: string }) => r.source);
+    for (const [source, destination] of Object.entries(expected)) {
+      const rule = config.redirects.find((r: { source: string }) => r.source === source);
+      expect(rule?.destination).toBe(destination);
+      expect(rule?.permanent).toBe(true);
+      // Specific rules must come before the capitalised-category catch-all, or the redirect chains.
+      expect(sources.indexOf(source)).toBeLessThan(sources.indexOf("/blog/Transits/:slug"));
+    }
+  });
+
+  it("serves the sitemap and unprerendered posts from functions ahead of the app fallback", () => {
+    const sources: string[] = config.rewrites.map((r: { source: string }) => r.source);
+    const dest = (source: string) => config.rewrites[sources.indexOf(source)].destination;
+    expect(dest("/sitemap.xml")).toBe("/api/sitemap");
+    expect(dest("/blog/:category/:slug")).toBe("/api/blog-post?category=:category&slug=:slug");
+    expect(sources.indexOf("/blog/:category/:slug")).toBeLessThan(sources.indexOf("/(.*)"));
   });
 
   it("uses one trailing-slash policy and falls back to the untouched app shell", () => {

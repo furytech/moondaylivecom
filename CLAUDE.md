@@ -44,10 +44,13 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 - Check every UI change at phone width (360–400px) and on desktop. The bottom tab bar (Pulse, Blueprint, Lenses, Library, Account) must fit at 360px.
 
 ## SEO and URLs
+- Canonical host is https://moondaylive.com (no www). www redirects to it in Vercel Domains.
+- Before pushing changes to vercel.json routing or redirects, verify on a Vercel preview deploy first.
 - All URLs are lowercase. Every public page has a self-referencing canonical, unique title and meta description in the served HTML.
 - Build URLs and page SEO only through src/lib/seo.ts (blogPostPath, canonicalUrl, seoProps, buildPostSeo). Edge functions mirror it in supabase/functions/_shared/channels.ts. Never build /blog/... URLs from the raw category ("Transits").
 - The build writes the head into the HTML for every public page (scripts/prerender-library.mjs, scripts/prerender-seo.mjs). A new public page needs an entry in PAGES in seo.ts; it is then prerendered, used by <SEO>, and listed in the sitemap.
 - No trailing slashes. Capitalised /blog/<Category>/... paths 301 to lowercase in vercel.json. Unknown paths fall back to dist/app.html (rewrite destination is /app because cleanUrls is on), which has no canonical on purpose.
+- /sitemap.xml is served live by api/sitemap.ts (there is no static sitemap file). Posts published after the last build are served by api/blog-post.ts with their own head; unpublished or deleted transit posts redirect to /transit/<sign>. Both read published posts with the public anon key (VITE_SUPABASE_* env vars) and share src/lib/seo.ts and src/lib/seoHead.ts with the build.
 - Noindex pages stay out of the sitemap.
 
 ## Lessons learned (don't repeat these)

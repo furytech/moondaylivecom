@@ -1,4 +1,4 @@
-// Build-time helper shared by generate-sitemap.ts and prerender-seo.mjs.
+// Build-time helper used by prerender-seo.mjs (api/_lib/posts.ts is the runtime twin for the Vercel functions).
 // Reads live published blog posts with the public anon key (the same rows the site shows).
 import dotenv from "dotenv";
 
