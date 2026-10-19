@@ -94,10 +94,12 @@ export function renderPage(path: string, posts: BlogPostRow[] = []) {
 
 export function renderSignPage(sign: string) {
   return renderToString(
-    <StaticRouter location={libraryPath(sign)}>
-      <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
-        <SignPageBody sign={sign} />
-      </div>
-    </StaticRouter>,
+    <AuthProvider initialLoading={false}>
+      <StaticRouter location={libraryPath(sign)}>
+        <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
+          <SignPageBody sign={sign} />
+        </div>
+      </StaticRouter>
+    </AuthProvider>,
   );
 }

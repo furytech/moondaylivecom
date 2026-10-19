@@ -2,15 +2,18 @@
 // at build time, by scripts/prerender-library.mjs (so it must work without auth/browser APIs).
 import { Link } from "react-router-dom";
 import { zodiacDeepContent } from "@/lib/zodiacDeepContent";
-import { LIBRARY_SIGNS, libraryPath, transitPath } from "@/lib/librarySeo";
+import { LIBRARY_SIGNS, libraryPath } from "@/lib/librarySeo";
+import { libraryArticles } from "@/content/library";
+import { OnThisPage, SignArticle } from "@/components/library/SignArticle";
 import { SignDetailContent } from "@/components/library/SignDetailContent";
 
 export function SignPageBody({ sign }: { sign: string }) {
   const content = zodiacDeepContent[sign];
+  const article = libraryArticles[sign];
   const linkClass = "text-primary underline underline-offset-4 hover:text-primary/80";
 
   return (
-    <main className="flex-1 flex flex-col items-center pt-[68px] pb-12 px-4 md:px-8 relative z-20">
+    <main className="flex-1 flex flex-col items-center pt-[68px] pb-8 px-4 md:px-8 relative z-20">
       <div className="max-w-4xl mx-auto w-full flex flex-col gap-8">
         <nav aria-label="Breadcrumb" className="font-serif text-sm text-muted-foreground text-left">
           <Link to="/library" className={linkClass}>Lunar Library</Link>
@@ -18,16 +21,9 @@ export function SignPageBody({ sign }: { sign: string }) {
           <span>{sign} Moon</span>
         </nav>
 
-        <SignDetailContent content={content} />
+        <SignDetailContent content={content} afterHeader={article ? <OnThisPage article={article} /> : undefined} />
 
-        <aside className="rounded-xl border border-primary/20 bg-navy-medium/30 p-5">
-          <p className="font-serif text-base text-cream-muted">
-            The Moon is in {sign} right now?{" "}
-            <Link to={transitPath(sign)} className={linkClass}>
-              Read today's transit
-            </Link>
-          </p>
-        </aside>
+        {article && <SignArticle article={article} />}
 
         <nav aria-label="All Moon signs">
           <h2 className="font-display text-sm tracking-[0.2em] uppercase text-primary/80 mb-3">
@@ -47,6 +43,13 @@ export function SignPageBody({ sign }: { sign: string }) {
             ))}
           </ul>
         </nav>
+
+        <p className="text-center font-serif text-sm text-muted-foreground">
+          Looking for today's Moon?{" "}
+          <Link to="/pulse" className={linkClass}>
+            See the Daily Pulse →
+          </Link>
+        </p>
       </div>
     </main>
   );

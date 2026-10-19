@@ -2,6 +2,7 @@
 // Shared by the React page and the build-time prerender script, so keep it free of browser APIs.
 import { zodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { moonSignDeepDiveContent } from "@/lib/moonSignContent";
+import { libraryArticles } from "@/content/library";
 
 export const SITE_URL = "https://moondaylive.com";
 
@@ -34,12 +35,13 @@ export function buildSignSeo(sign: string) {
   const archetype = dive?.archetype ?? "";
   const url = `${SITE_URL}${libraryPath(sign)}`;
   const h1 = archetype ? `${sign} Moon: ${archetype}` : `${sign} Moon`;
-  const title = archetype
+  const article = libraryArticles[sign];
+  const title = article?.seoTitle ?? (archetype
     ? `${sign} Moon Sign Meaning: ${archetype} | Moonday Live`
-    : `${sign} Moon Sign Meaning | Moonday Live`;
-  const description = clip(`${sign} Moon meaning: ${deep.essence.poetry}`, 155);
+    : `${sign} Moon Sign Meaning | Moonday Live`);
+  const description = article?.seoDescription ?? clip(`${sign} Moon meaning: ${deep.essence.poetry}`, 155);
 
-  const faqs = [
+  const faqs = article?.faqs ?? [
     { question: `What does a ${sign} Moon mean?`, answer: dive.overview },
     {
       question: `What are ${sign} Moon strengths?`,

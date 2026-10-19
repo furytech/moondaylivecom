@@ -1,5 +1,6 @@
 // Sign detail content for the Library: shared by the public /library/[sign]-moon pages.
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { ZodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { moonSignDeepDiveContent } from "@/lib/moonSignContent";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,9 +8,11 @@ import { cn } from "@/lib/utils";
 
 interface SignDetailContentProps {
   content: ZodiacDeepContent;
+  /** Rendered right under the header (the "On this page" list). */
+  afterHeader?: ReactNode;
 }
 
-export function SignDetailContent({ content }: SignDetailContentProps) {
+export function SignDetailContent({ content, afterHeader }: SignDetailContentProps) {
   const [activeTab, setActiveTab] = useState("essence");
   const officialArchetype = moonSignDeepDiveContent[content.sign]?.archetype;
   const h1 = officialArchetype ? `${content.sign} Moon: ${officialArchetype}` : `${content.sign} Moon`;
@@ -38,8 +41,10 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
               </div>
             </header>
 
+            {afterHeader}
+
             {/* Tabbed Content - separate block */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">
+            <Tabs id="profile" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6 scroll-mt-24">
               {/* Tabs navigation - 2x2 grid on phones, one row from sm up. Radix supplies role=tablist/tab, aria-selected and arrow-key navigation. */}
               <TabsList
                 aria-label="Sign sections"
@@ -73,16 +78,6 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
               <TabsContent value="essence" forceMount className="animate-fade-up data-[state=inactive]:hidden">
                 <div className="space-y-8">
                   <div className="text-center">
-                    {officialArchetype && (
-                      <div className="mb-6">
-                        <p className="font-display text-xs tracking-[0.2em] uppercase text-primary/70 mb-1">
-                          Your Moon Archetype
-                        </p>
-                        <p className="font-display text-2xl md:text-3xl text-gold-gradient">
-                          {officialArchetype}
-                        </p>
-                      </div>
-                    )}
                     <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4">
                       {content.essence.title}
                     </h3>
@@ -96,9 +91,9 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
                         Core Wounds
                       </h4>
-                      <ul className="space-y-3">
+                      <ul className="space-y-3 text-left">
                         {content.essence.coreWounds.map((wound, i) => (
-                          <li key={i} className="font-serif text-cream-muted flex gap-3">
+                          <li key={i} className="font-serif text-left text-cream-muted flex gap-3">
                             <span className="text-primary/40 mt-1">◆</span>
                             <span>{wound}</span>
                           </li>
@@ -110,9 +105,9 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
                         Soul Gifts
                       </h4>
-                      <ul className="space-y-3">
+                      <ul className="space-y-3 text-left">
                         {content.essence.soulGifts.map((gift, i) => (
-                          <li key={i} className="font-serif text-cream-muted flex gap-3">
+                          <li key={i} className="font-serif text-left text-cream-muted flex gap-3">
                             <span className="text-primary/90 mt-1">◆</span>
                             <span>{gift}</span>
                           </li>
@@ -140,9 +135,9 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Triggers
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2 text-left">
                         {content.shadow.triggers.map((trigger, i) => (
-                          <li key={i} className="font-serif text-sm text-cream-muted">
+                          <li key={i} className="font-serif text-left text-sm text-cream-muted">
                             • {trigger}
                           </li>
                         ))}
@@ -153,9 +148,9 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Hidden Fears
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2 text-left">
                         {content.shadow.hiddenFears.map((fear, i) => (
-                          <li key={i} className="font-serif text-sm text-cream-muted">
+                          <li key={i} className="font-serif text-left text-sm text-cream-muted">
                             • {fear}
                           </li>
                         ))}
@@ -166,9 +161,9 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Destructive Patterns
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2 text-left">
                         {content.shadow.destructivePatterns.map((pattern, i) => (
-                          <li key={i} className="font-serif text-sm text-cream-muted">
+                          <li key={i} className="font-serif text-left text-sm text-cream-muted">
                             • {pattern}
                           </li>
                         ))}
@@ -198,14 +193,14 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3">
                         Optimal Timing
                       </h4>
-                      <p className="font-serif text-cream-muted">{content.ritual.timing}</p>
+                      <p className="font-serif text-cream-muted text-left">{content.ritual.timing}</p>
 
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3 mt-6">
                         Sacred Tools
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2 text-left">
                         {content.ritual.tools.map((tool, i) => (
-                          <li key={i} className="font-serif text-cream-muted flex gap-2">
+                          <li key={i} className="font-serif text-left text-cream-muted flex gap-2">
                             <span className="text-primary/40">◇</span>
                             {tool}
                           </li>
@@ -217,9 +212,9 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
                         The Practice
                       </h4>
-                      <ol className="space-y-3">
+                      <ol className="space-y-3 text-left">
                         {content.ritual.steps.map((step, i) => (
-                          <li key={i} className="font-serif text-cream-muted flex gap-3">
+                          <li key={i} className="font-serif text-left text-cream-muted flex gap-3">
                             <span className="text-primary/90 font-display text-sm">{i + 1}.</span>
                             <span>{step}</span>
                           </li>
@@ -247,11 +242,11 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Sacred Stones
                       </h4>
-                      <ul className="space-y-4">
+                      <ul className="space-y-4 text-left">
                         {content.affinity.stones.map((stone, i) => (
-                          <li key={i}>
-                            <p className="font-display text-sm text-foreground tracking-wide">{stone.name}</p>
-                            <p className="font-serif text-xs text-muted-foreground mt-1">{stone.purpose}</p>
+                          <li key={i} className="text-left">
+                            <p className="font-display text-sm text-foreground tracking-wide text-left">{stone.name}</p>
+                            <p className="font-serif text-xs text-muted-foreground mt-1 text-left">{stone.purpose}</p>
                           </li>
                         ))}
                       </ul>
@@ -262,11 +257,11 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Botanicals
                       </h4>
-                      <ul className="space-y-4">
+                      <ul className="space-y-4 text-left">
                         {content.affinity.botanicals.map((plant, i) => (
-                          <li key={i}>
-                            <p className="font-display text-sm text-foreground tracking-wide">{plant.name}</p>
-                            <p className="font-serif text-xs text-muted-foreground mt-1">{plant.use}</p>
+                          <li key={i} className="text-left">
+                            <p className="font-display text-sm text-foreground tracking-wide text-left">{plant.name}</p>
+                            <p className="font-serif text-xs text-muted-foreground mt-1 text-left">{plant.use}</p>
                           </li>
                         ))}
                       </ul>
@@ -277,7 +272,7 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                       <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Sacred Colors
                       </h4>
-                      <ul className="space-y-4">
+                      <ul className="space-y-4 text-left">
                         {content.affinity.colors.map((color, i) => (
                           <li key={i} className="flex items-start gap-3">
                             <div 
@@ -285,8 +280,8 @@ export function SignDetailContent({ content }: SignDetailContentProps) {
                               style={{ backgroundColor: color.hex }}
                             />
                             <div>
-                              <p className="font-display text-sm text-foreground tracking-wide">{color.name}</p>
-                              <p className="font-serif text-xs text-muted-foreground mt-1">{color.meaning}</p>
+                              <p className="font-display text-sm text-foreground tracking-wide text-left">{color.name}</p>
+                              <p className="font-serif text-xs text-muted-foreground mt-1 text-left">{color.meaning}</p>
                             </div>
                           </li>
                         ))}
