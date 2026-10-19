@@ -1,6 +1,7 @@
 import type { LibraryArticle } from "./types";
 import { cancerArticle } from "./cancer";
 import { ariesArticle } from "./aries";
+import { taurusArticle } from "./taurus";
 
 export type { LibraryArticle, ArticleSection, ArticleFaq, ArticleList } from "./types";
 
@@ -8,4 +9,5 @@ export type { LibraryArticle, ArticleSection, ArticleFaq, ArticleList } from "./
 export const libraryArticles: Record<string, LibraryArticle> = {
   Cancer: cancerArticle,
   Aries: ariesArticle,
+  Taurus: taurusArticle,
 };

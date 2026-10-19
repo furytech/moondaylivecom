@@ -25,16 +25,24 @@ describe("Library per-sign SEO", () => {
     expect(descriptions.size).toBe(12);
   });
 
-  it("emits Article and a 3-question FAQPage", () => {
-    const seo = buildSignSeo("Aries");
-    const [article, faq] = seo.schema as any[];
-    expect(article["@type"]).toBe("Article");
-    expect(faq["@type"]).toBe("FAQPage");
-    expect(faq.mainEntity.map((q: any) => q.name)).toEqual([
-      "What does a Aries Moon mean?",
-      "What are Aries Moon strengths?",
-      "What is the Aries Moon shadow?",
-    ]);
+  it("emits Article and an FAQPage for every sign (3 generic questions, or the article's own 5)", () => {
+    for (const sign of LIBRARY_SIGNS) {
+      const seo = buildSignSeo(sign);
+      const [article, faq] = seo.schema as any[];
+      expect(article["@type"]).toBe("Article");
+      expect(faq["@type"]).toBe("FAQPage");
+      const names: string[] = faq.mainEntity.map((q: any) => q.name);
+      if (libraryArticles[sign]) {
+        expect(names).toHaveLength(5);
+        expect(names[0].startsWith("What does a") && names[0].endsWith(`${sign} Moon mean?`)).toBe(true);
+      } else {
+        expect(names).toEqual([
+          `What does a ${sign} Moon mean?`,
+          `What are ${sign} Moon strengths?`,
+          `What is the ${sign} Moon shadow?`,
+        ]);
+      }
+    }
   });
 
   it("Cancer, the model page, carries its own title and a 5-question FAQPage", () => {
