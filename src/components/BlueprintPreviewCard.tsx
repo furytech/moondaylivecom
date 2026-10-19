@@ -3,7 +3,6 @@ import { Mail, Sparkles } from "lucide-react";
 import GlassmorphismCard from "./GlassmorphismCard";
 
 interface BlueprintPreviewCardProps {
-  combinationTitle: string;
   combinationSynthesis?: string | null;
   className?: string;
 }
@@ -28,7 +27,6 @@ export function getFirstTwoSentences(text?: string | null): string {
 }
 
 export const BlueprintPreviewCard: React.FC<BlueprintPreviewCardProps> = ({
-  combinationTitle,
   combinationSynthesis,
   className = "",
 }) => {
@@ -46,11 +44,6 @@ export const BlueprintPreviewCard: React.FC<BlueprintPreviewCardProps> = ({
         </span>
         <Sparkles className="w-3.5 h-3.5 text-primary" />
       </div>
-
-      {/* The combination_title in gold */}
-      <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wide mb-4">
-        {combinationTitle}
-      </h2>
 
       {/* The first two sentences of combination_synthesis only */}
       {previewSynthesis && (

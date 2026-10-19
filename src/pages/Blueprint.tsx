@@ -565,7 +565,6 @@ const Blueprint = () => {
               {!isPro && (
                 <div className="mt-8 space-y-8 animate-fade-up">
                   <BlueprintPreviewCard
-                    combinationTitle={combinationProfile.combination_title}
                     combinationSynthesis={combinationProfile.combination_synthesis}
                   />
 
