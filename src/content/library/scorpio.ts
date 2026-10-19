@@ -4,7 +4,7 @@ import type { LibraryArticle } from "./types";
 
 export const scorpioArticle: LibraryArticle = {
   sign: "Scorpio",
-  seoTitle: "Scorpio Moon Meaning: Depth, Trust and Intensity | Moonday Live",
+  seoTitle: "Scorpio Moon Meaning: Depth and Trust | Moonday Live",
   seoDescription:
     "What a Scorpio Moon means: intense, private feelings, why trust comes slowly, how you love, work and cope with stress, and how to support this Moon.",
   sections: [

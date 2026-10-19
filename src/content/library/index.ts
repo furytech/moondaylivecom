@@ -10,6 +10,7 @@ import { scorpioArticle } from "./scorpio";
 import { sagittariusArticle } from "./sagittarius";
 import { capricornArticle } from "./capricorn";
 import { aquariusArticle } from "./aquarius";
+import { piscesArticle } from "./pisces";
 
 export type { LibraryArticle, ArticleSection, ArticleFaq, ArticleList } from "./types";
 
@@ -26,4 +27,5 @@ export const libraryArticles: Record<string, LibraryArticle> = {
   Sagittarius: sagittariusArticle,
   Capricorn: capricornArticle,
   Aquarius: aquariusArticle,
+  Pisces: piscesArticle,
 };

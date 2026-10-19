@@ -4,7 +4,7 @@ import type { LibraryArticle } from "./types";
 
 export const sagittariusArticle: LibraryArticle = {
   sign: "Sagittarius",
-  seoTitle: "Sagittarius Moon Meaning: Freedom, Faith and Fire | Moonday Live",
+  seoTitle: "Sagittarius Moon Meaning: Freedom and Faith | Moonday Live",
   seoDescription:
     "What a Sagittarius Moon means: an optimistic, freedom-loving heart that needs meaning, how you love, work, handle restlessness, and how to support one.",
   sections: [

@@ -4,7 +4,7 @@ import type { LibraryArticle } from "./types";
 
 export const capricornArticle: LibraryArticle = {
   sign: "Capricorn",
-  seoTitle: "Capricorn Moon Meaning: Duty, Reserve and Resilience | Moonday Live",
+  seoTitle: "Capricorn Moon Meaning: Duty and Resilience | Moonday Live",
   seoDescription:
     "What a Capricorn Moon means: a reserved, responsible emotional nature, how you love, work and carry stress, and how to support someone with this Moon.",
   sections: [
