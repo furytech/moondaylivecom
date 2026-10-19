@@ -11,7 +11,7 @@ import {
   type LensRegister,
 } from "@/lib/pulseSynthesis";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ChevronDown } from "lucide-react";
+import DisclosureButton from "@/components/DisclosureButton";
 import { subscribeTestDate } from "@/lib/testMode";
 import { cachedTriad, resolvePulseNow } from "@/lib/pulseClock";
 import type { ForYouLine, LensKey } from "@/lib/lensesPersonal";
@@ -34,6 +34,9 @@ interface LensSpec {
   pickSign: (t: TriadMoon) => ZodiacSign;
   position: (t: TriadMoon) => string;
 }
+
+/** Explicit columns so the shared detail panel can span the row below the cards. */
+const COLUMN_START = ["md:col-start-1", "md:col-start-2", "md:col-start-3"];
 
 const LENSES: LensSpec[] = [
   {
@@ -90,17 +93,20 @@ function alignmentVerdict(signs: ZodiacSign[]): {
   };
 }
 
-/** Alignment details for one lens. On phones it sits directly under the tapped
- *  card; from md up it spans the full width below the three cards. */
+/** Alignment details for one lens. Always in the HTML (hidden until opened) so
+ *  crawlers can read it. On phones it sits directly under its card; from md up
+ *  it spans the full width below the three cards. */
 function LensDetail({
   lens,
   triad,
   id,
+  open,
   className = "",
 }: {
   lens: LensSpec;
   triad: TriadMoon;
   id: string;
+  open: boolean;
   className?: string;
 }) {
   const sign = lens.pickSign(triad);
@@ -109,7 +115,8 @@ function LensDetail({
     <div
       id={id}
       role="region"
-      aria-label="Alignment details"
+      aria-label={`${lens.title} details`}
+      hidden={!open}
       className={`mx-auto w-full max-w-2xl rounded-sm border border-[hsl(var(--lime-accent)/0.4)] bg-[hsl(var(--navy-dark)/0.55)] p-5 sm:p-6 text-left animate-fade-in ${className}`}
     >
       <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--lime-accent))] mb-2 text-center">
@@ -253,17 +260,16 @@ export default function DailyPulse({
         </div>
 
         <div className="grid gap-5 sm:gap-6 grid-cols-1 md:grid-cols-3 mb-6">
-          {LENSES.map((lens) => {
+          {LENSES.map((lens, index) => {
             const sign = lens.pickSign(triad);
             const isOpen = openLens === lens.key;
+            const detailId = `lens-detail-${lens.key}`;
             return (
               <Fragment key={lens.key}>
-              <button
-                type="button"
+              {/* The whole card is tappable; the button inside is the accessible control. */}
+              <div
                 onClick={() => setOpenLens(isOpen ? null : lens.key)}
-                aria-expanded={isOpen}
-                aria-controls={`lens-detail-${lens.key}`}
-                className={`group relative h-full flex flex-col rounded-sm border p-5 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--lime-accent))] ${
+                className={`group relative h-full flex flex-col rounded-sm border p-5 text-center transition-all cursor-pointer md:row-start-1 ${COLUMN_START[index]} ${
                   isOpen
                     ? "border-[hsl(var(--lime-accent)/0.7)] bg-[hsl(var(--navy-dark)/0.85)]"
                     : "border-[hsl(var(--gold-medium)/0.3)] bg-[hsl(var(--navy-dark)/0.6)] hover:border-[hsl(var(--gold-medium)/0.55)] hover:bg-[hsl(var(--navy-dark)/0.8)]"
@@ -305,27 +311,20 @@ export default function DailyPulse({
                       </p>
                     </div>
                   )}
-                  <div className={`mt-3 inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.3em] ${isOpen ? "text-[hsl(var(--lime-accent))]" : "text-[hsl(var(--gold-medium)/0.8)]"}`}>
-                    {isOpen ? "Hide details" : "Show details"}
-                    <ChevronDown
-                      size={11}
-                      className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      aria-hidden
-                    />
-                  </div>
+                  <DisclosureButton open={isOpen} controls={detailId} className="mt-4 w-full sm:w-auto" />
                 </div>
-              </button>
-              {isOpen && (
-                <LensDetail lens={lens} triad={triad} id={`lens-detail-${lens.key}`} className="md:hidden" />
-              )}
+              </div>
+              <LensDetail
+                lens={lens}
+                triad={triad}
+                id={detailId}
+                open={isOpen}
+                className="md:col-span-3 md:col-start-1 md:row-start-2"
+              />
               </Fragment>
             );
           })}
         </div>
-
-        {openLens && (
-          <LensDetail lens={LENSES.find((l) => l.key === openLens)!} triad={triad} id={`lens-detail-${openLens}-wide`} className="hidden md:block mb-8" />
-        )}
 
         {synthesisSlot ?? (
           <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.35)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">

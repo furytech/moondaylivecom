@@ -441,7 +441,7 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
           <button
             type="button"
             onClick={() => setIsPastExpanded(!isPastExpanded)}
-            className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:bg-slate-900 hover:border-slate-700 transition-all text-left group"
+            className="w-full min-h-[44px] flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-700/80 hover:bg-slate-900 hover:border-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] transition-all text-left group"
             aria-expanded={isPastExpanded}
           >
             <div className="flex items-center gap-2.5">
@@ -456,8 +456,8 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
                 (Transits whose active window has concluded)
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 group-hover:text-slate-300">
-              <span>{isPastExpanded ? 'Hide' : 'Show'}</span>
+            <div className="flex items-center gap-1.5 text-sm font-medium normal-case tracking-normal text-slate-300 group-hover:text-white">
+              <span>{isPastExpanded ? 'Hide details' : 'Show details'}</span>
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${
                   isPastExpanded ? 'rotate-180' : ''

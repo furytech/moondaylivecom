@@ -382,12 +382,12 @@ export default function Transit() {
                   <AccordionItem
                     key={index}
                     value={`item-${index}`}
-                    className="border border-primary/15 rounded-xl px-4 py-1 bg-navy-medium/20"
+                    className="border-0"
                   >
-                    <AccordionTrigger className="text-left font-sans font-normal normal-case leading-relaxed tracking-normal text-base md:text-lg text-cream hover:text-primary hover:no-underline py-4">
+                    <AccordionTrigger className="text-base md:text-lg text-cream">
                       <h3>{faq.question}</h3>
                     </AccordionTrigger>
-                    <AccordionContent className="font-serif text-base text-cream-muted leading-relaxed pb-4 pt-1">
+                    <AccordionContent className="font-serif text-base text-cream-muted leading-relaxed">
                       {faq.answer}
                     </AccordionContent>
                   </AccordionItem>

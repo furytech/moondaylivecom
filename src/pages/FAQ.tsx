@@ -75,14 +75,14 @@ const FAQ = () => {
         </header>
 
         <GlassmorphismCard>
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible className="w-full space-y-3">
             {faqs.map((item, idx) => (
               <AccordionItem
                 key={idx}
                 value={`item-${idx}`}
-                className="border-border/30"
+                className="border-0"
               >
-                <AccordionTrigger className="font-sans font-normal normal-case text-left text-[15px] md:text-base leading-relaxed text-foreground tracking-normal hover:text-primary">
+                <AccordionTrigger className="text-[15px] md:text-base text-foreground">
                   {item.q}
                 </AccordionTrigger>
                 <AccordionContent className="font-serif text-cream-muted leading-relaxed text-sm md:text-base">

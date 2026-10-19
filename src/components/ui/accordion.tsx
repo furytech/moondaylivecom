@@ -3,6 +3,7 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { DISCLOSURE_BUTTON_CLASS } from "@/components/DisclosureButton";
 
 const Accordion = AccordionPrimitive.Root;
 
@@ -10,7 +11,7 @@ const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
-  <AccordionPrimitive.Item ref={ref} className={cn("border-b", className)} {...props} />
+  <AccordionPrimitive.Item ref={ref} className={className} {...props} />
 ));
 AccordionItem.displayName = "AccordionItem";
 
@@ -22,7 +23,8 @@ const AccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+        DISCLOSURE_BUTTON_CLASS,
+        "flex w-full flex-1 justify-between text-left [&[data-state=open]>svg]:rotate-180",
         className,
       )}
       {...props}
@@ -38,12 +40,15 @@ const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
+  // forceMount keeps the answer in the HTML while collapsed so crawlers can read it;
+  // data-[state=closed]:hidden is what hides it visually.
   <AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    forceMount
+    className="overflow-hidden text-sm data-[state=closed]:hidden data-[state=open]:animate-accordion-down"
     {...props}
   >
-    <div className={cn("pb-4 pt-0", className)}>{children}</div>
+    <div className={cn("px-1 pb-2 pt-3", className)}>{children}</div>
   </AccordionPrimitive.Content>
 ));
 
