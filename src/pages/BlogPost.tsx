@@ -93,7 +93,7 @@ const BlogPost = () => {
 
   // The title appears once (the H1): drop a repeated opening line from the body and a repeated excerpt,
   // and show instants in the reader's zone so the date and the times in the text agree.
-  const body = localizeUtcTimes(stripLeadingTitle(post.content, post.title), timezone);
+  const body = localizeUtcTimes(stripLeadingTitle(post.content, post.title), timezone, post.date);
   const showExcerpt = !!post.excerpt.trim() && !repeatsTitle(post.excerpt, post.title);
   const canonicalCat = categoryPath(post.category);
   const seo = buildPostSeo({
@@ -240,7 +240,7 @@ const BlogPost = () => {
           )}
           {showExcerpt && (
             <p className="mt-5 text-[15px] md:text-base text-cream-muted/85 leading-relaxed italic text-justify hyphens-auto">
-              {localizeUtcTimes(post.excerpt, timezone)}
+              {localizeUtcTimes(post.excerpt, timezone, post.date)}
             </p>
           )}
         </header>

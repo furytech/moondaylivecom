@@ -84,3 +84,22 @@ describe("excerpts and descriptions", () => {
     expect(b).toBe(a);
   });
 });
+
+describe("older timestamp wordings", () => {
+  it("localizes dated and bare UTC clocks", () => {
+    expect(localizeUtcTimes("on October 14, 2026, at 00:59:19 UTC.")).toBe("on Tuesday, Oct 13 at 8:59 PM ET.");
+    expect(localizeUtcTimes("At 12:56 UTC on October 16, 2026, the Moon moves")).toBe("Friday, Oct 16 at 8:56 AM ET, the Moon moves");
+    expect(localizeUtcTimes("into Scorpio at 15:21:09 UTC.", null, "2026-10-11T15:21:09Z")).toBe("into Scorpio at 11:21 AM ET.");
+    expect(localizeUtcTimes("into Scorpio at 15:21:09 UTC.")).toBe("into Scorpio at 15:21:09 UTC.");
+    expect(localizeUtcTimes("at 15:21 UTC", "America/Los_Angeles", "2026-10-11T15:21:09Z")).toBe("at 8:21 AM");
+  });
+
+  it("gives a short opening sentence a second one", () => {
+    const e = excerptFromContent(
+      "The Moon crosses the threshold into Scorpio. The water sign asks for depth over speed, and the first night of the transit tends to feel quieter than the calendar suggests.",
+      "T",
+    );
+    expect(e.length).toBeGreaterThan(110);
+    expect(e.length).toBeLessThanOrEqual(160);
+  });
+});

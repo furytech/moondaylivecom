@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
       const redditPost = pkg.reddit_content;
 
       const excerpt =
-        excerptFromContent(content, title) || `The Moon moves into ${sign}. Here's what to notice.`;
+        excerptFromContent(content, title, 160, ing.transition_at) || `The Moon moves into ${sign}. Here's what to notice.`;
 
       const { data: inserted, error } = await supabase.from("blog_posts").insert({
         slug,

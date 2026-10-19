@@ -262,8 +262,8 @@ function clip(text: string, max: number): string {
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 /** First real paragraph of a markdown body, as plain text (a repeated title is skipped, UTC times shown in ET). */
-export function firstParagraph(markdown: string, title?: string | null): string {
-  return localizeUtcTimes(openingParagraph(markdown, title)).replace(/\s+/g, " ").trim();
+export function firstParagraph(markdown: string, title?: string | null, refDate?: string | null): string {
+  return localizeUtcTimes(openingParagraph(markdown, title), null, refDate).replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -294,11 +294,11 @@ export function buildPostSeo(post: PostSeoInput) {
   const description =
     usable(post.metaDescription) ||
     usable(post.excerpt, 60) ||
-    excerptFromContent(post.content, headline, 155) ||
-    firstParagraph(post.content || "", headline) ||
+    excerptFromContent(post.content, headline, 155, post.date) ||
+    firstParagraph(post.content || "", headline, post.date) ||
     headline;
 
-  return { path, canonical, title, description: clip(localizeUtcTimes(description), 155) };
+  return { path, canonical, title, description: clip(localizeUtcTimes(description, null, post.date), 155) };
 }
 
 /**

@@ -101,12 +101,57 @@ export function formatLocalDate(input: Date | string, tz?: string | null): strin
 const UTC_STAMP =
   /(\d{4})-(\d{2})-(\d{2})(?:T|\s+at\s+|\s+)(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(?:\s*Z(?![A-Za-z0-9])(?:\s*UTC(?![A-Za-z]))?|\s*UTC(?![A-Za-z]))/g;
 
-/** Rewrite UTC timestamps in prose as "Sunday, Oct 18 at 9:39 PM" in the given zone (ET when none). */
-export function localizeUtcTimes(text: string, tz?: string | null): string {
-  return (text || "").replace(UTC_STAMP, (m, y, mo, d, h, mi, s) => {
-    const date = new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi, s ? +s : 0));
-    return formatInstant(date, tz) || m;
-  });
+const MONTH_NAMES = "(January|February|March|April|May|June|July|August|September|October|November|December)";
+const monthIndex = (name: string) =>
+  ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"].indexOf(
+    name.toLowerCase(),
+  );
+
+// "At 12:56 UTC on October 16, 2026"
+const CLOCK_THEN_DATE = new RegExp(
+  String.raw`(?:\b[Aa]t\s+)?\b(\d{1,2}):(\d{2})(?::(\d{2}))?\s*UTC\s+on\s+${MONTH_NAMES}\s+(\d{1,2}),?\s+(\d{4})`,
+  "g",
+);
+// "October 14, 2026, at 00:59:19 UTC"
+const DATE_THEN_CLOCK = new RegExp(
+  String.raw`${MONTH_NAMES}\s+(\d{1,2}),?\s+(\d{4}),?\s+(?:at\s+|@\s*)(\d{1,2}):(\d{2})(?::(\d{2}))?\s*UTC(?![A-Za-z])`,
+  "g",
+);
+// "at 15:21:09 UTC" with no date of its own: the clock part alone is localized.
+const CLOCK_ONLY = /\b(\d{1,2}):(\d{2})(?::(\d{2}))?\s*UTC(?![A-Za-z])/g;
+
+/** "9:39 PM" in the zone (ET, "ET"-suffixed, when none), for a clock time that has no date of its own. */
+function formatClock(date: Date, tz?: string | null): string {
+  const zone = validZone(tz) ? tz : FALLBACK_ZONE;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: zone, hour: "numeric", minute: "2-digit", hour12: true,
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const label = !validZone(tz) ? " ET" : zone === "UTC" ? " UTC" : "";
+  return `${get("hour")}:${get("minute")} ${get("dayPeriod").toUpperCase()}${label}`;
+}
+
+/**
+ * Rewrite UTC timestamps in prose as "Sunday, Oct 18 at 9:39 PM" in the given zone (ET when none).
+ * Handles ISO stamps, "October 14, 2026, at 00:59:19 UTC", "At 12:56 UTC on October 16, 2026", and,
+ * when `refDate` (the post's instant) is given, a bare "at 15:21:09 UTC" (becomes just "11:21 AM").
+ */
+export function localizeUtcTimes(text: string, tz?: string | null, refDate?: Date | string | null): string {
+  const utc = (y: number, mo: number, d: number, h: number, mi: number, sec?: string) =>
+    new Date(Date.UTC(y, mo, d, h, mi, sec ? +sec : 0));
+  let out = (text || "").replace(UTC_STAMP, (m, y, mo, d, h, mi, s) => formatInstant(utc(+y, +mo - 1, +d, +h, +mi, s), tz) || m);
+  out = out.replace(CLOCK_THEN_DATE, (m, h, mi, s, mon, d, y) =>
+    formatInstant(utc(+y, monthIndex(mon), +d, +h, +mi, s), tz) || m);
+  out = out.replace(DATE_THEN_CLOCK, (m, mon, d, y, h, mi, s) =>
+    formatInstant(utc(+y, monthIndex(mon), +d, +h, +mi, s), tz) || m);
+  const ref = refDate ? new Date(refDate) : null;
+  if (ref && !Number.isNaN(ref.getTime())) {
+    out = out.replace(CLOCK_ONLY, (_m, h, mi, s) => {
+      const at = utc(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate(), +h, +mi, s);
+      return formatClock(at, tz);
+    });
+  }
+  return out;
 }
 
 /** Opening paragraph of a markdown body as plain text (headings and a repeated title skipped). */
@@ -133,16 +178,25 @@ function clipWords(text: string, max: number): string {
  * A real 1-2 sentence summary (about 150-160 characters) from the opening paragraph.
  * Timestamps are shown in ET because an excerpt is stored once for every reader.
  */
-export function excerptFromContent(content: string | null | undefined, title?: string | null, target = 160): string {
-  const opening = localizeUtcTimes(openingParagraph(content, title));
+export function excerptFromContent(
+  content: string | null | undefined,
+  title?: string | null,
+  target = 160,
+  refDate?: Date | string | null,
+): string {
+  const opening = localizeUtcTimes(openingParagraph(content, title), null, refDate);
   if (!opening) return "";
   const sentences = opening.match(/[^.!?]+[.!?]+(?=\s|$)|[^.!?]+$/g)?.map((s) => s.trim()) ?? [opening];
   let out = sentences[0] || opening;
   if (out.length > target) return clipWords(out, target);
   for (const next of sentences.slice(1)) {
-    if (`${out} ${next}`.length > target) break;
-    out = `${out} ${next}`;
     if (out.length >= 150) break;
+    if (`${out} ${next}`.length > target) {
+      // A short opening sentence still gets a second one, cut on a word boundary.
+      if (out.length < 110) out = clipWords(`${out} ${next}`, target);
+      break;
+    }
+    out = `${out} ${next}`;
   }
   return out;
 }
