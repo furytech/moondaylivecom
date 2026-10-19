@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   SIGN_ELEMENT,
   SIGN_MODALITY,
@@ -88,6 +88,62 @@ function alignmentVerdict(signs: ZodiacSign[]): {
     tooltip:
       "Two or more lenses share a sign. Signal concentrates — fewer registers, more amplitude. Move with deliberate weight.",
   };
+}
+
+/** Alignment details for one lens. On phones it sits directly under the tapped
+ *  card; from md up it spans the full width below the three cards. */
+function LensDetail({
+  lens,
+  triad,
+  id,
+  className = "",
+}: {
+  lens: LensSpec;
+  triad: TriadMoon;
+  id: string;
+  className?: string;
+}) {
+  const sign = lens.pickSign(triad);
+  const attr = getLensAttribute(lens.register, sign);
+  return (
+    <div
+      id={id}
+      role="region"
+      aria-label="Alignment details"
+      className={`mx-auto w-full max-w-2xl rounded-sm border border-[hsl(var(--lime-accent)/0.4)] bg-[hsl(var(--navy-dark)/0.55)] p-5 sm:p-6 text-left animate-fade-in ${className}`}
+    >
+      <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--lime-accent))] mb-2 text-center">
+        {lens.title} in {sign}
+      </div>
+      <DecoDivider />
+      <p className="font-sans font-normal normal-case text-base leading-relaxed text-[hsl(var(--lime-accent-light))] text-center mb-3">
+        {attr.headline}
+      </p>
+      <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-center">
+        {attr.detail}
+      </p>
+      <div className="mt-4 mx-auto max-w-md text-center text-[12px] italic text-[hsl(var(--cream)/0.7)] border-t border-[hsl(var(--lime-accent)/0.25)] pt-3">
+        <span className="not-italic uppercase tracking-[0.3em] text-[10px] text-[hsl(var(--lime-accent))] block mb-1">
+          Practice
+        </span>
+        {attr.practice}
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-3 text-center text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.55)]">
+        <div>
+          <div className="text-[hsl(var(--lime-accent))]">Position</div>
+          <div className="mt-1 tabular-nums">{lens.position(triad)}</div>
+        </div>
+        <div>
+          <div className="text-[hsl(var(--lime-accent))]">Element</div>
+          <div className="mt-1">{SIGN_ELEMENT[sign]}</div>
+        </div>
+        <div>
+          <div className="text-[hsl(var(--lime-accent))]">Modality</div>
+          <div className="mt-1">{SIGN_MODALITY[sign]}</div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 interface DailyPulseProps {
@@ -201,8 +257,8 @@ export default function DailyPulse({
             const sign = lens.pickSign(triad);
             const isOpen = openLens === lens.key;
             return (
+              <Fragment key={lens.key}>
               <button
-                key={lens.key}
                 type="button"
                 onClick={() => setOpenLens(isOpen ? null : lens.key)}
                 aria-expanded={isOpen}
@@ -259,57 +315,16 @@ export default function DailyPulse({
                   </div>
                 </div>
               </button>
+              {isOpen && (
+                <LensDetail lens={lens} triad={triad} id={`lens-detail-${lens.key}`} className="md:hidden" />
+              )}
+              </Fragment>
             );
           })}
         </div>
 
         {openLens && (
-          <div
-            id={`lens-detail-${openLens}`}
-            role="region"
-            aria-label="Alignment details"
-            className="mx-auto max-w-2xl mb-8 rounded-sm border border-[hsl(var(--lime-accent)/0.4)] bg-[hsl(var(--navy-dark)/0.55)] p-5 sm:p-6 text-left animate-fade-in"
-          >
-            {(() => {
-              const lens = LENSES.find((l) => l.key === openLens)!;
-              const sign = lens.pickSign(triad);
-              const attr = getLensAttribute(lens.register, sign);
-              return (
-                <>
-                  <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--lime-accent))] mb-2 text-center">
-                    {lens.title} in {sign}
-                  </div>
-                  <DecoDivider />
-                  <p className="font-sans font-normal normal-case text-base leading-relaxed text-[hsl(var(--lime-accent-light))] text-center mb-3">
-                    {attr.headline}
-                  </p>
-                  <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-center">
-                    {attr.detail}
-                  </p>
-                  <div className="mt-4 mx-auto max-w-md text-center text-[12px] italic text-[hsl(var(--cream)/0.7)] border-t border-[hsl(var(--lime-accent)/0.25)] pt-3">
-                    <span className="not-italic uppercase tracking-[0.3em] text-[10px] text-[hsl(var(--lime-accent))] block mb-1">
-                      Practice
-                    </span>
-                    {attr.practice}
-                  </div>
-                  <div className="mt-5 grid grid-cols-3 gap-3 text-center text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--cream)/0.55)]">
-                    <div>
-                      <div className="text-[hsl(var(--lime-accent))]">Position</div>
-                      <div className="mt-1 tabular-nums">{lens.position(triad)}</div>
-                    </div>
-                    <div>
-                      <div className="text-[hsl(var(--lime-accent))]">Element</div>
-                      <div className="mt-1">{SIGN_ELEMENT[sign]}</div>
-                    </div>
-                    <div>
-                      <div className="text-[hsl(var(--lime-accent))]">Modality</div>
-                      <div className="mt-1">{SIGN_MODALITY[sign]}</div>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
+          <LensDetail lens={LENSES.find((l) => l.key === openLens)!} triad={triad} id={`lens-detail-${openLens}-wide`} className="hidden md:block mb-8" />
         )}
 
         {synthesisSlot ?? (
