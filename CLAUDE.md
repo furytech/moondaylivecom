@@ -35,6 +35,7 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 
 ## Design rules
 - Brand: dark navy background; gold (#d4af37) for significant moments and main buttons; violet for the personal/Blueprint layer; amber for live data.
+- Menus and tab bars never scroll horizontally. Every option must be visible without swiping; on phones, wrap into a grid instead.
 - Typography: the engraved display font is only for short headings and labels (6 words or fewer). Sentences use the body font in sentence case. Text that wraps to more than one line never goes in a rounded-full pill; use rounded-xl.
 - src/index.css centers every <p> and .font-serif by default. Left-aligned text needs an explicit text-left.
 - Never add global element selectors (like section { ... }) to CSS.

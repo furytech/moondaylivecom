@@ -67,8 +67,11 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
 
             {/* Tabbed Content - separate block */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">
-              {/* Tabs navigation - stacked on mobile */}
-              <TabsList className="w-full h-auto flex flex-col md:flex-row md:flex-wrap justify-center items-stretch md:items-center gap-3 bg-transparent p-0">
+              {/* Tabs navigation - 2x2 grid on phones, one row from sm up. Radix supplies role=tablist/tab, aria-selected and arrow-key navigation. */}
+              <TabsList
+                aria-label="Sign sections"
+                className="w-full h-auto grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-transparent p-1"
+              >
                 {[
                   { value: "essence", label: "The Essence" },
                   { value: "shadow", label: "The Shadow" },
@@ -79,11 +82,13 @@ export function SignDetailPanel({ content, onClose }: SignDetailPanelProps) {
                     key={tab.value}
                     value={tab.value}
                     className={cn(
-                      "w-full md:w-auto px-6 py-4 font-display text-xs md:text-sm tracking-[0.15em] uppercase",
-                      "border border-primary/20 bg-background/50",
-                      "data-[state=active]:bg-primary/10 data-[state=active]:border-primary/50 data-[state=active]:text-primary",
-                      "hover:border-primary/40 transition-all duration-300",
-                      "min-h-[48px]"
+                      "w-full whitespace-normal text-center leading-tight rounded-xl border px-3 sm:px-4 py-3 min-h-[44px] font-sans text-sm font-medium normal-case tracking-normal",
+                      "border-white/15 bg-white/[0.03] text-foreground/80",
+                      "hover:border-white/35 hover:bg-white/10 hover:text-foreground",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                      "data-[state=active]:border-[#d4af37] data-[state=active]:bg-[#d4af37] data-[state=active]:text-navy-deep data-[state=active]:font-semibold",
+                      "data-[state=active]:shadow-[0_0_16px_rgba(212,175,55,0.45)] data-[state=active]:hover:bg-[#d4af37]",
+                      "transition-all duration-200"
                     )}
                   >
                     {tab.label}
