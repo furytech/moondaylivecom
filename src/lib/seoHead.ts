@@ -2,7 +2,7 @@
 // Shared by the build-time prerender (scripts/prerender-seo.mjs) and the Vercel function that serves
 // posts published after the last deploy (api/blog-post.ts), so both produce identical HTML.
 
-import { DEFAULT_OG_IMAGE, SITE_URL, buildPostBreadcrumb, buildPostSeo, signOgImage } from "./seo";
+import { DEFAULT_OG_IMAGE, SITE_URL, buildPostBreadcrumb, buildPostSeo, signOgImage } from "./seo.js";
 
 export interface HeadPage {
   title: string;
