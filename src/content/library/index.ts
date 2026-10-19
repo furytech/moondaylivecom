@@ -8,6 +8,7 @@ import { virgoArticle } from "./virgo";
 import { libraArticle } from "./libra";
 import { scorpioArticle } from "./scorpio";
 import { sagittariusArticle } from "./sagittarius";
+import { capricornArticle } from "./capricorn";
 
 export type { LibraryArticle, ArticleSection, ArticleFaq, ArticleList } from "./types";
 
@@ -22,4 +23,5 @@ export const libraryArticles: Record<string, LibraryArticle> = {
   Libra: libraArticle,
   Scorpio: scorpioArticle,
   Sagittarius: sagittariusArticle,
+  Capricorn: capricornArticle,
 };
