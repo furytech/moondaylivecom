@@ -32,6 +32,7 @@ import Refund from "./pages/Refund";
 import Disclaimer from "./pages/Disclaimer";
 import About from "./pages/About";
 import TransitionQuiz from "./pages/TransitionQuiz";
+import FindMoonSign from "./pages/FindMoonSign";
 import Pulse from "./pages/Pulse";
 import MoonSignHoroscope from "./pages/MoonSignHoroscope";
 import LunarClimate from "./pages/LunarClimate";
@@ -132,6 +133,7 @@ export const App = () => (
               <Route path="/transit/:sign" element={<Transit />} />
               <Route path="/transit" element={<Navigate to="/transit/aries" replace />} />
               <Route path="/login" element={<Portal defaultMode="login" />} />
+              <Route path="/find-my-moon-sign" element={<FindMoonSign />} />
               <Route path="/signup" element={<Portal defaultMode="signup" />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:category/:slug" element={<BlogPost />} />

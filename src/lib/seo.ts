@@ -191,9 +191,15 @@ export const PAGES: PageSeo[] = [
     indexable: false,
   },
   {
+    path: "/find-my-moon-sign",
+    title: "Find Your Moon Sign — Moonday Live",
+    description: "Enter your birthday and see your Sun and Moon sign right away. No account and no birth time needed.",
+    indexable: false,
+  },
+  {
     path: "/signup",
     title: "Create Your Account — Moonday Live",
-    description: "Create your Moonday Live account and find your moon sign in a few details.",
+    description: "Create your free Moonday Live account with just an email and a password. Your birthday is already saved.",
     indexable: false,
   },
   {

@@ -152,9 +152,13 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
     expect(screen.getByText("UNLOCK LUMINARY — $6.88/month")).toBeDefined();
     expect(screen.getByText("or $58.88/year · cancel anytime")).toBeDefined();
 
-    // Everything below body preview is Luminary only — verify NOT rendered for free users:
-    expect(screen.queryByText("Your emotional field")).toBeNull();
+    // The first locked section appears only as a short faded preview (heading + opening words), never in full:
+    expect(screen.getByTestId("locked-section-preview")).toBeDefined();
+    expect(screen.getByText("Your emotional field")).toBeDefined();
+    expect(screen.getByText("Air currents invite your watery feelings to express…")).toBeDefined();
     expect(screen.queryByText(mockTriadData.emotional_guidance)).toBeNull();
+
+    // Everything below that is Luminary only — verify NOT rendered for free users:
     expect(screen.queryByText("The deeper invitation")).toBeNull();
     expect(screen.queryByText(mockTriadData.spiritual_guidance)).toBeNull();
     expect(screen.queryByText("Today's practice")).toBeNull();

@@ -514,20 +514,11 @@ const Blueprint = () => {
                 isPro={isPro}
               />
 
-              {/* Free tier: On-screen preview card immediately after archetype reveal & before Luminary gate */}
+              {/* Free tier: preview of the full Blueprint right after the archetype reveal. The upgrade card comes after all free content, below. */}
               {!isPro && (
-                <div className="mt-8 space-y-8 animate-fade-up">
+                <div className="mt-8 animate-fade-up">
                   <BlueprintPreviewCard
                     combinationSynthesis={combinationProfile.combination_synthesis}
-                  />
-
-                  <LuminaryGate
-                    currentMoonSign={lunar?.sign.name || displayedMoonSign || "Current"}
-                    birthMoonSign={displayedMoonSign || "Birth"}
-                    onPrimaryClick={() => navigate("/pricing")}
-                    onSelectPlan={handleSelectPlan}
-                    onUnlockClick={handleOpenPricing}
-                    loading={checkoutLoading}
                   />
                 </div>
               )}
@@ -549,6 +540,20 @@ const Blueprint = () => {
                   checkoutLoading={checkoutLoading}
                 />
               </CalculationBoundary>
+            </div>
+          )}
+
+          {/* The one upgrade card: directly after the last free section, once the profile has confirmed this is not a Luminary member */}
+          {!isPro && userProfile && displayedMoonSign && (
+            <div className="animate-fade-up">
+              <LuminaryGate
+                currentMoonSign={lunar?.sign.name || displayedMoonSign || "Current"}
+                birthMoonSign={displayedMoonSign || "Birth"}
+                onPrimaryClick={() => navigate("/pricing")}
+                onSelectPlan={handleSelectPlan}
+                onUnlockClick={handleOpenPricing}
+                loading={checkoutLoading}
+              />
             </div>
           )}
 

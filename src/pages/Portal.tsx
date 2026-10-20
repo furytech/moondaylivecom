@@ -1,57 +1,25 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, Eye, EyeOff } from "lucide-react";
-import { cn } from "@/lib/utils";
 import MoonLoader from "@/components/MoonLoader";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
-import { calculateMoonSignAsync, calculateNatalSigns, calculateSunSign, type TransitionInfo } from "@/lib/moonSign";
-import { getLocalCuspDay } from "@/lib/cuspDay";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { calculateSunSign } from "@/lib/moonSign";
+import { formatBirthdayLong } from "@/lib/cuspDay";
 import SEO from "@/components/SEO";
-import { Sparkles as SparklesIcon, Globe } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TIMEZONE_OPTIONS, detectTimezoneOption, zoneAbbreviation } from "@/lib/timezone";
+import { seoProps } from "@/lib/seo";
 import { cacheTimezone } from "@/hooks/useUserTimezone";
-
-const MONTH_OPTIONS = [
-  { value: "01", label: "January" },
-  { value: "02", label: "February" },
-  { value: "03", label: "March" },
-  { value: "04", label: "April" },
-  { value: "05", label: "May" },
-  { value: "06", label: "June" },
-  { value: "07", label: "July" },
-  { value: "08", label: "August" },
-  { value: "09", label: "September" },
-  { value: "10", label: "October" },
-  { value: "11", label: "November" },
-  { value: "12", label: "December" },
-];
-
-const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => {
-  const d = String(i + 1).padStart(2, "0");
-  return { value: d, label: String(i + 1) };
-});
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: CURRENT_YEAR - 1920 + 1 }, (_, i) => {
-  const y = String(CURRENT_YEAR - i);
-  return { value: y, label: y };
-});
+import { REVEAL_PATH, clearSignupDraft, loadSignupDraft, type SignupDraft } from "@/lib/signupDraft";
 
 interface PortalProps {
   defaultMode?: "login" | "signup";
 }
+
+const inputClass =
+  "w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300";
 
 const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const { toast } = useToast();
@@ -64,58 +32,22 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
   const redirectTo = fromParam && fromParam.startsWith("/") ? fromParam : "/blueprint";
 
   const [isLogin, setIsLogin] = useState(defaultMode === "login");
-  const [firstName, setFirstName] = useState("");
-  const [email, setEmail] = useState(() => searchParams.get("email") ?? "");
+  const [email, setEmail] = useState(() => searchParams.get("email") ?? loadSignupDraft()?.email ?? "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [birthMonth, setBirthMonth] = useState("");
-  const [birthDay, setBirthDay] = useState("");
-  const [birthYear, setBirthYear] = useState("1985");
-
-  const birthday =
-    birthYear && birthMonth && birthDay
-      ? `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`
-      : "";
-
-  const [timezone, setTimezone] = useState<string>(() => detectTimezoneOption());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  // Kept after the draft is cleared so the confirmation screen can say what was saved.
+  const [submittedDraft, setSubmittedDraft] = useState<SignupDraft | null>(null);
   const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string } | null>(null);
   const [mfaCode, setMfaCode] = useState("");
   const [mfaError, setMfaError] = useState("");
   const [mfaSubmitting, setMfaSubmitting] = useState(false);
-  const [transitionInfo, setTransitionInfo] = useState<TransitionInfo | null>(null);
 
-  // Detect Moon-change days as soon as the user picks a birthday. The day is
-  // the person's LOCAL birthday, so it depends on the chosen timezone too.
-  useEffect(() => {
-    if (isLogin || !birthday) {
-      setTransitionInfo(null);
-      return;
-    }
-    try {
-      const day = getLocalCuspDay(birthday, timezone);
-      setTransitionInfo(
-        day.isCuspDay
-          ? {
-              isTransitionDay: true,
-              signAtStart: day.from,
-              signAtEnd: day.to,
-              ingressHour: null,
-              majoritySign: day.from,
-              majorityHours: 0,
-              minoritySign: day.to,
-              minorityHours: 0,
-            }
-          : null
-      );
-    } catch {
-      setTransitionInfo(null);
-    }
-  }, [birthday, isLogin, timezone]);
+  // The birthday and Moon sign come from the reveal step (or the Moon Cusp Quiz), never typed twice.
+  const draft = submittedDraft ?? loadSignupDraft();
+  const draftSunSign = useMemo(() => (draft ? calculateSunSign(draft.birthday) : null), [draft?.birthday]);
 
   // Sync mode if route prop changes (e.g. /signup -> /login)
   useEffect(() => {
@@ -156,7 +88,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
               if (pending.sunSign) {
                 updatePayload.natal_sun_sign = pending.sunSign;
               } else if (pending.birthday) {
-                updatePayload.natal_sun_sign = calculateSunSign(new Date(`${pending.birthday}T12:00:00`));
+                updatePayload.natal_sun_sign = calculateSunSign(pending.birthday);
               }
               await supabase
                 .from("user_profiles")
@@ -192,34 +124,15 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     setError("");
 
     if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
-    if (!isLogin && !firstName.trim()) {
-      setError("Please enter your first name");
-      return;
-    }
-    if (!isLogin && (!birthMonth || !birthDay || !birthYear)) {
-      setError("Please select your Month, Day, and Year of birth.");
-      return;
-    }
-    if (!isLogin) {
-      const birthDate = new Date(`${birthday}T12:00:00`);
-      if (isNaN(birthDate.getTime())) {
-        setError("Please select a valid birthday date.");
-        return;
-      }
-      if (birthDate > new Date()) {
-        setError("Birthday cannot be in the future.");
-        return;
-      }
-    }
-    if (!isLogin && password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Please enter your email and a password.");
       return;
     }
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      return;
+    }
+    if (!isLogin && (!draft || !draft.moonSign)) {
+      setError("Please start by entering your birthday.");
       return;
     }
 
@@ -239,43 +152,18 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           }
         }
         navigate(redirectTo, { replace: true });
-      } else {
-        // Transition-day path: don't create the account yet. Stash the
-        // credentials and route the user into the Moon-change quiz. The
-        // quiz screen will finalize signUp with the disambiguated sign so
-        // the user never has to re-enter email/password.
-        if (transitionInfo?.isTransitionDay) {
-          try {
-            sessionStorage.setItem(
-              "pendingSignup",
-              JSON.stringify({
-                email,
-                password,
-                birthday,
-                timezone,
-                firstName: firstName.trim(),
-              })
-            );
-          } catch { /* ignore */ }
-          cacheTimezone(timezone);
-          navigate(
-            `/transition-quiz?birthday=${birthday}&tz=${encodeURIComponent(timezone)}`
-          );
-          return;
-        }
-
-        const birthDate = new Date(`${birthday}T12:00:00`);
-        const { sunSign, moonSign: moonSignName } = await calculateNatalSigns(birthDate);
+      } else if (draft?.moonSign) {
         await signUp(
           email,
           password,
-          birthday,
-          moonSignName,
-          timezone,
-          sunSign,
-          firstName.trim()
+          draft.birthday,
+          draft.moonSign,
+          draft.timezone,
+          calculateSunSign(draft.birthday)
         );
-        cacheTimezone(timezone);
+        cacheTimezone(draft.timezone);
+        setSubmittedDraft(draft);
+        clearSignupDraft();
         setSignupSuccess(true);
       }
     } catch (err: unknown) {
@@ -328,6 +216,13 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
     </>
   );
 
+  // Signup needs the birthday and Moon sign from the reveal step. Anyone arriving without them
+  // (a library link, the nav, an old bookmark) starts there; ?email= and ?from= travel along.
+  if (!isLogin && !signupSuccess && !draft?.moonSign) {
+    const search = searchParams.toString();
+    return <Navigate to={`${REVEAL_PATH}${search ? `?${search}` : ""}`} replace />;
+  }
+
   if (signupSuccess) {
     return (
       <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
@@ -357,7 +252,13 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed mb-2">
               A celestial confirmation link has been sent to
             </p>
-            <p className="text-lilac font-medium mb-8">{email}</p>
+            <p className="text-lilac font-medium mb-6 break-all">{email}</p>
+            {submittedDraft && (
+              <p className="text-base text-cream/85 leading-relaxed mb-6">
+                Your birthday ({formatBirthdayLong(submittedDraft.birthday)}) is saved. Your{" "}
+                {draftSunSign} Sun × {submittedDraft.moonSign} Moon Blueprint opens when you confirm.
+              </p>
+            )}
             <p className="text-sm text-muted-foreground/70 mb-10">
               Check your spam folder if it doesn't arrive within a few minutes.
             </p>
@@ -367,7 +268,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 setIsLogin(true);
                 navigate("/login");
               }}
-              className="text-sm tracking-[0.2em] uppercase text-foreground/70 hover:text-lilac transition-colors duration-300"
+              className="min-h-11 px-4 text-sm tracking-[0.2em] uppercase text-foreground/70 hover:text-lilac transition-colors duration-300"
             >
               ← Back to sign in
             </button>
@@ -489,20 +390,12 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
-      <SEO
-        title={isLogin ? "Sign In — Moonday Live" : "Create Your Account — Moonday Live"}
-        description={
-          isLogin
-            ? "Sign in to your Moonday Live blueprint and continue your lunar journey."
-            : "Create your Moonday Live account and find your moon sign in a few details."
-        }
-        noindex
-      />
+      <SEO {...seoProps(isLogin ? "/login" : "/signup")} />
       <Starfield />
 
       <Navigation />
 
-      <main className="relative z-10 flex-1 flex items-start justify-center px-6 pt-[68px] pb-16">
+      <main className="relative z-10 flex-1 flex items-start justify-center px-4 sm:px-6 pt-[68px] pb-16">
         <div className="max-w-md w-full">
           {/* Header */}
           <div className="text-center mb-6 animate-fade-up">
@@ -515,34 +408,36 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
               />
             </div>
             <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-2">
-              {isLogin ? "Welcome Back" : "Begin the Journey"}
+              {isLogin ? "Welcome Back" : "Almost there"}
             </p>
             <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-2">
-              {isLogin ? "Sign in to your blueprint" : "Find your moon sign"}
+              {isLogin ? "Sign in to your blueprint" : "Create your free account"}
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed">
               {isLogin
                 ? "Step back into rhythm with the sky."
-                : "A few details. A lifetime of clarity."}
+                : "Two details: your email and a password."}
             </p>
           </div>
 
           {/* Form card */}
-          <div className="p-8 md:p-10 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)] animate-fade-up stagger-1">
+          <div className="p-5 sm:p-8 md:p-10 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)] animate-fade-up stagger-1">
             <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
-                    First Name
-                  </label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    placeholder="e.g. Maya"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
-                  />
+              {!isLogin && draft && draftSunSign && (
+                <div className="rounded-xl border border-lilac/20 bg-background/30 p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0 text-left">
+                    <p className="text-xs tracking-[0.2em] uppercase text-lilac/80 text-left">Your birthday</p>
+                    <p className="text-base text-foreground text-left">{formatBirthdayLong(draft.birthday)}</p>
+                    <p className="text-sm text-muted-foreground text-left">
+                      {draftSunSign} Sun · {draft.moonSign} Moon
+                    </p>
+                  </div>
+                  <Link
+                    to={`${REVEAL_PATH}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`}
+                    className="shrink-0 inline-flex items-center justify-center min-h-11 px-4 rounded-xl border border-lilac/30 text-sm text-lilac hover:bg-lilac/10 transition-colors"
+                  >
+                    Change
+                  </Link>
                 </div>
               )}
 
@@ -553,10 +448,11 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                  className={inputClass}
                 />
               </div>
 
@@ -568,173 +464,31 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-12 px-4 pr-12 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
+                    className={`${inputClass} pr-12`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors"
-                    tabIndex={-1}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 h-11 w-11 flex items-center justify-center text-muted-foreground/70 hover:text-muted-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {!isLogin && (
+                  <p className="text-xs text-muted-foreground/70 pl-1 text-left">
+                    At least 6 characters. Use the eye to check what you typed.
+                  </p>
+                )}
               </div>
 
-              {!isLogin && (
-                <div className="space-y-2">
-                  <label htmlFor="confirmPassword" className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full h-12 px-4 pr-12 rounded-xl bg-background/40 border border-lilac/20 text-foreground placeholder:text-muted-foreground/80 focus:border-lilac/60 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword((s) => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!isLogin && (
-                <>
-                  <div className="space-y-2">
-                    <label className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1">
-                      Birthday
-                    </label>
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                      {/* Month dropdown */}
-                      <Select value={birthMonth} onValueChange={setBirthMonth}>
-                        <SelectTrigger
-                          id="birthMonth"
-                          aria-label="Birth Month"
-                          className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-lilac/20 text-xs sm:text-sm text-foreground text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
-                        >
-                          <SelectValue placeholder="Month" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-navy-dark border-lilac/30 max-h-60">
-                          {MONTH_OPTIONS.map((m) => (
-                            <SelectItem key={m.value} value={m.value} className="text-foreground">
-                              {m.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      {/* Day dropdown */}
-                      <Select value={birthDay} onValueChange={setBirthDay}>
-                        <SelectTrigger
-                          id="birthDay"
-                          aria-label="Birth Day"
-                          className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-lilac/20 text-xs sm:text-sm text-foreground text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
-                        >
-                          <SelectValue placeholder="Day" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-navy-dark border-lilac/30 max-h-60">
-                          {DAY_OPTIONS.map((d) => (
-                            <SelectItem key={d.value} value={d.value} className="text-foreground">
-                              {d.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      {/* Year dropdown */}
-                      <Select value={birthYear} onValueChange={setBirthYear}>
-                        <SelectTrigger
-                          id="birthYear"
-                          aria-label="Birth Year"
-                          className="w-full h-12 px-2.5 sm:px-3 rounded-xl bg-background/40 border border-lilac/20 text-xs sm:text-sm text-foreground text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
-                        >
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-navy-dark border-lilac/30 max-h-60">
-                          {YEAR_OPTIONS.map((y) => (
-                            <SelectItem key={y.value} value={y.value} className="text-foreground">
-                              {y.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <p className="text-xs text-muted-foreground/70 pl-1 pt-1">
-                      Used to chart your natal moon sign — saved to your profile.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2 pt-4">
-                    <label
-                      htmlFor="timezone"
-                      className="block text-xs tracking-[0.2em] uppercase text-lilac/80 pl-1"
-                    >
-                      Your Timezone
-                    </label>
-                    <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger
-                        id="timezone"
-                        className="w-full h-12 px-4 rounded-xl bg-background/40 border border-lilac/20 text-left focus:border-lilac/60 focus:ring-2 focus:ring-lilac/20 transition-all duration-300"
-                      >
-                        <span className="flex items-center gap-2 truncate">
-                          <Globe className="w-4 h-4 text-lilac/60 shrink-0" />
-                          <SelectValue placeholder="Select your timezone" />
-                        </span>
-                      </SelectTrigger>
-                      <SelectContent className="bg-navy-dark border-lilac/30 max-h-72">
-                        {TIMEZONE_OPTIONS.map((tz) => (
-                          <SelectItem key={tz.value} value={tz.value}>
-                            {tz.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground/70 pl-1 pt-1 leading-relaxed">
-                      We publish all moon content on <span className="text-lilac/90">UTC</span>.
-                      {timezone !== "UTC" && (
-                        <>
-                          {" "}Your times will be shown in{" "}
-                          <span className="text-lilac/90">{zoneAbbreviation(timezone)}</span> with a
-                          small marker noting the UTC source.
-                        </>
-                      )}
-                    </p>
-                  </div>
-
-                  {transitionInfo?.isTransitionDay && (
-                    <Alert className="mt-3 bg-lilac/5 border-lilac/30 text-left">
-                      <SparklesIcon className="w-4 h-4 text-lilac" />
-                      <AlertDescription className="text-xs leading-relaxed text-cream/85">
-                        <span className="block font-display tracking-[0.2em] uppercase text-lilac mb-1.5">
-                          Moon-change birthday
-                        </span>
-                        On this date the Moon was crossing from{" "}
-                        <span className="text-lilac font-medium">{transitionInfo.signAtStart}</span>{" "}
-                        into{" "}
-                        <span className="text-lilac font-medium">{transitionInfo.signAtEnd}</span>
-                        . When you continue, we'll guide you through five quick
-                        questions to anchor your true sign — then finish
-                        creating your account. No need to re-enter anything.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </>
-              )}
-
               {error && (
-                <p className="text-destructive text-sm text-center py-1">{error}</p>
+                <p className="text-destructive text-sm text-center py-1" role="alert">{error}</p>
               )}
 
               <button
@@ -742,8 +496,15 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 disabled={loading}
                 className="w-full h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {loading ? <MoonLoader size="sm" /> : isLogin ? "Sign In" : transitionInfo?.isTransitionDay ? "Continue to the Quiz" : "Find My Moon Sign"}
+                {loading ? <MoonLoader size="sm" /> : isLogin ? "Sign In" : "Create my account"}
               </button>
+
+              {!isLogin && (
+                <p className="text-xs text-muted-foreground/70 leading-relaxed text-left">
+                  We'll email a confirmation link. Your birthday is locked once your account exists, so use Change
+                  now if it's wrong. After that, corrections go through support@moondaylive.com.
+                </p>
+              )}
             </form>
 
             {isLogin && (
@@ -751,7 +512,7 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
                 <button
                   type="button"
                   onClick={() => navigate("/auth/forgot-password")}
-                  className="text-sm text-muted-foreground hover:text-lilac transition-colors duration-300"
+                  className="min-h-11 px-4 text-sm text-muted-foreground hover:text-lilac transition-colors duration-300"
                 >
                   Forgot password?
                 </button>
@@ -764,12 +525,10 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
             <button
               type="button"
               onClick={() => {
-                const next = !isLogin;
-                setIsLogin(next);
                 setError("");
-                navigate(next ? "/login" : "/signup", { replace: true });
+                navigate(isLogin ? REVEAL_PATH : "/login", { replace: true });
               }}
-              className="text-sm text-muted-foreground hover:text-lilac transition-colors duration-300"
+              className="min-h-11 px-4 text-sm text-muted-foreground hover:text-lilac transition-colors duration-300"
             >
               {isLogin ? (
                 <>New to Moonday? <span className="text-lilac">Find your moon sign →</span></>

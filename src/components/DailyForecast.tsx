@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, Activity, Heart, Compass, Eye, Shield } from "lucide-react";
+import { Sparkles, Activity, Heart, Compass, Eye, Shield, Lock } from "lucide-react";
 import { CurrentMoonData } from "@/lib/currentMoon";
 import { useLunarForecast, TriadData } from "@/hooks/useLunarForecast";
 import { getTransitBridge } from "@/lib/transitBridge";
@@ -28,6 +28,35 @@ export function getBodyPreview(text?: string | null): { preview: string; blurred
     blurredRemainder: sentences.slice(2).join(" "),
   };
 }
+
+/** First few words of the first sentence: enough to tease a locked section without shipping it. */
+export function getLockedPreview(text?: string | null, words = 8): string {
+  if (!text) return "";
+  const firstSentence = text.trim().split(/(?<=[.!?])\s+/)[0] ?? "";
+  const parts = firstSentence.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "";
+  return `${parts.slice(0, words).join(" ").replace(/[.,;:!?]+$/, "")}…`;
+}
+
+/** The first locked section for free members: a heading and a faded line, directly under the last free content. */
+const LockedSectionPreview: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({
+  icon,
+  title,
+  children,
+}) => (
+  <div
+    data-testid="locked-section-preview"
+    className="relative overflow-hidden rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10"
+  >
+    <div className="flex items-center gap-2 mb-2 text-primary">
+      {icon}
+      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">{title}</h3>
+      <Lock className="w-3.5 h-3.5 ml-auto text-primary/70" aria-label="Locked for Luminary" />
+    </div>
+    {children}
+    <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-navy-dark via-navy-dark/80 to-transparent pointer-events-none" />
+  </div>
+);
 
 interface DailyForecastProps {
   birthMoonSign: string;
@@ -172,6 +201,15 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Free members: a faded peek at the first locked section, then the single upgrade card */}
+            {!isPro && activeTriad.emotional_guidance && (
+              <LockedSectionPreview icon={<Heart className="w-4 h-4 text-primary" />} title="Your emotional field">
+                <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left">
+                  {getLockedPreview(activeTriad.emotional_guidance)}
+                </p>
+              </LockedSectionPreview>
             )}
 
             {/* Gate Component rendered immediately after the Body preview fade for free users */}
@@ -331,6 +369,15 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                 </div>
               )}
             </div>
+
+            {!isPro && (
+              <LockedSectionPreview icon={<Sparkles className="w-4 h-4 text-primary" />} title="Today's energy and focus">
+                <div className="space-y-2 pt-1" aria-hidden="true">
+                  <div className="h-3 w-3/4 rounded-md bg-primary/20" />
+                  <div className="h-3 w-1/2 rounded-md bg-primary/15" />
+                </div>
+              </LockedSectionPreview>
+            )}
 
             {!isPro && showGate && (
               <LuminaryGate

@@ -1,13 +1,15 @@
 import { detectTimezoneOption } from "@/lib/timezone";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Sparkles, Moon, ArrowRight, Eye, EyeOff, MailCheck } from "lucide-react";
+import { Sparkles, Moon, ArrowRight } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
 import MoonLoader from "@/components/MoonLoader";
 import { useAuth } from "@/contexts/AuthContext";
+import LockedBlueprintTeaser from "@/components/LockedBlueprintTeaser";
+import { REVEAL_PATH, saveSignupDraft } from "@/lib/signupDraft";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -41,7 +43,7 @@ interface QuizResultState {
 const TransitionQuiz = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user, signUp } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const birthdayRaw = params.get("birthday") || "";
@@ -58,22 +60,9 @@ const TransitionQuiz = () => {
   const [result, setResult] = useState<QuizResultState | null>(null);
   const chosen = result?.sign ?? null;
   const [saving, setSaving] = useState(false);
-  const [signupMode, setSignupMode] = useState(false);
-  const [signupFirstName, setSignupFirstName] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [signupConfirm, setSignupConfirm] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [signupError, setSignupError] = useState("");
-  const [signupSubmitting, setSignupSubmitting] = useState(false);
-  const [signupSuccess, setSignupSuccess] = useState(false);
-  // Signup coming from /signup is only submitted after the person has seen
-  // their result and clicked the confirm button.
-  const [autoSignupRequested, setAutoSignupRequested] = useState(false);
 
   // Work out the Moon-change day in the person's OWN timezone:
-  // ?tz= (from signup) > saved profile timezone > stashed signup > this device.
+  // ?tz= (from the reveal step) > saved profile timezone > this device.
   useEffect(() => {
     if (!birthdayParam) return;
     let cancelled = false;
@@ -86,13 +75,6 @@ const TransitionQuiz = () => {
           .eq("user_id", user.id)
           .maybeSingle();
         if (data?.timezone && isValidTimezone(data.timezone)) zone = data.timezone;
-      }
-      if (!zone) {
-        try {
-          const raw = sessionStorage.getItem("pendingSignup");
-          const stashed = raw ? JSON.parse(raw)?.timezone : "";
-          if (stashed && isValidTimezone(stashed)) zone = stashed;
-        } catch { /* ignore */ }
       }
       if (!zone) zone = detectTimezoneOption();
       if (cancelled) return;
@@ -146,100 +128,19 @@ const TransitionQuiz = () => {
     }
   };
 
-  const hasPendingSignup = () => {
-    try {
-      const pending = JSON.parse(sessionStorage.getItem("pendingSignup") || "null");
-      return !!(pending?.email && pending?.password);
-    } catch {
-      return false;
-    }
-  };
-
   const handlePickSign = (sign: MoonSign) => {
     setResult((r) => (r ? { ...r, sign } : r));
     persistPendingSign(sign);
-    if (user) {
-      void handleSaveAndContinue(sign);
-    } else if (hasPendingSignup()) {
-      setAutoSignupRequested(true);
-    } else {
-      setSignupMode(true);
-    }
+    if (user) void handleSaveAndContinue(sign);
   };
-
-  // One-shot guard: ensure we only ever attempt the auto-signup ONCE per
-  // mount, regardless of re-renders, StrictMode double-invokes, or state
-  // changes. Without this guard a failure would flip signupSubmitting back
-  // to false and re-trigger the effect, hammering Supabase until it rate
-  // limits the IP.
-  const autoSignupAttempted = useRef(false);
-  useEffect(() => {
-    if (autoSignupAttempted.current) return;
-    if (!autoSignupRequested || !chosen || user || signupSuccess) return;
-    let pending: {
-      email?: string;
-      password?: string;
-      birthday?: string;
-      timezone?: string;
-      firstName?: string;
-    } | null = null;
-    try {
-      const raw = sessionStorage.getItem("pendingSignup");
-      if (raw) pending = JSON.parse(raw);
-    } catch { /* ignore */ }
-    if (!pending?.email || !pending.password) return;
-
-    autoSignupAttempted.current = true;
-    // Clear the stash immediately so a reload can never replay the signup.
-    try { sessionStorage.removeItem("pendingSignup"); } catch { /* ignore */ }
-    setSignupSubmitting(true);
-    (async () => {
-      try {
-        const bd = pending!.birthday || birthdayParam;
-        const sunSign = bd ? calculateSunSign(new Date(`${bd.split("T")[0]}T12:00:00`)) : undefined;
-
-        await signUp(
-          pending!.email!,
-          pending!.password!,
-          bd,
-          chosen,
-          pending!.timezone || detectTimezoneOption(),
-          sunSign,
-          pending!.firstName
-        );
-        setSignupSuccess(true);
-      } catch (err) {
-        const msg = (err as { message?: string }).message || "Could not create account.";
-        const friendly = msg.includes("User already registered")
-          ? "This email is already registered. Please sign in to anchor your sign."
-          : msg.toLowerCase().includes("rate limit")
-            ? "Too many signup attempts. Please wait a minute and try again."
-            : msg;
-        toast({
-          title: "Could not create account",
-          description: friendly,
-          variant: "destructive",
-        });
-        // Prefill the fallback form with the email so the user can retry
-        // without re-typing everything.
-        setSignupEmail(pending!.email!);
-        setSignupMode(true);
-      } finally {
-        setSignupSubmitting(false);
-      }
-    })();
-  }, [autoSignupRequested, chosen, user, signupSuccess, signUp, birthdayParam, toast]);
 
   const handleSaveAndContinue = async (signToSave: string | null = chosen) => {
     if (!signToSave) return;
     if (!user) {
-      if (hasPendingSignup()) {
-        setAutoSignupRequested(true);
-        return;
-      }
-      // Account not yet created — render inline signup form. The quiz result is
-      // already in localStorage and will be applied after email verification.
-      setSignupMode(true);
+      // No account yet: hand the birthday and the settled Moon sign to signup so nothing is typed twice.
+      // The result is also kept in localStorage and applied after email verification.
+      saveSignupDraft({ birthday: birthdayParam, timezone: tz || detectTimezoneOption(), moonSign: signToSave });
+      navigate("/signup");
       return;
     }
     setSaving(true);
@@ -289,51 +190,6 @@ const TransitionQuiz = () => {
     setFlips(makeShuffle(QUESTION_COUNT));
     setResult(null);
     setStarted(true);
-  };
-
-  const handleSignupSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSignupError("");
-    if (!chosen) return;
-    if (!signupFirstName.trim()) {
-      setSignupError("Please enter your first name.");
-      return;
-    }
-    if (!signupEmail || !signupPassword) {
-      setSignupError("Please enter your email and a password.");
-      return;
-    }
-    if (signupPassword.length < 6) {
-      setSignupError("Password must be at least 6 characters.");
-      return;
-    }
-    if (signupPassword !== signupConfirm) {
-      setSignupError("Passwords do not match.");
-      return;
-    }
-    setSignupSubmitting(true);
-    try {
-      const sunSign = birthdayParam ? calculateSunSign(new Date(`${birthdayParam.split("T")[0]}T12:00:00`)) : undefined;
-      await signUp(
-        signupEmail,
-        signupPassword,
-        birthdayParam,
-        chosen,
-        tz || detectTimezoneOption(),
-        sunSign,
-        signupFirstName.trim()
-      );
-      setSignupSuccess(true);
-    } catch (err) {
-      const msg = (err as { message?: string }).message || "Could not create account.";
-      setSignupError(
-        msg.includes("User already registered")
-          ? "This email is already registered. Please sign in to anchor your sign."
-          : msg
-      );
-    } finally {
-      setSignupSubmitting(false);
-    }
   };
 
   // Stable starfield
@@ -453,16 +309,13 @@ const TransitionQuiz = () => {
               <div className="text-center space-y-4">
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   This page disambiguates your Moon sign on a transition day.
-                  Provide a birthday in the URL to begin, or start by signing up.
-                </p>
-                <p className="text-xs text-muted-foreground/70 font-mono">
-                  /transition-quiz?birthday=YYYY-MM-DD
+                  Start with your birthday and we'll check whether the Moon changed signs that day.
                 </p>
                 <button
-                  onClick={() => navigate("/signup")}
+                  onClick={() => navigate(REVEAL_PATH)}
                   className="mt-2 inline-flex items-center gap-2 h-12 px-6 bg-lilac hover:bg-lilac-light text-primary-foreground rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
                 >
-                  Begin Signup <ArrowRight className="w-4 h-4" />
+                  Enter your birthday <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -532,138 +385,7 @@ const TransitionQuiz = () => {
               </div>
             )}
 
-            {!resolving && chosen && !signupSuccess && signupSubmitting && !signupMode && (
-              <div className="flex flex-col items-center gap-4 py-10 text-center">
-                <MoonLoader size="md" />
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                  Anchoring your {chosen} Moon and sending your
-                  confirmation link…
-                </p>
-              </div>
-            )}
-
-            {!resolving && chosen && signupSuccess && (
-              <div className="text-center space-y-6 py-2">
-                <div className="mx-auto w-16 h-16 rounded-full border border-lilac/40 flex items-center justify-center bg-lilac/10 shadow-[0_0_50px_-10px_hsl(var(--lilac)/0.6)]">
-                  <MailCheck className="w-7 h-7 text-lilac" strokeWidth={1.4} />
-                </div>
-                <div>
-                  <p className="text-lilac text-xs tracking-[0.3em] uppercase mb-3">
-                    Check Your Inbox
-                  </p>
-                  <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight mb-4 leading-tight">
-                    Your Lunar Signature awaits
-                  </h2>
-                  <p className="text-sm md:text-base text-cream/85 leading-relaxed max-w-md mx-auto">
-                    We've sent a confirmation link to your email. Please
-                    check your inbox and click the link to anchor your Lunar
-                    Signature and enter your Blueprint.
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground/70 leading-relaxed border-t border-lilac/10 pt-4 max-w-sm mx-auto">
-                  Your {chosen} Moon is held safely until you confirm.
-                </p>
-              </div>
-            )}
-
-            {!resolving && chosen && !signupSuccess && signupMode && !user && (
-              <form onSubmit={handleSignupSubmit} className="space-y-5">
-                <div className="text-center space-y-2">
-                  <p className="text-lilac text-xs tracking-[0.3em] uppercase">
-                    Anchor {chosen} Moon
-                  </p>
-                  <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
-                    Create your account
-                  </h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    We'll email you a confirmation link to seal your Blueprint.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    value={signupFirstName}
-                    onChange={(e) => setSignupFirstName(e.target.value)}
-                    placeholder="First Name"
-                    autoComplete="given-name"
-                    className="w-full h-12 px-4 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
-                  />
-                  <input
-                    type="email"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    placeholder="Email"
-                    autoComplete="email"
-                    className="w-full h-12 px-4 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
-                  />
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                      placeholder="Password"
-                      autoComplete="new-password"
-                      className="w-full h-12 px-4 pr-12 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-lilac transition-colors"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showConfirm ? "text" : "password"}
-                      value={signupConfirm}
-                      onChange={(e) => setSignupConfirm(e.target.value)}
-                      placeholder="Confirm password"
-                      autoComplete="new-password"
-                      className="w-full h-12 px-4 pr-12 rounded-xl border border-lilac/20 bg-background/40 text-cream placeholder:text-muted-foreground/60 focus:outline-none focus:border-lilac/60 transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm((s) => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-lilac transition-colors"
-                      aria-label={showConfirm ? "Hide password" : "Show password"}
-                    >
-                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {signupError && (
-                  <p className="text-xs text-destructive text-center leading-relaxed">{signupError}</p>
-                )}
-
-                <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                  <button
-                    type="submit"
-                    disabled={signupSubmitting}
-                    className="flex-1 h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {signupSubmitting ? <MoonLoader size="sm" /> : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        Create My Account
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSignupMode(false)}
-                    className="flex-1 h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300"
-                  >
-                    Back
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {!resolving && result && !chosen && result.score && cusp?.isCuspDay && !signupMode && (
+            {!resolving && result && !chosen && result.score && cusp?.isCuspDay && (
               <div className="space-y-6">
                 <div className="text-center space-y-3">
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase">Your Lunar Signature</p>
@@ -712,7 +434,7 @@ const TransitionQuiz = () => {
               </div>
             )}
 
-            {!resolving && chosen && !signupSuccess && !signupMode && !signupSubmitting && (
+            {!resolving && chosen && (
               <div className="text-center space-y-6">
                 <div className="space-y-3">
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase">Your Lunar Signature</p>
@@ -736,28 +458,46 @@ const TransitionQuiz = () => {
 
                 {answersReview}
 
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <button
-                    onClick={() => handleSaveAndContinue()}
-                    disabled={saving}
-                    className="flex-1 h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-[15px] transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? <MoonLoader size="sm" /> : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        {user ? "Anchor this sign" : `Save my ${chosen} Moon & create my account`}
-                      </>
-                    )}
-                  </button>
-                  {result?.score && (
+                {user ? (
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <button
-                      onClick={handleRetake}
-                      className="flex-1 h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
+                      onClick={() => handleSaveAndContinue()}
+                      disabled={saving}
+                      className="flex-1 min-h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-[15px] transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      Retake the quiz
+                      {saving ? <MoonLoader size="sm" /> : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          Anchor this sign
+                        </>
+                      )}
                     </button>
-                  )}
-                </div>
+                    {result?.score && (
+                      <button
+                        onClick={handleRetake}
+                        className="flex-1 min-h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
+                      >
+                        Retake the quiz
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3 pt-2">
+                    <LockedBlueprintTeaser
+                      sunSign={calculateSunSign(birthdayParam)}
+                      moonSign={chosen}
+                      onCreateAccount={() => handleSaveAndContinue()}
+                    />
+                    {result?.score && (
+                      <button
+                        onClick={handleRetake}
+                        className="w-full min-h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
+                      >
+                        Retake the quiz
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

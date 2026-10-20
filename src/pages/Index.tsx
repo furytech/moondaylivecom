@@ -166,7 +166,7 @@ const Index = () => {
               Sign In
             </button>
             <button
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate("/find-my-moon-sign")}
               className="px-3 py-1.5 md:px-6 md:py-2.5 bg-lilac hover:bg-lilac-light text-primary-foreground text-[10px] md:text-sm tracking-[0.15em] md:tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_30px_-8px_hsl(var(--lilac)/0.6)] shrink-0"
             >
               <span className="hidden sm:inline">Find My Moon Sign</span>
@@ -204,7 +204,7 @@ const Index = () => {
                 Next Moon in {nextMoon.sign}
               </p>
               <button
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate("/find-my-moon-sign")}
                 className="text-xs md:text-sm tracking-[0.15em] uppercase text-cream/80 hover:text-lilac border-b border-lilac/40 hover:border-lilac pb-0.5 transition-colors duration-300"
               >
                 Discover what it means for you →
@@ -238,7 +238,7 @@ const Index = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up stagger-4">
               <button
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate("/find-my-moon-sign")}
                 className="px-10 py-4 bg-lilac hover:bg-lilac-light text-primary-foreground text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
               >
                 Begin Your Lunar Journey
@@ -358,7 +358,7 @@ const Index = () => {
                 Begin in Moments
               </p>
               <button
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate("/find-my-moon-sign")}
                 className="w-full bg-lilac hover:bg-lilac-light text-primary-foreground font-medium py-4 rounded-2xl text-sm tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
               >
                 Find My Moon Sign
@@ -460,7 +460,7 @@ const Index = () => {
             Step into rhythm with it.
           </p>
           <button
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/find-my-moon-sign")}
             className="px-10 py-4 bg-lilac hover:bg-lilac-light text-primary-foreground text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
           >
             Begin Your Lunar Journey
