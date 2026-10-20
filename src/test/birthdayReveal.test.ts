@@ -52,17 +52,16 @@ describe("signup draft", () => {
 
   it("round-trips and clears", () => {
     expect(loadSignupDraft()).toBeNull();
-    saveSignupDraft({ birthday: "1985-03-07", timezone: "America/Chicago", moonSign: "Libra" });
-    expect(loadSignupDraft()).toMatchObject({ birthday: "1985-03-07", timezone: "America/Chicago", moonSign: "Libra" });
+    saveSignupDraft({ birthday: "1985-03-07", timezone: "America/Chicago", email: "a@b.co" });
+    expect(loadSignupDraft()).toEqual({ birthday: "1985-03-07", timezone: "America/Chicago", email: "a@b.co" });
     clearSignupDraft();
     expect(loadSignupDraft()).toBeNull();
   });
 
-  it("ignores a draft with a broken birthday", () => {
-    sessionStorage.setItem(
-      "moonday:signupDraft",
-      JSON.stringify({ birthday: "1985-02-31", timezone: "UTC", moonSign: "Leo" })
-    );
+  it("ignores a draft with a broken birthday or no email", () => {
+    sessionStorage.setItem("moonday:signupDraft", JSON.stringify({ birthday: "1985-02-31", timezone: "UTC", email: "a@b.co" }));
+    expect(loadSignupDraft()).toBeNull();
+    sessionStorage.setItem("moonday:signupDraft", JSON.stringify({ birthday: "1985-03-07", timezone: "UTC" }));
     expect(loadSignupDraft()).toBeNull();
   });
 });

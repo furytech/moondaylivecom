@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublishedPosts, categoryPath } from "@/lib/blog/posts";
 import { supabase } from "@/integrations/supabase/client";
+import BirthdayEmailStep from "@/components/BirthdayEmailStep";
 
 const pillars = [
   {
@@ -93,6 +94,10 @@ const Index = () => {
     []
   );
 
+  // Every "find my Moon sign" button leads to the birthday + email step in the hero.
+  const goToForm = () =>
+    document.getElementById("moon-sign-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+
   if (loading) {
     // The served HTML already holds this page: keep showing it while the session loads, so nothing flashes.
     const served = (window as any).__PRERENDERED__ as { path: string; html: string } | undefined;
@@ -166,7 +171,7 @@ const Index = () => {
               Sign In
             </button>
             <button
-              onClick={() => navigate("/find-my-moon-sign")}
+              onClick={goToForm}
               className="px-3 py-1.5 md:px-6 md:py-2.5 bg-lilac hover:bg-lilac-light text-primary-foreground text-[10px] md:text-sm tracking-[0.15em] md:tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_30px_-8px_hsl(var(--lilac)/0.6)] shrink-0"
             >
               <span className="hidden sm:inline">Find My Moon Sign</span>
@@ -179,7 +184,8 @@ const Index = () => {
       <main className="relative z-10 pt-14 md:pt-16">
         {/* Hero */}
         <header className="pt-0 pb-16 md:pt-0 md:pb-24 px-6 text-center">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl lg:max-w-6xl mx-auto lg:grid lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:items-center lg:text-left">
+            <div>
             {/* Moon orb */}
             <div className="relative inline-block mb-6 animate-fade-up">
               <div
@@ -197,14 +203,14 @@ const Index = () => {
             </div>
 
             <div className="mb-6 animate-fade-up stagger-1">
-              <p className="text-lilac text-base md:text-lg tracking-[0.25em] uppercase mb-1">
+              <p className="text-lilac text-base md:text-lg tracking-[0.25em] uppercase mb-1 lg:text-left">
                 {moonData.symbol} Current Moon — {moonData.sign}
               </p>
-              <p className="text-lilac/70 text-sm md:text-base tracking-[0.25em] uppercase mb-3">
+              <p className="text-lilac/70 text-sm md:text-base tracking-[0.25em] uppercase mb-3 lg:text-left">
                 Next Moon in {nextMoon.sign}
               </p>
               <button
-                onClick={() => navigate("/find-my-moon-sign")}
+                onClick={goToForm}
                 className="text-xs md:text-sm tracking-[0.15em] uppercase text-cream/80 hover:text-lilac border-b border-lilac/40 hover:border-lilac pb-0.5 transition-colors duration-300"
               >
                 Discover what it means for you →
@@ -230,25 +236,21 @@ const Index = () => {
               today feels different.
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-12 animate-fade-up stagger-3">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 lg:text-left leading-relaxed mb-10 lg:mb-0 animate-fade-up stagger-3">
               The moon's 2.5-day cycle directly shapes your emotional climate.
               Your birth moon sign is the quiet key to how — and why — you react
               the way you do.
             </p>
+            </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up stagger-4">
-              <button
-                onClick={() => navigate("/find-my-moon-sign")}
-                className="px-10 py-4 bg-lilac hover:bg-lilac-light text-primary-foreground text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
-              >
-                Begin Your Lunar Journey
-              </button>
-              <button
-                onClick={() => navigate("/login")}
-                className="px-10 py-4 border border-lilac/30 hover:border-lilac/60 text-foreground/80 hover:text-foreground text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300"
-              >
-                Sign In
-              </button>
+            <div
+              id="moon-sign-form"
+              className="w-full max-w-md mx-auto lg:mx-0 lg:justify-self-end p-5 sm:p-8 rounded-3xl border border-lilac/20 bg-card/50 backdrop-blur-xl shadow-[0_0_80px_-20px_hsl(var(--lilac)/0.4)] animate-fade-up stagger-4"
+            >
+              <p className="font-display text-sm text-lilac/80 tracking-[0.25em] uppercase mb-4 text-left">
+                Find your Moon sign
+              </p>
+              <BirthdayEmailStep />
             </div>
           </div>
         </header>
@@ -328,16 +330,16 @@ const Index = () => {
               <span className="text-lilac">for free.</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto leading-relaxed">
-              Wondering <em>what's my moon sign?</em> Our free moon sign
-              calculator uses your birth details to reveal your starting
-              point. No credit card, no commitment. If Moonday speaks to you,
-              the journey continues from there.
+              Wondering <em>what's my moon sign?</em> Add your birthday and
+              your email, and your Moon sign appears right away, with a free
+              account to keep it in. No credit card, no commitment. If Moonday
+              speaks to you, the journey continues from there.
             </p>
 
             {/* Free tier snapshot */}
             <div className="grid sm:grid-cols-2 gap-4 text-left mb-10 max-w-lg mx-auto">
               {[
-                "Free moon sign calculator",
+                "Your Moon sign, free with an account",
                 "Your birth moon sign & element",
                 "Current moon phase & sign",
                 "Daily lunar climate gauge",
@@ -358,7 +360,7 @@ const Index = () => {
                 Begin in Moments
               </p>
               <button
-                onClick={() => navigate("/find-my-moon-sign")}
+                onClick={goToForm}
                 className="w-full bg-lilac hover:bg-lilac-light text-primary-foreground font-medium py-4 rounded-2xl text-sm tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
               >
                 Find My Moon Sign
@@ -460,7 +462,7 @@ const Index = () => {
             Step into rhythm with it.
           </p>
           <button
-            onClick={() => navigate("/find-my-moon-sign")}
+            onClick={goToForm}
             className="px-10 py-4 bg-lilac hover:bg-lilac-light text-primary-foreground text-sm tracking-[0.2em] uppercase rounded-full transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
           >
             Begin Your Lunar Journey

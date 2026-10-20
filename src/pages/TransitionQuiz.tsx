@@ -1,6 +1,6 @@
 import { detectTimezoneOption } from "@/lib/timezone";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sparkles, Moon, ArrowRight } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -8,8 +8,8 @@ import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
 import MoonLoader from "@/components/MoonLoader";
 import { useAuth } from "@/contexts/AuthContext";
-import LockedBlueprintTeaser from "@/components/LockedBlueprintTeaser";
-import { REVEAL_PATH, saveSignupDraft } from "@/lib/signupDraft";
+import { REVEAL_PATH, loadSignupDraft } from "@/lib/signupDraft";
+import { useCreateRevealAccount } from "@/hooks/useCreateRevealAccount";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -41,18 +41,18 @@ interface QuizResultState {
 }
 
 const TransitionQuiz = () => {
-  const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const createAccount = useCreateRevealAccount();
 
-  const birthdayRaw = params.get("birthday") || "";
-  const birthdayParam = /^\d{4}-\d{2}-\d{2}/.test(birthdayRaw) ? birthdayRaw.split("T")[0] : "";
-  const tzParam = params.get("tz") || "";
-
+  // The birthday is never read from the URL: it is the signed-in member's own profile birthday,
+  // or the one a visitor just entered in the birthday + email step.
+  const draft = useMemo(() => loadSignupDraft(), []);
+  const [birthday, setBirthday] = useState("");
   const [tz, setTz] = useState<string>("");
   const [cusp, setCusp] = useState<LocalCuspDay | null>(null);
-  const [resolving, setResolving] = useState<boolean>(!!birthdayParam);
+  const [resolving, setResolving] = useState<boolean>(true);
   const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState<Array<"earlier" | "later">>([]);
   const [flips, setFlips] = useState<boolean[]>(() => makeShuffle(QUESTION_COUNT));
@@ -60,30 +60,41 @@ const TransitionQuiz = () => {
   const [result, setResult] = useState<QuizResultState | null>(null);
   const chosen = result?.sign ?? null;
   const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const creatingRef = useRef(false);
 
-  // Work out the Moon-change day in the person's OWN timezone:
-  // ?tz= (from the reveal step) > saved profile timezone > this device.
+  // Work out the Moon-change day in the person's OWN timezone: the member's saved timezone,
+  // or the one detected when the visitor entered their birthday.
   useEffect(() => {
-    if (!birthdayParam) return;
+    if (authLoading) return;
     let cancelled = false;
     (async () => {
-      let zone = isValidTimezone(tzParam) ? tzParam : "";
-      if (!zone && user) {
+      let bd = "";
+      let zone = "";
+      if (user) {
         const { data } = await supabase
           .from("user_profiles")
-          .select("timezone")
+          .select("birthday, timezone")
           .eq("user_id", user.id)
           .maybeSingle();
+        if (data?.birthday) bd = data.birthday.split("T")[0];
         if (data?.timezone && isValidTimezone(data.timezone)) zone = data.timezone;
+      } else if (draft) {
+        bd = draft.birthday;
+        if (isValidTimezone(draft.timezone)) zone = draft.timezone;
       }
       if (!zone) zone = detectTimezoneOption();
       if (cancelled) return;
-      setTz(zone);
-      setCusp(getLocalCuspDay(birthdayParam, zone));
+      if (bd) {
+        setBirthday(bd);
+        setTz(zone);
+        setCusp(getLocalCuspDay(bd, zone));
+      }
       setResolving(false);
     })();
     return () => { cancelled = true; };
-  }, [birthdayParam, tzParam, user]);
+  }, [authLoading, user, draft]);
 
   const pair = useMemo(
     () => (cusp?.isCuspDay ? getCuspPair(cusp.from, cusp.to) : undefined),
@@ -91,22 +102,27 @@ const TransitionQuiz = () => {
   );
   const questions = pair?.questions ?? [];
 
-  const persistPendingSign = (sign: string) => {
-    // Persist so Portal can apply it after email verification + sign-in.
+  // A visitor's reveal happens as part of creating their account: once the sign is settled, create it.
+  const finishAsVisitor = async (sign: string) => {
+    if (!draft || creatingRef.current) return;
+    creatingRef.current = true;
+    setCreating(true);
+    setCreateError("");
     try {
-      const sunSign = birthdayParam ? calculateSunSign(new Date(`${birthdayParam}T12:00:00`)) : undefined;
-      localStorage.setItem(
-        "pendingMoonSign",
-        JSON.stringify({ sign, sunSign, birthday: birthdayParam, ts: Date.now() })
-      );
-    } catch { /* ignore */ }
+      await createAccount({ email: draft.email, birthday: draft.birthday, timezone: tz || draft.timezone, moonSign: sign });
+    } catch (err) {
+      const message = (err as { message?: string }).message || "Could not create your account.";
+      setCreateError(/rate limit|only request this after/i.test(message) ? "Too many attempts. Please wait a minute and try again." : message);
+      creatingRef.current = false;
+      setCreating(false);
+    }
   };
 
   // Not actually a Moon-change day in this timezone: the Moon stayed in one sign.
   useEffect(() => {
     if (!cusp || cusp.isCuspDay || result) return;
     setResult({ score: null, sign: cusp.from });
-    persistPendingSign(cusp.from);
+    if (!user) void finishAsVisitor(cusp.from);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cusp]);
 
@@ -121,7 +137,7 @@ const TransitionQuiz = () => {
     const score = scoreCuspQuiz(pair, cusp.fractionBeforeIngress, next);
     if (score.certainty === "clear") {
       setResult({ score, sign: score.leading });
-      persistPendingSign(score.leading);
+      if (!user) void finishAsVisitor(score.leading);
     } else {
       // Close call: never save silently. The person chooses.
       setResult({ score, sign: null });
@@ -130,19 +146,13 @@ const TransitionQuiz = () => {
 
   const handlePickSign = (sign: MoonSign) => {
     setResult((r) => (r ? { ...r, sign } : r));
-    persistPendingSign(sign);
     if (user) void handleSaveAndContinue(sign);
+    else void finishAsVisitor(sign);
   };
 
+  // Signed-in members save their result straight to their own profile.
   const handleSaveAndContinue = async (signToSave: string | null = chosen) => {
-    if (!signToSave) return;
-    if (!user) {
-      // No account yet: hand the birthday and the settled Moon sign to signup so nothing is typed twice.
-      // The result is also kept in localStorage and applied after email verification.
-      saveSignupDraft({ birthday: birthdayParam, timezone: tz || detectTimezoneOption(), moonSign: signToSave });
-      navigate("/signup");
-      return;
-    }
+    if (!signToSave || !user) return;
     setSaving(true);
     try {
       const { data: userProfile } = await supabase
@@ -151,8 +161,8 @@ const TransitionQuiz = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const birthdayToUse = userProfile?.birthday || birthdayParam;
-      const sunSign = userProfile?.natal_sun_sign || (birthdayToUse ? calculateSunSign(new Date(`${birthdayToUse.split("T")[0]}T12:00:00`)) : null);
+      const birthdayToUse = userProfile?.birthday || birthday;
+      const sunSign = userProfile?.natal_sun_sign || (birthdayToUse ? calculateSunSign(birthdayToUse) : null);
 
       const updatePayload: Record<string, any> = {
         moon_sign: signToSave,
@@ -167,7 +177,6 @@ const TransitionQuiz = () => {
         .update(updatePayload)
         .eq("user_id", user.id);
       if (error) throw error;
-      try { localStorage.removeItem("pendingMoonSign"); } catch { /* ignore */ }
       toast({
         title: "Moon Sign Confirmed",
         description: `Your blueprint is now anchored in ${signToSave}.`,
@@ -257,7 +266,7 @@ const TransitionQuiz = () => {
     ) : null;
 
   // ---- States ----
-  const noSigns = !birthdayParam || (!resolving && !!cusp?.isCuspDay && !pair);
+  const noSigns = (!resolving && !birthday) || (!resolving && !!cusp?.isCuspDay && !pair);
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative overflow-x-hidden flex flex-col">
@@ -309,13 +318,13 @@ const TransitionQuiz = () => {
               <div className="text-center space-y-4">
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   This page disambiguates your Moon sign on a transition day.
-                  Start with your birthday and we'll check whether the Moon changed signs that day.
+                  Start with your birthday and email, and we'll check whether the Moon changed signs that day.
                 </p>
                 <button
                   onClick={() => navigate(REVEAL_PATH)}
                   className="mt-2 inline-flex items-center gap-2 h-12 px-6 bg-lilac hover:bg-lilac-light text-primary-foreground rounded-xl text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
                 >
-                  Enter your birthday <ArrowRight className="w-4 h-4" />
+                  Find my Moon sign <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -330,7 +339,7 @@ const TransitionQuiz = () => {
                 </h2>
                 <p className="text-[15px] md:text-base text-cream/85 leading-relaxed text-left">
                   {fillCopy(CUSP_COPY.intro.body, {
-                    date: formatBirthdayLong(birthdayParam),
+                    date: formatBirthdayLong(birthday),
                     time: cusp.ingress ? formatIngressTime(cusp.ingress, tz) : "",
                     from: cusp.from,
                     to: cusp.to,
@@ -385,7 +394,7 @@ const TransitionQuiz = () => {
               </div>
             )}
 
-            {!resolving && result && !chosen && result.score && cusp?.isCuspDay && (
+            {!resolving && result && !chosen && result.score && cusp?.isCuspDay && !creating && !createError && (
               <div className="space-y-6">
                 <div className="text-center space-y-3">
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase">Your Lunar Signature</p>
@@ -434,7 +443,28 @@ const TransitionQuiz = () => {
               </div>
             )}
 
-            {!resolving && chosen && (
+            {!resolving && creating && (
+              <div className="flex flex-col items-center gap-4 py-10 text-center">
+                <MoonLoader size="md" />
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                  Anchoring your Moon and sending your confirmation link…
+                </p>
+              </div>
+            )}
+
+            {!resolving && !creating && createError && (
+              <div className="space-y-4 text-center">
+                <p role="alert" className="text-destructive text-sm leading-relaxed">{createError}</p>
+                <button
+                  onClick={() => navigate(REVEAL_PATH)}
+                  className="w-full min-h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
+                >
+                  Start again
+                </button>
+              </div>
+            )}
+
+            {!resolving && chosen && user && (
               <div className="text-center space-y-6">
                 <div className="space-y-3">
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase">Your Lunar Signature</p>
@@ -458,46 +488,28 @@ const TransitionQuiz = () => {
 
                 {answersReview}
 
-                {user ? (
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    onClick={() => handleSaveAndContinue()}
+                    disabled={saving}
+                    className="flex-1 min-h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-[15px] transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {saving ? <MoonLoader size="sm" /> : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Anchor this sign
+                      </>
+                    )}
+                  </button>
+                  {result?.score && (
                     <button
-                      onClick={() => handleSaveAndContinue()}
-                      disabled={saving}
-                      className="flex-1 min-h-12 bg-lilac hover:bg-lilac-light text-primary-foreground font-medium rounded-xl text-[15px] transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)] disabled:opacity-50 flex items-center justify-center gap-2"
+                      onClick={handleRetake}
+                      className="flex-1 min-h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
                     >
-                      {saving ? <MoonLoader size="sm" /> : (
-                        <>
-                          <Sparkles className="w-4 h-4" />
-                          Anchor this sign
-                        </>
-                      )}
+                      Retake the quiz
                     </button>
-                    {result?.score && (
-                      <button
-                        onClick={handleRetake}
-                        className="flex-1 min-h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
-                      >
-                        Retake the quiz
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-3 pt-2">
-                    <LockedBlueprintTeaser
-                      sunSign={calculateSunSign(birthdayParam)}
-                      moonSign={chosen}
-                      onCreateAccount={() => handleSaveAndContinue()}
-                    />
-                    {result?.score && (
-                      <button
-                        onClick={handleRetake}
-                        className="w-full min-h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
-                      >
-                        Retake the quiz
-                      </button>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>

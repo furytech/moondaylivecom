@@ -14,6 +14,16 @@ interface SubscriptionStatus {
   subscriptionStart: string | null;
 }
 
+/**
+ * What a signUp call did:
+ * - created: a new account; its confirmation email is on the way
+ * - existing: the email already has an account (sign in instead)
+ * - pending: the email was signed up before and never confirmed; the link was sent again
+ */
+export interface SignUpOutcome {
+  status: "created" | "existing" | "pending";
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -27,8 +37,9 @@ interface AuthContextType {
     moonSign?: string,
     timezone?: string,
     natalSunSign?: string,
-    firstName?: string
-  ) => Promise<void>;
+    firstName?: string,
+    options?: { passwordPending?: boolean }
+  ) => Promise<SignUpOutcome>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
 }
@@ -207,8 +218,9 @@ export const AuthProvider = ({ children, initialLoading = true }: AuthProviderPr
     moonSign?: string,
     timezone?: string,
     natalSunSign?: string,
-    firstName?: string
-  ) => {
+    firstName?: string,
+    options?: { passwordPending?: boolean }
+  ): Promise<SignUpOutcome> => {
     let resolvedSunSign = natalSunSign;
     let resolvedMoonSign = moonSign;
 
@@ -238,10 +250,24 @@ export const AuthProvider = ({ children, initialLoading = true }: AuthProviderPr
           natal_moon_sign: resolvedMoonSign ?? null,
           natal_sun_sign: resolvedSunSign ?? null,
           timezone: timezone ?? "UTC",
+          // Accounts created from the birthday + email step get a random password; the member chooses theirs after confirming.
+          password_pending: options?.passwordPending ? true : undefined,
         },
       },
     });
     if (error) throw error;
+
+    // With email confirmation on, signing up an address that already has an account returns a
+    // placeholder user with no identities instead of an error.
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      return { status: "existing" };
+    }
+    // A confirmation resent to an old, unconfirmed signup: created_at is old, the resend is now (both server clock).
+    const created = Date.parse(data.user?.created_at ?? "");
+    const sent = Date.parse(data.user?.confirmation_sent_at ?? "");
+    if (!Number.isNaN(created) && !Number.isNaN(sent) && sent - created > 30_000) {
+      return { status: "pending" };
+    }
 
     // Persist first name + birthday + natal signs immediately so it's saved even before email verification.
     // Upsert in case the handle_new_user trigger hasn't created the row yet.
@@ -266,6 +292,7 @@ export const AuthProvider = ({ children, initialLoading = true }: AuthProviderPr
     // The Blueprint email is sent server-side after the user confirms their email
     // (DB trigger on auth.users -> send-blueprint-email).
     trackEvent("sign_up", { method: "email" });
+    return { status: "created" };
   };
 
   const handleSignOut = async () => {

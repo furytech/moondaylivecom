@@ -33,6 +33,8 @@ import Disclaimer from "./pages/Disclaimer";
 import About from "./pages/About";
 import TransitionQuiz from "./pages/TransitionQuiz";
 import FindMoonSign from "./pages/FindMoonSign";
+import YourMoonSign from "./pages/YourMoonSign";
+import SharedMoon from "./pages/SharedMoon";
 import Pulse from "./pages/Pulse";
 import MoonSignHoroscope from "./pages/MoonSignHoroscope";
 import LunarClimate from "./pages/LunarClimate";
@@ -98,6 +100,12 @@ const AuthRecoveryHandler = () => {
   return null;
 };
 
+// Accounts are created from the birthday + email step. Old /signup links (and ?email= / ?from=) land there.
+const SignupRedirect = () => {
+  const { search } = useLocation();
+  return <Navigate to={`/find-my-moon-sign${search}`} replace />;
+};
+
 // All URLs are lowercase: a capital letter anywhere in the path redirects to the lowercase form.
 const LowercasePath = () => {
   const { pathname, search, hash } = useLocation();
@@ -132,9 +140,11 @@ export const App = () => (
               <Route path="/birthday-moon-phase" element={<BirthdayMoonPhase />} />
               <Route path="/transit/:sign" element={<Transit />} />
               <Route path="/transit" element={<Navigate to="/transit/aries" replace />} />
-              <Route path="/login" element={<Portal defaultMode="login" />} />
+              <Route path="/login" element={<Portal />} />
               <Route path="/find-my-moon-sign" element={<FindMoonSign />} />
-              <Route path="/signup" element={<Portal defaultMode="signup" />} />
+              <Route path="/signup" element={<SignupRedirect />} />
+              <Route path="/your-moon-sign" element={<YourMoonSign />} />
+              <Route path="/shared-moon/:sign" element={<SharedMoon />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:category/:slug" element={<BlogPost />} />
               <Route path="/blog/:slug" element={<BlogPost />} />

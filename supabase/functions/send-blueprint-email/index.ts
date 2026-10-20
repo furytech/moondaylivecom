@@ -21,8 +21,11 @@ function cap(s: string): string {
 }
 
 // ─── Email HTML ────────────────────────────────────────────────────────────
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 function buildEmailHtml(opts: {
-  firstName: string;
+  firstName: string | null;
   sunSign: string;
   moonSign: string;
   combinationTitle: string;
@@ -55,7 +58,7 @@ function buildEmailHtml(opts: {
         </p>
         <h1 style="margin:0;color:#f0e8cc;font-size:26px;font-weight:normal;
                    line-height:1.35;">
-          Your Blueprint is ready,&nbsp;${firstName}
+          ${firstName ? `Your Blueprint is ready,&nbsp;${escapeHtml(firstName)}` : "Welcome. Your Blueprint is ready"}
         </h1>
       </td></tr>
 
@@ -189,8 +192,8 @@ Deno.serve(async (req: Request) => {
     const moon_sign = profile.natal_moon_sign;
     let email: string | null = profile.email ?? payload.email ?? null;
 
-    // Friendly first name — use first_name, fallback to "friend"
-    const firstName = profile.first_name?.trim() || "friend";
+    // First name when the member gave one; otherwise the greeting is just "Welcome" (never a stand-in name)
+    const firstName = profile.first_name?.trim() || null;
 
     if (!sun_sign || !moon_sign) {
       console.error("Missing natal_sun_sign or natal_moon_sign", user_id);
@@ -269,7 +272,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         from: FROM_ADDRESS,
         to: [email],
-        subject: `Your Blueprint is ready, ${firstName}`,
+        subject: firstName ? `Your Blueprint is ready, ${firstName}` : "Welcome. Your Blueprint is ready",
         html,
       }),
     });

@@ -101,9 +101,9 @@ export const PAGES: PageSeo[] = [
   },
   {
     path: "/birthday-moon-phase",
-    title: "Birthday Moon Phase Calculator — Free Moon Sign Lookup",
+    title: "Birthday Moon Phase — What Moon Phase Were You Born Under?",
     description:
-      "Free birthday moon phase calculator: enter your birth date to find the exact moon phase and moon sign you were born under. Instant result, no signup.",
+      "What is a birthday moon phase? Learn the 8 moon phases and what they mean, then add your birthday and email to see your Moon sign with a free Moonday Live account.",
     indexable: true, changefreq: "monthly", priority: "0.9",
   },
   {
@@ -193,13 +193,19 @@ export const PAGES: PageSeo[] = [
   {
     path: "/find-my-moon-sign",
     title: "Find Your Moon Sign — Moonday Live",
-    description: "Enter your birthday and see your Sun and Moon sign right away. No account and no birth time needed.",
+    description: "Add your birthday and email to see your Sun and Moon sign right away. No birth time needed.",
+    indexable: false,
+  },
+  {
+    path: "/your-moon-sign",
+    title: "Your Moon Sign — Moonday Live",
+    description: "Your Moon sign, Sun sign and Blueprint offer, shown right after you create your free Moonday Live account.",
     indexable: false,
   },
   {
     path: "/signup",
     title: "Create Your Account — Moonday Live",
-    description: "Create your free Moonday Live account with just an email and a password. Your birthday is already saved.",
+    description: "Create your free Moonday Live account with your birthday and email. Your Moon sign appears right away.",
     indexable: false,
   },
   {

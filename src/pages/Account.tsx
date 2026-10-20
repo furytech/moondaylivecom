@@ -492,11 +492,7 @@ const Account = () => {
                         {isCuspBirthday && profile.birthday && (
                           <button
                             type="button"
-                            onClick={() =>
-                              navigate(
-                                `/transition-quiz?birthday=${profile.birthday!.split("T")[0]}&tz=${encodeURIComponent(timezone)}`
-                              )
-                            }
+                            onClick={() => navigate("/transition-quiz")}
                             className="mt-2 font-sans text-[15px] text-primary underline underline-offset-4 hover:text-primary/80 transition-colors text-left"
                           >
                             Retake the Moon-change quiz

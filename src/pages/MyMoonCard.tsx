@@ -7,9 +7,10 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, Twitter, Facebook, Instagram } from "lucide-react";
+import { Download, Share2, Twitter, Facebook, Instagram, Link2 } from "lucide-react";
 import { moonSignDeepDiveContent } from "@/lib/moonSignContent";
 import { toast } from "@/hooks/use-toast";
+import { sharedMoonUrl } from "@/lib/sharedMoonSeo";
 
 // Update once the community goes live.
 const REDDIT_URL = "https://www.reddit.com/r/MoondayLive/";
@@ -66,9 +67,20 @@ export default function MyMoonCard() {
     toast({ title: "Image saved", description: "Share it anywhere — the link travels with the art." });
   };
 
+  // The share link carries only the sign: no birthday, no name, no combination content.
+  const shareUrl = moonSign ? sharedMoonUrl(moonSign) : SITE_URL;
   const shareText = dive
-    ? `I am a ${dive.sign} Moon — ${dive.headline}. Find your moon sign at ${SITE_URL}`
-    : `Find your moon sign at ${SITE_URL}`;
+    ? `I am a ${dive.sign} Moon — ${dive.headline}. Find your moon sign: ${shareUrl}`
+    : `Find your moon sign: ${shareUrl}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({ title: "Link copied", description: "Anyone who opens it sees your Moon sign card and can find their own." });
+    } catch {
+      toast({ title: "Could not copy", description: shareUrl, variant: "destructive" });
+    }
+  };
 
   const handleNativeShare = async () => {
     const url = await generatePng();
@@ -82,7 +94,7 @@ export default function MyMoonCard() {
         return;
       }
       if (navigator.share) {
-        await navigator.share({ text: shareText, title: "My Moon Sign — Moonday Live", url: SITE_URL });
+        await navigator.share({ text: shareText, title: "My Moon Sign — Moonday Live", url: shareUrl });
         return;
       }
       // Desktop fallback: download
@@ -95,7 +107,7 @@ export default function MyMoonCard() {
   const shareTwitter = () =>
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, "_blank");
   const shareFacebook = () =>
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE_URL)}`, "_blank");
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
   const shareInstagram = async () => {
     await handleDownload();
     toast({
@@ -305,6 +317,9 @@ export default function MyMoonCard() {
           <Button onClick={handleNativeShare} disabled={rendering} className="gap-2">
             <Share2 className="w-4 h-4" /> Share
           </Button>
+          <Button variant="outline" onClick={handleCopyLink} className="gap-2 min-h-11">
+            <Link2 className="w-4 h-4" /> Copy link
+          </Button>
           <Button variant="outline" onClick={handleDownload} disabled={rendering} className="gap-2">
             <Download className="w-4 h-4" /> Download
           </Button>
@@ -318,6 +333,11 @@ export default function MyMoonCard() {
             <Instagram className="w-4 h-4" /> Instagram
           </Button>
         </div>
+
+        <p className="w-full max-w-2xl text-xs text-cream-muted/70 text-left mb-8 leading-relaxed">
+          Your link and card show only your Moon sign and archetype: <span className="break-all">{shareUrl}</span>. Never your
+          birthday or your Blueprint.
+        </p>
 
         {/* Community CTA */}
         <GlassmorphismCard className="max-w-2xl w-full text-center" size="sm">

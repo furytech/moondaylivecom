@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import PageLayout from "@/components/PageLayout";
@@ -6,10 +5,7 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
 import SovereignTeaser from "@/components/SovereignTeaser";
-import { getCurrentMoon, type CurrentMoonData } from "@/lib/currentMoon";
-import { calculateMoonSignAsync } from "@/lib/moonSign";
-import { CALCULATION_ERROR_MESSAGE } from "@/lib/safeLunar";
-import MoonCalculationFallback from "@/components/MoonCalculationFallback";
+import BirthdayEmailStep from "@/components/BirthdayEmailStep";
 
 const PHASES: { name: string; body: string }[] = [
   { name: "New Moon", body: "The Moon sits between Earth and the Sun, invisible to us. Symbolically tied to beginnings, blank slates, and setting intentions before the cycle builds." },
@@ -23,25 +19,12 @@ const PHASES: { name: string; body: string }[] = [
 ];
 
 const FAQS: { q: string; a: string }[] = [
-  { q: "What moon phase was I born under?", a: "Your birthday moon phase is the stage of the Moon's 29.5-day cycle on the exact day you were born. There are 8 possible phases, ranging from New Moon to Waning Crescent. Enter your birth date above to calculate yours instantly." },
+  { q: "What moon phase was I born under?", a: "Your birthday moon phase is the stage of the Moon's 29.5-day cycle on the exact day you were born. There are 8 possible phases, ranging from New Moon to Waning Crescent. Add your birthday and email above to see your Moon sign and begin your Blueprint." },
   { q: "Does my birth moon phase affect my personality?", a: "There is no scientific evidence that lunar phase at birth affects personality. This is an astrological and symbolic framework rather than an empirically proven one — many people find it meaningful as a lens for self-reflection." },
   { q: "Can two people have the same birthday moon phase?", a: "Yes. The Moon repeats its 8-phase cycle roughly every 29.5 days, so many people born weeks or months apart share the same birth moon phase." },
 ];
 
 const CANONICAL = "https://moondaylive.com/birthday-moon-phase";
-
-const softwareLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Birthday Moon Phase Calculator",
-  applicationCategory: "LifestyleApplication",
-  operatingSystem: "Web",
-  url: CANONICAL,
-  description:
-    "Calculate the exact moon phase and moon sign for any birth date. Free, instant, and personalized lunar birth reading.",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  publisher: { "@type": "Organization", name: "Moonday Live", url: "https://moondaylive.com" },
-};
 
 const faqLd = {
   "@context": "https://schema.org",
@@ -53,70 +36,11 @@ const faqLd = {
   })),
 };
 
-interface Result {
-  dateLabel: string;
-  moon: CurrentMoonData;
-  moonSign: string;
-  moonSignSymbol: string;
-}
-
 const BirthdayMoonPhase = () => {
-  const [date, setDate] = useState("");
-  const [result, setResult] = useState<Result | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastAttempt, setLastAttempt] = useState<Date | null>(null);
-
-  const runCalculation = async (bd: Date) => {
-    setLoading(true);
-    try {
-      const moon = getCurrentMoon(bd);
-      const signResult = await calculateMoonSignAsync(bd);
-      if (!moon?.phase || !signResult?.sign) {
-        throw new Error("Incomplete lunar payload");
-      }
-      setResult({
-        dateLabel: bd.toLocaleDateString(undefined, {
-          year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
-        }),
-        moon,
-        moonSign: signResult.sign,
-        moonSignSymbol: signResult.symbol,
-      });
-    } catch (err) {
-      // Keep the form usable: clear the stale reading, explain, offer a retry.
-      console.error("[BirthdayMoonPhase] calculation failed", err);
-      setResult(null);
-      setError(CALCULATION_ERROR_MESSAGE);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onCalculate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!date) {
-      setError("Please enter your birth date.");
-      return;
-    }
-    // Parse as UTC noon to avoid timezone drift
-    const [y, m, d] = date.split("-").map(Number);
-    if (!y || !m || !d) {
-      setError("Please enter a valid date.");
-      return;
-    }
-    const bd = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-    setLastAttempt(bd);
-    await runCalculation(bd);
-  };
-
-
   return (
     <PageLayout>
       <SEO {...seoProps("/birthday-moon-phase")} />
       <Helmet>
-        <script type="application/ld+json">{JSON.stringify(softwareLd)}</script>
         <script type="application/ld+json">{JSON.stringify(faqLd)}</script>
       </Helmet>
 
@@ -130,69 +54,23 @@ const BirthdayMoonPhase = () => {
           </h1>
           <p className="font-serif text-cream-muted text-sm md:text-base max-w-2xl mx-auto">
             Every one of us was born under a specific moon phase — a snapshot of the Moon's
-            29.5-day cycle, frozen on the day we entered the world. Enter your birth date
-            below to find your exact phase, instantly.
+            29.5-day cycle, frozen on the day we entered the world. Add your birthday
+            and email below to begin with your Moon sign.
           </p>
         </header>
 
-        {/* Calculator */}
+        {/* Birthday + email: the only way to see a Moon sign is to create a free account */}
         <GlassmorphismCard>
-          <form onSubmit={onCalculate} className="flex flex-col items-center gap-4">
-            <label htmlFor="birthdate" className="font-display text-[11px] tracking-[0.35em] uppercase text-[hsl(var(--gold-light))]">
-              Your Birth Date
-            </label>
-            <input
-              id="birthdate"
-              type="date"
-              value={date}
-              max={new Date().toISOString().split("T")[0]}
-              onChange={(e) => setDate(e.target.value)}
-              className="bg-transparent border border-[hsl(var(--gold-medium)/0.45)] rounded-sm px-4 py-2 font-serif text-foreground text-center focus:outline-none focus:border-[hsl(var(--gold-medium))] transition-colors"
-              required
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-block font-display text-[11px] tracking-[0.35em] uppercase text-[hsl(var(--gold-light))] border border-[hsl(var(--gold-medium)/0.55)] px-6 py-2.5 rounded-sm hover:bg-[hsl(var(--gold-medium)/0.08)] transition-colors disabled:opacity-50"
-            >
-              {loading ? "Reading the Sky…" : "Reveal My Birth Moon →"}
-            </button>
-            {error && error !== CALCULATION_ERROR_MESSAGE && (
-              <p className="text-xs text-red-400 font-serif">{error}</p>
-            )}
-          </form>
-
-          {error === CALCULATION_ERROR_MESSAGE && (
-            <div className="mt-6 pt-4 border-t border-[hsl(var(--gold-medium)/0.25)]">
-              <MoonCalculationFallback
-                bare
-                title="We couldn't calculate this reading"
-                onRetry={lastAttempt ? () => runCalculation(lastAttempt) : undefined}
-                retrying={loading}
-              />
-            </div>
-          )}
-
-          {result && (
-            <div className="mt-8 pt-6 border-t border-[hsl(var(--gold-medium)/0.25)] text-center space-y-3">
-              <p className="font-serif text-xs uppercase tracking-[0.3em] text-cream-muted/70">
-                {result.dateLabel}
-              </p>
-              <div className="text-5xl md:text-6xl" aria-hidden="true">
-                {result.moon.phaseEmoji}
-              </div>
-              <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider">
-                {result.moon.phase}
-              </h2>
-              <p className="font-serif text-cream-muted text-sm">
-                {result.moon.illumination}% illuminated · Moon in{" "}
-                <span className="text-foreground">
-                  {result.moonSignSymbol} {result.moonSign}
-                </span>
-              </p>
-            </div>
-          )}
-
+          <h2 className="font-display text-lg tracking-widest uppercase text-foreground text-center mb-2">
+            Begin With Your Birthday
+          </h2>
+          <p className="font-serif text-cream-muted text-sm text-left mb-5">
+            A birthday and an email create your free account. Your Moon sign appears right away, and your
+            birthday is locked to the account.
+          </p>
+          <div className="max-w-md mx-auto">
+            <BirthdayEmailStep />
+          </div>
         </GlassmorphismCard>
 
         {/* Why it matters */}

@@ -13,7 +13,7 @@ import { fetchLivePosts } from "./lib/published-posts.mjs";
 
 const dist = resolve("dist");
 const seo = await import(pathToFileURL(resolve("dist-ssr/entry-server.js")).href);
-const { PAGES, ZODIAC_SIGNS, canonicalUrl, buildTransitPageSeo, POST_COLUMNS, injectHead, injectRoot, postPage, renderPage, faqPageSchema, RENDERED_PATHS } = seo;
+const { PAGES, ZODIAC_SIGNS, canonicalUrl, buildTransitPageSeo, buildSharedMoonPageSeo, POST_COLUMNS, injectHead, injectRoot, postPage, renderPage, faqPageSchema, RENDERED_PATHS } = seo;
 
 const template = readFileSync(resolve(dist, "index.html"), "utf8");
 if (!template.includes('<div id="root"></div>')) throw new Error('prerender-seo: <div id="root"></div> not found in dist/index.html');
@@ -46,7 +46,7 @@ try {
 // A page that cannot render here still gets its head and falls back to the empty shell.
 const unrendered = [];
 function body(path, rows) {
-  if (!RENDERED_PATHS.includes(path) && !path.startsWith("/transit/")) return undefined;
+  if (!RENDERED_PATHS.includes(path) && !path.startsWith("/transit/") && !path.startsWith("/shared-moon/")) return undefined;
   try {
     return renderPage(path, rows);
   } catch (err) {
@@ -62,6 +62,12 @@ for (const p of PAGES) {
 for (const sign of ZODIAC_SIGNS) {
   const t = buildTransitPageSeo(sign);
   write(t.path, { title: t.title, description: t.description, canonical: t.canonical }, body(t.path, posts ?? []));
+}
+
+// Share links for a member's own Moon sign: one noindex page per sign, each with its own social image.
+for (const sign of ZODIAC_SIGNS) {
+  const m = buildSharedMoonPageSeo(sign);
+  write(m.path, { title: m.title, description: m.description, canonical: m.canonical, indexable: false, ogImage: m.ogImage }, body(m.path, posts ?? []));
 }
 
 let postCount = 0;

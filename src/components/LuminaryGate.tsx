@@ -1,6 +1,7 @@
 import React from "react";
 import { Sparkles, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { MONTHLY_PRICE_ID, YEARLY_PRICE_ID } from "@/lib/prices";
 
 interface LuminaryGateProps {
   currentMoonSign: string;
@@ -11,8 +12,6 @@ interface LuminaryGateProps {
   loading?: boolean;
   className?: string;
 }
-
-const MONTHLY_PRICE_ID = "price_1ULN2GJowQfvwg0ZtYxb5Th5";
 
 export const LuminaryGate: React.FC<LuminaryGateProps> = ({
   currentMoonSign,

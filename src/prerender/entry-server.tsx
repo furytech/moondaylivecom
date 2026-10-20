@@ -23,6 +23,7 @@ import LunarClimate from "@/pages/LunarClimate";
 import LunarCycleTracking from "@/pages/LunarCycleTracking";
 import BirthdayMoonPhase from "@/pages/BirthdayMoonPhase";
 import Transit from "@/pages/Transit";
+import SharedMoon from "@/pages/SharedMoon";
 import { rowToPost, type BlogPostRow } from "@/lib/blog/posts";
 import { SignPageBody } from "@/components/library/SignPageBody";
 import { LIBRARY_SIGNS, buildSignSeo, libraryPath } from "@/lib/librarySeo";
@@ -38,6 +39,7 @@ export {
   buildTransitPageSeo,
   signOgImage,
 } from "@/lib/seo";
+export { buildSharedMoonPageSeo } from "@/lib/sharedMoonSeo";
 export { POST_COLUMNS, injectHead, injectRoot, postPage } from "@/lib/seoHead";
 export { faqPageSchema } from "@/data/faqs";
 export { renderPostArticle } from "@/lib/postHtml";
@@ -68,7 +70,9 @@ export const RENDERED_PATHS = Object.keys(PAGE_ROUTES);
 export function renderPage(path: string, posts: BlogPostRow[] = []) {
   const route = path.startsWith("/transit/")
     ? { pattern: "/transit/:sign", element: <Transit /> }
-    : PAGE_ROUTES[path];
+    : path.startsWith("/shared-moon/")
+      ? { pattern: "/shared-moon/:sign", element: <SharedMoon /> }
+      : PAGE_ROUTES[path];
   if (!route) throw new Error(`renderPage: no route for ${path}`);
   // The same data the page would fetch, so lists render instead of "Loading...".
   const queryClient = new QueryClient();

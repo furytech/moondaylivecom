@@ -17,10 +17,10 @@ const BirthdayCalculatorCTA = () => (
   >
     <div>
       <p className="text-[10px] uppercase tracking-[0.25em] text-primary/80 mb-1">
-        Try the Calculator
+        Find Your Moon Sign
       </p>
       <span className="text-base md:text-lg font-medium text-foreground">
-        Calculate your birthday moon phase
+        Learn about your birthday moon phase
       </span>
     </div>
     <ArrowRight className="w-5 h-5 text-primary transition-transform group-hover:translate-x-0.5" />

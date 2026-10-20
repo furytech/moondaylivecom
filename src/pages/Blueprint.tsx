@@ -22,6 +22,8 @@ import DailyForecast from "@/components/DailyForecast";
 import BlueprintIdentity from "@/components/BlueprintIdentity";
 import BlueprintPreviewCard from "@/components/BlueprintPreviewCard";
 import LuminaryGate from "@/components/LuminaryGate";
+import SetPasswordStep, { needsPassword } from "@/components/SetPasswordStep";
+import NamePrompt, { hasAskedForName } from "@/components/NamePrompt";
 import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
@@ -82,11 +84,15 @@ const Blueprint = () => {
   const displayedMoonSign = userProfile?.natal_moon_sign || userProfile?.moon_sign;
   const displayedSunSign = userProfile?.natal_sun_sign || (userProfile?.birthday ? calculateSunSign(new Date(`${userProfile.birthday.split("T")[0]}T12:00:00`)) : null);
 
-  // Extract display name (prefers first_name from profile or auth metadata, falls back to Cosmic Traveler — never email)
+  // Display name: first_name from the profile or auth metadata. Never the email; with no name the greeting is just "Welcome".
   const userName =
     userProfile?.first_name?.trim() ||
-    (user?.user_metadata?.first_name as string)?.trim() ||
-    "Cosmic Traveler";
+    (user?.user_metadata?.first_name as string | undefined)?.trim() ||
+    null;
+  const [nameAnswered, setNameAnswered] = useState(false);
+  const passwordPending = needsPassword(user);
+  const showNamePrompt =
+    !!user && !passwordPending && !profileLoading && !!userProfile && !userName && !nameAnswered && !hasAskedForName(user.id);
 
   // Fetch user profile with birth moon sign
   useEffect(() => {
@@ -117,6 +123,14 @@ const Blueprint = () => {
 
     fetchUserProfile();
   }, [user]);
+
+  // A member whose Moon sign is still unsettled (a Moon-change birthday) finishes the quiz on their own birthday.
+  useEffect(() => {
+    if (passwordPending || profileLoading || !userProfile) return;
+    if (userProfile.birthday && !userProfile.natal_moon_sign && !userProfile.moon_sign) {
+      navigate("/transition-quiz", { replace: true });
+    }
+  }, [passwordPending, profileLoading, userProfile, navigate]);
 
   // Fetch combination profile for Layer 1 — Blueprint Identity
   useEffect(() => {
@@ -335,6 +349,20 @@ const Blueprint = () => {
     ],
   };
 
+  // Accounts made from the birthday + email step choose their password first, right after confirming.
+  if (passwordPending) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col relative">
+        <SEO title={seoTitle} description={seoDescription} canonical="https://moondaylive.com/blueprint" noindex />
+        <Navigation />
+        <main className="flex-1 pt-[68px] pb-10 px-4 sm:px-6 relative z-20">
+          <SetPasswordStep />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
       <SEO
@@ -375,6 +403,16 @@ const Blueprint = () => {
             </GlassmorphismCard>
           )}
 
+          {showNamePrompt && user && (
+            <NamePrompt
+              userId={user.id}
+              onDone={(name) => {
+                setNameAnswered(true);
+                if (name) setUserProfile((p) => (p ? { ...p, first_name: name } : p));
+              }}
+            />
+          )}
+
           <FirstRunOnboarding />
 
           {/* Welcome Header */}
@@ -391,7 +429,7 @@ const Blueprint = () => {
               Your Blueprint
             </h2>
             <p className="font-serif text-lg md:text-xl text-cream-muted">
-              Welcome back, {userName}
+              {userName ? `Welcome back, ${userName}` : "Welcome"}
             </p>
           </div>
 

@@ -1,16 +1,17 @@
+import type { ReactNode } from "react";
 import { Lock } from "lucide-react";
 
 interface LockedBlueprintTeaserProps {
   sunSign: string;
   moonSign: string;
-  onCreateAccount: () => void;
+  children?: ReactNode;
 }
 
 /**
- * The offer shown before the account wall. Deliberately shows no combination title or text
+ * The Blueprint offer shown with a reveal. Deliberately shows no combination title or text
  * (the combination profiles are members-only): the blurred bars are decoration, not content.
  */
-const LockedBlueprintTeaser = ({ sunSign, moonSign, onCreateAccount }: LockedBlueprintTeaserProps) => (
+const LockedBlueprintTeaser = ({ sunSign, moonSign, children }: LockedBlueprintTeaserProps) => (
   <div className="rounded-2xl border border-lilac/25 bg-card/50 p-5 md:p-6 space-y-5">
     <div className="relative rounded-xl border border-lilac/15 bg-background/40 p-4 overflow-hidden" aria-hidden="true">
       <div className="space-y-2.5 blur-[5px] select-none">
@@ -30,13 +31,7 @@ const LockedBlueprintTeaser = ({ sunSign, moonSign, onCreateAccount }: LockedBlu
       Your {sunSign} Sun × {moonSign} Moon Blueprint is ready.
     </p>
 
-    <button
-      type="button"
-      onClick={onCreateAccount}
-      className="w-full min-h-12 px-5 py-3 bg-lilac hover:bg-lilac-light text-primary-foreground font-sans text-[15px] font-medium normal-case tracking-normal rounded-xl transition-all duration-300 shadow-[0_0_40px_-8px_hsl(var(--lilac)/0.7)]"
-    >
-      Create your free account to open it
-    </button>
+    {children}
   </div>
 );
 
