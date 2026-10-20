@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const leoArticle: LibraryArticle = {
   sign: "Leo",
+  /** One line for the Library hub tile. */
+  summary: "A warm, generous heart that needs to be seen and appreciated.",
   seoTitle: "Leo Moon Meaning: Warmth, Pride and Heart | Moonday Live",
   seoDescription:
     "What a Leo Moon means: a generous, expressive heart that needs to be seen, how you love, work and cope with hurt pride, and how to support this Moon.",

@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const taurusArticle: LibraryArticle = {
   sign: "Taurus",
+  /** One line for the Library hub tile. */
+  summary: "A steady, sensual heart that finds safety in comfort and time.",
   seoTitle: "Taurus Moon Meaning: Comfort, Love and Security | Moonday Live",
   seoDescription:
     "What a Taurus Moon means: a steady, sensual emotional nature, how you love and work, why change is hard, and how to support someone with this Moon.",

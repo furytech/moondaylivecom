@@ -5,6 +5,8 @@ import type { LibraryArticle } from "./types";
 
 export const cancerArticle: LibraryArticle = {
   sign: "Cancer",
+  /** One line for the Library hub tile. */
+  summary: "A tender, protective heart that needs home and belonging.",
   seoTitle: "Cancer Moon Meaning: Emotions, Love and Needs | Moonday Live",
   seoDescription:
     "What a Cancer Moon means: emotional needs, how you love, work and cope with stress, and how to support someone with this Moon. Find your Moon sign free.",

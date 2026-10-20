@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const libraArticle: LibraryArticle = {
   sign: "Libra",
+  /** One line for the Library hub tile. */
+  summary: "A heart that needs harmony, fairness and good company.",
   seoTitle: "Libra Moon Meaning: Harmony, Love and Balance | Moonday Live",
   seoDescription:
     "What a Libra Moon means: a need for harmony and fairness, how you love, work and handle conflict and indecision, and how to support someone with this Moon.",

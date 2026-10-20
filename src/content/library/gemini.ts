@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const geminiArticle: LibraryArticle = {
   sign: "Gemini",
+  /** One line for the Library hub tile. */
+  summary: "Feelings worked out through words, curiosity and variety.",
   seoTitle: "Gemini Moon Meaning: Mind and Curiosity | Moonday Live",
   seoDescription:
     "What a Gemini Moon means: feeling through words and ideas, why you need variety, how you love, work and handle stress, and how to support this Moon.",

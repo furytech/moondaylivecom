@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const virgoArticle: LibraryArticle = {
   sign: "Virgo",
+  /** One line for the Library hub tile. */
+  summary: "Love shown through help, with a sharp eye and a kind intent.",
   seoTitle: "Virgo Moon Meaning: Care and Perfectionism | Moonday Live",
   seoDescription:
     "What a Virgo Moon means: showing love through help, the inner critic, how you love, work and manage anxiety, and how to support someone with this Moon.",

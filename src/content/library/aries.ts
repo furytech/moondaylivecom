@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const ariesArticle: LibraryArticle = {
   sign: "Aries",
+  /** One line for the Library hub tile. */
+  summary: "Fast, honest feelings that need movement and room to act.",
   seoTitle: "Aries Moon Meaning: Emotions, Anger and Drive | Moonday Live",
   seoDescription:
     "What an Aries Moon means: fast feelings, a need for movement, how you love, work and cope with stress, and how to support someone with this Moon.",

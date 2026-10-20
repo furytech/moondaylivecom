@@ -27,6 +27,8 @@ export interface ArticleFaq {
 
 export interface LibraryArticle {
   sign: string;
+  /** One line for the Library hub tile. */
+  summary: string;
   /** Overrides the meta title / description when the default ones are too generic. */
   seoTitle?: string;
   seoDescription?: string;

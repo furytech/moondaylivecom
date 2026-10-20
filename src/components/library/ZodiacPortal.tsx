@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ZodiacDeepContent } from "@/lib/zodiacDeepContent";
 import { libraryPath } from "@/lib/librarySeo";
+import { libraryArticles } from "@/content/library";
+import { moonSignDeepDiveContent } from "@/lib/moonSignContent";
 
 import aries from "@/assets/zodiac/Aries.png";
 import taurus from "@/assets/zodiac/Taurus.png";
@@ -29,13 +31,14 @@ const zodiacImages: Record<string, string> = {
 };
 
 export function ZodiacPortal({ content, index }: ZodiacPortalProps) {
+  const archetype = moonSignDeepDiveContent[content.sign]?.archetype;
+  const summary = libraryArticles[content.sign]?.summary;
   return (
     <Link
       to={libraryPath(content.sign)}
       aria-label={`${content.sign} Moon meaning`}
       className={cn(
-        "group relative block overflow-hidden",
-        "aspect-[3/4] w-full",
+        "group relative flex flex-col overflow-hidden",
         "border border-primary/20 hover:border-primary/50",
         "bg-gradient-to-b from-background/80 to-navy-dark/60",
         "backdrop-blur-sm",
@@ -48,28 +51,29 @@ export function ZodiacPortal({ content, index }: ZodiacPortalProps) {
       style={{ animationDelay: `${index * 0.05}s` }}
     >
       {/* Art Deco corner accents */}
-      <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-primary/40" />
-      <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-primary/40" />
-      <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-primary/40" />
-      <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-primary/40" />
+      <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-primary/60 z-10" />
+      <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-primary/60 z-10" />
+      <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-primary/40 z-10" />
+      <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-primary/40 z-10" />
 
-      {/* Hover overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <img
+        src={zodiacImages[content.sign]}
+        alt={`${content.sign} constellation`}
+        width={1136}
+        height={939}
+        loading="lazy"
+        className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+      />
 
-      {/* Content */}
-      <div className="relative h-full flex flex-col items-center justify-center gap-6 p-4 md:p-6">
-        <img
-          src={zodiacImages[content.sign]}
-          alt={`${content.sign} zodiac symbol`}
-          className="w-20 h-20 md:w-24 md:h-24 object-contain transition-transform duration-300 group-hover:scale-110"
-        />
-        <h2 className="font-display font-light text-base md:text-lg text-foreground/80 tracking-[0.15em] uppercase group-hover:text-primary transition-colors duration-300">
+      <div className="flex flex-1 flex-col items-center gap-1.5 px-3 py-4 md:px-4 text-center">
+        <h2 className="font-display font-light text-base md:text-lg text-foreground/90 tracking-[0.12em] uppercase group-hover:text-primary transition-colors duration-300">
           {content.sign} Moon
         </h2>
+        {archetype && (
+          <p className="font-display text-[11px] md:text-xs tracking-[0.2em] uppercase text-primary/80">{archetype}</p>
+        )}
+        {summary && <p className="font-serif text-sm text-cream-muted leading-snug">{summary}</p>}
       </div>
-
-      {/* Bottom accent line */}
-      <div className="absolute bottom-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     </Link>
   );
 }

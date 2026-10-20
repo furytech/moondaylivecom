@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const piscesArticle: LibraryArticle = {
   sign: "Pisces",
+  /** One line for the Library hub tile. */
+  summary: "A porous, imaginative heart that feels what the room feels.",
   seoTitle: "Pisces Moon Meaning: Empathy and Dreams | Moonday Live",
   seoDescription:
     "What a Pisces Moon means: a porous, imaginative, deeply empathic heart, how you love, work, protect your energy, and how to support this Moon.",

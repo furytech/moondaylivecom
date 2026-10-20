@@ -4,6 +4,8 @@ import type { LibraryArticle } from "./types";
 
 export const aquariusArticle: LibraryArticle = {
   sign: "Aquarius",
+  /** One line for the Library hub tile. */
+  summary: "An independent, idealistic heart that feels from a little distance.",
   seoTitle: "Aquarius Moon Meaning: Independence and Ideals | Moonday Live",
   seoDescription:
     "What an Aquarius Moon means: an independent, idealistic heart that needs space, how you love, work and handle stress, and how to support this Moon.",
