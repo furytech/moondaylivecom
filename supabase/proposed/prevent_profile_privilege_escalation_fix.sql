@@ -1,4 +1,4 @@
--- PROPOSED, NOT RUN. Project ggrhuhwxbwrfbbcwcrmv only.
+-- APPLIED 2026-10-20 to project ggrhuhwxbwrfbbcwcrmv; verifications passed. Kept for reference and rollback. Do not re-run.
 -- Problem: prevent_profile_privilege_escalation() is SECURITY DEFINER, so inside it current_user is the
 -- function owner (postgres), the "service role / postgres" exemption is always true, and a signed-in
 -- member can change their own is_subscriber, subscription_status and email.
