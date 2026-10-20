@@ -11,6 +11,7 @@ import { Download, Share2, Twitter, Facebook, Instagram, Link2 } from "lucide-re
 import { moonSignDeepDiveContent } from "@/lib/moonSignContent";
 import { toast } from "@/hooks/use-toast";
 import { sharedMoonUrl } from "@/lib/sharedMoonSeo";
+import { recordShareClick } from "@/lib/shareNudge";
 
 // Update once the community goes live.
 const REDDIT_URL = "https://www.reddit.com/r/MoondayLive/";
@@ -77,38 +78,52 @@ export default function MyMoonCard() {
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast({ title: "Link copied", description: "Anyone who opens it sees your Moon sign card and can find their own." });
+      void recordShareClick("my-moon-card", "copy", true);
     } catch {
       toast({ title: "Could not copy", description: shareUrl, variant: "destructive" });
     }
   };
 
+  /** True when the share sheet completed; false when it fell back to a download. Throws if the person backs out. */
+  const shareNative = async (url: string): Promise<boolean> => {
+    const blob = await (await fetch(url)).blob();
+    const file = new File([blob], `moonday-${moonSign}.png`, { type: "image/png" });
+    // @ts-ignore — canShare/files is widely supported on mobile
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], text: shareText, title: "My Moon Sign — Moonday Live" });
+      return true;
+    }
+    if (navigator.share) {
+      await navigator.share({ text: shareText, title: "My Moon Sign — Moonday Live", url: shareUrl });
+      return true;
+    }
+    // Desktop fallback: download
+    handleDownload();
+    return false;
+  };
+
   const handleNativeShare = async () => {
     const url = await generatePng();
     if (!url) return;
+    let completed = false;
     try {
-      const blob = await (await fetch(url)).blob();
-      const file = new File([blob], `moonday-${moonSign}.png`, { type: "image/png" });
-      // @ts-ignore — canShare/files is widely supported on mobile
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text: shareText, title: "My Moon Sign — Moonday Live" });
-        return;
-      }
-      if (navigator.share) {
-        await navigator.share({ text: shareText, title: "My Moon Sign — Moonday Live", url: shareUrl });
-        return;
-      }
-      // Desktop fallback: download
-      handleDownload();
-    } catch (e) {
+      completed = await shareNative(url);
+    } catch {
       // user cancelled — silent
     }
+    void recordShareClick("my-moon-card", "native", completed);
   };
 
-  const shareTwitter = () =>
+  const shareTwitter = () => {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, "_blank");
-  const shareFacebook = () =>
+    void recordShareClick("my-moon-card", "x", true);
+  };
+  const shareFacebook = () => {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
+    void recordShareClick("my-moon-card", "facebook", true);
+  };
   const shareInstagram = async () => {
+    void recordShareClick("my-moon-card", "instagram", true);
     await handleDownload();
     toast({
       title: "Image downloaded",

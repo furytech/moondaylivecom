@@ -14,6 +14,8 @@ const FUNCTION_SECRET = Deno.env.get("SEND_BLUEPRINT_SECRET");
 // ─── Constants ─────────────────────────────────────────────────────────────
 const FROM_ADDRESS   = "Moonday Live <noreply@moondaylive.com>";
 const BLUEPRINT_URL  = "https://moondaylive.com/blueprint";
+// The member's own share page (it asks them to sign in first). It only ever shares their own Moon sign.
+const SHARE_URL      = "https://moondaylive.com/my-moon-card?utm_source=blueprint_email&utm_medium=email&utm_campaign=share_moon_sign";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function cap(s: string): string {
@@ -117,6 +119,14 @@ function buildEmailHtml(opts: {
         </a>
         <p style="margin:12px 0 0;color:#6a5e42;font-size:11px;line-height:1.5;">
           When you're ready to see how each Moon shift meets your chart, Luminary is here.
+        </p>
+      </td></tr>
+
+      <!-- SHARE (understated) -->
+      <tr><td style="padding:0 40px 20px;text-align:center;">
+        <p style="margin:0;color:#6a5e42;font-size:12px;line-height:1.6;">
+          Know someone who'd love this?
+          <a href="${SHARE_URL}" style="color:#8a7a5a;text-decoration:underline;">Share your Moon sign</a>
         </p>
       </td></tr>
 

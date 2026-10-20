@@ -27,6 +27,15 @@ import NamePrompt, { hasAskedForName } from "@/components/NamePrompt";
 import { clearPendingMoonSign, loadPendingMoonSign } from "@/lib/pendingMoonSign";
 import { requestBlueprintEmail } from "@/lib/blueprintEmail";
 import { hasVisitedBlueprint, markBlueprintVisited } from "@/lib/blueprintVisit";
+import ShareNudgeCard from "@/components/ShareNudgeCard";
+import {
+  parseShareNudge,
+  recordNudgeDismissed,
+  recordNudgeShown,
+  recordShareClick,
+  shouldShowShareNudge,
+  type ShareNudgeState,
+} from "@/lib/shareNudge";
 import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
@@ -103,8 +112,23 @@ const Blueprint = () => {
   useEffect(() => {
     if (blueprintReady && user) markBlueprintVisited(user.id);
   }, [blueprintReady, user]);
+  // Share-your-Moon-sign nudge: kept per account, shown only once the name prompt has been saved or skipped.
+  const [nudgeState, setNudgeState] = useState<ShareNudgeState>(() => parseShareNudge(user?.user_metadata?.share_nudge));
+  const [nudgeVisit, setNudgeVisit] = useState<"idle" | "visible" | "closed">("idle");
+  const nudgeDecided = useRef(false);
   const showNamePrompt =
     !!user && !passwordPending && !profileLoading && !!userProfile && !userName && !nameAnswered && !hasAskedForName(user.id);
+  // Decided once per visit (the ref keeps a re-render with fresh nudge state from deciding again).
+  useEffect(() => {
+    if (nudgeDecided.current || !blueprintReady || showNamePrompt || !user) return;
+    nudgeDecided.current = true;
+    if (!shouldShowShareNudge(nudgeState, user.created_at)) {
+      setNudgeVisit("closed");
+      return;
+    }
+    setNudgeVisit("visible");
+    void recordNudgeShown(nudgeState).then(setNudgeState);
+  }, [blueprintReady, showNamePrompt, user, nudgeState]);
 
   // Fetch user profile with birth moon sign
   useEffect(() => {
@@ -562,6 +586,17 @@ const Blueprint = () => {
             </GlassmorphismCard>
 
           </div>
+
+          {nudgeVisit === "visible" && displayedMoonSign && (
+            <ShareNudgeCard
+              sign={displayedMoonSign}
+              onShareClick={(method, completed) => void recordShareClick("nudge", method, completed).then(setNudgeState)}
+              onDismiss={() => {
+                setNudgeVisit("closed");
+                void recordNudgeDismissed(nudgeState).then(setNudgeState);
+              }}
+            />
+          )}
 
           {/* Share Your Moon CTA */}
           {displayedMoonSign && (
