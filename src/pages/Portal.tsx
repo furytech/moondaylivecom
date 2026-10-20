@@ -9,7 +9,6 @@ import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSignAsync, calculateNatalSigns, calculateSunSign, type TransitionInfo } from "@/lib/moonSign";
-import { fetchCombinationProfile } from "@/services/combinationService";
 import { getLocalCuspDay } from "@/lib/cuspDay";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEO from "@/components/SEO";
@@ -277,11 +276,6 @@ const Portal = ({ defaultMode = "login" }: PortalProps) => {
           firstName.trim()
         );
         cacheTimezone(timezone);
-        try {
-          await fetchCombinationProfile(sunSign, moonSignName);
-        } catch {
-          /* background prefetch */
-        }
         setSignupSuccess(true);
       }
     } catch (err: unknown) {
