@@ -8,8 +8,10 @@ import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
 import MoonLoader from "@/components/MoonLoader";
 import { useAuth } from "@/contexts/AuthContext";
-import { REVEAL_PATH, loadSignupDraft } from "@/lib/signupDraft";
-import { useCreateRevealAccount } from "@/hooks/useCreateRevealAccount";
+import { REVEAL_PATH, clearSignupDraft, loadSignupDraft } from "@/lib/signupDraft";
+import { saveRevealState } from "@/lib/revealState";
+import { savePendingMoonSign } from "@/lib/pendingMoonSign";
+import { requestBlueprintEmail } from "@/lib/blueprintEmail";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -44,7 +46,6 @@ const TransitionQuiz = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const createAccount = useCreateRevealAccount();
 
   // The birthday is never read from the URL: it is the signed-in member's own profile birthday,
   // or the one a visitor just entered in the birthday + email step.
@@ -60,9 +61,7 @@ const TransitionQuiz = () => {
   const [result, setResult] = useState<QuizResultState | null>(null);
   const chosen = result?.sign ?? null;
   const [saving, setSaving] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState("");
-  const creatingRef = useRef(false);
+  const settledRef = useRef(false);
 
   // Work out the Moon-change day in the person's OWN timezone: the member's saved timezone,
   // or the one detected when the visitor entered their birthday.
@@ -102,27 +101,28 @@ const TransitionQuiz = () => {
   );
   const questions = pair?.questions ?? [];
 
-  // A visitor's reveal happens as part of creating their account: once the sign is settled, create it.
-  const finishAsVisitor = async (sign: string) => {
-    if (!draft || creatingRef.current) return;
-    creatingRef.current = true;
-    setCreating(true);
-    setCreateError("");
-    try {
-      await createAccount({ email: draft.email, birthday: draft.birthday, timezone: tz || draft.timezone, moonSign: sign });
-    } catch (err) {
-      const message = (err as { message?: string }).message || "Could not create your account.";
-      setCreateError(/rate limit|only request this after/i.test(message) ? "Too many attempts. Please wait a minute and try again." : message);
-      creatingRef.current = false;
-      setCreating(false);
-    }
+  // A visitor's account already exists (it was created before the quiz, so no sign was shown without an email).
+  // Hold the settled sign here until they confirm and sign in, then show the reveal.
+  const settleAsVisitor = (sign: string) => {
+    if (!draft || settledRef.current) return;
+    settledRef.current = true;
+    savePendingMoonSign({ birthday: draft.birthday, sign });
+    saveRevealState({
+      kind: "reveal",
+      email: draft.email,
+      birthday: draft.birthday,
+      sunSign: calculateSunSign(draft.birthday),
+      moonSign: sign,
+    });
+    clearSignupDraft();
+    navigate("/your-moon-sign");
   };
 
   // Not actually a Moon-change day in this timezone: the Moon stayed in one sign.
   useEffect(() => {
     if (!cusp || cusp.isCuspDay || result) return;
     setResult({ score: null, sign: cusp.from });
-    if (!user) void finishAsVisitor(cusp.from);
+    if (!user) settleAsVisitor(cusp.from);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cusp]);
 
@@ -137,7 +137,7 @@ const TransitionQuiz = () => {
     const score = scoreCuspQuiz(pair, cusp.fractionBeforeIngress, next);
     if (score.certainty === "clear") {
       setResult({ score, sign: score.leading });
-      if (!user) void finishAsVisitor(score.leading);
+      if (!user) settleAsVisitor(score.leading);
     } else {
       // Close call: never save silently. The person chooses.
       setResult({ score, sign: null });
@@ -147,7 +147,7 @@ const TransitionQuiz = () => {
   const handlePickSign = (sign: MoonSign) => {
     setResult((r) => (r ? { ...r, sign } : r));
     if (user) void handleSaveAndContinue(sign);
-    else void finishAsVisitor(sign);
+    else settleAsVisitor(sign);
   };
 
   // Signed-in members save their result straight to their own profile.
@@ -157,7 +157,7 @@ const TransitionQuiz = () => {
     try {
       const { data: userProfile } = await supabase
         .from("user_profiles")
-        .select("birthday, natal_sun_sign")
+        .select("birthday, natal_sun_sign, natal_moon_sign, moon_sign")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -177,6 +177,8 @@ const TransitionQuiz = () => {
         .update(updatePayload)
         .eq("user_id", user.id);
       if (error) throw error;
+      // A member whose sign was still open gets their Blueprint email now that it is settled.
+      if (!userProfile?.natal_moon_sign && !userProfile?.moon_sign) void requestBlueprintEmail();
       toast({
         title: "Moon Sign Confirmed",
         description: `Your blueprint is now anchored in ${signToSave}.`,
@@ -394,7 +396,7 @@ const TransitionQuiz = () => {
               </div>
             )}
 
-            {!resolving && result && !chosen && result.score && cusp?.isCuspDay && !creating && !createError && (
+            {!resolving && result && !chosen && result.score && cusp?.isCuspDay && (
               <div className="space-y-6">
                 <div className="text-center space-y-3">
                   <p className="text-lilac text-xs tracking-[0.3em] uppercase">Your Lunar Signature</p>
@@ -439,27 +441,6 @@ const TransitionQuiz = () => {
                   className="w-full h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
                 >
                   Retake the quiz
-                </button>
-              </div>
-            )}
-
-            {!resolving && creating && (
-              <div className="flex flex-col items-center gap-4 py-10 text-center">
-                <MoonLoader size="md" />
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                  Anchoring your Moon and sending your confirmation link…
-                </p>
-              </div>
-            )}
-
-            {!resolving && !creating && createError && (
-              <div className="space-y-4 text-center">
-                <p role="alert" className="text-destructive text-sm leading-relaxed">{createError}</p>
-                <button
-                  onClick={() => navigate(REVEAL_PATH)}
-                  className="w-full min-h-12 border border-lilac/30 text-lilac hover:bg-lilac/10 rounded-xl text-[15px] transition-all duration-300"
-                >
-                  Start again
                 </button>
               </div>
             )}

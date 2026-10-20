@@ -24,6 +24,13 @@ export interface SignUpOutcome {
   status: "created" | "existing" | "pending";
 }
 
+export interface SignUpOptions {
+  /** The account starts with a random password; the member chooses theirs after confirming */
+  passwordPending?: boolean;
+  /** A Moon-change birthday: leave the Moon sign empty (never guess) until the quiz settles it */
+  deferMoonSign?: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -38,7 +45,7 @@ interface AuthContextType {
     timezone?: string,
     natalSunSign?: string,
     firstName?: string,
-    options?: { passwordPending?: boolean }
+    options?: SignUpOptions
   ) => Promise<SignUpOutcome>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
@@ -219,18 +226,18 @@ export const AuthProvider = ({ children, initialLoading = true }: AuthProviderPr
     timezone?: string,
     natalSunSign?: string,
     firstName?: string,
-    options?: { passwordPending?: boolean }
+    options?: SignUpOptions
   ): Promise<SignUpOutcome> => {
     let resolvedSunSign = natalSunSign;
     let resolvedMoonSign = moonSign;
 
-    if (birthday && (!resolvedSunSign || !resolvedMoonSign)) {
+    if (birthday && (!resolvedSunSign || (!resolvedMoonSign && !options?.deferMoonSign))) {
       try {
         const bd = new Date(`${birthday.split("T")[0]}T12:00:00`);
         if (!resolvedSunSign) {
           resolvedSunSign = calculateSunSign(bd);
         }
-        if (!resolvedMoonSign) {
+        if (!resolvedMoonSign && !options?.deferMoonSign) {
           resolvedMoonSign = (await calculateMoonSignAsync(bd)).sign;
         }
       } catch (err) {

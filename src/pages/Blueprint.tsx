@@ -9,7 +9,7 @@ import MoonCalculationFallback from "@/components/MoonCalculationFallback";
 import CalculationBoundary from "@/components/CalculationBoundary";
 import { getSignSymbol } from "@/lib/forecastEngine";
 import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
@@ -24,6 +24,9 @@ import BlueprintPreviewCard from "@/components/BlueprintPreviewCard";
 import LuminaryGate from "@/components/LuminaryGate";
 import SetPasswordStep, { needsPassword } from "@/components/SetPasswordStep";
 import NamePrompt, { hasAskedForName } from "@/components/NamePrompt";
+import { clearPendingMoonSign, loadPendingMoonSign } from "@/lib/pendingMoonSign";
+import { requestBlueprintEmail } from "@/lib/blueprintEmail";
+import { hasVisitedBlueprint, markBlueprintVisited } from "@/lib/blueprintVisit";
 import DailyRitual from "@/components/DailyRitual";
 import GreatCycleSection from "@/components/GreatCycleSection";
 import LunarSignatureSection from "@/components/LunarSignatureSection";
@@ -91,6 +94,15 @@ const Blueprint = () => {
     null;
   const [nameAnswered, setNameAnswered] = useState(false);
   const passwordPending = needsPassword(user);
+  // First time this member opens their Blueprint on this device: "Welcome, <name>"; after that "Welcome back, <name>".
+  const blueprintReady = !!user && !passwordPending && !profileLoading && !!userProfile && !!displayedMoonSign;
+  const firstVisitRef = useRef<boolean | null>(null);
+  if (firstVisitRef.current === null && blueprintReady && user) {
+    firstVisitRef.current = !hasVisitedBlueprint(user.id);
+  }
+  useEffect(() => {
+    if (blueprintReady && user) markBlueprintVisited(user.id);
+  }, [blueprintReady, user]);
   const showNamePrompt =
     !!user && !passwordPending && !profileLoading && !!userProfile && !userName && !nameAnswered && !hasAskedForName(user.id);
 
@@ -124,13 +136,34 @@ const Blueprint = () => {
     fetchUserProfile();
   }, [user]);
 
-  // A member whose Moon sign is still unsettled (a Moon-change birthday) finishes the quiz on their own birthday.
+  // A member whose Moon sign is still open (a Moon-change birthday) gets it settled here: the quiz result this
+  // browser kept for their birthday is applied, otherwise they take the quiz on their own birthday.
+  const settlingRef = useRef(false);
   useEffect(() => {
-    if (passwordPending || profileLoading || !userProfile) return;
-    if (userProfile.birthday && !userProfile.natal_moon_sign && !userProfile.moon_sign) {
+    if (!user || passwordPending || profileLoading || !userProfile || settlingRef.current) return;
+    if (!userProfile.birthday || userProfile.natal_moon_sign || userProfile.moon_sign) return;
+    settlingRef.current = true;
+    const birthday = userProfile.birthday.split("T")[0];
+    const pending = loadPendingMoonSign();
+    if (!pending || pending.birthday !== birthday) {
       navigate("/transition-quiz", { replace: true });
+      return;
     }
-  }, [passwordPending, profileLoading, userProfile, navigate]);
+    (async () => {
+      const sunSign = userProfile.natal_sun_sign || calculateSunSign(birthday);
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ moon_sign: pending.sign, natal_moon_sign: pending.sign, natal_sun_sign: sunSign })
+        .eq("user_id", user.id);
+      if (error) {
+        navigate("/transition-quiz", { replace: true });
+        return;
+      }
+      clearPendingMoonSign();
+      setUserProfile((p) => (p ? { ...p, moon_sign: pending.sign, natal_moon_sign: pending.sign, natal_sun_sign: sunSign } : p));
+      void requestBlueprintEmail();
+    })();
+  }, [user, passwordPending, profileLoading, userProfile, navigate]);
 
   // Fetch combination profile for Layer 1 — Blueprint Identity
   useEffect(() => {
@@ -429,7 +462,7 @@ const Blueprint = () => {
               Your Blueprint
             </h2>
             <p className="font-serif text-lg md:text-xl text-cream-muted">
-              {userName ? `Welcome back, ${userName}` : "Welcome"}
+              {userName ? (firstVisitRef.current === false ? `Welcome back, ${userName}` : `Welcome, ${userName}`) : "Welcome"}
             </p>
           </div>
 

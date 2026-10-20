@@ -140,7 +140,13 @@ function buildEmailHtml(opts: {
 
 // ─── Main handler ──────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
-  const headers = { "Content-Type": "application/json" };
+  // The app calls this from the browser (a member asking for their own email), so answer preflights and allow it.
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers });
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -160,11 +166,22 @@ Deno.serve(async (req: Request) => {
     if (!authorized && FUNCTION_SECRET) {
       authorized = req.headers.get("authorization") === `Bearer ${FUNCTION_SECRET}`;
     }
+    // A signed-in member may ask for their OWN Blueprint email (a Moon-change birthday is settled after
+    // confirming, so the confirmation trigger found no Moon sign yet). The user comes from their verified
+    // token, never from the body, and the once-per-user claim below still applies.
+    let jwtUserId: string | null = null;
     if (!authorized) {
+      const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+      if (bearer && bearer !== FUNCTION_SECRET) {
+        const { data: userData } = await supabase.auth.getUser(bearer);
+        if (userData?.user?.id && userData.user.email_confirmed_at) jwtUserId = userData.user.id;
+      }
+    }
+    if (!authorized && !jwtUserId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
     }
 
-    const payload = await req.json();
+    const payload = jwtUserId ? { type: "EMAIL_CONFIRMED", user_id: jwtUserId } : await req.json();
 
     // Only the email-confirmation trigger sends the Blueprint email.
     // Legacy user_profiles INSERT/UPDATE webhooks are ignored.
@@ -196,10 +213,11 @@ Deno.serve(async (req: Request) => {
     const firstName = profile.first_name?.trim() || null;
 
     if (!sun_sign || !moon_sign) {
-      console.error("Missing natal_sun_sign or natal_moon_sign", user_id);
+      // Not claimed, so it can still go out once the Moon-change quiz settles the sign (see jwtUserId above).
+      console.log("Moon sign not settled yet, Blueprint email waits:", user_id);
       return new Response(
-          JSON.stringify({ error: "Missing sun_sign or moon_sign" }),
-          { status: 400, headers }
+          JSON.stringify({ skipped: true, reason: "moon_sign_not_settled" }),
+          { status: 200, headers }
       );
     }
 
@@ -284,10 +302,12 @@ Deno.serve(async (req: Request) => {
       console.error("Resend error:", resendBody);
       await releaseClaim();
       await supabase.from("email_send_log").insert({
-        user_id,
-        email_type: "blueprint",
+        message_id: null,
+        template_name: "blueprint",
+        recipient_email: email,
         status: "failed",
-        error_detail: JSON.stringify(resendBody),
+        error_message: JSON.stringify(resendBody).slice(0, 500),
+        metadata: { user_id },
       });
       return new Response(
           JSON.stringify({ error: "Email delivery failed", detail: resendBody }),
@@ -296,10 +316,12 @@ Deno.serve(async (req: Request) => {
     }
 
     await supabase.from("email_send_log").insert({
-      user_id,
-      email_type: "blueprint",
+      message_id: null,
+      template_name: "blueprint",
+      recipient_email: email,
       status: "sent",
-      resend_id: resendBody.id,
+      error_message: null,
+      metadata: { user_id, resend_id: resendBody.id },
     });
 
     console.log("Blueprint email sent:", { user_id, email, resend_id: resendBody.id });

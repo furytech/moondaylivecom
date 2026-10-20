@@ -25,6 +25,10 @@ vi.mock("@/components/BirthdayPicker", () => ({
     </div>
   ),
 }));
+const resend = vi.fn();
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: { auth: { resend: (...a: unknown[]) => resend(...a) } },
+}));
 vi.mock("@/components/Navigation", () => ({ default: () => <nav /> }));
 vi.mock("@/components/Footer", () => ({ default: () => <footer /> }));
 
@@ -86,6 +90,9 @@ describe("Birthday + email step", () => {
     clearRevealState();
     signUp.mockReset();
     signUp.mockResolvedValue({ status: "created" });
+    resend.mockReset();
+    resend.mockResolvedValue({ error: null });
+    localStorage.clear();
   });
 
   it("asks for exactly a birthday and an email, and nothing else", () => {
@@ -132,7 +139,7 @@ describe("Birthday + email step", () => {
     expect(moon).toBe(getLocalCuspDay(birthday, detectTimezoneOption()).from);
     expect(sun).toBe("Gemini");
     expect(name).toBeUndefined();
-    expect(options).toEqual({ passwordPending: true });
+    expect(options).toEqual({ passwordPending: true, deferMoonSign: false });
     expect(loadRevealState()).toMatchObject({ kind: "reveal", email: "friend+test@example.com", birthday });
   });
 
@@ -147,15 +154,42 @@ describe("Birthday + email step", () => {
     expect(loadRevealState()).toBeNull();
   });
 
-  it("holds the account until the Moon Cusp Quiz settles a Moon-change birthday", async () => {
+  it("creates the pending account before the quiz on a Moon-change birthday, with no Moon sign guessed", async () => {
     const birthday = findBirthday(true);
     setup(<BirthdayEmailStep />);
     fill(birthday, "cusp@example.com");
     fireEvent.click(screen.getByRole("button", { name: "Reveal my Moon sign" }));
 
     await waitFor(() => expect(screen.getByText("at /transition-quiz")).toBeInTheDocument());
-    expect(signUp).not.toHaveBeenCalled();
+    expect(signUp).toHaveBeenCalledTimes(1);
+    const [email, , bd, moon, , , , options] = signUp.mock.calls[0];
+    expect(email).toBe("cusp@example.com");
+    expect(bd).toBe(birthday);
+    expect(moon).toBeUndefined(); // never silently picked
+    expect(options).toEqual({ passwordPending: true, deferMoonSign: true });
     expect(loadSignupDraft()).toMatchObject({ birthday, email: "cusp@example.com" });
-    expect(loadRevealState()).toBeNull();
+    expect(loadRevealState()).toBeNull(); // nothing is revealed until the quiz has settled the sign
+  });
+
+  it("only resends the link when this browser already started a signup for the email, whatever birthday is typed", async () => {
+    const first = findBirthday(false);
+    const { unmount } = setup(<BirthdayEmailStep />);
+    fill(first, "again@example.com");
+    fireEvent.click(screen.getByRole("button", { name: "Reveal my Moon sign" }));
+    await waitFor(() => expect(screen.getByText(/^at \/your-moon-sign/)).toBeInTheDocument());
+    expect(signUp).toHaveBeenCalledTimes(1);
+    unmount();
+
+    setup(<BirthdayEmailStep />);
+    fill("1992-03-21", "Again@Example.com");
+    fireEvent.click(screen.getByRole("button", { name: "Reveal my Moon sign" }));
+    await waitFor(() => expect(screen.getByText(/^at \/your-moon-sign/)).toBeInTheDocument());
+
+    expect(signUp).toHaveBeenCalledTimes(1); // the second submit never reached signUp: no birthday or data can travel
+    expect(resend).toHaveBeenCalledTimes(1);
+    expect(resend.mock.calls[0][0]).toMatchObject({ type: "signup", email: "Again@Example.com" });
+    expect(JSON.stringify(resend.mock.calls[0][0])).not.toMatch(/1992|birthday/);
+    // and nothing about the new birthday is kept or shown
+    expect(loadRevealState()).toEqual({ kind: "resent", email: "Again@Example.com" });
   });
 });

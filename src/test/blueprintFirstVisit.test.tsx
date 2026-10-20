@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { savePendingMoonSign } from "../lib/pendingMoonSign";
 import { HelmetProvider } from "react-helmet-async";
 import Blueprint from "../pages/Blueprint";
 import * as AuthContextModule from "../contexts/AuthContext";
@@ -8,6 +9,7 @@ import * as useLunarForecastModule from "../hooks/useLunarForecast";
 
 let profile: Record<string, unknown>;
 const updates: Array<Record<string, unknown>> = [];
+const invoke = vi.fn().mockResolvedValue({ data: null, error: null });
 const updateUser = vi.fn().mockResolvedValue({ error: null });
 
 vi.mock("@/integrations/supabase/client", () => {
@@ -36,7 +38,7 @@ vi.mock("@/integrations/supabase/client", () => {
     supabase: {
       from,
       rpc: async () => ({ data: false, error: null }),
-      functions: { invoke: vi.fn() },
+      functions: { invoke: (...a: unknown[]) => invoke(...a) },
       auth: { updateUser: (...a: unknown[]) => updateUser(...a) },
     },
   };
@@ -45,11 +47,16 @@ vi.mock("@/integrations/supabase/client", () => {
 vi.mock("@/components/Navigation", () => ({ default: () => <nav /> }));
 vi.mock("@/components/Footer", () => ({ default: () => <footer /> }));
 
-function renderBlueprint(opts: { firstName?: string | null; passwordPending?: boolean; birthday?: string | null }) {
+function renderBlueprint(opts: {
+  firstName?: string | null;
+  passwordPending?: boolean;
+  birthday?: string | null;
+  noMoonSign?: boolean;
+}) {
   profile = {
     first_name: opts.firstName ?? null,
-    moon_sign: "Libra",
-    natal_moon_sign: "Libra",
+    moon_sign: opts.noMoonSign ? null : "Libra",
+    natal_moon_sign: opts.noMoonSign ? null : "Libra",
     natal_sun_sign: "Scorpio",
     birthday: opts.birthday === undefined ? "1985-11-03" : opts.birthday,
     subscription_status: "free",
@@ -73,8 +80,11 @@ function renderBlueprint(opts: { firstName?: string | null; passwordPending?: bo
   } as never);
   return render(
     <HelmetProvider>
-      <MemoryRouter>
-        <Blueprint />
+      <MemoryRouter initialEntries={["/blueprint"]}>
+        <Routes>
+          <Route path="/blueprint" element={<Blueprint />} />
+          <Route path="/transition-quiz" element={<p>quiz page</p>} />
+        </Routes>
       </MemoryRouter>
     </HelmetProvider>
   );
@@ -84,6 +94,7 @@ describe("Blueprint first visit", () => {
   beforeEach(() => {
     updates.length = 0;
     updateUser.mockClear();
+    invoke.mockClear();
     localStorage.clear();
     localStorage.setItem("moonday.onboarding.dismissed", "1");
   });
@@ -100,7 +111,7 @@ describe("Blueprint first visit", () => {
     fireEvent.change(await screen.findByPlaceholderText("First name"), { target: { value: "Maya" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(await screen.findByText("Welcome back, Maya")).toBeInTheDocument();
+    expect(await screen.findByText("Welcome, Maya")).toBeInTheDocument(); // first visit
     expect(updates).toContainEqual({ first_name: "Maya" });
     expect(screen.queryByRole("form", { name: "What should we call you?" })).toBeNull();
   });
@@ -118,10 +129,43 @@ describe("Blueprint first visit", () => {
     expect(screen.queryByRole("form", { name: "What should we call you?" })).toBeNull();
   });
 
-  it("does not ask a member who already has a name", async () => {
+  it("does not ask a member who already has a name, and greets the first visit with 'Welcome, <name>'", async () => {
+    renderBlueprint({ firstName: "Maya" });
+    expect(await screen.findByText("Welcome, Maya")).toBeInTheDocument();
+    expect(screen.queryByText("Welcome back, Maya")).toBeNull();
+    expect(screen.queryByRole("form", { name: "What should we call you?" })).toBeNull();
+  });
+
+  it("says 'Welcome back, <name>' on later visits", async () => {
+    const first = renderBlueprint({ firstName: "Maya" });
+    await screen.findByText("Welcome, Maya");
+    first.unmount();
+
     renderBlueprint({ firstName: "Maya" });
     expect(await screen.findByText("Welcome back, Maya")).toBeInTheDocument();
-    expect(screen.queryByRole("form", { name: "What should we call you?" })).toBeNull();
+  });
+
+  it("does not use up the first-visit greeting while the password step is showing", async () => {
+    const first = renderBlueprint({ firstName: "Maya", passwordPending: true });
+    await screen.findByRole("heading", { name: "Set a password to open your Blueprint" });
+    first.unmount();
+
+    renderBlueprint({ firstName: "Maya" });
+    expect(await screen.findByText("Welcome, Maya")).toBeInTheDocument();
+  });
+
+  it("applies the quiz result kept for a Moon-change birthday after confirming, then asks for the Blueprint email", async () => {
+    savePendingMoonSign({ birthday: "1985-11-03", sign: "Aries" });
+    renderBlueprint({ noMoonSign: true });
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("send-blueprint-email", { body: { type: "EMAIL_CONFIRMED" } }));
+    expect(updates).toContainEqual({ moon_sign: "Aries", natal_moon_sign: "Aries", natal_sun_sign: "Scorpio" });
+    expect(localStorage.getItem("moonday:pendingMoonSign")).toBeNull();
+  });
+
+  it("sends a member with no settled Moon sign to the quiz on their own birthday", async () => {
+    renderBlueprint({ noMoonSign: true });
+    expect(await screen.findByText("quiz page")).toBeInTheDocument();
+    expect(updates).toHaveLength(0);
   });
 
   it("asks for a password before opening the Blueprint of an account made from the birthday + email step", async () => {

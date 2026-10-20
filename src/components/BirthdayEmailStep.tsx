@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import BirthdayPicker, { type BirthdayParts } from "@/components/BirthdayPicker";
 import MoonLoader from "@/components/MoonLoader";
 import { buildBirthday, isValidBirthday, revealForBirthday } from "@/lib/birthdayReveal";
 import { formatBirthdayLong } from "@/lib/cuspDay";
-import { saveSignupDraft } from "@/lib/signupDraft";
 import { detectTimezoneOption } from "@/lib/timezone";
 import { trackEvent } from "@/lib/analytics";
 import { useCreateRevealAccount } from "@/hooks/useCreateRevealAccount";
@@ -17,7 +16,6 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * and on /birthday-moon-phase.
  */
 const BirthdayEmailStep = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const createAccount = useCreateRevealAccount();
 
@@ -48,13 +46,14 @@ const BirthdayEmailStep = () => {
       const timezone = detectTimezoneOption();
       const reveal = await revealForBirthday(birthday, timezone);
       trackEvent("moon_reveal_submit", { moon_change_birthday: reveal.isCuspDay });
-      if (reveal.isCuspDay || !reveal.moonSign) {
-        // Moon-change birthday: the quiz settles the sign, then the account is created.
-        saveSignupDraft({ birthday, timezone, email: cleanEmail });
-        navigate("/transition-quiz");
-        return;
-      }
-      await createAccount({ email: cleanEmail, birthday, timezone, moonSign: reveal.moonSign });
+      // A Moon-change birthday has no sign yet (the quiz settles it): the account is still created first,
+      // so no sign, candidate or otherwise, is ever shown without an email behind it.
+      await createAccount({
+        email: cleanEmail,
+        birthday,
+        timezone,
+        moonSign: reveal.isCuspDay ? null : reveal.moonSign,
+      });
     } catch (err) {
       const message = (err as { message?: string }).message ?? "";
       setError(

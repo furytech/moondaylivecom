@@ -18,8 +18,8 @@ const YourMoonSign = () => {
   const state = useMemo(() => loadRevealState(), []);
   if (!state) return <Navigate to="/" replace />;
 
-  const moon = getMoonSignByName(state.moonSign);
-  const dive = getMoonSignDeepDive(state.moonSign);
+  const moon = state.kind === "reveal" ? getMoonSignByName(state.moonSign) : null;
+  const dive = state.kind === "reveal" ? getMoonSignDeepDive(state.moonSign) : null;
 
   const inbox = (
     <div className="rounded-2xl border border-lilac/25 bg-card/50 p-5 md:p-6 space-y-3">

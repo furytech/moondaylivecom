@@ -151,7 +151,7 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const { error: updateError } = await supabase.auth.updateUser({ password, data: { password_pending: false } });
       if (updateError) throw updateError;
 
       setSuccess(true);

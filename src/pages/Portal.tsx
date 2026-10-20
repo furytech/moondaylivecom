@@ -32,6 +32,8 @@ const Portal = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [linkSending, setLinkSending] = useState(false);
+  const [linkNotice, setLinkNotice] = useState("");
   const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string } | null>(null);
   const [mfaCode, setMfaCode] = useState("");
   const [mfaError, setMfaError] = useState("");
@@ -118,6 +120,34 @@ const Portal = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Sign in without a password: for members who never set one, or forgot it. Never creates an account.
+  const handleMagicLink = async () => {
+    setError("");
+    setLinkNotice("");
+    const clean = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+      setError("Enter your email above first, then ask for the link.");
+      return;
+    }
+    setLinkSending(true);
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: clean,
+      options: { shouldCreateUser: false, emailRedirectTo: window.location.origin },
+    });
+    setLinkSending(false);
+    const message = otpError?.message ?? "";
+    if (otpError && /rate limit|only request this after/i.test(message)) {
+      setError("Please wait a minute before asking for another link.");
+      return;
+    }
+    // An address with no account gets the same answer, so this never says who has one.
+    if (otpError && !/signups? not allowed/i.test(message)) {
+      setError("We couldn't send a link just now. Please try again.");
+      return;
+    }
+    setLinkNotice("If that email has a Moonday account, a sign-in link is on its way. Open it on this device.");
   };
 
   const Starfield = () => (
@@ -349,6 +379,25 @@ const Portal = () => {
               >
                 {loading ? <MoonLoader size="sm" /> : "Sign In"}
               </button>
+
+              <div className="space-y-3 border-t border-lilac/15 pt-5">
+                <button
+                  type="button"
+                  onClick={handleMagicLink}
+                  disabled={linkSending}
+                  className="w-full min-h-12 px-5 py-3 border border-lilac/30 text-lilac hover:bg-lilac/10 font-sans text-[15px] font-medium normal-case tracking-normal rounded-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
+                >
+                  {linkSending ? <MoonLoader size="sm" /> : "Email me a sign-in link"}
+                </button>
+                <p className="text-xs text-muted-foreground/80 leading-relaxed text-left">
+                  Never set a password, or forgot it? The link signs you in without one.
+                </p>
+                {linkNotice && (
+                  <p role="status" className="rounded-xl border border-lilac/25 bg-lilac/5 px-4 py-3 text-[15px] leading-relaxed text-cream/90 text-left">
+                    {linkNotice}
+                  </p>
+                )}
+              </div>
             </form>
 
             <div className="mt-6 text-center">
