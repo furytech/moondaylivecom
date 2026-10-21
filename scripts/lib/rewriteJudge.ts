@@ -64,7 +64,7 @@ export async function judgeRewrites(items: JudgeItem[], apiKey: string, patience
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: judgePrompt(items) }] }],
-                generationConfig: { temperature: 0, maxOutputTokens: 8192, responseMimeType: 'application/json' },
+                generationConfig: { temperature: 0, maxOutputTokens: 8192, thinkingConfig: { thinkingLevel: 'minimal' }, responseMimeType: 'application/json' },
             }),
         });
         if (res.status === 429) {

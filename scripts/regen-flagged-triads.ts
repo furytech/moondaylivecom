@@ -194,7 +194,7 @@ async function callGemini(prompt: string, patience: Patience): Promise<{ json: R
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.8, maxOutputTokens: 8192, topP: 0.92, responseMimeType: 'application/json' },
+                generationConfig: { temperature: 0.8, maxOutputTokens: 8192, topP: 0.92, responseMimeType: 'application/json', thinkingConfig: { thinkingLevel: 'minimal' } },
             }),
         });
         if (res.status === 429) {
