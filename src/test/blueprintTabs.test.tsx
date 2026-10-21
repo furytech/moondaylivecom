@@ -286,7 +286,7 @@ describe("Blueprint tabs", () => {
       }
       const pillsWithText = (root: HTMLElement) =>
         [...root.querySelectorAll("button, a, span, div")].filter(
-          (e) => /rounded-full/.test(e.className) && e.children.length === 0 && (e.textContent ?? "").trim().length > 0
+          (e) => /\brounded-full\b/.test(e.className) && e.children.length === 0 && (e.textContent ?? "").trim().length > 0
         );
       expect(pillsWithText(panel)).toEqual([]);
       a.unmount();

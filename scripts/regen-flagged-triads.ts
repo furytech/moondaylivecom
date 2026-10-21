@@ -20,6 +20,7 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { findBodyClaims } from '../src/lib/dailyContentGuard';
+import { assignVariety, findUnassignedCrutches, varietyInstruction, ACTIVITY_POOLS, CLOSINGS, OPENINGS, PACE_SHAPES } from './lib/triadVariety';
 
 for (const f of ['.env.local', '.env']) {
     const p = path.resolve(process.cwd(), f);
@@ -77,7 +78,7 @@ const RULES = `CONTENT RULES (these override everything else):
 function instructionFor(field: Field, row: Row): string {
     const sun = row.natal_sun_sign, moon = row.natal_moon_sign, transit = row.transiting_moon_sign;
     if (field === 'physical_guidance') {
-        return `"physical_guidance": "2-3 sentences of PACE-AND-ENERGY guidance: how this ${transit} Moon transit sets the energy of the day for this Blueprint, when to push and when to slow down, and what kind of activity suits the day (a slow walk, an early night, focused work, time with people). Warm and specific to how a ${sun}/${moon} person experiences ${transit} energy, not generic moon-in-sign information. No medical language."`;
+        return `"physical_guidance": "2-3 sentences of PACE-AND-ENERGY guidance: how this ${transit} Moon transit sets the energy of the day for this Blueprint, when to push and when to slow down, and what kind of activity suits the day. ${varietyInstruction(assignVariety(row))} Warm and specific to how a ${sun}/${moon} person experiences ${transit} energy, not generic moon-in-sign information. No medical language."`;
     }
     return `"${field}": "A minimal rewrite of the ${LABEL[field]} text below. Keep its meaning, voice, imagery and length; change only the wording that is medical or pseudo-medical. TEXT TO REWRITE: ${JSON.stringify(row[field])}"`;
 }
@@ -216,11 +217,12 @@ async function main() {
             const missing = flagged.filter((f) => typeof json[f] !== 'string' || !json[f].trim());
             const hits = flagged.flatMap((f) => findBodyClaims(json[f]).map((t) => `${f}: ${t}`));
             const tooLong = flagged.filter((f) => (json[f]?.length ?? 0) > 900);
-            if (missing.length === 0 && hits.length === 0 && tooLong.length === 0) {
+            const crutches = flagged.includes('physical_guidance') ? findUnassignedCrutches(json.physical_guidance ?? '', assignVariety(row)) : [];
+            if (missing.length === 0 && hits.length === 0 && tooLong.length === 0 && crutches.length === 0) {
                 after = Object.fromEntries(flagged.map((f) => [f, json[f].trim()]));
                 break;
             }
-            const why = [...missing.map((f) => `${f} missing`), ...hits, ...tooLong.map((f) => `${f} too long`)].join('; ');
+            const why = [...missing.map((f) => `${f} missing`), ...hits, ...tooLong.map((f) => `${f} too long`), ...crutches.map((c) => `used ${c} without being assigned it`)].join('; ');
             rejections.push(why);
             prompt += `\n\nYOUR LAST DRAFT WAS REJECTED (${why}). Rewrite those fields with no medical or pseudo-medical language (plain self-care suggestions are fine) and keep each under 900 characters.`;
             await sleep(PACING_MS);
@@ -249,7 +251,46 @@ async function main() {
         return xs.length ? xs[xs.length >> 1] : 0;
     };
 
+    const energy = ok.map((r) => (r.after.physical_guidance ?? '') as string).filter(Boolean);
+    const lastSentence = (x: string) => x.trim().split(/(?<=[.!?])\s+/).pop() ?? '';
+    const firstWords = (x: string, n: number) => x.trim().toLowerCase().split(/\s+/).slice(0, n).join(' ');
+    const tally = (xs: string[]) => {
+        const m = new Map<string, number>();
+        xs.forEach((x) => m.set(x, (m.get(x) ?? 0) + 1));
+        return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    };
+    // How the assignments spread over every row that needs regeneration (the model picks one of three ideas each time).
+    const offered = new Map<string, number>();
+    const closingsUsed = new Map<string, number>();
+    const shapesUsed = new Map<string, number>();
+    for (const r of needing) {
+        const a = assignVariety(r);
+        a.activities.forEach((x) => offered.set(x, (offered.get(x) ?? 0) + 1));
+        closingsUsed.set(a.closing, (closingsUsed.get(a.closing) ?? 0) + 1);
+        shapesUsed.set(a.paceShape, (shapesUsed.get(a.paceShape) ?? 0) + 1);
+    }
+    const topOffered = [...offered.entries()].sort((a, b) => b[1] - a[1])[0];
+    const variety = {
+        sampleEnergyLines: energy.length,
+        mentionWalk: energy.filter((x) => /\bwalk/i.test(x)).length,
+        mentionEarlyNight: energy.filter((x) => /early night|rest early|bed early/i.test(x)).length,
+        mentionWaterBreak: energy.filter((x) => /glass of (cool )?water|drink some water/i.test(x)).length,
+        mostRepeatedOpening3Words: tally(energy.map((x) => firstWords(x, 3))),
+        mostRepeatedClosing4Words: tally(energy.map((x) => firstWords(lastSentence(x), 4))),
+        assignmentAcrossAllRows: {
+            rows: needing.length,
+            activityIdeas: Object.values(ACTIVITY_POOLS).flat().length,
+            mostOfferedIdeaShareOfRows: `${((topOffered[1] / needing.length) * 100).toFixed(1)}% (${topOffered[0]}); the model picks one of three, so its real share is about a third of that`,
+            openingStyles: OPENINGS.length,
+            closingStyles: CLOSINGS.length,
+            largestClosingStyleShare: `${((Math.max(...closingsUsed.values()) / needing.length) * 100).toFixed(1)}%`,
+            paceShapes: Object.values(PACE_SHAPES).flat().length,
+            largestPaceShapeShare: `${((Math.max(...shapesUsed.values()) / needing.length) * 100).toFixed(1)}%`,
+        },
+    };
+
     const stats = {
+        variety,
         sampled: results.length, succeeded: ok.length, failed: results.length - ok.length,
         passedFirstTry: firstTry, totalAttempts: results.reduce((a, r) => a + r.attempts, 0),
         avgTokensPerRow: per, rowsNeedingRegen: needing.length,
