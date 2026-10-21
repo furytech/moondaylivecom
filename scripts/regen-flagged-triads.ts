@@ -34,7 +34,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { BODY_CLAIM_TERMS, findBodyClaims } from '../src/lib/dailyContentGuard';
 import { assignVariety, findUnassignedCrutches, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
-import { judgeRewrite, QuotaExhausted, isDailyQuota } from './lib/rewriteJudge';
+import { judgeRewrites, QuotaExhausted, isDailyQuota } from './lib/rewriteJudge';
 import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation } from './lib/languageGlossary';
 
 for (const f of ['.env.local', '.env']) {
@@ -43,8 +43,8 @@ for (const f of ['.env.local', '.env']) {
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const MODEL        = 'gemini-3.5-flash-lite';
-const PACING_MS    = 1200;
+const MODEL        = 'gemini-3.8-flash';
+const PACING_MS    = 200;
 const MAX_RETRIES  = 5;
 const GEMINI_KEY   = process.env.GEMINI_API_KEY;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://ggrhuhwxbwrfbbcwcrmv.supabase.co';
@@ -52,15 +52,18 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const TG_TOKEN     = process.env.TELEGRAM_BOT_TOKEN;
 const TG_CHAT_ID   = process.env.TELEGRAM_CHAT_ID;
 const BACKUP_TABLE = 'triad_states_backup_2026_10_21';
-// USD per million tokens, from third-party pricing pages (not verified against Google's own page). Thinking tokens bill as output.
-const RATE_IN = 0.30, RATE_OUT = 2.50;
+// USD per million tokens: Google's published gemini-3.8-flash price through 2026-12-31 (as given by the owner). Thinking tokens bill as output.
+const RATE_IN = 0.75, RATE_OUT = 3.75;
 
 const arg = (name: string, fallback?: string) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback;
 const flag = (name: string) => process.argv.includes(`--${name}`);
 const SAMPLE      = Number(arg('sample', '24'));
 const OUT         = arg('out', '.')!;
 const BATCH       = Number(arg('batch', '200'));
-const CONCURRENCY = Number(arg('concurrency', '3'));
+const CONCURRENCY = Number(arg('concurrency', '6'));
+/** Hard spending cap in dollars: no new API call starts once the tokens used so far cost this much. */
+const BUDGET_USD  = Number(arg('budget-usd', '20'));
+const RETRY_REVIEW = flag('retry-review');
 const LIMIT       = Number(arg('limit', '0'));
 /** Stop starting new rows once this many API calls (drafts and editor reads) have been made; 0 = no budget. For a free-tier daily quota. */
 const MAX_CALLS   = Number(arg('max-calls', '0'));
@@ -190,17 +193,18 @@ async function callGemini(prompt: string): Promise<{ json: Record<string, string
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.8, maxOutputTokens: 2048, topP: 0.92, responseMimeType: 'application/json' },
+                generationConfig: { temperature: 0.8, maxOutputTokens: 8192, topP: 0.92, responseMimeType: 'application/json' },
             }),
         });
         if (res.status === 429) {
             const body = await res.text();
             if (isDailyQuota(body)) throw new QuotaExhausted(body);
-            if (attempt < 4) { await sleep(30000 * Math.pow(2, attempt)); continue; }
-            throw new Error(`Gemini 429: ${body.slice(0, 200)}`);
+            if (attempt < 4) { await sleep(5000 * Math.pow(2, attempt)); continue; }
+            throw new Error(`Gemini 429: ${body.slice(0, 300)}`);
         }
         if (!res.ok) {
-            if (attempt < 3) { await sleep(2000 * Math.pow(2, attempt)); continue; }
+            // 503 "high demand" and other transient errors: back off and try again
+            if (attempt < 5) { await sleep(Math.min(30000, 3000 * Math.pow(2, attempt))); continue; }
             throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
         }
         const data = await res.json();
@@ -247,23 +251,23 @@ function validate(job: Job, json: Record<string, string>, recent: string[]): str
     return problems;
 }
 
-/** The copy-editor read of each rewritten line. A judge call that fails counts as a failed API call and rejects the draft. */
-async function judgeFields(job: Job, json: Record<string, string>, used: Usage): Promise<string[]> {
-    const problems: string[] = [];
-    for (const f of job.fields) {
-        if (f === 'physical_guidance') continue;
-        S.calls++;
-        try {
-            const verdict = await judgeRewrite(job.source[f]!, json[f].trim(), GEMINI_KEY!);
-            addUsage(used, verdict.tokens);
-            if (!verdict.ok) problems.push(`${f}: reads badly or changes the meaning (${verdict.problems.join(' / ') || 'editor rejected it'}); reword the clause around the glossary phrase so it is grammatical`);
-        } catch (err) {
-            if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; problems.push('quota exhausted'); break; }
-            S.callFailures++;
-            problems.push(`${f}: editor check unavailable (${(err as Error).message})`);
-        }
+/**
+ * The copy-editor read of a row's final draft: ONE call covering every rewritten (non-energy) line. It runs only on a draft that
+ * already passed every rule-based check. A row it rejects is not retried: it keeps its current text and goes on the review list.
+ */
+async function judgeRow(job: Job, json: Record<string, string>, used: Usage): Promise<string[]> {
+    const items = job.fields.filter((f) => f !== 'physical_guidance').map((f) => ({ field: f, source: job.source[f]!, rewrite: json[f].trim() }));
+    if (!items.length) return [];
+    S.calls++;
+    try {
+        const { failures, tokens } = await judgeRewrites(items, GEMINI_KEY!);
+        track(used, tokens);
+        return failures.map((x) => `${x.field}: ${x.problems.join(' / ')}`);
+    } catch (err) {
+        if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; return ['quota exhausted']; }
+        S.callFailures++;
+        return [`editor check unavailable (${(err as Error).message})`];
     }
-    return problems;
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -312,7 +316,7 @@ function summarizePlan(rows: Row[], jobs: Job[]) {
 }
 
 // ── Processing ────────────────────────────────────────────────────────────────
-const S = { rows: 0, written: 0, stale: 0, failedRows: 0, calls: 0, callFailures: 0, attempts: 0, firstTry: 0, retriedRows: 0, usage: { prompt: 0, output: 0, thoughts: 0 } as Usage };
+const S = { rows: 0, written: 0, stale: 0, failedRows: 0, editorRejected: 0, calls: 0, callFailures: 0, attempts: 0, firstTry: 0, retriedRows: 0, usage: { prompt: 0, output: 0, thoughts: 0 } as Usage };
 const recentEnergy: string[] = [];
 let seq = 0;
 let stopReason = '';
@@ -337,11 +341,20 @@ interface Result {
     n: number; seq: number | null; id: string; triadNumber: number | null; sun: string; moon: string; transit: string; title: string | null;
     flagged: Field[]; kinds: Partial<Record<Field, Kind>>; attempts: number; rejections: string[]; usage: Usage;
     before: Record<string, string | null>; source: Record<string, string>; after: Record<string, string> | null;
-    /** quota = the daily API quota ran out mid-row: nothing was written and the row is simply still to do */
-    status: 'dry-run' | 'written' | 'stale' | 'failed' | 'error' | 'quota';
-    /** The last rejected draft, kept for rows that failed every retry */
+    /**
+     * quota = the API quota or the dollar budget ran out mid-row: nothing was written and the row is simply still to do.
+     * failed / error / review = the row keeps its current text and goes on the needs-review list (review = the editor read rejected the final draft).
+     */
+    status: 'dry-run' | 'written' | 'stale' | 'failed' | 'error' | 'review' | 'quota';
+    /** The last rejected draft, kept for rows that went on the needs-review list */
     lastDraft?: Record<string, string>;
+    /** Wall-clock milliseconds this row took, including retries and the editor read */
+    ms?: number;
 }
+
+const NEEDS_REVIEW: Result['status'][] = ['failed', 'error', 'review'];
+/** Count tokens against the row and against the run as they are used, so the dollar budget sees calls still in flight. */
+const track = (used: Usage, u: Usage) => { addUsage(used, u); addUsage(S.usage, u); };
 
 async function processJob(job: Job, n: number, write: boolean, supabase: ReturnType<typeof createClient> | null): Promise<Result> {
     const row = job.row;
@@ -352,8 +365,10 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
     const rejections: string[] = [];
     let status: Result['status'] = 'failed';
     let lastDraft: Record<string, string> | undefined;
+    const t0 = Date.now();
 
     while (attempts <= MAX_RETRIES && !after) {
+        if (costUSD(S.usage) >= BUDGET_USD) { stopReason = stopReason || `dollar budget of $${BUDGET_USD} reached`; status = 'quota'; break; }
         attempts++;
         let res;
         S.calls++;
@@ -362,14 +377,17 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
             if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; status = 'quota'; rejections.push(err.message); break; }
             S.callFailures++; status = 'error'; rejections.push(`API error: ${(err as Error).message}`); break;
         }
-        addUsage(used, res.usage);
+        track(used, res.usage);
         lastDraft = res.json;
         let problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
         if (problems.length === 0) {
-            // Second read of every rewritten (non-energy) line: grammar and meaning. Then re-validate, because the variety
-            // window may have moved while waiting.
-            problems = await judgeFields(job, res.json, used);
-            if (problems.length === 0) problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
+            // One editor read of the final draft (grammar and meaning of every rewritten line). If it rejects, the row is
+            // not retried: it keeps its current text and goes on the needs-review list.
+            const editor = await judgeRow(job, res.json, used);
+            if (editor.includes('quota exhausted')) { status = 'quota'; break; }
+            if (editor.length) { status = 'review'; rejections.push(`editor: ${editor.join('; ')}`); break; }
+            // The variety window may have moved while waiting.
+            problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
         }
         // Validate and accept in one synchronous step so the variety window is exact when workers run side by side.
         if (problems.length === 0) {
@@ -377,7 +395,6 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
             if (after.physical_guidance) recentEnergy.push(after.physical_guidance);
             break;
         }
-        if (problems.includes('quota exhausted')) { status = 'quota'; break; }
         rejections.push(problems.join('; '));
         prompt += `\n\nYOUR LAST DRAFT WAS REJECTED (${problems.join('; ')}). Rewrite those fields fixing exactly that: translate each clinical term with its glossary phrase (never drop it or use a vague stand-in), keep plain self-care, put activities and pace in your own words, use US spelling, and keep each under 900 characters.`;
         await sleep(PACING_MS);
@@ -393,9 +410,8 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
             if (error) throw error;
             status = (data?.length ?? 0) === 1 ? 'written' : 'stale';
         }
-    } else if (status !== 'error' && status !== 'quota') status = 'failed';
+    } else if (status !== 'error' && status !== 'quota' && status !== 'review') status = 'failed';
 
-    addUsage(S.usage, used);
     if (status === 'quota') {
         // Not a failure: the daily quota ran out, nothing was written, and the next run picks this row up again.
         return { n, seq: null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign, title: row.combination_title, flagged: job.fields, kinds: job.kinds, attempts, rejections, usage: used, before: {}, source: {}, after: null, status };
@@ -403,7 +419,8 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
     S.rows++; S.attempts += attempts;
     if (status === 'written') S.written++;
     if (status === 'stale') S.stale++;
-    if (status === 'failed' || status === 'error') S.failedRows++;
+    if (NEEDS_REVIEW.includes(status)) S.failedRows++;
+    if (status === 'review') S.editorRejected++;
     if (after && attempts === 1) S.firstTry++;
     if (attempts > 1) S.retriedRows++;
     checkStop();
@@ -412,6 +429,7 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
         n, seq: after ? ++seq : null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign,
         title: row.combination_title, flagged: job.fields, kinds: job.kinds, attempts, rejections, usage: used,
         before: Object.fromEntries(job.fields.map((f) => [f, row[f]])), source: job.source as Record<string, string>, after, status,
+        ms: Date.now() - t0,
         ...(after ? {} : { lastDraft }),
     };
 }
@@ -473,13 +491,39 @@ async function main() {
         });
         const done = results.filter(Boolean);
         const ok = done.filter((r) => r.after);
+        const wallSeconds = (Date.now() - started) / 1000;
+        // Project to every row that needs work, weighting the two kinds of row (energy line only vs rows with rewritten lines) by their real counts.
+        const isEnergyOnly = (fields: Field[]) => fields.length === 1 && fields[0] === 'physical_guidance';
+        const classOf = (r: { flagged: Field[] }) => (isEnergyOnly(r.flagged) ? 'energyOnly' : 'withRewrites');
+        const planCount = { energyOnly: jobs.filter((j) => isEnergyOnly(j.fields)).length, withRewrites: jobs.filter((j) => !isEnergyOnly(j.fields)).length };
+        const perClass = (['energyOnly', 'withRewrites'] as const).map((c) => {
+            const rs = done.filter((r) => classOf(r) === c);
+            const n = Math.max(1, rs.length);
+            return { c, sampled: rs.length, planRows: planCount[c], meanCostUSD: rs.reduce((s, r) => s + costUSD(r.usage), 0) / n, meanRowSeconds: rs.reduce((s, r) => s + (r.ms ?? 0), 0) / n / 1000, meanCalls: rs.reduce((s, r) => s + r.attempts, 0) / n };
+        });
+        const projectedCostUSD = perClass.reduce((s, p) => s + p.meanCostUSD * p.planRows, 0);
+        const projectedRowSeconds = perClass.reduce((s, p) => s + p.meanRowSeconds * p.planRows, 0);
         const stats = {
             plan: planSummary,
-            sampled: done.length, succeeded: ok.length, failed: done.length - ok.length,
-            passedFirstTry: S.firstTry, totalAttempts: S.attempts,
+            model: MODEL, concurrency: CONCURRENCY,
+            sampled: done.length, succeeded: ok.length, needsReview: done.length - ok.length,
+            needsReviewDetail: done.filter((r) => !r.after).map((r) => ({ n: r.n, status: r.status, row: `${r.sun}/${r.moon}→${r.transit}`, why: (r.rejections.at(-1) ?? '').slice(0, 300) })),
+            editorRejected: S.editorRejected,
+            passedFirstTry: S.firstTry, totalDraftCalls: S.attempts, totalApiCalls: S.calls,
             tokens: S.usage, sampleCostUSD: +costUSD(S.usage).toFixed(4),
-            estimatedFullRunUSD: +((costUSD(S.usage) / Math.max(1, done.length)) * jobs.length).toFixed(2),
-            ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT, note: 'third-party listing, unverified' },
+            timing: {
+                wallSeconds: +wallSeconds.toFixed(1),
+                wallSecondsPerRow: +(wallSeconds / Math.max(1, done.length)).toFixed(1),
+                meanSecondsPerRowLatency: +(done.reduce((s, r) => s + (r.ms ?? 0), 0) / Math.max(1, done.length) / 1000).toFixed(1),
+            },
+            projection: {
+                rows: jobs.length,
+                perClass: perClass.map((p) => ({ ...p, meanCostUSD: +p.meanCostUSD.toFixed(4), meanRowSeconds: +p.meanRowSeconds.toFixed(1), meanCalls: +p.meanCalls.toFixed(2) })),
+                totalCostUSD: +projectedCostUSD.toFixed(2),
+                totalMinutesAtThisConcurrency: +(projectedRowSeconds / CONCURRENCY / 60).toFixed(0),
+                note: 'The sample is built from the hardest rows plus plain energy-only rows, so this leans high. Time assumes throughput scales with concurrency.',
+            },
+            ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT },
         };
         fs.writeFileSync(path.join(OUT, 'dry-run-results.json'), JSON.stringify({ stats, results: done }, null, 2));
         const md: string[] = [`# Triad regeneration: dry run (${new Date().toISOString().slice(0, 10)})`, '', '```json', JSON.stringify(stats, null, 2), '```', ''];
@@ -498,19 +542,24 @@ async function main() {
     }
 
     // ── Full run ──
-    const queue = [...jobs].sort((a, b) => hash(a.row.id) - hash(b.row.id)); // mixed order, so neighbours in the variety window differ
-    const todo = LIMIT ? queue.slice(0, LIMIT) : queue;
     const logPath = path.join(OUT, 'run-log.jsonl');
-    const failPath = path.join(OUT, 'run-failures.jsonl');
-    await tgSend(`Triad regeneration started: ${todo.length} rows in batches of ${BATCH}.`);
-    console.log(`\nFULL RUN: ${todo.length} rows, batches of ${BATCH}, concurrency ${CONCURRENCY}. Writes to triad_states.\n`);
+    const reviewPath = path.join(OUT, 'needs-review.jsonl');
+    // Resume: the plan is recomputed from the database, so rows already written drop out by themselves. Rows already on the
+    // needs-review list are skipped (so a resume does not spend money on them again) unless --retry-review is passed.
+    const reviewed = new Set<string>(
+        !RETRY_REVIEW && fs.existsSync(reviewPath) ? fs.readFileSync(reviewPath, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l).id) : []
+    );
+    const queue = [...jobs].filter((j) => !reviewed.has(j.row.id)).sort((a, b) => hash(a.row.id) - hash(b.row.id)); // mixed order, so neighbours in the variety window differ
+    const todo = LIMIT ? queue.slice(0, LIMIT) : queue;
+    await tgSend(`Triad regeneration started: ${todo.length} rows in batches of ${BATCH}, budget $${BUDGET_USD}.`);
+    console.log(`\nFULL RUN: ${todo.length} rows (${reviewed.size} on the needs-review list skipped), batches of ${BATCH}, concurrency ${CONCURRENCY}, budget $${BUDGET_USD}. Writes to triad_states.\n`);
 
     for (let b = 0; b < todo.length && !stopReason; b += BATCH) {
         const batch = todo.slice(b, b + BATCH);
         await runPool(batch, CONCURRENCY, async (job, i) => {
             const r = await processJob(job, b + i + 1, true, supabase);
-            if (r.status !== 'quota') fs.appendFileSync(r.after ? logPath : failPath, JSON.stringify(r) + '\n');
-            if ((S.rows % 25) === 0) console.log(`  ${S.rows}/${todo.length} rows · written ${S.written} · failed ${S.failedRows} · stale ${S.stale} · $${costUSD(S.usage).toFixed(2)}`);
+            if (r.status !== 'quota') fs.appendFileSync(r.after ? logPath : reviewPath, JSON.stringify(r) + '\n');
+            if ((S.rows % 25) === 0) console.log(`  ${S.rows}/${todo.length} rows · written ${S.written} · needs review ${S.failedRows} · stale ${S.stale} · $${costUSD(S.usage).toFixed(2)}`);
         });
         const line = `Batch ${Math.floor(b / BATCH) + 1}/${Math.ceil(todo.length / BATCH)} done: ${S.rows}/${todo.length} rows, written ${S.written}, failed ${S.failedRows}, stale ${S.stale}, cost so far $${costUSD(S.usage).toFixed(2)}.`;
         console.log(line);
@@ -519,10 +568,11 @@ async function main() {
 
     const summary = {
         stoppedEarly: stopReason || null,
-        rowsPlanned: todo.length, rowsProcessed: S.rows, written: S.written, staleSkipped: S.stale, failedAllRetries: S.failedRows,
+        model: MODEL, concurrency: CONCURRENCY, budgetUSD: BUDGET_USD,
+        rowsPlanned: todo.length, rowsProcessed: S.rows, written: S.written, staleSkipped: S.stale, needsReview: S.failedRows, ofWhichEditorRejected: S.editorRejected,
         apiCalls: S.calls, apiCallFailures: S.callFailures, firstTryRows: S.firstTry, rowsNeedingRetry: S.retriedRows,
         tokens: S.usage, actualCostUSD: +costUSD(S.usage).toFixed(2),
-        ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT, note: 'third-party listing, unverified' },
+        ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT },
         minutes: +((Date.now() - started) / 60000).toFixed(1),
     };
     fs.writeFileSync(path.join(OUT, 'run-summary.json'), JSON.stringify(summary, null, 2));
