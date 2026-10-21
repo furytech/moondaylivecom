@@ -495,7 +495,7 @@ export default function Triad() {
             />
 
             <PositionBlock
-              eyebrow="Lens Two · The Wiring"
+              eyebrow="The Inner Weather"
               title="Sidereal"
               meta={`Vedic astrology · Nakshatra ${triad.sidereal.nakshatra.name} · Pada ${triad.sidereal.nakshatra.pada}`}
               position={triad.sidereal.formatted}
