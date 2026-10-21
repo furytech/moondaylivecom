@@ -50,7 +50,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
       {/* Affirmation */}
       <div className="mb-8 text-center">
         <p className="font-display text-xs text-primary/90 uppercase tracking-widest mb-3">Affirmation</p>
-        <p className="font-serif text-xl text-primary italic leading-relaxed max-w-2xl mx-auto">
+        <p className="font-serif text-xl text-primary italic leading-relaxed max-w-2xl mx-auto text-left">
           "{ritual.affirmation}"
         </p>
       </div>
@@ -109,7 +109,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
               Why This Matters to You
             </p>
           </div>
-          <p className="font-serif text-lg text-cream-muted leading-relaxed text-center max-w-3xl mx-auto">
+          <p className="font-serif text-lg text-cream-muted leading-relaxed text-left max-w-3xl mx-auto">
             {getSovereignInsight(birthMoonSign, moonPhase, currentMoonSign)}
           </p>
         </div>
@@ -123,7 +123,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
             <h3 className="font-display text-lg text-gold-gradient mb-4 tracking-widest uppercase">
               Complete Your Profile
             </h3>
-            <p className="font-serif text-base text-cream-muted mb-6 max-w-md mx-auto">
+            <p className="font-serif text-base text-cream-muted mb-6 max-w-md mx-auto text-left">
               Enter your birth details above to unlock your personalized Luminary Insight — a deep reading of how today's moon interacts with your natal lunar imprint.
             </p>
           </div>

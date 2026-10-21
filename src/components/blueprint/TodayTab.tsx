@@ -30,6 +30,7 @@ interface TodayTabProps {
   showUpgrade: boolean;
   timezone: string;
   onOpenTodaysMoon: () => void;
+  onShareMoonSign: () => void;
   onUpgradeClick: () => void;
   onPrimaryUpgrade: () => void;
   onSelectPlan: (priceId: string) => Promise<void> | void;
@@ -91,6 +92,7 @@ const TodayTab = ({
   showUpgrade,
   timezone,
   onOpenTodaysMoon,
+  onShareMoonSign,
   onUpgradeClick,
   onPrimaryUpgrade,
   onSelectPlan,
@@ -141,6 +143,13 @@ const TodayTab = ({
       </GlassmorphismCard>
 
       {afterMoon}
+
+      {natalMoon && (
+        <button type="button" onClick={onShareMoonSign} className={buttonClass}>
+          <span>Share Your Moon Sign</span>
+          <ChevronRight className="w-4 h-4 shrink-0 opacity-80" aria-hidden="true" />
+        </button>
+      )}
 
       {/* How today's Moon meets yours */}
       {natalMoon && natalSun && lunar && (

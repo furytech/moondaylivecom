@@ -64,7 +64,7 @@ const Where = () => {
   );
 };
 
-function renderBlueprint(opts: { subscribed?: boolean; tab?: string | null; visited?: boolean }) {
+function renderBlueprint(opts: { subscribed?: boolean; tab?: string | null; visited?: boolean; ageDays?: number }) {
   const subscribed = opts.subscribed ?? false;
   profile = {
     first_name: "Maya",
@@ -78,6 +78,7 @@ function renderBlueprint(opts: { subscribed?: boolean; tab?: string | null; visi
   vi.spyOn(AuthContextModule, "useAuth").mockReturnValue({
     user: {
       id: "u1",
+      created_at: opts.ageDays === undefined ? undefined : new Date(Date.now() - opts.ageDays * 86400000).toISOString(),
       user_metadata: opts.visited ? { blueprint_visited_at: "2026-10-01T00:00:00Z" } : {},
     },
     session: { access_token: "t" },
@@ -250,6 +251,61 @@ describe("Blueprint tabs", () => {
       const panel = await screen.findByRole("tabpanel");
       fireEvent.click(await within(panel).findByRole("button", { name: "Birth Moon" }));
       expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  describe("design rules", () => {
+    it("keeps the share nudge and the Share Your Moon Sign button on whichever tab is open", async () => {
+      const today = renderBlueprint({ ageDays: 2, tab: "today" });
+      const todayPanel = await screen.findByRole("tabpanel");
+      expect(await within(todayPanel).findByRole("region", { name: "Share your Moon sign" })).toBeInTheDocument();
+      expect(within(todayPanel).getByRole("button", { name: /Share Your Moon Sign/ })).toBeInTheDocument();
+      today.unmount();
+      localStorage.clear();
+      localStorage.setItem("moonday.onboarding.dismissed", "1");
+      localStorage.setItem("moonday:nameAsked:u1", "1");
+
+      renderBlueprint({ ageDays: 2, tab: "blueprint" });
+      const panel = await screen.findByRole("tabpanel");
+      expect(await within(panel).findByRole("region", { name: "Share your Moon sign" })).toBeInTheDocument();
+      expect(within(panel).getByRole("button", { name: /Share Your Moon Sign/ })).toBeInTheDocument();
+    });
+
+    it("shows the daily Triad number as live data (amber), not gold, and the hero title is the only gold", async () => {
+      renderBlueprint({ visited: true, tab: "today" });
+      const triadLine = await screen.findByText(/of 1,728/);
+      expect(triadLine.className).toMatch(/text-amber/);
+      expect(triadLine.getAttribute("style") ?? "").not.toMatch(/c9a84c|d4af37/i);
+    });
+
+    it("left-aligns the forecast copy and uses no rounded-full pills for text on either tab", async () => {
+      const a = renderBlueprint({ visited: true, tab: "today" });
+      const panel = await screen.findByRole("tabpanel");
+      for (const text of [/First body sentence/, /is moving through the sky/]) {
+        expect(within(panel).getByText(text).closest("p")?.className).toMatch(/text-left/);
+      }
+      const pillsWithText = (root: HTMLElement) =>
+        [...root.querySelectorAll("button, a, span, div")].filter(
+          (e) => /rounded-full/.test(e.className) && e.children.length === 0 && (e.textContent ?? "").trim().length > 0
+        );
+      expect(pillsWithText(panel)).toEqual([]);
+      a.unmount();
+
+      renderBlueprint({ visited: true, tab: "blueprint" });
+      const natal = await screen.findByRole("tabpanel");
+      await within(natal).findByRole("heading", { level: 1, name: "Test Archetype" });
+      expect(pillsWithText(natal)).toEqual([]);
+    });
+
+    it("makes every button and link on both tabs at least 44px (min-h-11 or taller)", async () => {
+      for (const t of ["today", "blueprint"]) {
+        const r = renderBlueprint({ visited: true, tab: t });
+        const panel = await screen.findByRole("tabpanel");
+        await within(panel).findAllByRole("button");
+        const short = [...panel.querySelectorAll("button, a")].filter((e) => !/min-h-|py-3|py-4/.test(e.className));
+        expect(short.map((e) => (e.textContent ?? "").trim())).toEqual([]);
+        r.unmount();
+      }
     });
   });
 

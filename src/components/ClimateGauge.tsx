@@ -70,13 +70,13 @@ export default function ClimateGauge({ illumination, sign }: Props) {
 
       {!data && !loading && (
         <div className="flex flex-col items-center py-6">
-          <p className="font-serif text-base text-cream-muted text-center mb-6 max-w-md">
+          <p className="font-serif text-base text-cream-muted text-left mb-6 max-w-md">
             Compute your Emotional Climate score: a 0–100 reading derived from
             illumination, lunar sign element, and proximity to the next transition.
           </p>
           <button
             onClick={fetchClimate}
-            className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full btn-lime font-display text-sm tracking-widest uppercase transition-all duration-300"
+            className="group inline-flex items-center justify-center gap-2 px-6 py-3 min-h-12 rounded-xl btn-lime font-display text-sm tracking-widest uppercase transition-all duration-300"
           >
             <span>Show today's frequency</span>
             <ChevronRight className="w-4 h-4 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
@@ -148,7 +148,7 @@ export default function ClimateGauge({ illumination, sign }: Props) {
           </svg>
 
           {/* One-line meaning */}
-          <div className="mt-2 text-center font-serif text-xs text-cream-muted tracking-wide">
+          <div className="mt-2 text-left font-serif text-sm text-cream-muted tracking-wide">
             {score} · {score < 30 ? "Calm" : score < 60 ? "Stable" : score < 85 ? "Active" : "Volatile"} — {score < 30 ? "The emotional current is still and deeply restful." : score < 60 ? "The atmosphere holds steady rhythm and clear focus." : score < 85 ? "Currents are moving fast with palpable creative friction." : "Energy is intensely charged and demanding conscious navigation."}
           </div>
 
@@ -200,7 +200,7 @@ export default function ClimateGauge({ illumination, sign }: Props) {
               <button
                 onClick={fetchClimate}
                 title="This reading is cached. Click to refresh with live data."
-                className="mt-4 group flex items-center justify-center gap-2 px-3 py-1.5 rounded-full border border-amber-signal/30 bg-amber-signal/5 hover:bg-amber-signal/10 transition-colors cursor-pointer"
+                className="mt-4 group flex items-center justify-center gap-2 px-4 py-2 min-h-11 rounded-xl border border-amber-signal/30 bg-amber-signal/5 hover:bg-amber-signal/10 transition-colors cursor-pointer"
                 aria-label="Refresh with live data"
               >
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-signal-soft animate-pulse" />

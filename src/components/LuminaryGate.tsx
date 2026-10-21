@@ -80,7 +80,7 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
           Now you know who you are.
         </h3>
 
-        <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed mb-8">
+        <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed mb-8 text-left">
           The {transitingSign} Moon is moving through the sky — and your natal {natalSign} Moon is feeling it. Luminary
           shows you how that's shaping your emotions, your energy, and the way you're
           relating to everyone around you — right now, under this sky.

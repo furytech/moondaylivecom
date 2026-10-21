@@ -53,14 +53,14 @@ export default function LunarReturnCard({ natalMoon }: Props) {
 
       {shared && (
         <div className="border border-[hsl(var(--sov-champagne)/0.18)] rounded-lg p-5 bg-[hsl(var(--sov-ivory)/0.02)] max-w-3xl mx-auto">
-          <p className="text-sm text-[hsl(var(--sov-ivory)/0.8)] italic text-center mb-4 leading-relaxed">
+          <p className="text-sm text-[hsl(var(--sov-ivory)/0.8)] italic text-left mb-4 leading-relaxed">
             {shared.reading}
           </p>
           <div className="border-t border-[hsl(var(--sov-champagne)/0.15)] pt-4">
             <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-2 text-center">
               Journal Prompt
             </div>
-            <p className="text-sm text-[hsl(var(--sov-ivory)/0.75)] text-center leading-relaxed">
+            <p className="text-sm text-[hsl(var(--sov-ivory)/0.75)] text-left leading-relaxed">
               {shared.prompt}
             </p>
           </div>

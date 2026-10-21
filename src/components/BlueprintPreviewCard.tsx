@@ -47,7 +47,7 @@ export const BlueprintPreviewCard: React.FC<BlueprintPreviewCardProps> = ({
 
       {/* The first two sentences of combination_synthesis only */}
       {previewSynthesis && (
-        <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed italic font-light max-w-2xl mx-auto mb-6">
+        <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed italic font-light max-w-2xl mx-auto mb-6 text-left">
           "{previewSynthesis}"
         </p>
       )}

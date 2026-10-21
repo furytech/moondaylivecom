@@ -54,7 +54,7 @@ const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSe
             <p className="font-display text-xs text-primary/90 uppercase tracking-[0.15em] mb-3">
               {label}
             </p>
-            <p className="font-serif text-base text-cream-muted leading-relaxed text-center">
+            <p className="font-serif text-base text-cream-muted leading-relaxed text-left">
               {guidance[key]}
             </p>
           </div>

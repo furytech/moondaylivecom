@@ -142,7 +142,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
   );
 
   const rarityLine = (
-    <p className="font-serif italic text-sm md:text-base text-cream-muted/90 mb-5 max-w-md mx-auto leading-relaxed">
+    <p className="font-serif italic text-sm md:text-base text-cream-muted/90 mb-5 max-w-md mx-auto leading-relaxed text-left">
       Your combination exists in less than 0.06% of people
     </p>
   );
@@ -215,7 +215,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
                 Natal Sun · Conscious Drive
               </h2>
             </div>
-            <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+            <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left">
               {profile.solar_essence}
             </p>
           </div>
@@ -229,7 +229,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
                 Natal Moon · Instinctual Sanctuary
               </h2>
             </div>
-            <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+            <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left">
               {profile.lunar_essence}
             </p>
           </div>
@@ -318,7 +318,7 @@ export const TriadStateLine: React.FC<{ sunSign?: string | null; moonSign?: stri
   if (n === null) return null;
   return (
     <div className="text-center">
-      <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight leading-tight" style={{ color: "#c9a84c" }}>
+      <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-amber-300">
         ✦ {n.toLocaleString()} of 1,728 ✦
       </p>
       <p className="font-serif text-xs text-cream-muted/80">Your natal Sun · your natal Moon · today's transiting Moon</p>

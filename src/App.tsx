@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,6 +35,10 @@ import TransitionQuiz from "./pages/TransitionQuiz";
 import FindMoonSign from "./pages/FindMoonSign";
 import YourMoonSign from "./pages/YourMoonSign";
 import SharedMoon from "./pages/SharedMoon";
+
+// Dev only: the real Blueprint for a mocked member (see src/dev/BlueprintFixture.tsx). `import.meta.env.DEV` is a
+// static false in production builds, so the fixture is never bundled or routable there.
+const BlueprintFixture = import.meta.env.DEV ? lazy(() => import("./dev/BlueprintFixture")) : null;
 import Pulse from "./pages/Pulse";
 import MoonSignHoroscope from "./pages/MoonSignHoroscope";
 import LunarClimate from "./pages/LunarClimate";
@@ -145,6 +149,16 @@ export const App = () => (
               <Route path="/signup" element={<SignupRedirect />} />
               <Route path="/your-moon-sign" element={<YourMoonSign />} />
               <Route path="/shared-moon/:sign" element={<SharedMoon />} />
+              {BlueprintFixture && (
+                <Route
+                  path="/dev/blueprint"
+                  element={
+                    <Suspense fallback={null}>
+                      <BlueprintFixture />
+                    </Suspense>
+                  }
+                />
+              )}
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:category/:slug" element={<BlogPost />} />
               <Route path="/blog/:slug" element={<BlogPost />} />

@@ -45,7 +45,7 @@ const FirstRunOnboarding = () => {
       <button
         onClick={dismiss}
         aria-label="Dismiss introduction"
-        className="absolute right-4 top-4 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+        className="absolute right-2 top-2 inline-flex items-center justify-center min-h-11 min-w-11 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
       >
         <X className="w-4 h-4" />
       </button>
@@ -69,7 +69,7 @@ const FirstRunOnboarding = () => {
             <p className="font-display text-xs text-primary uppercase tracking-[0.18em] mb-2">
               {label}
             </p>
-            <p className="font-serif text-sm text-cream-muted leading-relaxed">{body}</p>
+            <p className="font-serif text-sm text-cream-muted leading-relaxed text-left">{body}</p>
           </div>
         ))}
       </div>

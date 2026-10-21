@@ -94,9 +94,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
   if (loading) {
     return (
       <GlassmorphismCard size="md">
-        <div className="flex items-center justify-center gap-3 mb-8">
+        <div className="flex items-center justify-center gap-3 mb-5">
           <Sparkles className="w-5 h-5 text-primary" />
-          <h2 className="font-display text-xl tracking-widest text-foreground uppercase">
+          <h2 className="font-display text-lg sm:text-xl tracking-wider sm:tracking-widest text-foreground uppercase">
             Daily Lunar Forecast
           </h2>
           <Sparkles className="w-5 h-5 text-primary" />
@@ -128,9 +128,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
 
   return (
     <GlassmorphismCard size="md">
-      <div className="flex items-center justify-center gap-3 mb-8">
+      <div className="flex items-center justify-center gap-3 mb-5">
         <Sparkles className="w-5 h-5 text-primary" />
-        <h2 className="font-display text-xl tracking-widest text-foreground uppercase">
+        <h2 className="font-display text-lg sm:text-xl tracking-wider sm:tracking-widest text-foreground uppercase">
           Daily Lunar Forecast
         </h2>
         <Sparkles className="w-5 h-5 text-primary" />
@@ -165,15 +165,15 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
         <div className="animate-fade-up">
           {/* 1. Transit bridge sentence (italic) between sign header and physical guidance */}
           {transitBridge && (
-            <div className="mb-8 text-center max-w-2xl mx-auto px-4">
-              <p className="font-serif italic text-lg md:text-xl text-cream-muted leading-relaxed">
+            <div className="mb-5 max-w-2xl mx-auto">
+              <p className="font-serif italic text-lg md:text-xl text-cream-muted leading-relaxed text-left">
                 {transitBridge}
               </p>
             </div>
           )}
 
           {/* Morning Read: Physical -> Emotional -> Spiritual Flow */}
-          <div className="space-y-5 mb-8">
+          <div className="space-y-5 mb-6">
             {/* 2. Physical guidance */}
             {activeTriad.physical_guidance && (
               <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
@@ -184,12 +184,12 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                   </h3>
                 </div>
                 {isPro ? (
-                  <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+                  <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left">
                     {activeTriad.physical_guidance}
                   </p>
                 ) : (
                   <div className="relative overflow-hidden pb-1">
-                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left">
                       <span>{getBodyPreview(activeTriad.physical_guidance).preview}</span>{" "}
                       {getBodyPreview(activeTriad.physical_guidance).blurredRemainder && (
                         <span className="blur-[4px] select-none opacity-30 pointer-events-none inline-block">
@@ -235,7 +235,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                         Your emotional field
                       </h3>
                     </div>
-                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left">
                       {activeTriad.emotional_guidance}
                     </p>
                   </div>
@@ -250,7 +250,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                         The deeper invitation
                       </h3>
                     </div>
-                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left">
                       {activeTriad.spiritual_guidance}
                     </p>
                   </div>
@@ -271,7 +271,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                       Today's practice
                     </h3>
                   </div>
-                  <p className="font-serif text-lg md:text-xl text-cream leading-relaxed font-light">
+                  <p className="font-serif text-lg md:text-xl text-cream leading-relaxed font-light text-left">
                     {activeTriad.daily_ritual}
                   </p>
                 </div>
@@ -294,7 +294,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                         What to watch for
                       </h3>
                     </div>
-                    <p className="font-serif text-base text-cream-muted/90 leading-relaxed">
+                    <p className="font-serif text-base text-cream-muted/90 leading-relaxed text-left">
                       {activeTriad.shadow_activation}
                     </p>
                   </div>
@@ -308,7 +308,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                         The integration opportunity
                       </h3>
                     </div>
-                    <p className="font-serif text-base text-cream-muted/90 leading-relaxed">
+                    <p className="font-serif text-base text-cream-muted/90 leading-relaxed text-left">
                       {activeTriad.integration_invitation}
                     </p>
                   </div>
@@ -342,7 +342,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
             {/* Forecast Body with Phase Modifier */}
             <div className="mb-8">
               {isPro ? (
-                <p className="font-serif text-lg text-cream-muted leading-relaxed text-center max-w-3xl mx-auto">
+                <p className="font-serif text-lg text-cream-muted leading-relaxed text-left max-w-3xl mx-auto">
                   {forecast.forecast}
                   {forecast.phaseModifier && (
                     <span className="block mt-4 text-primary/80 italic">
@@ -357,7 +357,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                 </p>
               ) : (
                 <div className="relative overflow-hidden max-w-3xl mx-auto text-center pb-2">
-                  <p className="font-serif text-lg text-cream-muted leading-relaxed">
+                  <p className="font-serif text-lg text-cream-muted leading-relaxed text-left">
                     <span>{getBodyPreview(forecast.forecast).preview}</span>{" "}
                     {getBodyPreview(forecast.forecast).blurredRemainder && (
                       <span className="blur-[4px] select-none opacity-30 pointer-events-none inline-block">

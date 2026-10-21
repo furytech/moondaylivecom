@@ -541,6 +541,7 @@ const Blueprint = () => {
               showUpgrade={!isPro && !!userProfile && !!displayedMoonSign}
               timezone={timezone}
               onOpenTodaysMoon={() => setTodaysMoonModalOpen(true)}
+              onShareMoonSign={() => navigate("/my-moon-card")}
               onUpgradeClick={handleOpenPricing}
               onPrimaryUpgrade={() => navigate("/pricing")}
               onSelectPlan={handleSelectPlan}
