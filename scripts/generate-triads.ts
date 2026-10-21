@@ -109,10 +109,10 @@ TODAY'S TRANSITING MOON: ${transitSign} (${transitEl} · ${transitMod})
 TRIAD NUMBER: #${triadNum} of 1,728
 
 CONTENT RULES (these override everything else):
-- Speak only to mood, energy, focus, pace, relationships and behaviour.
-- Never describe physical symptoms, body systems, body parts or sensations, or health, medical or wellness advice.
-- Never use words like: body, physical, nervous system, spine, circulation, hydration, symptoms, organs, digestion, muscles, hormones, immune.
-- Reflective, not predictive. Nothing fear-based.
+- Speak to mood, energy, focus, pace, relationships and behaviour.
+- Plain everyday self-care is welcome: take a slow walk, rest early, drink some water, stretch, step outside.
+- Never use medical or pseudo-medical language: no body systems, symptoms, organs, nervous system, circulation, spinal fluid, hormones, diagnoses, treatments or health advice, and never explain a mechanism inside the body.
+- Warm and specific to this Blueprint, never generic. Reflective, not predictive. Nothing fear-based.
 
 Write the daily Triad state for this exact combination.
 Consider how the transiting ${transitSign} Moon (${transitEl} energy) moves through
@@ -124,7 +124,7 @@ specific friction or flow that must be named precisely.
 Return ONLY valid JSON, no markdown, no explanation:
 
 {
-  "physical_guidance": "2-3 sentences: how this ${transitSign} Moon transit shows up in the energy, pace and focus of this Blueprint today, and what that does to how they move through their day. NOT generic moon-in-sign information — this must reflect how a ${sunSign}/${moonSign} person specifically experiences ${transitSign} energy. No body, health or medical language.",
+  "physical_guidance": "2-3 sentences of PACE-AND-ENERGY guidance: how this ${transitSign} Moon transit sets the energy of the day for this Blueprint, when to push and when to slow down, and what kind of activity suits the day (a slow walk, an early night, focused work, time with people). Warm and specific to how a ${sunSign}/${moonSign} person experiences ${transitSign} energy, not generic moon-in-sign information. No medical language.",
   "emotional_guidance": "2-3 sentences: the emotional tone and undercurrent for this Blueprint under ${transitSign} Moon. How the natal ${natalMoonEl} Moon meets the transiting ${transitEl} energy. Where tension or ease arises.",
   "spiritual_guidance": "2-3 sentences: the spiritual invitation of this transit for this Blueprint. What deeper pattern or soul lesson this ${transitSign} transit activates specifically within the ${sunSign}/${moonSign} nature.",
   "daily_ritual": "One specific, actionable practice (2-3 sentences) calibrated to both the Blueprint's dominant element (${natalSunEl}/${natalMoonEl}) and the transiting ${transitSign} energy. Not generic — something this specific combination would actually do.",
@@ -187,7 +187,7 @@ async function callGemini(prompt: string, attempt = 0): Promise<any> {
     if (hits.length > 0) {
         if (attempt < MAX_RETRIES) {
             process.stdout.write(` [body claims: ${hits.join('; ')}; retrying]`);
-            return callGemini(`${prompt}\n\nYOUR LAST DRAFT BROKE THE CONTENT RULES (${hits.join('; ')}). Rewrite it with no body, health or medical language at all.`, attempt + 1);
+            return callGemini(`${prompt}\n\nYOUR LAST DRAFT BROKE THE CONTENT RULES (${hits.join('; ')}). Rewrite it with no medical or pseudo-medical language (plain self-care suggestions are fine).`, attempt + 1);
         }
         throw new Error(`Body/health claims after ${attempt + 1} attempts: ${hits.join('; ')}`);
     }

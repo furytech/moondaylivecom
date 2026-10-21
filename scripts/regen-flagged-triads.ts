@@ -1,0 +1,281 @@
+/**
+ * scripts/regen-flagged-triads.ts
+ *
+ * Rewrites ONLY the flagged lines of stored triad_states rows so daily content makes no medical or pseudo-medical
+ * claims (see src/lib/dailyContentGuard.ts). Lines that are already clean are passed to the model as context and
+ * never touched.
+ *
+ *   physical_guidance  -> new pace-and-energy guidance (when to push, when to slow down, what activity suits the day)
+ *   every other field  -> a minimal rewrite that keeps its meaning, voice and length
+ *
+ * THIS VERSION IS DRY-RUN ONLY. It reads rows and calls Gemini; it writes nothing to the database. It saves a
+ * before/after report to local files for review.
+ *
+ *   npx tsx scripts/regen-flagged-triads.ts --dry-run --sample=24 --out=<folder>
+ *
+ * Needs GEMINI_API_KEY and SUPABASE_SERVICE_ROLE_KEY (read) in .env.local.
+ */
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
+import { findBodyClaims } from '../src/lib/dailyContentGuard';
+
+for (const f of ['.env.local', '.env']) {
+    const p = path.resolve(process.cwd(), f);
+    if (fs.existsSync(p)) dotenv.config({ path: p });
+}
+
+// ── Config ────────────────────────────────────────────────────────────────────
+const MODEL       = 'gemini-3.5-flash-lite';
+const PACING_MS   = 1200;
+const MAX_RETRIES = 3;
+const GEMINI_KEY  = process.env.GEMINI_API_KEY;
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://ggrhuhwxbwrfbbcwcrmv.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const arg = (name: string, fallback?: string) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback;
+const SAMPLE = Number(arg('sample', '24'));
+const OUT    = arg('out', '.');
+
+if (process.argv.includes('--write')) {
+    console.error('--write is not implemented in this version. This script is dry-run only.');
+    process.exit(1);
+}
+
+const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const ELEMENT: Record<string, string> = { Aries:'Fire', Leo:'Fire', Sagittarius:'Fire', Taurus:'Earth', Virgo:'Earth', Capricorn:'Earth', Gemini:'Air', Libra:'Air', Aquarius:'Air', Cancer:'Water', Scorpio:'Water', Pisces:'Water' };
+const MODALITY: Record<string, string> = { Aries:'Cardinal', Cancer:'Cardinal', Libra:'Cardinal', Capricorn:'Cardinal', Taurus:'Fixed', Leo:'Fixed', Scorpio:'Fixed', Aquarius:'Fixed', Gemini:'Mutable', Virgo:'Mutable', Sagittarius:'Mutable', Pisces:'Mutable' };
+
+const FIELDS = ['physical_guidance', 'emotional_guidance', 'spiritual_guidance', 'daily_ritual', 'shadow_activation', 'integration_invitation'] as const;
+type Field = (typeof FIELDS)[number];
+
+const LABEL: Record<Field, string> = {
+    physical_guidance: 'Energy and pace',
+    emotional_guidance: 'Emotional tone',
+    spiritual_guidance: 'Spiritual invitation',
+    daily_ritual: 'Daily practice',
+    shadow_activation: 'Shadow activation',
+    integration_invitation: 'Integration invitation',
+};
+
+type Row = {
+    id: string;
+    natal_sun_sign: string;
+    natal_moon_sign: string;
+    transiting_moon_sign: string;
+    triad_number: number | null;
+    combination_title: string | null;
+} & Record<Field, string | null>;
+
+const RULES = `CONTENT RULES (these override everything else):
+- Speak to mood, energy, focus, pace, relationships and behaviour.
+- Plain everyday self-care is welcome: take a slow walk, rest early, drink some water, stretch, step outside.
+- Never use medical or pseudo-medical language: no body systems, symptoms, organs, nervous system, circulation, spinal fluid, hormones, diagnoses, treatments or health advice, and never explain a mechanism inside the body.
+- Warm and specific to this Blueprint, never generic. Reflective, not predictive. Nothing fear-based.`;
+
+function instructionFor(field: Field, row: Row): string {
+    const sun = row.natal_sun_sign, moon = row.natal_moon_sign, transit = row.transiting_moon_sign;
+    if (field === 'physical_guidance') {
+        return `"physical_guidance": "2-3 sentences of PACE-AND-ENERGY guidance: how this ${transit} Moon transit sets the energy of the day for this Blueprint, when to push and when to slow down, and what kind of activity suits the day (a slow walk, an early night, focused work, time with people). Warm and specific to how a ${sun}/${moon} person experiences ${transit} energy, not generic moon-in-sign information. No medical language."`;
+    }
+    return `"${field}": "A minimal rewrite of the ${LABEL[field]} text below. Keep its meaning, voice, imagery and length; change only the wording that is medical or pseudo-medical. TEXT TO REWRITE: ${JSON.stringify(row[field])}"`;
+}
+
+function buildPrompt(row: Row, flagged: Field[]): string {
+    const sun = row.natal_sun_sign, moon = row.natal_moon_sign, transit = row.transiting_moon_sign;
+    const context = FIELDS.filter((f) => !flagged.includes(f) && row[f])
+        .map((f) => `- ${LABEL[f]}: ${row[f]}`)
+        .join('\n');
+    return `You are a depth astrologer writing daily guidance for Moonday Live.
+
+BLUEPRINT: ${sun} Sun + ${moon} Moon — "${row.combination_title ?? ''}"
+  Natal Sun element: ${ELEMENT[sun]} | Natal Moon element: ${ELEMENT[moon]}
+
+TODAY'S TRANSITING MOON: ${transit} (${ELEMENT[transit]} · ${MODALITY[transit]})
+TRIAD NUMBER: #${row.triad_number ?? ''} of 1,728
+
+The rest of today's guidance for this exact combination is already written. Match its voice and do not repeat it:
+${context || '(none)'}
+
+${RULES}
+
+Write ONLY these fields:
+{
+  ${flagged.map((f) => instructionFor(f, row)).join(',\n  ')}
+}
+
+Return ONLY valid JSON with exactly those keys, no markdown, no explanation.`;
+}
+
+interface Usage { prompt: number; output: number; thoughts: number; }
+
+async function callGemini(prompt: string): Promise<{ json: Record<string, string>; usage: Usage }> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
+    for (let attempt = 0; ; attempt++) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.8, maxOutputTokens: 2048, topP: 0.92, responseMimeType: 'application/json' },
+            }),
+        });
+        if (res.status === 429 && attempt < 4) { await sleep(30000 * Math.pow(2, attempt)); continue; }
+        if (!res.ok) {
+            if (attempt < 3) { await sleep(2000 * Math.pow(2, attempt)); continue; }
+            throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+        }
+        const data = await res.json();
+        const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+        const um = data?.usageMetadata ?? {};
+        const usage: Usage = { prompt: um.promptTokenCount ?? 0, output: um.candidatesTokenCount ?? 0, thoughts: um.thoughtsTokenCount ?? 0 };
+        const clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+        try { return { json: JSON.parse(clean), usage }; }
+        catch {
+            const m = clean.match(/\{[\s\S]*\}/);
+            if (m) return { json: JSON.parse(m[0]), usage };
+            if (attempt < 3) continue;
+            throw new Error('Could not parse JSON from Gemini response');
+        }
+    }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function flaggedFields(row: Row): Field[] {
+    return FIELDS.filter((f) => findBodyClaims(row[f]).length > 0);
+}
+
+async function loadAllRows(): Promise<Row[]> {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY!);
+    const rows: Row[] = [];
+    // The API returns 1,000 rows at most per request, so page through.
+    for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase
+            .from('triad_states')
+            .select('id, natal_sun_sign, natal_moon_sign, transiting_moon_sign, triad_number, combination_title, ' + FIELDS.join(', '))
+            .order('triad_number')
+            .range(from, from + 999);
+        if (error) throw error;
+        rows.push(...(data as unknown as Row[]));
+        if (!data || data.length < 1000) break;
+    }
+    return rows;
+}
+
+/** Two rows per transiting sign: one where only the energy line is flagged, one where other lines are flagged too. */
+function pickSample(rows: Row[], perSign: number): Row[] {
+    const picked: Row[] = [];
+    SIGNS.forEach((transit, ti) => {
+        const flagged = rows.filter((r) => r.transiting_moon_sign === transit && flaggedFields(r).length > 0);
+        const onlyPhysical = flagged.filter((r) => flaggedFields(r).length === 1);
+        const several = flagged.filter((r) => flaggedFields(r).length > 1);
+        const take = (pool: Row[], offset: number) => (pool.length ? pool[(ti * 7 + offset) % pool.length] : undefined);
+        const chosen = [take(onlyPhysical, 0), take(several, 3), take(flagged, 11)].filter(Boolean) as Row[];
+        const unique = [...new Map(chosen.map((r) => [r.id, r])).values()];
+        picked.push(...unique.slice(0, perSign));
+    });
+    return picked;
+}
+
+async function main() {
+    if (!GEMINI_KEY) { console.error('GEMINI_API_KEY not set'); process.exit(1); }
+    if (!SUPABASE_KEY) { console.error('SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1); }
+    fs.mkdirSync(OUT!, { recursive: true });
+
+    const rows = await loadAllRows();
+    const needing = rows.filter((r) => flaggedFields(r).length > 0);
+    console.log(`Rows: ${rows.length}. Rows with at least one flagged line: ${needing.length}.`);
+    const perField = Object.fromEntries(FIELDS.map((f) => [f, rows.filter((r) => findBodyClaims(r[f]).length > 0).length]));
+    console.log('Flagged lines per field:', perField);
+
+    const sample = pickSample(rows, Math.max(1, Math.round(SAMPLE / SIGNS.length))).slice(0, SAMPLE);
+    console.log(`DRY RUN: ${sample.length} sample rows. Nothing is written to the database.\n`);
+
+    const results: any[] = [];
+    let firstTry = 0;
+    const tot: Usage = { prompt: 0, output: 0, thoughts: 0 };
+
+    for (let i = 0; i < sample.length; i++) {
+        const row = sample[i];
+        const flagged = flaggedFields(row);
+        const label = `${row.natal_sun_sign} Sun • ${row.natal_moon_sign} Moon → ${row.transiting_moon_sign}`;
+        process.stdout.write(`[${String(i + 1).padStart(2, '0')}/${sample.length}] ${label.padEnd(46)} fields: ${flagged.join(', ')}`);
+
+        let prompt = buildPrompt(row, flagged);
+        let after: Record<string, string> | null = null;
+        let attempts = 0;
+        const used: Usage = { prompt: 0, output: 0, thoughts: 0 };
+        const rejections: string[] = [];
+
+        while (attempts <= MAX_RETRIES) {
+            attempts++;
+            const { json, usage } = await callGemini(prompt);
+            used.prompt += usage.prompt; used.output += usage.output; used.thoughts += usage.thoughts;
+            const missing = flagged.filter((f) => typeof json[f] !== 'string' || !json[f].trim());
+            const hits = flagged.flatMap((f) => findBodyClaims(json[f]).map((t) => `${f}: ${t}`));
+            const tooLong = flagged.filter((f) => (json[f]?.length ?? 0) > 900);
+            if (missing.length === 0 && hits.length === 0 && tooLong.length === 0) {
+                after = Object.fromEntries(flagged.map((f) => [f, json[f].trim()]));
+                break;
+            }
+            const why = [...missing.map((f) => `${f} missing`), ...hits, ...tooLong.map((f) => `${f} too long`)].join('; ');
+            rejections.push(why);
+            prompt += `\n\nYOUR LAST DRAFT WAS REJECTED (${why}). Rewrite those fields with no medical or pseudo-medical language (plain self-care suggestions are fine) and keep each under 900 characters.`;
+            await sleep(PACING_MS);
+        }
+
+        tot.prompt += used.prompt; tot.output += used.output; tot.thoughts += used.thoughts;
+        if (after && attempts === 1) firstTry++;
+        console.log(after ? `  ok (${attempts} attempt${attempts > 1 ? 's' : ''})` : '  FAILED');
+
+        results.push({
+            n: i + 1, id: row.id, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign,
+            title: row.combination_title, flagged, attempts, rejections, usage: used,
+            before: Object.fromEntries(flagged.map((f) => [f, row[f]])), after,
+        });
+        await sleep(PACING_MS);
+    }
+
+    // ── Report ────────────────────────────────────────────────────────────────
+    const ok = results.filter((r) => r.after);
+    const avg = (n: number) => Math.round(n / Math.max(1, results.length));
+    const per = { prompt: avg(tot.prompt), output: avg(tot.output + tot.thoughts) };
+    const cost = (inRate: number, outRate: number, n: number) =>
+        ((per.prompt * n * inRate + per.output * n * outRate) / 1_000_000);
+    const len = (f: Field, side: 'before' | 'after') => {
+        const xs = ok.filter((r) => r[side][f]).map((r) => r[side][f].length).sort((a: number, b: number) => a - b);
+        return xs.length ? xs[xs.length >> 1] : 0;
+    };
+
+    const stats = {
+        sampled: results.length, succeeded: ok.length, failed: results.length - ok.length,
+        passedFirstTry: firstTry, totalAttempts: results.reduce((a, r) => a + r.attempts, 0),
+        avgTokensPerRow: per, rowsNeedingRegen: needing.length,
+        estimatedFullRunUSD: {
+            at_0_10_in_0_40_out: +cost(0.10, 0.40, needing.length).toFixed(2),
+            at_0_25_in_1_50_out: +cost(0.25, 1.50, needing.length).toFixed(2),
+        },
+        medianLength: {
+            physical_guidance: { before: len('physical_guidance', 'before'), after: len('physical_guidance', 'after') },
+        },
+    };
+
+    fs.writeFileSync(path.join(OUT!, 'dry-run-results.json'), JSON.stringify({ stats, results }, null, 2));
+
+    const md: string[] = [`# Triad regeneration: dry run (${new Date().toISOString().slice(0, 10)})`, '', '```json', JSON.stringify(stats, null, 2), '```', ''];
+    for (const r of results) {
+        md.push(`## ${r.n}. ${r.sun} Sun • ${r.moon} Moon → ${r.transit} Moon${r.title ? ` — ${r.title}` : ''}`);
+        md.push(`Flagged: ${r.flagged.join(', ')} · attempts: ${r.attempts}${r.rejections.length ? ` · rejected drafts: ${r.rejections.join(' | ')}` : ''}`, '');
+        for (const f of r.flagged as Field[]) {
+            md.push(`**${LABEL[f]}**`, '', `> BEFORE: ${r.before[f]}`, '', `> AFTER: ${r.after ? r.after[f] : '(failed)'}`, '');
+        }
+    }
+    fs.writeFileSync(path.join(OUT!, 'dry-run-samples.md'), md.join('\n'));
+
+    console.log('\n' + JSON.stringify(stats, null, 2));
+    console.log(`\nSaved: ${path.join(OUT!, 'dry-run-samples.md')}`);
+}
+
+main().catch((err) => { console.error(err); process.exit(1); });

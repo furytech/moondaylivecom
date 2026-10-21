@@ -51,16 +51,16 @@ TODAY'S TRANSITING MOON: ${transit} (${ELEMENT[transit]} · ${MODALITY[transit]}
 TRIAD NUMBER: #${num} of 1,728
 
 CONTENT RULES (these override everything else):
-- Speak only to mood, energy, focus, pace, relationships and behaviour.
-- Never describe physical symptoms, body systems, body parts or sensations, or health, medical or wellness advice.
-- Never use words like: body, physical, nervous system, spine, circulation, hydration, symptoms, organs, digestion, muscles, hormones, immune.
-- Reflective, not predictive. Nothing fear-based.
+- Speak to mood, energy, focus, pace, relationships and behaviour.
+- Plain everyday self-care is welcome: take a slow walk, rest early, drink some water, stretch, step outside.
+- Never use medical or pseudo-medical language: no body systems, symptoms, organs, nervous system, circulation, spinal fluid, hormones, diagnoses, treatments or health advice, and never explain a mechanism inside the body.
+- Warm and specific to this Blueprint, never generic. Reflective, not predictive. Nothing fear-based.
 
 Write the daily Triad state for this exact combination. Consider how the transiting ${transit} Moon moves through the lens of a ${sun} Sun + ${moon} Moon Blueprint.
 
 Return ONLY valid JSON, no markdown:
 {
-  "physical_guidance": "2-3 sentences on how ${transit} Moon shows up in the energy, pace and focus of this Blueprint. No body, health or medical language.",
+  "physical_guidance": "2-3 sentences of pace-and-energy guidance for this Blueprint under ${transit} Moon: when to push, when to slow down, what kind of activity suits the day. No medical language.",
   "emotional_guidance": "2-3 sentences on emotional tone for this Blueprint under ${transit} Moon.",
   "spiritual_guidance": "2-3 sentences on spiritual invitation of this transit for this Blueprint.",
   "daily_ritual": "One specific actionable practice (2-3 sentences) for this Blueprint under ${transit} Moon.",
@@ -101,7 +101,7 @@ async function callGemini(prompt: string, attempt = 0): Promise<any> {
     if (hits.length > 0) {
         if (attempt < 3) return callGemini(`${prompt}
 
-YOUR LAST DRAFT BROKE THE CONTENT RULES (${hits.join('; ')}). Rewrite it with no body, health or medical language at all.`, attempt + 1);
+YOUR LAST DRAFT BROKE THE CONTENT RULES (${hits.join('; ')}). Rewrite it with no medical or pseudo-medical language (plain self-care suggestions are fine).`, attempt + 1);
         throw new Error(`Body/health claims: ${hits.join('; ')}`);
     }
     return parsed;

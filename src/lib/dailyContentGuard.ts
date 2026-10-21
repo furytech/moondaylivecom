@@ -1,6 +1,10 @@
-// Daily content never makes body, health or medical claims. It speaks to mood, energy, focus, relationships and
-// behaviour. This guard finds (and can strip) wording that crosses that line: body systems, physical symptoms,
-// health advice and medical-sounding terms.
+// Daily content never makes body, health or medical claims. It speaks to mood, energy, focus, pace, relationships
+// and behaviour.
+//
+// ALLOWED: plain, everyday self-care and activity suggestions ("take a slow walk", "rest early", "drink some water",
+// "stretch", "step outside", "your body may want to slow down").
+// BLOCKED: medical or pseudo-medical mechanism language: body systems, symptoms, organs, the nervous system,
+// circulation, spinal fluid, hormones, diagnoses, treatments and health advice.
 //
 // Used in three places: the generator scripts (reject a draft that crosses the line), the Blueprint forecast
 // (never show a stored line that crosses it), and a test that scans the static daily copy.
@@ -17,18 +21,24 @@ export const BODY_CLAIM_TERMS: BodyClaimTerm[] = [
   t("nervous system", /\bnervous[\s-]+system\w*/i),
   t("spinal / spine", /\b(spinal|spine|cerebrospinal)\b/i),
   t("circulation", /\b(circulation|circulatory|bloodstream|blood\s+(pressure|flow|sugar))\b/i),
-  t("hydration", /\b(hydrat\w*|dehydrat\w*|drink\s+(more\s+)?water)\b/i),
+  t("dehydration", /\bdehydrat\w*/i),
   t("symptoms", /\bsymptom\w*/i),
   t("organs", /\borgans?\b/i),
-  t("digestion / gut", /\b(digest\w*|gut|stomach|intestin\w*)\b/i),
+  // "gut feeling / gut instinct" are plain idioms for intuition, not anatomy
+  t(
+    "digestion / gut",
+    /\b(digestion|digestive|stomach|intestin\w*)\b|\bgut\b(?!\s*[- ]?(feeling|feelings|instinct|instincts|check|reaction|reactions|sense|call|response))/i
+  ),
   t("immune / inflammation", /\b(immune|immunity|inflammat\w*)\b/i),
   t("hormones", /\b(hormon\w*|adrenal\w*|cortisol|metabolism|metabolic)\b/i),
   t("breathing / lungs", /\b(respirat\w*|lungs?|shallow\s+breath\w*)\b/i),
   t("muscles / joints", /\b(muscle\w*|muscular|joints?|ribcage|tendons?)\b/i),
   t("head / chest sensations", /\b(headaches?|migraines?|behind\s+the\s+eyes|upper\s+chest|heart\s+rate)\b/i),
-  t("medical", /\b(medical|medic(ation|ine)s?|doctor|diagnos\w*|illness|disease|chronic|therapeutic|clinical|nausea|insomnia)\b/i),
-  t("physical / somatic", /\b(physical(ly)?|somatic|bodily|body\s+systems?)\b/i),
-  t("the body", /\b(your|the|our|his|her|their)\s+(whole\s+|physical\s+|deep\s+\w+\s+)?bod(y|ies)\b/i),
+  t(
+    "medical / health advice",
+    /\b(medical|medic(ation|ine)s?|doctor|diagnos\w*|illness|disease|therapeutic|nausea|insomnia|cure[sd]?|treatments?|remed(y|ies)|prescri\w*|supplements?|detox\w*|dosage)\b/i
+  ),
+  t("physiology / body systems", /\b(somatic|bodily\s+(function|system)s?|body\s+systems?|physiolog\w*|biochemi\w*|biological)\b/i),
 ];
 
 /** The terms that appear in `text`, for a report or a rejection message. Empty means clean. */

@@ -17,14 +17,26 @@ describe("daily content guard", () => {
       "The electric frequency may cause static in your nervous system, felt as tension behind the eyes.",
       "Spinal fluid circulation matters, so hydration is vital today.",
       "Watch for symptoms in your digestive tract and your organs.",
-      "Your body wants rest. Physical energy is low.",
+      "Adrenal and cortisol surges flood your system, a symptom of stress.",
       "Somatic grounding calms the immune response and inflammation.",
       "Take medication as your doctor advises.",
     ];
     for (const text of flagged) expect(hasBodyClaims(text), text).toBe(true);
-    expect(findBodyClaims("nervous system, spinal, hydration, symptoms, organs")).toEqual(
-      expect.arrayContaining(["nervous system", "spinal / spine", "hydration", "symptoms", "organs"])
+    expect(findBodyClaims("nervous system, spinal, dehydration, symptoms, organs")).toEqual(
+      expect.arrayContaining(["nervous system", "spinal / spine", "dehydration", "symptoms", "organs"])
     );
+  });
+
+  it("allows plain everyday self-care and activity suggestions", () => {
+    const allowed = [
+      "Take a slow walk, rest early, drink some water and stretch.",
+      "Your body may want to slow down today, so let the afternoon be unhurried.",
+      "Step outside, eat something warm and go to bed early.",
+      "Trust your gut feeling about the invitation; your gut instinct is rarely wrong.",
+      "Your chronic hesitation softens, and a clinical detachment gives way to warmth.",
+      "Physical activity that suits the day: a long walk or an easy swim.",
+    ];
+    for (const text of allowed) expect(findBodyClaims(text), text).toEqual([]);
   });
 
   it("lets mood, energy, focus, relationships and behaviour through", () => {
@@ -41,7 +53,7 @@ describe("daily content guard", () => {
   it("drops only the sentences that cross the line", () => {
     const text = "You may feel restless. Your nervous system needs calm. Take a slow walk and call a friend.";
     expect(stripBodyClaims(text)).toBe("You may feel restless. Take a slow walk and call a friend.");
-    expect(stripBodyClaims("Your body needs hydration.")).toBe("");
+    expect(stripBodyClaims("Your spine aches and your hormones surge.")).toBe("");
     expect(stripBodyClaims(null)).toBe("");
     expect(stripBodyClaimsFromRecord({ a: "Your spine aches. Stay curious.", n: 3 })).toEqual({ a: "Stay curious.", n: 3 });
   });
@@ -90,7 +102,7 @@ describe("daily content guard", () => {
       triadData: {
         physical_guidance:
           "The pace of the day runs quick. Your nervous system may feel static behind the eyes. Hydration and spinal fluid circulation are vital.",
-        emotional_guidance: "Your body holds the feeling. Spinal tension is a symptom.",
+        emotional_guidance: "Your nervous system is overloaded. Spinal tension is a symptom.",
         spiritual_guidance: "Notice what stays when the room goes quiet.",
         daily_ritual: "Write three honest lines before noon.",
         shadow_activation: "Over-explaining so no one gets close.",
