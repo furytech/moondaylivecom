@@ -349,7 +349,7 @@ interface Result {
      * quota = the API quota or the dollar budget ran out mid-row: nothing was written and the row is simply still to do.
      * failed / error / review = the row keeps its current text and goes on the needs-review list (review = the editor read rejected the final draft).
      */
-    status: 'dry-run' | 'written' | 'stale' | 'failed' | 'error' | 'review' | 'quota';
+    status: 'dry-run' | 'written' | 'stale' | 'failed' | 'error' | 'review' | 'quota' | 'busy';
     /** The last rejected draft, kept for rows that went on the needs-review list */
     lastDraft?: Record<string, string>;
     /** Wall-clock milliseconds this row took, including retries and the editor read */
@@ -381,7 +381,7 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
         catch (err) {
             if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; status = 'quota'; rejections.push(err.message); break; }
             // A busy service costs nothing and is not an API failure: the row waits briefly, then goes on the needs-review list.
-            if (err instanceof Overloaded) { status = 'error'; rejections.push(err.message); break; }
+            if (err instanceof Overloaded) { status = 'busy'; rejections.push(err.message); break; }
             S.callFailures++; status = 'error'; rejections.push(`API error: ${(err as Error).message}`); break;
         }
         track(used, res.usage);
@@ -392,7 +392,7 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
             // not retried: it keeps its current text and goes on the needs-review list.
             const editor = await judgeRow(job, res.json, used, patience);
             if (editor.includes('quota exhausted')) { status = 'quota'; break; }
-            if (editor.includes('service busy')) { status = 'error'; rejections.push('editor read unavailable: service busy, gave up on this row'); break; }
+            if (editor.includes('service busy')) { status = 'busy'; rejections.push('editor read unavailable: service busy, gave up on this row'); break; }
             if (editor.length) { status = 'review'; rejections.push(`editor: ${editor.join('; ')}`); break; }
             // The variety window may have moved while waiting.
             problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
@@ -418,11 +418,12 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
             if (error) throw error;
             status = (data?.length ?? 0) === 1 ? 'written' : 'stale';
         }
-    } else if (status !== 'error' && status !== 'quota' && status !== 'review') status = 'failed';
+    } else if (status !== 'error' && status !== 'quota' && status !== 'review' && status !== 'busy') status = 'failed';
 
-    if (status === 'quota') {
-        // Not a failure: the daily quota ran out, nothing was written, and the next run picks this row up again.
-        return { n, seq: null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign, title: row.combination_title, flagged: job.fields, kinds: job.kinds, attempts, rejections, usage: used, before: {}, source: {}, after: null, status };
+    if (status === 'quota' || status === 'busy') {
+        // Not a failure of the row: the quota or budget ran out, or the service was too busy. Nothing was written and the row is
+        // still to do (a busy row gets a second pass at the end; it does not count toward the 10% stop rule).
+        return { n, seq: null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign, title: row.combination_title, flagged: job.fields, kinds: job.kinds, attempts, rejections, usage: used, before: {}, source: {}, after: null, status, ms: Date.now() - t0 };
     }
     S.rows++; S.attempts += attempts;
     if (status === 'written') S.written++;
@@ -441,6 +442,10 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
         ...(after ? {} : { lastDraft }),
     };
 }
+
+/** Extra passes over rows that only gave up because the service was busy, with a pause before each. */
+const BUSY_PASSES = 3;
+const BUSY_PAUSE_MS = 20000;
 
 async function runPool<T>(items: T[], size: number, fn: (item: T, index: number) => Promise<void>) {
     let next = 0;
@@ -497,6 +502,20 @@ async function main() {
             results[i] = r;
             console.log(`[${String(i + 1).padStart(2, '0')}/${sample.length}] ${r.sun} Sun • ${r.moon} Moon → ${r.transit}  fields: ${r.flagged.join(', ')}  ${r.after ? `ok (${r.attempts} attempt${r.attempts > 1 ? 's' : ''})` : 'FAILED'}`);
         });
+        // Second (and third) pass over rows that only gave up because the service was busy.
+        const busyFirstPass = results.filter((r) => r?.status === 'busy').length;
+        for (let pass = 2; pass <= BUSY_PASSES + 1 && !stopReason; pass++) {
+            const idx = results.map((r, i) => (r?.status === 'busy' ? i : -1)).filter((i) => i >= 0);
+            if (!idx.length) break;
+            console.log(`\nPass ${pass}: ${idx.length} row(s) only gave up on a busy service; trying again after ${BUSY_PAUSE_MS / 1000}s.`);
+            await sleep(BUSY_PAUSE_MS);
+            await runPool(idx, CONCURRENCY, async (i) => {
+                const r = await processJob(sample[i], i + 1, false, null);
+                r.ms = (r.ms ?? 0) + (results[i].ms ?? 0);
+                results[i] = r;
+                console.log(`[${String(i + 1).padStart(2, '0')}/${sample.length}] ${r.sun} Sun • ${r.moon} Moon → ${r.transit}  ${r.after ? `ok (pass ${pass})` : r.status === 'busy' ? 'still busy' : 'FAILED'}`);
+            });
+        }
         const done = results.filter(Boolean);
         const ok = done.filter((r) => r.after);
         const wallSeconds = (Date.now() - started) / 1000;
@@ -515,7 +534,7 @@ async function main() {
         const stats = {
             plan: planSummary,
             model: MODEL, concurrency: CONCURRENCY,
-            sampled: done.length, succeeded: ok.length, needsReview: done.length - ok.length,
+            sampled: done.length, succeeded: ok.length, needsReview: done.length - ok.length, busyOnFirstPass: busyFirstPass, stillBusyAfterPasses: done.filter((r) => r.status === 'busy').length,
             needsReviewDetail: done.filter((r) => !r.after).map((r) => ({ n: r.n, status: r.status, row: `${r.sun}/${r.moon}→${r.transit}`, why: (r.rejections.at(-1) ?? '').slice(0, 300) })),
             editorRejected: S.editorRejected,
             passedFirstTry: S.firstTry, totalDraftCalls: S.attempts, totalApiCalls: S.calls,
@@ -555,9 +574,20 @@ async function main() {
     const reviewPath = path.join(OUT, 'needs-review.jsonl');
     // Resume: the plan is recomputed from the database, so rows already written drop out by themselves. Rows already on the
     // needs-review list are skipped (so a resume does not spend money on them again) unless --retry-review is passed.
+    // Rows that only gave up on a busy service (status "busy") are not skipped: nothing was wrong with them.
     const reviewed = new Set<string>(
-        !RETRY_REVIEW && fs.existsSync(reviewPath) ? fs.readFileSync(reviewPath, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l).id) : []
+        !RETRY_REVIEW && fs.existsSync(reviewPath)
+            ? fs.readFileSync(reviewPath, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l)).filter((r) => r.status !== 'busy').map((r) => r.id)
+            : []
     );
+    const busyJobs: Array<{ job: Job; n: number }> = [];
+    const handle = async (job: Job, n: number) => {
+        const r = await processJob(job, n, true, supabase);
+        if (r.status === 'busy') busyJobs.push({ job, n });
+        else if (r.status !== 'quota') fs.appendFileSync(r.after ? logPath : reviewPath, JSON.stringify(r) + '\n');
+        if ((S.rows % 25) === 0) console.log(`  ${S.rows}/${todo.length} rows · written ${S.written} · needs review ${S.failedRows} · busy for now ${busyJobs.length} · stale ${S.stale} · $${costUSD(S.usage).toFixed(2)}`);
+        return r;
+    };
     const queue = [...jobs].filter((j) => !reviewed.has(j.row.id)).sort((a, b) => hash(a.row.id) - hash(b.row.id)); // mixed order, so neighbours in the variety window differ
     const todo = LIMIT ? queue.slice(0, LIMIT) : queue;
     await tgSend(`Triad regeneration started: ${todo.length} rows in batches of ${BATCH}, budget $${BUDGET_USD}.`);
@@ -565,20 +595,29 @@ async function main() {
 
     for (let b = 0; b < todo.length && !stopReason; b += BATCH) {
         const batch = todo.slice(b, b + BATCH);
-        await runPool(batch, CONCURRENCY, async (job, i) => {
-            const r = await processJob(job, b + i + 1, true, supabase);
-            if (r.status !== 'quota') fs.appendFileSync(r.after ? logPath : reviewPath, JSON.stringify(r) + '\n');
-            if ((S.rows % 25) === 0) console.log(`  ${S.rows}/${todo.length} rows · written ${S.written} · needs review ${S.failedRows} · stale ${S.stale} · $${costUSD(S.usage).toFixed(2)}`);
-        });
-        const line = `Batch ${Math.floor(b / BATCH) + 1}/${Math.ceil(todo.length / BATCH)} done: ${S.rows}/${todo.length} rows, written ${S.written}, failed ${S.failedRows}, stale ${S.stale}, cost so far $${costUSD(S.usage).toFixed(2)}.`;
+        await runPool(batch, CONCURRENCY, async (job, i) => { await handle(job, b + i + 1); });
+        const line = `Batch ${Math.floor(b / BATCH) + 1}/${Math.ceil(todo.length / BATCH)} done: ${S.rows}/${todo.length} rows, written ${S.written}, needs review ${S.failedRows}, busy for now ${busyJobs.length}, stale ${S.stale}, cost so far $${costUSD(S.usage).toFixed(2)}.`;
         console.log(line);
         await tgSend(line);
     }
 
+    // Second (and third, fourth) pass over rows that only gave up because the service was busy.
+    let pending = busyJobs.splice(0);
+    for (let pass = 2; pass <= BUSY_PASSES + 1 && pending.length && !stopReason; pass++) {
+        const line = `Pass ${pass}: ${pending.length} row(s) only gave up on a busy service; trying again after ${BUSY_PAUSE_MS / 1000}s.`;
+        console.log(line);
+        await tgSend(line);
+        await sleep(BUSY_PAUSE_MS);
+        await runPool(pending, CONCURRENCY, async (p) => { await handle(p.job, p.n); });
+        pending = busyJobs.splice(0);
+    }
+    // Rows still busy after every pass are not failures; they stay as they are and go on the list as "busy" so a later run picks them up.
+    for (const p of pending) fs.appendFileSync(reviewPath, JSON.stringify({ id: p.job.row.id, status: 'busy', flagged: p.job.fields }) + '\n');
+
     const summary = {
         stoppedEarly: stopReason || null,
         model: MODEL, concurrency: CONCURRENCY, budgetUSD: BUDGET_USD,
-        rowsPlanned: todo.length, rowsProcessed: S.rows, written: S.written, staleSkipped: S.stale, needsReview: S.failedRows, ofWhichEditorRejected: S.editorRejected,
+        rowsPlanned: todo.length, rowsProcessed: S.rows, written: S.written, staleSkipped: S.stale, needsReview: S.failedRows, ofWhichEditorRejected: S.editorRejected, stillBusyAfterAllPasses: pending.length,
         apiCalls: S.calls, apiCallFailures: S.callFailures, firstTryRows: S.firstTry, rowsNeedingRetry: S.retriedRows,
         tokens: S.usage, actualCostUSD: +costUSD(S.usage).toFixed(2),
         ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT },

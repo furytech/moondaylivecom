@@ -175,6 +175,9 @@ const EARLY_NIGHT = /\b(early night|rest early|rest earlier|bed early|early to b
 // (Shoulders and jaw are not listed: the glossary uses "tight shoulders" and "a clenched jaw" as lived-experience wording.)
 const BODY_PARTS = /\b(legs?|knees?|calves|ankles?|pulses?|heartbeats?|heart\s+beats?|heart\s+(?:rate|racing|pounding)|racing\s+heart|pounding\s+heart)\b/i;
 
+// "You will wake...", "you'll feel...", "you are going to...": a prediction about the reader's day.
+const PREDICTION = /\byou(?:'ll|\s+will|\s+are\s+going\s+to|\s+are\s+about\s+to)\b/i;
+
 // Seasons and the weather of the year: the same day is a different season for every reader.
 const SEASONS = /\b(autumn\w*|winter\w*|summer\w*|spring(?:time)?(?!\s+(?:into|to|up|forward|back))|season\w*|snow\w*|frost\w*|harvest\w*|blossom\w*|heat\s?wave|(?:this|the|early|late|last|next)\s+fall|falling\s+leaves|dry\s+leaves|crunching\s+leaves)\b/i;
 
@@ -228,6 +231,9 @@ export function findUnassignedCrutches(text: string, a: Assignment): string[] {
     for (const b of BANNED_PHRASES) if (b.re.test(text)) found.push(b.label);
     const body = text.match(BODY_PARTS);
     if (body) found.push(`the body part or sensation "${body[0]}"`);
+    // Tone: reflective, not predictive ("you may", "you might", never "you will").
+    const prediction = text.match(PREDICTION);
+    if (prediction) found.push(`the prediction "${prediction[0]}" (say "you may" or "you might")`);
     const season = text.match(SEASONS);
     if (season) found.push(`the season or time-of-year word "${season[0]}"`);
     for (const c of findCopiedPhrases(text)) found.push(`the copied phrase "${c}"`);
@@ -268,7 +274,7 @@ export function varietyInstruction(a: Assignment): string {
         `Pace shape for the day, as a theme to paraphrase and never to quote: ${a.paceShape}.`,
         `Open this way: ${a.opening}. Close the last sentence this way: ${a.closing}.`,
         `Write complete, natural sentences that read well aloud. The first sentence is a full sentence, never a one-word lead-in followed by a comma, and no sentence starts with a capital letter right after a comma. Do not use ellipses.`,
-        `Do not mention seasons, the time of year, or seasonal scenery (autumn leaves, snow, summer heat), and do not mention legs, knees, pulse or heartbeat. Use US spelling (favorite, color, center). Vary how you begin: do not start with "The day" and do not reuse a stock opening.`,
+        `Do not mention seasons, the time of year, or seasonal scenery (autumn leaves, snow, summer heat), and do not mention legs, knees, pulse or heartbeat. Use US spelling (favorite, color, center). Reflective, not predictive: write "you may" or "you might", never "you will" or "you'll", and never promise what the evening or night will bring. Vary how you begin: do not start with "The day" and do not reuse a stock opening.`,
         `Never use the phrases "the atmosphere", "it is fine to" or "permission to". Keep it to 2-3 sentences and about 420 characters.`,
     ].join(' ');
 }
