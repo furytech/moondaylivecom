@@ -34,7 +34,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { BODY_CLAIM_TERMS, findBodyClaims } from '../src/lib/dailyContentGuard';
 import { assignVariety, findUnassignedCrutches, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
-import { judgeRewrites, QuotaExhausted, isDailyQuota } from './lib/rewriteJudge';
+import { judgeRewrites, QuotaExhausted, isDailyQuota, JUDGE_MODEL, Overloaded, OVERLOAD_PATIENCE_MS, waitOrGiveUp, type Patience } from './lib/rewriteJudge';
 import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation } from './lib/languageGlossary';
 
 for (const f of ['.env.local', '.env']) {
@@ -43,7 +43,7 @@ for (const f of ['.env.local', '.env']) {
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const MODEL        = 'gemini-3.8-flash';
+const MODEL        = JUDGE_MODEL; // gemini-3.6-flash: one model for the writer and the editor, no mixing
 const PACING_MS    = 200;
 const MAX_RETRIES  = 5;
 const GEMINI_KEY   = process.env.GEMINI_API_KEY;
@@ -185,9 +185,10 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const addUsage = (a: Usage, b: Usage) => { a.prompt += b.prompt; a.output += b.output; a.thoughts += b.thoughts; };
 const costUSD = (u: Usage) => (u.prompt * RATE_IN + (u.output + u.thoughts) * RATE_OUT) / 1_000_000;
 
-async function callGemini(prompt: string): Promise<{ json: Record<string, string>; usage: Usage }> {
+async function callGemini(prompt: string, patience: Patience): Promise<{ json: Record<string, string>; usage: Usage }> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
     for (let attempt = 0; ; attempt++) {
+        const t = Date.now();
         const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -199,13 +200,15 @@ async function callGemini(prompt: string): Promise<{ json: Record<string, string
         if (res.status === 429) {
             const body = await res.text();
             if (isDailyQuota(body)) throw new QuotaExhausted(body);
-            if (attempt < 4) { await sleep(5000 * Math.pow(2, attempt)); continue; }
-            throw new Error(`Gemini 429: ${body.slice(0, 300)}`);
+            await waitOrGiveUp(patience, attempt, Date.now() - t, `429 ${body.slice(0, 120)}`);
+            continue;
         }
         if (!res.ok) {
-            // 503 "high demand" and other transient errors: back off and try again
-            if (attempt < 5) { await sleep(Math.min(30000, 3000 * Math.pow(2, attempt))); continue; }
-            throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+            const body = (await res.text()).slice(0, 200);
+            // 503 "high demand" and other server-side errors: back off briefly; when this row's patience (about 20s) is used up
+            // waitOrGiveUp throws Overloaded and the row goes on the needs-review list.
+            if (res.status >= 500) { await waitOrGiveUp(patience, attempt, Date.now() - t, `${res.status} ${body}`); continue; }
+            throw new Error(`Gemini ${res.status}: ${body}`);
         }
         const data = await res.json();
         const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
@@ -255,16 +258,17 @@ function validate(job: Job, json: Record<string, string>, recent: string[]): str
  * The copy-editor read of a row's final draft: ONE call covering every rewritten (non-energy) line. It runs only on a draft that
  * already passed every rule-based check. A row it rejects is not retried: it keeps its current text and goes on the review list.
  */
-async function judgeRow(job: Job, json: Record<string, string>, used: Usage): Promise<string[]> {
+async function judgeRow(job: Job, json: Record<string, string>, used: Usage, patience: Patience): Promise<string[]> {
     const items = job.fields.filter((f) => f !== 'physical_guidance').map((f) => ({ field: f, source: job.source[f]!, rewrite: json[f].trim() }));
     if (!items.length) return [];
     S.calls++;
     try {
-        const { failures, tokens } = await judgeRewrites(items, GEMINI_KEY!);
+        const { failures, tokens } = await judgeRewrites(items, GEMINI_KEY!, patience);
         track(used, tokens);
         return failures.map((x) => `${x.field}: ${x.problems.join(' / ')}`);
     } catch (err) {
         if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; return ['quota exhausted']; }
+        if (err instanceof Overloaded) return ['service busy'];
         S.callFailures++;
         return [`editor check unavailable (${(err as Error).message})`];
     }
@@ -366,15 +370,18 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
     let status: Result['status'] = 'failed';
     let lastDraft: Record<string, string> | undefined;
     const t0 = Date.now();
+    const patience: Patience = { ms: OVERLOAD_PATIENCE_MS }; // time this row may spend waiting out a busy service
 
     while (attempts <= MAX_RETRIES && !after) {
         if (costUSD(S.usage) >= BUDGET_USD) { stopReason = stopReason || `dollar budget of $${BUDGET_USD} reached`; status = 'quota'; break; }
         attempts++;
         let res;
         S.calls++;
-        try { res = await callGemini(prompt); }
+        try { res = await callGemini(prompt, patience); }
         catch (err) {
             if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; status = 'quota'; rejections.push(err.message); break; }
+            // A busy service costs nothing and is not an API failure: the row waits briefly, then goes on the needs-review list.
+            if (err instanceof Overloaded) { status = 'error'; rejections.push(err.message); break; }
             S.callFailures++; status = 'error'; rejections.push(`API error: ${(err as Error).message}`); break;
         }
         track(used, res.usage);
@@ -383,8 +390,9 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
         if (problems.length === 0) {
             // One editor read of the final draft (grammar and meaning of every rewritten line). If it rejects, the row is
             // not retried: it keeps its current text and goes on the needs-review list.
-            const editor = await judgeRow(job, res.json, used);
+            const editor = await judgeRow(job, res.json, used, patience);
             if (editor.includes('quota exhausted')) { status = 'quota'; break; }
+            if (editor.includes('service busy')) { status = 'error'; rejections.push('editor read unavailable: service busy, gave up on this row'); break; }
             if (editor.length) { status = 'review'; rejections.push(`editor: ${editor.join('; ')}`); break; }
             // The variety window may have moved while waiting.
             problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
@@ -497,7 +505,8 @@ async function main() {
         const classOf = (r: { flagged: Field[] }) => (isEnergyOnly(r.flagged) ? 'energyOnly' : 'withRewrites');
         const planCount = { energyOnly: jobs.filter((j) => isEnergyOnly(j.fields)).length, withRewrites: jobs.filter((j) => !isEnergyOnly(j.fields)).length };
         const perClass = (['energyOnly', 'withRewrites'] as const).map((c) => {
-            const rs = done.filter((r) => classOf(r) === c);
+            // Rows that finished only: a row that gave up on a busy service costs nothing and would make the projection look cheap.
+            const rs = done.filter((r) => classOf(r) === c && r.after);
             const n = Math.max(1, rs.length);
             return { c, sampled: rs.length, planRows: planCount[c], meanCostUSD: rs.reduce((s, r) => s + costUSD(r.usage), 0) / n, meanRowSeconds: rs.reduce((s, r) => s + (r.ms ?? 0), 0) / n / 1000, meanCalls: rs.reduce((s, r) => s + r.attempts, 0) / n };
         });

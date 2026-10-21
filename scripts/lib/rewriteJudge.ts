@@ -7,7 +7,27 @@
  */
 import { GLOSSARY } from './languageGlossary';
 
-export const JUDGE_MODEL = 'gemini-3.8-flash';
+/** One model for the whole run (the writer in regen-flagged-triads.ts uses the same constant). */
+export const JUDGE_MODEL = 'gemini-3.6-flash';
+
+/**
+ * How long one row may spend waiting out a busy service (503 and the like). When it is used up the row gives up, keeps its
+ * current text, goes on the needs-review list, and the run moves on.
+ */
+export const OVERLOAD_PATIENCE_MS = 20000;
+export interface Patience { ms: number; }
+export class Overloaded extends Error {
+    constructor(detail: string) { super(`service busy, gave up on this row: ${detail}`); this.name = 'Overloaded'; }
+}
+const nap = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Back off briefly (2s, 4s, 8s...) from this row's patience, or throw Overloaded when it would run out. */
+export async function waitOrGiveUp(p: Patience, attempt: number, spentMs: number, detail: string): Promise<void> {
+    p.ms -= spentMs;
+    const wait = Math.min(2000 * Math.pow(2, attempt), 8000);
+    if (p.ms - wait < 0) throw new Overloaded(detail.slice(0, 160));
+    p.ms -= wait;
+    await nap(wait);
+}
 const APPROVED = GLOSSARY.flatMap((g) => g.say).map((s) => `"${s}"`).join(', ');
 
 /** The API key's daily quota is used up (free tier: requests per day). Waiting a few minutes will not help, so callers stop. */
@@ -35,9 +55,10 @@ These phrasings are APPROVED replacements and must never be failed for their wor
 Do not fail a line for style preferences or for being longer than the source.
 Return ONLY JSON: {"results": [{"line": 1, "ok": true|false, "problems": ["short description of each defect and the exact words; empty when ok"]}, ...]} with one entry per line.`;
 
-export async function judgeRewrites(items: JudgeItem[], apiKey: string): Promise<JudgeBatch> {
+export async function judgeRewrites(items: JudgeItem[], apiKey: string, patience: Patience = { ms: OVERLOAD_PATIENCE_MS }): Promise<JudgeBatch> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${JUDGE_MODEL}:generateContent?key=${apiKey}`;
     for (let attempt = 0; ; attempt++) {
+        const t = Date.now();
         const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -49,12 +70,13 @@ export async function judgeRewrites(items: JudgeItem[], apiKey: string): Promise
         if (res.status === 429) {
             const body = await res.text();
             if (isDailyQuota(body)) throw new QuotaExhausted(body);
-            if (attempt < 4) { await new Promise((r) => setTimeout(r, 5000 * Math.pow(2, attempt))); continue; }
-            throw new Error(`Gemini judge 429: ${body.slice(0, 300)}`);
+            await waitOrGiveUp(patience, attempt, Date.now() - t, `editor 429 ${body.slice(0, 120)}`);
+            continue;
         }
         if (!res.ok) {
-            if (attempt < 3) { await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, attempt))); continue; }
-            throw new Error(`Gemini judge ${res.status}: ${(await res.text()).slice(0, 200)}`);
+            const body = (await res.text()).slice(0, 200);
+            if (res.status >= 500) { await waitOrGiveUp(patience, attempt, Date.now() - t, `editor ${res.status} ${body}`); continue; }
+            throw new Error(`Gemini judge ${res.status}: ${body}`);
         }
         const data = await res.json();
         const um = data?.usageMetadata ?? {};
