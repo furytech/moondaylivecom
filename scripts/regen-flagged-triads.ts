@@ -8,19 +8,25 @@
  *   physical_guidance  -> new pace-and-energy guidance (when to push, when to slow down, what activity suits the day)
  *   every other field  -> a minimal rewrite that keeps its meaning, voice and length
  *
- * THIS VERSION IS DRY-RUN ONLY. It reads rows and calls Gemini; it writes nothing to the database. It saves a
- * before/after report to local files for review.
+ * Modes
+ *   Dry run (default). Reads rows and calls Gemini; writes nothing to the database. Saves a before/after report.
+ *     npx tsx scripts/regen-flagged-triads.ts --dry-run --sample=24 --out=<folder>
  *
- *   npx tsx scripts/regen-flagged-triads.ts --dry-run --sample=24 --out=<folder>
+ *   Pilot write. Applies reviewed dry-run results (no new Gemini calls) for one row per transiting sign.
+ *   Only the flagged columns are updated, and only if the stored text still equals the "before" text in the
+ *   report, so nothing edited since the dry run is overwritten. The rollback is triad_states_backup_2026_10_21.
+ *     npx tsx scripts/regen-flagged-triads.ts --write --apply-from=<dry-run-results.json> --pilot=12 --out=<folder>
  *
- * Needs GEMINI_API_KEY and SUPABASE_SERVICE_ROLE_KEY (read) in .env.local.
+ *   The full run is not enabled in this version: --write requires --apply-from and --pilot.
+ *
+ * Needs GEMINI_API_KEY (dry run) and SUPABASE_SERVICE_ROLE_KEY in .env.local.
  */
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { findBodyClaims } from '../src/lib/dailyContentGuard';
-import { assignVariety, findUnassignedCrutches, varietyInstruction, ACTIVITY_POOLS, CLOSINGS, OPENINGS, PACE_SHAPES } from './lib/triadVariety';
+import { assignVariety, findUnassignedCrutches, fiveGrams, varietyInstruction, ACTIVITY_POOLS, CLOSINGS, OPENINGS, PACE_SHAPES } from './lib/triadVariety';
 
 for (const f of ['.env.local', '.env']) {
     const p = path.resolve(process.cwd(), f);
@@ -38,9 +44,14 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const arg = (name: string, fallback?: string) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback;
 const SAMPLE = Number(arg('sample', '24'));
 const OUT    = arg('out', '.');
+const WRITE  = process.argv.includes('--write');
+const APPLY_FROM = arg('apply-from');
+const PILOT  = Number(arg('pilot', '0'));
+/** A five-word phrase may appear in at most this many accepted energy lines in one run. */
+const MAX_PHRASE_ROWS = Number(arg('max-phrase-rows', '2'));
 
-if (process.argv.includes('--write')) {
-    console.error('--write is not implemented in this version. This script is dry-run only.');
+if (WRITE && (!APPLY_FROM || !PILOT)) {
+    console.error('--write needs --apply-from=<dry-run-results.json> and --pilot=<n>. The full run is not enabled in this version.');
     process.exit(1);
 }
 
@@ -180,9 +191,53 @@ function pickSample(rows: Row[], perSign: number): Row[] {
     return picked;
 }
 
+/**
+ * Pilot write: applies the reviewed "after" text from a dry-run report to one row per transiting sign.
+ * Only the flagged columns change, and only while the stored text still equals the report's "before" text.
+ */
+async function applyPilot() {
+    const report = JSON.parse(fs.readFileSync(APPLY_FROM!, 'utf8')) as { results: any[] };
+    // A row is held back if any of its lines shares a five-word phrase with more than MAX_PHRASE_ROWS rows of the report.
+    const rowsByGram = new Map<string, Set<number>>();
+    for (const x of report.results) for (const text of Object.values((x.after ?? {}) as Record<string, string>)) for (const g of fiveGrams(text)) (rowsByGram.get(g) ?? rowsByGram.set(g, new Set()).get(g)!).add(x.n);
+    const repeats = (x: any) => Object.values(x.after as Record<string, string>).some((text) => [...fiveGrams(text)].some((g) => (rowsByGram.get(g)?.size ?? 0) > MAX_PHRASE_ROWS));
+    // One row per transiting sign: prefer the row with the most flagged columns, so the pilot exercises the other columns too.
+    const picked: any[] = [];
+    for (const sign of SIGNS) {
+        const candidates = report.results.filter((x) => x.transit === sign && x.after && !repeats(x)).sort((a, b) => b.flagged.length - a.flagged.length || a.n - b.n);
+        if (candidates[0]) picked.push(candidates[0]);
+    }
+    if (picked.length > PILOT) picked.length = PILOT;
+    console.log(`PILOT WRITE: ${picked.length} rows (one per transiting sign), flagged columns only.\n`);
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY!);
+    const log: any[] = [];
+    for (const r of picked) {
+        const cols = r.flagged as Field[];
+        const after: Record<string, string> = r.after;
+        // Refuse anything that is not clean, whatever the report says.
+        const bad = cols.flatMap((f) => findBodyClaims(after[f]).map((t) => `${f}: ${t}`));
+        if (bad.length) throw new Error(`Row ${r.id} fails the body-claims guard (${bad.join(', ')}); nothing more is written.`);
+
+        let q = supabase.from('triad_states').update({ ...after, updated_at: new Date().toISOString() }).eq('id', r.id);
+        for (const f of cols) q = q.eq(f, r.before[f]);
+        const { data, error } = await q.select('id');
+        if (error) throw error;
+        const updated = data?.length ?? 0;
+        console.log(`${r.sun} Sun • ${r.moon} Moon → ${r.transit}: ${cols.join(', ')} ${updated === 1 ? 'updated' : 'NOT UPDATED (stored text changed or row missing)'}`);
+        log.push({ id: r.id, sun: r.sun, moon: r.moon, transit: r.transit, columns: cols, updated: updated === 1, before: r.before, after });
+    }
+    fs.mkdirSync(OUT!, { recursive: true });
+    fs.writeFileSync(path.join(OUT!, 'pilot-write-log.json'), JSON.stringify(log, null, 2));
+    const failed = log.filter((l) => !l.updated).length;
+    console.log(`\n${log.length - failed} of ${log.length} rows updated. Log: ${path.join(OUT!, 'pilot-write-log.json')}`);
+    if (failed) process.exit(1);
+}
+
 async function main() {
-    if (!GEMINI_KEY) { console.error('GEMINI_API_KEY not set'); process.exit(1); }
     if (!SUPABASE_KEY) { console.error('SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1); }
+    if (WRITE) { await applyPilot(); return; }
+    if (!GEMINI_KEY) { console.error('GEMINI_API_KEY not set'); process.exit(1); }
     fs.mkdirSync(OUT!, { recursive: true });
 
     const rows = await loadAllRows();
@@ -195,6 +250,7 @@ async function main() {
     console.log(`DRY RUN: ${sample.length} sample rows. Nothing is written to the database.\n`);
 
     const results: any[] = [];
+    const phraseRows = new Map<string, number>(); // five-word phrase -> accepted energy lines containing it
     let firstTry = 0;
     const tot: Usage = { prompt: 0, output: 0, thoughts: 0 };
 
@@ -217,14 +273,21 @@ async function main() {
             const missing = flagged.filter((f) => typeof json[f] !== 'string' || !json[f].trim());
             const hits = flagged.flatMap((f) => findBodyClaims(json[f]).map((t) => `${f}: ${t}`));
             const tooLong = flagged.filter((f) => (json[f]?.length ?? 0) > 900);
-            const crutches = flagged.includes('physical_guidance') ? findUnassignedCrutches(json.physical_guidance ?? '', assignVariety(row)) : [];
-            if (missing.length === 0 && hits.length === 0 && tooLong.length === 0 && crutches.length === 0) {
+            const energyDraft = flagged.includes('physical_guidance') ? json.physical_guidance ?? '' : '';
+            const crutches = energyDraft ? findUnassignedCrutches(energyDraft, assignVariety(row)) : [];
+            const repeated = energyDraft ? [...fiveGrams(energyDraft)].filter((g) => (phraseRows.get(g) ?? 0) >= MAX_PHRASE_ROWS) : [];
+            if (missing.length === 0 && hits.length === 0 && tooLong.length === 0 && crutches.length === 0 && repeated.length === 0) {
                 after = Object.fromEntries(flagged.map((f) => [f, json[f].trim()]));
+                if (energyDraft) for (const g of fiveGrams(after.physical_guidance)) phraseRows.set(g, (phraseRows.get(g) ?? 0) + 1);
                 break;
             }
-            const why = [...missing.map((f) => `${f} missing`), ...hits, ...tooLong.map((f) => `${f} too long`), ...crutches.map((c) => `used ${c} without being assigned it`)].join('; ');
+            const why = [
+                ...missing.map((f) => `${f} missing`), ...hits, ...tooLong.map((f) => `${f} too long`),
+                ...crutches.map((c) => (c.startsWith('a ') || c.startsWith('an ') ? `used ${c} without being assigned it` : `problem: ${c}`)),
+                ...repeated.slice(0, 3).map((g) => `the phrase "${g}" is already used in other days`),
+            ].join('; ');
             rejections.push(why);
-            prompt += `\n\nYOUR LAST DRAFT WAS REJECTED (${why}). Rewrite those fields with no medical or pseudo-medical language (plain self-care suggestions are fine) and keep each under 900 characters.`;
+            prompt += `\n\nYOUR LAST DRAFT WAS REJECTED (${why}). Rewrite those fields with no medical or pseudo-medical language (plain self-care suggestions are fine), put the activity and pace in your own words, and keep each under 900 characters.`;
             await sleep(PACING_MS);
         }
 
@@ -233,7 +296,7 @@ async function main() {
         console.log(after ? `  ok (${attempts} attempt${attempts > 1 ? 's' : ''})` : '  FAILED');
 
         results.push({
-            n: i + 1, id: row.id, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign,
+            n: i + 1, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign,
             title: row.combination_title, flagged, attempts, rejections, usage: used,
             before: Object.fromEntries(flagged.map((f) => [f, row[f]])), after,
         });

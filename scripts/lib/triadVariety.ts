@@ -80,7 +80,7 @@ export const PACE_SHAPES: Record<Modality, string[]> = {
 
 export const CLOSINGS: string[] = [
     'end on a gentle question to the reader',
-    'end on a time-of-day anchor ("by late afternoon…")',
+    'end on a time-of-day anchor, such as late afternoon or after dinner',
     'end by naming one thing to decline today',
     'end by naming the kind of company that helps',
     'end by saying when the work is good enough to stop',
@@ -97,7 +97,7 @@ export const CLOSINGS: string[] = [
     'end with a sign that the day is going well',
     'end with a contrast: not this, but that',
     'end with something to look forward to tonight or tomorrow',
-    'end by naming a pace marker ("when you feel the first dip…")',
+    'end by naming the first sign that it is time to slow down',
     'end with a small treat worth giving yourself',
     'end with a hint about what to leave unfinished',
     'end with the single most useful sentence of the day',
@@ -111,9 +111,9 @@ export const OPENINGS: string[] = [
     'open by contrasting their Sun and Moon in one clause',
     'open with the first thing they will notice this morning',
     'open by addressing them directly with "you"',
-    'open with a single-word mood, then a comma',
+    'open with one plain sentence on what kind of day it is',
     'open with what the day asks of them',
-    'open with an image of weather or terrain that matches the pace (no medical imagery)',
+    'open with a simple image of motion that matches the pace, such as a river, a tide or a drumbeat (no seasons, no body imagery)',
     'open with the element of the Moon (fire, earth, air or water) and what it does to the day',
     'open with the best use of the first hour',
     'open with what to protect today',
@@ -171,22 +171,78 @@ export function assignVariety(row: VarietyInput): Assignment {
 const WALK = /\bwalk(s|ed|ing)?\b/i;
 const EARLY_NIGHT = /\b(early night|rest early|rest earlier|bed early|early to bed|early evening in|early evening of)\b/i;
 
-/** What the draft leaned on that was not assigned to this row. Empty means it is within its assignment. */
+// Body parts and sensations are out of the energy line even when they are not medical (the guard only blocks mechanism language).
+const BODY_PARTS = /\b(legs?|knees?|calves|ankles?|hips?|shoulders?|jaw|neck|palms?|pulses?|heartbeats?|heart\s+beats?|heart\s+(?:rate|racing|pounding)|racing\s+heart|pounding\s+heart)\b/i;
+
+// Seasons and the weather of the year: the same day is a different season for every reader.
+const SEASONS = /\b(autumn\w*|winter\w*|summer\w*|spring(?:time)?(?!\s+(?:into|to|up|forward|back))|season\w*|snow\w*|frost\w*|harvest\w*|blossom\w*|heat\s?wave|(?:this|the|early|late|last|next)\s+fall|falling\s+leaves|dry\s+leaves|crunching\s+leaves)\b/i;
+
+const words = (text: string): string[] => text.toLowerCase().replace(/[^a-z0-9'\s-]/g, ' ').split(/\s+/).filter(Boolean);
+
+/** Every run of five consecutive words in `text`, lowercased. */
+export function fiveGrams(text: string): Set<string> {
+    const w = words(text);
+    const out = new Set<string>();
+    for (let i = 0; i + 5 <= w.length; i++) out.add(w.slice(i, i + 5).join(' '));
+    return out;
+}
+
+const POOL_PHRASES: string[][] = [...Object.values(ACTIVITY_POOLS).flat(), ...Object.values(PACE_SHAPES).flat()].map(words).filter((w) => w.length >= 5);
+
+/** Five-word runs the draft copied straight out of the activity ideas or pace shapes instead of paraphrasing them. */
+export function findCopiedPhrases(text: string): string[] {
+    const grams = fiveGrams(text);
+    const copied = new Set<string>();
+    for (const p of POOL_PHRASES) {
+        for (let i = 0; i + 5 <= p.length; i++) {
+            const g = p.slice(i, i + 5).join(' ');
+            if (grams.has(g)) copied.add(g);
+        }
+    }
+    return [...copied];
+}
+
+const ASTRO_WORDS = 'Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces|Moon|Sun|Earth|Fire|Air|Water|Cardinal|Fixed|Mutable|Blueprint|Luminary';
+const LEAD_INS = /^(Today|Tonight|Instead|However|Meanwhile|Still|First|Soon|Later|Ideally|Usually|Together|Gently|Slowly|Quietly)$/;
+const CLIPPED_AFTER_COMMA = new RegExp(`,\\s+(?!(?:${ASTRO_WORDS})|I\\b)[A-Z][a-z]+`);
+
+/** Awkward or clipped writing: a one-word lead-in, a capital after a comma, a missing full stop, an ellipsis. */
+export function findStyleProblems(text: string): string[] {
+    const t = text.trim();
+    const found: string[] = [];
+    const lead = t.match(/^([A-Za-z'-]+),\s/);
+    if (lead && !LEAD_INS.test(lead[1])) found.push(`opens with the one-word lead-in "${lead[1]},"`);
+    if (/^[a-z]/.test(t)) found.push('does not start with a capital letter');
+    if (!/[.!?]["')\]]?$/.test(t)) found.push('does not end with a full stop');
+    if (CLIPPED_AFTER_COMMA.test(t)) found.push('has a capital letter straight after a comma (clipped sentence)');
+    if (/…|\.\.\./.test(t)) found.push('contains an ellipsis');
+    return found;
+}
+
+/** What the draft leaned on that was not assigned to this row, or that the energy line must never contain. Empty means clean. */
 export function findUnassignedCrutches(text: string, a: Assignment): string[] {
     const found: string[] = [];
     if (WALK.test(text) && !a.walkAllowed) found.push('a walk');
     if (EARLY_NIGHT.test(text) && !a.earlyNightAllowed) found.push('an early night');
     for (const b of BANNED_PHRASES) if (b.re.test(text)) found.push(b.label);
+    const body = text.match(BODY_PARTS);
+    if (body) found.push(`the body part or sensation "${body[0]}"`);
+    const season = text.match(SEASONS);
+    if (season) found.push(`the season or time-of-year word "${season[0]}"`);
+    for (const c of findCopiedPhrases(text)) found.push(`the copied phrase "${c}"`);
+    for (const s of findStyleProblems(text)) found.push(s);
     return found;
 }
 
 /** The prompt fragment that tells the model which ideas, pace and closing to use for this row. */
 export function varietyInstruction(a: Assignment): string {
     return [
-        `Anchor the day on ONE of these activity ideas, adapted to this Blueprint (do not list all three): ${a.activities.join(' | ')}.`,
+        `Anchor the day on ONE of these activity ideas, adapted to this Blueprint and put in your own words (do not list all three, and do not copy their wording): ${a.activities.join(' | ')}.`,
         `Do NOT suggest a walk or an early night unless one of the ideas above is exactly that.`,
-        `Pace shape for the day: ${a.paceShape}.`,
+        `Pace shape for the day, as a theme to paraphrase and never to quote: ${a.paceShape}.`,
         `Open this way: ${a.opening}. Close the last sentence this way: ${a.closing}.`,
+        `Write complete, natural sentences that read well aloud. The first sentence is a full sentence, never a one-word lead-in followed by a comma, and no sentence starts with a capital letter right after a comma. Do not use ellipses.`,
+        `Do not mention seasons, the time of year, or seasonal scenery (autumn leaves, snow, summer heat), and do not mention body parts or physical sensations (legs, pulse, heartbeat, shoulders, jaw, neck).`,
         `Never use the phrases "the atmosphere", "it is fine to" or "permission to". Keep it to 2-3 sentences and about 420 characters.`,
     ].join(' ');
 }
