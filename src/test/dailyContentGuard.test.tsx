@@ -27,6 +27,37 @@ describe("daily content guard", () => {
     );
   });
 
+  it("flags diagnoses, conditions, stress chemistry and clinical body wording (each has a glossary translation)", () => {
+    const flagged: Array<[string, string]> = [
+      ["severe hypochondria and a leaky fight-or-flight response", "hypochondria"],
+      ["Adrenaline and cortisol keep you wired.", "stress chemistry"],
+      ["The anxiety will not settle.", "anxiety"],
+      ["A slow depression drains your drive.", "depression"],
+      ["Insomnia may visit tonight.", "insomnia"],
+      ["Blood flow follows attention.", "circulation"],
+      ["Hormones shift with the tide.", "hormones"],
+      ["Blending Virgo's love for bodily hygiene with the sea.", "hygiene / clinical phrasing"],
+      ["Rest one hand on your lower belly and warm your chest.", "chest / belly"],
+      ["Try lymphatic drainage or dry brushing.", "internal organs / tissue"],
+      ["Old trauma and panic attacks surface.", "conditions / diagnoses"],
+      ["Somatic release for body tension.", "somatic / body tension"],
+      ["Let your hands metabolize the worry.", "metabolism"],
+    ];
+    for (const [text, label] of flagged) expect(findBodyClaims(text), text).toContain(label);
+  });
+
+  it("allows the everyday gestures the glossary keeps", () => {
+    const allowed = [
+      "Rest one hand over your heart as a quiet gesture of kindness to yourself.",
+      "Take a warm bath, or a warm foot soak scented with eucalyptus, as a ritual of release.",
+      "Dab frankincense on your wrists and breathe slowly.",
+      "That keyed-up, braced-for-impact feeling eases when you slow your breathing.",
+      "Notice the stress you carry, like tight shoulders or a clenched jaw.",
+      "Let a sense of warmth gather and settle.",
+    ];
+    for (const text of allowed) expect(findBodyClaims(text), text).toEqual([]);
+  });
+
   it("allows plain everyday self-care and activity suggestions", () => {
     const allowed = [
       "Take a slow walk, rest early, drink some water and stretch.",

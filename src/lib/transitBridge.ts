@@ -137,7 +137,7 @@ const BRIDGE_SENTENCES: Record<BridgeKey, string> = {
   'water-fixed-fire':
       'A Fire Moon cuts through your depth with urgency and heat. Useful when you have been submerged too long; disruptive when the transformation still needs time.',
   'water-fixed-earth':
-      'An Earth Moon offers structure for your intensity — emotions can be metabolized into something useful and lasting rather than held in suspension.',
+      'An Earth Moon offers structure for your intensity — emotions can be worked through and turned into something useful and lasting rather than held in suspension.',
   'water-fixed-air':
       'An Air Moon pulls your deep knowing toward the surface where it can be named. The insight that has been forming in the depths may be ready to speak.',
   'water-fixed-water':

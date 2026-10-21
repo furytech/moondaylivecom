@@ -1,32 +1,41 @@
 /**
  * scripts/regen-flagged-triads.ts
  *
- * Rewrites ONLY the flagged lines of stored triad_states rows so daily content makes no medical or pseudo-medical
- * claims (see src/lib/dailyContentGuard.ts). Lines that are already clean are passed to the model as context and
- * never touched.
+ * Rewrites ONLY the flagged lines of stored triad_states rows so daily content makes no body, health or medical claims
+ * (src/lib/dailyContentGuard.ts) and follows docs/language-glossary.md: translate, never soften. Lines that are already
+ * clean are passed to the model as context and never touched.
  *
  *   physical_guidance  -> new pace-and-energy guidance (when to push, when to slow down, what activity suits the day)
- *   every other field  -> a minimal rewrite that keeps its meaning, voice and length
+ *   every other field  -> a minimal rewrite: only the medical or clinical wording changes, and each term is replaced by
+ *                         its glossary phrase (lived experience, same meaning), never deleted or swapped for a vague stand-in
+ *
+ * Rows that the 12-row pilot already rewrote are re-checked against the glossary: a non-energy line whose ORIGINAL (from
+ * the backup table) had a clinical term is redone from the original, and an energy line that now fails the energy-line
+ * rules (for example UK spelling) is regenerated.
+ *
+ * A row is written only while every column being changed still equals the text this script read. The rollback is
+ * triad_states_backup_2026_10_21.
  *
  * Modes
- *   Dry run (default). Reads rows and calls Gemini; writes nothing to the database. Saves a before/after report.
- *     npx tsx scripts/regen-flagged-triads.ts --dry-run --sample=24 --out=<folder>
+ *   --measure                       counts only, no API calls, no writes
+ *   (default) --dry-run --sample=24 reads rows, calls Gemini, writes a before/after report, never writes to the database
+ *   --run [--batch=200]             the full regeneration (writes). Resumable: the plan is recomputed from the database.
  *
- *   Pilot write. Applies reviewed dry-run results (no new Gemini calls) for one row per transiting sign.
- *   Only the flagged columns are updated, and only if the stored text still equals the "before" text in the
- *   report, so nothing edited since the dry run is overwritten. The rollback is triad_states_backup_2026_10_21.
- *     npx tsx scripts/regen-flagged-triads.ts --write --apply-from=<dry-run-results.json> --pilot=12 --out=<folder>
+ *   npx tsx scripts/regen-flagged-triads.ts --measure
+ *   npx tsx scripts/regen-flagged-triads.ts --dry-run --sample=24 --out=<folder>
+ *   npx tsx scripts/regen-flagged-triads.ts --run --out=<folder>
  *
- *   The full run is not enabled in this version: --write requires --apply-from and --pilot.
- *
- * Needs GEMINI_API_KEY (dry run) and SUPABASE_SERVICE_ROLE_KEY in .env.local.
+ * Stops when more than 5% of API calls fail or more than 10% of rows fail every retry (judged after 40 of each).
+ * Needs GEMINI_API_KEY and SUPABASE_SERVICE_ROLE_KEY in .env.local; Telegram updates if TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are set.
  */
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import { findBodyClaims } from '../src/lib/dailyContentGuard';
-import { assignVariety, findUnassignedCrutches, fiveGrams, varietyInstruction, ACTIVITY_POOLS, CLOSINGS, OPENINGS, PACE_SHAPES } from './lib/triadVariety';
+import { BODY_CLAIM_TERMS, findBodyClaims } from '../src/lib/dailyContentGuard';
+import { assignVariety, findUnassignedCrutches, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
+import { judgeRewrite, QuotaExhausted, isDailyQuota } from './lib/rewriteJudge';
+import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation } from './lib/languageGlossary';
 
 for (const f of ['.env.local', '.env']) {
     const p = path.resolve(process.cwd(), f);
@@ -34,26 +43,29 @@ for (const f of ['.env.local', '.env']) {
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const MODEL       = 'gemini-3.5-flash-lite';
-const PACING_MS   = 1200;
-const MAX_RETRIES = 3;
-const GEMINI_KEY  = process.env.GEMINI_API_KEY;
+const MODEL        = 'gemini-3.5-flash-lite';
+const PACING_MS    = 1200;
+const MAX_RETRIES  = 5;
+const GEMINI_KEY   = process.env.GEMINI_API_KEY;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://ggrhuhwxbwrfbbcwcrmv.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const TG_TOKEN     = process.env.TELEGRAM_BOT_TOKEN;
+const TG_CHAT_ID   = process.env.TELEGRAM_CHAT_ID;
+const BACKUP_TABLE = 'triad_states_backup_2026_10_21';
+// USD per million tokens, from third-party pricing pages (not verified against Google's own page). Thinking tokens bill as output.
+const RATE_IN = 0.30, RATE_OUT = 2.50;
 
 const arg = (name: string, fallback?: string) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback;
-const SAMPLE = Number(arg('sample', '24'));
-const OUT    = arg('out', '.');
-const WRITE  = process.argv.includes('--write');
-const APPLY_FROM = arg('apply-from');
-const PILOT  = Number(arg('pilot', '0'));
-/** A five-word phrase may appear in at most this many accepted energy lines in one run. */
-const MAX_PHRASE_ROWS = Number(arg('max-phrase-rows', '2'));
-
-if (WRITE && (!APPLY_FROM || !PILOT)) {
-    console.error('--write needs --apply-from=<dry-run-results.json> and --pilot=<n>. The full run is not enabled in this version.');
-    process.exit(1);
-}
+const flag = (name: string) => process.argv.includes(`--${name}`);
+const SAMPLE      = Number(arg('sample', '24'));
+const OUT         = arg('out', '.')!;
+const BATCH       = Number(arg('batch', '200'));
+const CONCURRENCY = Number(arg('concurrency', '3'));
+const LIMIT       = Number(arg('limit', '0'));
+/** Stop starting new rows once this many API calls (drafts and editor reads) have been made; 0 = no budget. For a free-tier daily quota. */
+const MAX_CALLS   = Number(arg('max-calls', '0'));
+const RUN         = flag('run');
+const MEASURE     = flag('measure');
 
 const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const ELEMENT: Record<string, string> = { Aries:'Fire', Leo:'Fire', Sagittarius:'Fire', Taurus:'Earth', Virgo:'Earth', Capricorn:'Earth', Gemini:'Air', Libra:'Air', Aquarius:'Air', Cancer:'Water', Scorpio:'Water', Pisces:'Water' };
@@ -80,25 +92,67 @@ type Row = {
     combination_title: string | null;
 } & Record<Field, string | null>;
 
+/** new = fresh energy line; rewrite = glossary translation of a flagged line; redo = pilot line redone from the original; energy-redo = pilot energy line that fails the energy rules */
+type Kind = 'new' | 'rewrite' | 'redo' | 'energy-redo';
+interface Job {
+    row: Row;
+    fields: Field[];
+    kinds: Partial<Record<Field, Kind>>;
+    /** The text to translate (the original when a pilot line is redone), by field */
+    source: Partial<Record<Field, string>>;
+}
+
 const RULES = `CONTENT RULES (these override everything else):
 - Speak to mood, energy, focus, pace, relationships and behaviour.
 - Plain everyday self-care is welcome: take a slow walk, rest early, drink some water, stretch, step outside.
-- Never use medical or pseudo-medical language: no body systems, symptoms, organs, nervous system, circulation, spinal fluid, hormones, diagnoses, treatments or health advice, and never explain a mechanism inside the body.
-- Warm and specific to this Blueprint, never generic. Reflective, not predictive. Nothing fear-based.`;
+- Never use medical, clinical or diagnostic language: no body systems, symptoms, organs, conditions, diagnoses, treatments or health advice, and never explain a mechanism inside the body.
+- Warm and specific to this Blueprint, never generic. Reflective, not predictive. Nothing fear-based. US spelling.`;
 
-function instructionFor(field: Field, row: Row): string {
-    const sun = row.natal_sun_sign, moon = row.natal_moon_sign, transit = row.transiting_moon_sign;
-    if (field === 'physical_guidance') {
-        return `"physical_guidance": "2-3 sentences of PACE-AND-ENERGY guidance: how this ${transit} Moon transit sets the energy of the day for this Blueprint, when to push and when to slow down, and what kind of activity suits the day. ${varietyInstruction(assignVariety(row))} Warm and specific to how a ${sun}/${moon} person experiences ${transit} energy, not generic moon-in-sign information. No medical language."`;
-    }
-    return `"${field}": "A minimal rewrite of the ${LABEL[field]} text below. Keep its meaning, voice, imagery and length; change only the wording that is medical or pseudo-medical. TEXT TO REWRITE: ${JSON.stringify(row[field])}"`;
+// ── Planning ──────────────────────────────────────────────────────────────────
+const clean = (t: string | null | undefined) => findBodyClaims(t).length === 0;
+
+/** Why a stored energy line fails the energy-line rules (these apply to the pilot's new lines, not to untouched originals). */
+function energyProblems(row: Row, text: string): string[] {
+    const found = [...findUnassignedCrutches(text, assignVariety(row))];
+    const uk = findUkSpelling(text);
+    if (uk) found.push(`UK spelling "${uk}"`);
+    for (const v of VAGUE_SUBSTITUTES) if (v.test(text)) found.push(`vague stand-in ${v.source}`);
+    return found;
 }
 
-function buildPrompt(row: Row, flagged: Field[]): string {
+function planJob(row: Row, orig: Row | undefined): Job | null {
+    const job: Job = { row, fields: [], kinds: {}, source: {} };
+    for (const f of FIELDS) {
+        const live = row[f] ?? '';
+        if (!live) continue;
+        const original = orig?.[f] ?? live;
+        const changed = original !== live; // the pilot rewrote this column
+        if (f === 'physical_guidance') {
+            if (!clean(live)) { job.fields.push(f); job.kinds[f] = 'new'; job.source[f] = live; }
+            else if (changed && energyProblems(row, live).length) { job.fields.push(f); job.kinds[f] = 'energy-redo'; job.source[f] = original; }
+            continue;
+        }
+        if (!clean(live)) { job.fields.push(f); job.kinds[f] = changed ? 'redo' : 'rewrite'; job.source[f] = changed ? original : live; }
+        else if (changed && !clean(original)) { job.fields.push(f); job.kinds[f] = 'redo'; job.source[f] = original; }
+    }
+    return job.fields.length ? job : null;
+}
+
+// ── Prompt ────────────────────────────────────────────────────────────────────
+function instructionFor(f: Field, job: Job): string {
+    const row = job.row;
     const sun = row.natal_sun_sign, moon = row.natal_moon_sign, transit = row.transiting_moon_sign;
-    const context = FIELDS.filter((f) => !flagged.includes(f) && row[f])
-        .map((f) => `- ${LABEL[f]}: ${row[f]}`)
-        .join('\n');
+    if (f === 'physical_guidance') {
+        return `"physical_guidance": "2-3 sentences of PACE-AND-ENERGY guidance: how this ${transit} Moon transit sets the energy of the day for this Blueprint, when to push and when to slow down, and what kind of activity suits the day. ${varietyInstruction(assignVariety(row))} Warm and specific to how a ${sun}/${moon} person experiences ${transit} energy, not generic moon-in-sign information. No medical language."`;
+    }
+    const src = job.source[f]!;
+    return `"${f}": "A minimal rewrite of the ${LABEL[f]} text below. Keep every word that is not medical, clinical or diagnostic exactly as written, and keep its meaning, voice, imagery and length. Replace each medical or clinical term with its glossary phrase (translate, never soften), adjusting only the grammar. TEXT TO REWRITE: ${JSON.stringify(src)}"`;
+}
+
+function buildPrompt(job: Job): string {
+    const row = job.row;
+    const sun = row.natal_sun_sign, moon = row.natal_moon_sign, transit = row.transiting_moon_sign;
+    const context = FIELDS.filter((f) => !job.fields.includes(f) && row[f]).map((f) => `- ${LABEL[f]}: ${row[f]}`).join('\n');
     return `You are a depth astrologer writing daily guidance for Moonday Live.
 
 BLUEPRINT: ${sun} Sun + ${moon} Moon — "${row.combination_title ?? ''}"
@@ -112,15 +166,21 @@ ${context || '(none)'}
 
 ${RULES}
 
+${GLOSSARY_PROMPT}
+
 Write ONLY these fields:
 {
-  ${flagged.map((f) => instructionFor(f, row)).join(',\n  ')}
+  ${job.fields.map((f) => instructionFor(f, job)).join(',\n  ')}
 }
 
 Return ONLY valid JSON with exactly those keys, no markdown, no explanation.`;
 }
 
+// ── Gemini ────────────────────────────────────────────────────────────────────
 interface Usage { prompt: number; output: number; thoughts: number; }
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const addUsage = (a: Usage, b: Usage) => { a.prompt += b.prompt; a.output += b.output; a.thoughts += b.thoughts; };
+const costUSD = (u: Usage) => (u.prompt * RATE_IN + (u.output + u.thoughts) * RATE_OUT) / 1_000_000;
 
 async function callGemini(prompt: string): Promise<{ json: Record<string, string>; usage: Usage }> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
@@ -133,7 +193,12 @@ async function callGemini(prompt: string): Promise<{ json: Record<string, string
                 generationConfig: { temperature: 0.8, maxOutputTokens: 2048, topP: 0.92, responseMimeType: 'application/json' },
             }),
         });
-        if (res.status === 429 && attempt < 4) { await sleep(30000 * Math.pow(2, attempt)); continue; }
+        if (res.status === 429) {
+            const body = await res.text();
+            if (isDailyQuota(body)) throw new QuotaExhausted(body);
+            if (attempt < 4) { await sleep(30000 * Math.pow(2, attempt)); continue; }
+            throw new Error(`Gemini 429: ${body.slice(0, 200)}`);
+        }
         if (!res.ok) {
             if (attempt < 3) { await sleep(2000 * Math.pow(2, attempt)); continue; }
             throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -142,30 +207,73 @@ async function callGemini(prompt: string): Promise<{ json: Record<string, string
         const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
         const um = data?.usageMetadata ?? {};
         const usage: Usage = { prompt: um.promptTokenCount ?? 0, output: um.candidatesTokenCount ?? 0, thoughts: um.thoughtsTokenCount ?? 0 };
-        const clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-        try { return { json: JSON.parse(clean), usage }; }
+        const stripped = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+        try { return { json: JSON.parse(stripped), usage }; }
         catch {
-            const m = clean.match(/\{[\s\S]*\}/);
-            if (m) return { json: JSON.parse(m[0]), usage };
+            const m = stripped.match(/\{[\s\S]*\}/);
+            if (m) { try { return { json: JSON.parse(m[0]), usage }; } catch { /* fall through */ } }
             if (attempt < 3) continue;
             throw new Error('Could not parse JSON from Gemini response');
         }
     }
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-function flaggedFields(row: Row): Field[] {
-    return FIELDS.filter((f) => findBodyClaims(row[f]).length > 0);
+// ── Validation ────────────────────────────────────────────────────────────────
+/** Everything wrong with a draft; an empty list means it can be accepted. `recent` is the last (WINDOW - 1) accepted energy lines. */
+function validate(job: Job, json: Record<string, string>, recent: string[]): string[] {
+    const problems: string[] = [];
+    for (const f of job.fields) {
+        const text = typeof json[f] === 'string' ? json[f].trim() : '';
+        if (!text) { problems.push(`${f} missing`); continue; }
+        const source = job.source[f] ?? '';
+        const hits = findBodyClaims(text);
+        if (hits.length) problems.push(`${f}: still contains ${hits.join(', ')}`);
+        const uk = findUkSpelling(text);
+        if (uk && findUkSpelling(source) !== uk) problems.push(`${f}: use US spelling instead of "${uk}"`);
+        for (const v of VAGUE_SUBSTITUTES) if (v.test(text) && !v.test(source)) problems.push(`${f}: "${text.match(v)![0]}" is a vague stand-in, say what the term actually does`);
+        if (f === 'physical_guidance') {
+            if (text.length > 900) problems.push(`${f} too long`);
+            for (const c of findUnassignedCrutches(text, assignVariety(job.row))) problems.push(c.startsWith('a ') || c.startsWith('an ') ? `used ${c} without being assigned it` : `problem: ${c}`);
+            problems.push(...windowProblems(text, recent));
+        } else {
+            if (text.length > Math.max(900, source.length * 1.3)) problems.push(`${f} too long`);
+            if (text === source) problems.push(`${f} unchanged`);
+            for (const label of findBodyClaims(source)) {
+                const key = requiredTranslation(label, source);
+                if (key && !key.test(text)) problems.push(`${f}: replace "${label}" with the glossary wording, e.g. "${SUGGESTED_PHRASE[label]}"`);
+            }
+        }
+    }
+    return problems;
 }
 
-async function loadAllRows(): Promise<Row[]> {
+/** The copy-editor read of each rewritten line. A judge call that fails counts as a failed API call and rejects the draft. */
+async function judgeFields(job: Job, json: Record<string, string>, used: Usage): Promise<string[]> {
+    const problems: string[] = [];
+    for (const f of job.fields) {
+        if (f === 'physical_guidance') continue;
+        S.calls++;
+        try {
+            const verdict = await judgeRewrite(job.source[f]!, json[f].trim(), GEMINI_KEY!);
+            addUsage(used, verdict.tokens);
+            if (!verdict.ok) problems.push(`${f}: reads badly or changes the meaning (${verdict.problems.join(' / ') || 'editor rejected it'}); reword the clause around the glossary phrase so it is grammatical`);
+        } catch (err) {
+            if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; problems.push('quota exhausted'); break; }
+            S.callFailures++;
+            problems.push(`${f}: editor check unavailable (${(err as Error).message})`);
+        }
+    }
+    return problems;
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+async function loadAll(table: string): Promise<Row[]> {
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY!);
     const rows: Row[] = [];
     // The API returns 1,000 rows at most per request, so page through.
     for (let from = 0; ; from += 1000) {
         const { data, error } = await supabase
-            .from('triad_states')
+            .from(table)
             .select('id, natal_sun_sign, natal_moon_sign, transiting_moon_sign, triad_number, combination_title, ' + FIELDS.join(', '))
             .order('triad_number')
             .range(from, from + 999);
@@ -176,210 +284,251 @@ async function loadAllRows(): Promise<Row[]> {
     return rows;
 }
 
-/** Two rows per transiting sign: one where only the energy line is flagged, one where other lines are flagged too. */
-function pickSample(rows: Row[], perSign: number): Row[] {
-    const picked: Row[] = [];
-    SIGNS.forEach((transit, ti) => {
-        const flagged = rows.filter((r) => r.transiting_moon_sign === transit && flaggedFields(r).length > 0);
-        const onlyPhysical = flagged.filter((r) => flaggedFields(r).length === 1);
-        const several = flagged.filter((r) => flaggedFields(r).length > 1);
-        const take = (pool: Row[], offset: number) => (pool.length ? pool[(ti * 7 + offset) % pool.length] : undefined);
-        const chosen = [take(onlyPhysical, 0), take(several, 3), take(flagged, 11)].filter(Boolean) as Row[];
-        const unique = [...new Map(chosen.map((r) => [r.id, r])).values()];
-        picked.push(...unique.slice(0, perSign));
-    });
-    return picked;
+/** The untouched rows from before any rewrite: the JSON export taken with the backup table (service_role has no grant on the table itself). */
+function loadBackup(): Promise<Row[]> {
+    const file = arg('backup-file');
+    if (!file) return loadAll(BACKUP_TABLE);
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const list = Array.isArray(parsed) ? parsed : (parsed.rows ?? parsed.data ?? (Object.values(parsed)[0] as Row[]));
+    return Promise.resolve(list as Row[]);
 }
 
-/**
- * Pilot write: applies the reviewed "after" text from a dry-run report to one row per transiting sign.
- * Only the flagged columns change, and only while the stored text still equals the report's "before" text.
- */
-async function applyPilot() {
-    const report = JSON.parse(fs.readFileSync(APPLY_FROM!, 'utf8')) as { results: any[] };
-    // A row is held back if any of its lines shares a five-word phrase with more than MAX_PHRASE_ROWS rows of the report.
-    const rowsByGram = new Map<string, Set<number>>();
-    for (const x of report.results) for (const text of Object.values((x.after ?? {}) as Record<string, string>)) for (const g of fiveGrams(text)) (rowsByGram.get(g) ?? rowsByGram.set(g, new Set()).get(g)!).add(x.n);
-    const repeats = (x: any) => Object.values(x.after as Record<string, string>).some((text) => [...fiveGrams(text)].some((g) => (rowsByGram.get(g)?.size ?? 0) > MAX_PHRASE_ROWS));
-    // One row per transiting sign: prefer the row with the most flagged columns, so the pilot exercises the other columns too.
-    const picked: any[] = [];
-    for (const sign of SIGNS) {
-        const candidates = report.results.filter((x) => x.transit === sign && x.after && !repeats(x)).sort((a, b) => b.flagged.length - a.flagged.length || a.n - b.n);
-        if (candidates[0]) picked.push(candidates[0]);
-    }
-    if (picked.length > PILOT) picked.length = PILOT;
-    console.log(`PILOT WRITE: ${picked.length} rows (one per transiting sign), flagged columns only.\n`);
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY!);
-    const log: any[] = [];
-    for (const r of picked) {
-        const cols = r.flagged as Field[];
-        const after: Record<string, string> = r.after;
-        // Refuse anything that is not clean, whatever the report says.
-        const bad = cols.flatMap((f) => findBodyClaims(after[f]).map((t) => `${f}: ${t}`));
-        if (bad.length) throw new Error(`Row ${r.id} fails the body-claims guard (${bad.join(', ')}); nothing more is written.`);
-
-        let q = supabase.from('triad_states').update({ ...after, updated_at: new Date().toISOString() }).eq('id', r.id);
-        for (const f of cols) q = q.eq(f, r.before[f]);
-        const { data, error } = await q.select('id');
-        if (error) throw error;
-        const updated = data?.length ?? 0;
-        console.log(`${r.sun} Sun • ${r.moon} Moon → ${r.transit}: ${cols.join(', ')} ${updated === 1 ? 'updated' : 'NOT UPDATED (stored text changed or row missing)'}`);
-        log.push({ id: r.id, sun: r.sun, moon: r.moon, transit: r.transit, columns: cols, updated: updated === 1, before: r.before, after });
-    }
-    fs.mkdirSync(OUT!, { recursive: true });
-    fs.writeFileSync(path.join(OUT!, 'pilot-write-log.json'), JSON.stringify(log, null, 2));
-    const failed = log.filter((l) => !l.updated).length;
-    console.log(`\n${log.length - failed} of ${log.length} rows updated. Log: ${path.join(OUT!, 'pilot-write-log.json')}`);
-    if (failed) process.exit(1);
+async function plan(): Promise<{ rows: Row[]; jobs: Job[] }> {
+    const [rows, backup] = await Promise.all([loadAll('triad_states'), loadBackup()]);
+    const byId = new Map(backup.map((r) => [r.id, r]));
+    const jobs = rows.map((r) => planJob(r, byId.get(r.id))).filter(Boolean) as Job[];
+    return { rows, jobs };
 }
 
-async function main() {
-    if (!SUPABASE_KEY) { console.error('SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1); }
-    if (WRITE) { await applyPilot(); return; }
-    if (!GEMINI_KEY) { console.error('GEMINI_API_KEY not set'); process.exit(1); }
-    fs.mkdirSync(OUT!, { recursive: true });
+const hash = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 
-    const rows = await loadAllRows();
-    const needing = rows.filter((r) => flaggedFields(r).length > 0);
-    console.log(`Rows: ${rows.length}. Rows with at least one flagged line: ${needing.length}.`);
-    const perField = Object.fromEntries(FIELDS.map((f) => [f, rows.filter((r) => findBodyClaims(r[f]).length > 0).length]));
-    console.log('Flagged lines per field:', perField);
+function summarizePlan(rows: Row[], jobs: Job[]) {
+    const perField = Object.fromEntries(FIELDS.map((f) => [f, jobs.filter((j) => j.fields.includes(f)).length]));
+    const perKind: Record<string, number> = {};
+    for (const j of jobs) for (const f of j.fields) perKind[j.kinds[f]!] = (perKind[j.kinds[f]!] ?? 0) + 1;
+    const flaggedRows = rows.filter((r) => FIELDS.some((f) => !clean(r[f]))).length;
+    const perTerm = Object.fromEntries(BODY_CLAIM_TERMS.map((t) => [t.term, rows.filter((r) => FIELDS.some((f) => t.re.test(r[f] ?? ''))).length]).filter(([, n]) => (n as number) > 0));
+    return { totalRows: rows.length, rowsWithFlaggedLines: flaggedRows, rowsToProcess: jobs.length, linesToProcessPerField: perField, linesToProcessPerKind: perKind, rowsFlaggedPerTerm: perTerm };
+}
 
-    const sample = pickSample(rows, Math.max(1, Math.round(SAMPLE / SIGNS.length))).slice(0, SAMPLE);
-    console.log(`DRY RUN: ${sample.length} sample rows. Nothing is written to the database.\n`);
+// ── Processing ────────────────────────────────────────────────────────────────
+const S = { rows: 0, written: 0, stale: 0, failedRows: 0, calls: 0, callFailures: 0, attempts: 0, firstTry: 0, retriedRows: 0, usage: { prompt: 0, output: 0, thoughts: 0 } as Usage };
+const recentEnergy: string[] = [];
+let seq = 0;
+let stopReason = '';
 
-    const results: any[] = [];
-    const phraseRows = new Map<string, number>(); // five-word phrase -> accepted energy lines containing it
-    let firstTry = 0;
-    const tot: Usage = { prompt: 0, output: 0, thoughts: 0 };
+function checkStop() {
+    if (stopReason) return;
+    if (S.calls >= 40 && S.callFailures / S.calls > 0.05) stopReason = `more than 5% of API calls failed (${S.callFailures} of ${S.calls})`;
+    else if (S.rows >= 40 && S.failedRows / S.rows > 0.10) stopReason = `more than 10% of rows failed every retry (${S.failedRows} of ${S.rows})`;
+}
 
-    for (let i = 0; i < sample.length; i++) {
-        const row = sample[i];
-        const flagged = flaggedFields(row);
-        const label = `${row.natal_sun_sign} Sun • ${row.natal_moon_sign} Moon → ${row.transiting_moon_sign}`;
-        process.stdout.write(`[${String(i + 1).padStart(2, '0')}/${sample.length}] ${label.padEnd(46)} fields: ${flagged.join(', ')}`);
-
-        let prompt = buildPrompt(row, flagged);
-        let after: Record<string, string> | null = null;
-        let attempts = 0;
-        const used: Usage = { prompt: 0, output: 0, thoughts: 0 };
-        const rejections: string[] = [];
-
-        while (attempts <= MAX_RETRIES) {
-            attempts++;
-            const { json, usage } = await callGemini(prompt);
-            used.prompt += usage.prompt; used.output += usage.output; used.thoughts += usage.thoughts;
-            const missing = flagged.filter((f) => typeof json[f] !== 'string' || !json[f].trim());
-            const hits = flagged.flatMap((f) => findBodyClaims(json[f]).map((t) => `${f}: ${t}`));
-            const tooLong = flagged.filter((f) => (json[f]?.length ?? 0) > 900);
-            const energyDraft = flagged.includes('physical_guidance') ? json.physical_guidance ?? '' : '';
-            const crutches = energyDraft ? findUnassignedCrutches(energyDraft, assignVariety(row)) : [];
-            const repeated = energyDraft ? [...fiveGrams(energyDraft)].filter((g) => (phraseRows.get(g) ?? 0) >= MAX_PHRASE_ROWS) : [];
-            if (missing.length === 0 && hits.length === 0 && tooLong.length === 0 && crutches.length === 0 && repeated.length === 0) {
-                after = Object.fromEntries(flagged.map((f) => [f, json[f].trim()]));
-                if (energyDraft) for (const g of fiveGrams(after.physical_guidance)) phraseRows.set(g, (phraseRows.get(g) ?? 0) + 1);
-                break;
-            }
-            const why = [
-                ...missing.map((f) => `${f} missing`), ...hits, ...tooLong.map((f) => `${f} too long`),
-                ...crutches.map((c) => (c.startsWith('a ') || c.startsWith('an ') ? `used ${c} without being assigned it` : `problem: ${c}`)),
-                ...repeated.slice(0, 3).map((g) => `the phrase "${g}" is already used in other days`),
-            ].join('; ');
-            rejections.push(why);
-            prompt += `\n\nYOUR LAST DRAFT WAS REJECTED (${why}). Rewrite those fields with no medical or pseudo-medical language (plain self-care suggestions are fine), put the activity and pace in your own words, and keep each under 900 characters.`;
-            await sleep(PACING_MS);
-        }
-
-        tot.prompt += used.prompt; tot.output += used.output; tot.thoughts += used.thoughts;
-        if (after && attempts === 1) firstTry++;
-        console.log(after ? `  ok (${attempts} attempt${attempts > 1 ? 's' : ''})` : '  FAILED');
-
-        results.push({
-            n: i + 1, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign,
-            title: row.combination_title, flagged, attempts, rejections, usage: used,
-            before: Object.fromEntries(flagged.map((f) => [f, row[f]])), after,
+async function tgSend(msg: string) {
+    if (!TG_TOKEN || !TG_CHAT_ID) return;
+    try {
+        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg }),
         });
+    } catch { /* non-fatal */ }
+}
+
+interface Result {
+    n: number; seq: number | null; id: string; triadNumber: number | null; sun: string; moon: string; transit: string; title: string | null;
+    flagged: Field[]; kinds: Partial<Record<Field, Kind>>; attempts: number; rejections: string[]; usage: Usage;
+    before: Record<string, string | null>; source: Record<string, string>; after: Record<string, string> | null;
+    /** quota = the daily API quota ran out mid-row: nothing was written and the row is simply still to do */
+    status: 'dry-run' | 'written' | 'stale' | 'failed' | 'error' | 'quota';
+    /** The last rejected draft, kept for rows that failed every retry */
+    lastDraft?: Record<string, string>;
+}
+
+async function processJob(job: Job, n: number, write: boolean, supabase: ReturnType<typeof createClient> | null): Promise<Result> {
+    const row = job.row;
+    let prompt = buildPrompt(job);
+    let after: Record<string, string> | null = null;
+    let attempts = 0;
+    const used: Usage = { prompt: 0, output: 0, thoughts: 0 };
+    const rejections: string[] = [];
+    let status: Result['status'] = 'failed';
+    let lastDraft: Record<string, string> | undefined;
+
+    while (attempts <= MAX_RETRIES && !after) {
+        attempts++;
+        let res;
+        S.calls++;
+        try { res = await callGemini(prompt); }
+        catch (err) {
+            if (err instanceof QuotaExhausted) { stopReason = stopReason || err.message; status = 'quota'; rejections.push(err.message); break; }
+            S.callFailures++; status = 'error'; rejections.push(`API error: ${(err as Error).message}`); break;
+        }
+        addUsage(used, res.usage);
+        lastDraft = res.json;
+        let problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
+        if (problems.length === 0) {
+            // Second read of every rewritten (non-energy) line: grammar and meaning. Then re-validate, because the variety
+            // window may have moved while waiting.
+            problems = await judgeFields(job, res.json, used);
+            if (problems.length === 0) problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
+        }
+        // Validate and accept in one synchronous step so the variety window is exact when workers run side by side.
+        if (problems.length === 0) {
+            after = Object.fromEntries(job.fields.map((f) => [f, res.json[f].trim()]));
+            if (after.physical_guidance) recentEnergy.push(after.physical_guidance);
+            break;
+        }
+        if (problems.includes('quota exhausted')) { status = 'quota'; break; }
+        rejections.push(problems.join('; '));
+        prompt += `\n\nYOUR LAST DRAFT WAS REJECTED (${problems.join('; ')}). Rewrite those fields fixing exactly that: translate each clinical term with its glossary phrase (never drop it or use a vague stand-in), keep plain self-care, put activities and pace in your own words, use US spelling, and keep each under 900 characters.`;
         await sleep(PACING_MS);
     }
 
-    // ── Report ────────────────────────────────────────────────────────────────
-    const ok = results.filter((r) => r.after);
-    const avg = (n: number) => Math.round(n / Math.max(1, results.length));
-    const per = { prompt: avg(tot.prompt), output: avg(tot.output + tot.thoughts) };
-    const cost = (inRate: number, outRate: number, n: number) =>
-        ((per.prompt * n * inRate + per.output * n * outRate) / 1_000_000);
-    const len = (f: Field, side: 'before' | 'after') => {
-        const xs = ok.filter((r) => r[side][f]).map((r) => r[side][f].length).sort((a: number, b: number) => a - b);
-        return xs.length ? xs[xs.length >> 1] : 0;
-    };
-
-    const energy = ok.map((r) => (r.after.physical_guidance ?? '') as string).filter(Boolean);
-    const lastSentence = (x: string) => x.trim().split(/(?<=[.!?])\s+/).pop() ?? '';
-    const firstWords = (x: string, n: number) => x.trim().toLowerCase().split(/\s+/).slice(0, n).join(' ');
-    const tally = (xs: string[]) => {
-        const m = new Map<string, number>();
-        xs.forEach((x) => m.set(x, (m.get(x) ?? 0) + 1));
-        return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
-    };
-    // How the assignments spread over every row that needs regeneration (the model picks one of three ideas each time).
-    const offered = new Map<string, number>();
-    const closingsUsed = new Map<string, number>();
-    const shapesUsed = new Map<string, number>();
-    for (const r of needing) {
-        const a = assignVariety(r);
-        a.activities.forEach((x) => offered.set(x, (offered.get(x) ?? 0) + 1));
-        closingsUsed.set(a.closing, (closingsUsed.get(a.closing) ?? 0) + 1);
-        shapesUsed.set(a.paceShape, (shapesUsed.get(a.paceShape) ?? 0) + 1);
-    }
-    const topOffered = [...offered.entries()].sort((a, b) => b[1] - a[1])[0];
-    const variety = {
-        sampleEnergyLines: energy.length,
-        mentionWalk: energy.filter((x) => /\bwalk/i.test(x)).length,
-        mentionEarlyNight: energy.filter((x) => /early night|rest early|bed early/i.test(x)).length,
-        mentionWaterBreak: energy.filter((x) => /glass of (cool )?water|drink some water/i.test(x)).length,
-        mostRepeatedOpening3Words: tally(energy.map((x) => firstWords(x, 3))),
-        mostRepeatedClosing4Words: tally(energy.map((x) => firstWords(lastSentence(x), 4))),
-        assignmentAcrossAllRows: {
-            rows: needing.length,
-            activityIdeas: Object.values(ACTIVITY_POOLS).flat().length,
-            mostOfferedIdeaShareOfRows: `${((topOffered[1] / needing.length) * 100).toFixed(1)}% (${topOffered[0]}); the model picks one of three, so its real share is about a third of that`,
-            openingStyles: OPENINGS.length,
-            closingStyles: CLOSINGS.length,
-            largestClosingStyleShare: `${((Math.max(...closingsUsed.values()) / needing.length) * 100).toFixed(1)}%`,
-            paceShapes: Object.values(PACE_SHAPES).flat().length,
-            largestPaceShapeShare: `${((Math.max(...shapesUsed.values()) / needing.length) * 100).toFixed(1)}%`,
-        },
-    };
-
-    const stats = {
-        variety,
-        sampled: results.length, succeeded: ok.length, failed: results.length - ok.length,
-        passedFirstTry: firstTry, totalAttempts: results.reduce((a, r) => a + r.attempts, 0),
-        avgTokensPerRow: per, rowsNeedingRegen: needing.length,
-        estimatedFullRunUSD: {
-            at_0_10_in_0_40_out: +cost(0.10, 0.40, needing.length).toFixed(2),
-            at_0_25_in_1_50_out: +cost(0.25, 1.50, needing.length).toFixed(2),
-        },
-        medianLength: {
-            physical_guidance: { before: len('physical_guidance', 'before'), after: len('physical_guidance', 'after') },
-        },
-    };
-
-    fs.writeFileSync(path.join(OUT!, 'dry-run-results.json'), JSON.stringify({ stats, results }, null, 2));
-
-    const md: string[] = [`# Triad regeneration: dry run (${new Date().toISOString().slice(0, 10)})`, '', '```json', JSON.stringify(stats, null, 2), '```', ''];
-    for (const r of results) {
-        md.push(`## ${r.n}. ${r.sun} Sun • ${r.moon} Moon → ${r.transit} Moon${r.title ? ` — ${r.title}` : ''}`);
-        md.push(`Flagged: ${r.flagged.join(', ')} · attempts: ${r.attempts}${r.rejections.length ? ` · rejected drafts: ${r.rejections.join(' | ')}` : ''}`, '');
-        for (const f of r.flagged as Field[]) {
-            md.push(`**${LABEL[f]}**`, '', `> BEFORE: ${r.before[f]}`, '', `> AFTER: ${r.after ? r.after[f] : '(failed)'}`, '');
+    if (after) {
+        status = 'dry-run';
+        if (write) {
+            // Write only the changed columns, and only while each still equals the text this script read.
+            let q = (supabase as any).from('triad_states').update({ ...after, updated_at: new Date().toISOString() }).eq('id', row.id);
+            for (const f of job.fields) q = q.eq(f, row[f]);
+            const { data, error } = await q.select('id');
+            if (error) throw error;
+            status = (data?.length ?? 0) === 1 ? 'written' : 'stale';
         }
-    }
-    fs.writeFileSync(path.join(OUT!, 'dry-run-samples.md'), md.join('\n'));
+    } else if (status !== 'error' && status !== 'quota') status = 'failed';
 
-    console.log('\n' + JSON.stringify(stats, null, 2));
-    console.log(`\nSaved: ${path.join(OUT!, 'dry-run-samples.md')}`);
+    addUsage(S.usage, used);
+    if (status === 'quota') {
+        // Not a failure: the daily quota ran out, nothing was written, and the next run picks this row up again.
+        return { n, seq: null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign, title: row.combination_title, flagged: job.fields, kinds: job.kinds, attempts, rejections, usage: used, before: {}, source: {}, after: null, status };
+    }
+    S.rows++; S.attempts += attempts;
+    if (status === 'written') S.written++;
+    if (status === 'stale') S.stale++;
+    if (status === 'failed' || status === 'error') S.failedRows++;
+    if (after && attempts === 1) S.firstTry++;
+    if (attempts > 1) S.retriedRows++;
+    checkStop();
+
+    return {
+        n, seq: after ? ++seq : null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign,
+        title: row.combination_title, flagged: job.fields, kinds: job.kinds, attempts, rejections, usage: used,
+        before: Object.fromEntries(job.fields.map((f) => [f, row[f]])), source: job.source as Record<string, string>, after, status,
+        ...(after ? {} : { lastDraft }),
+    };
+}
+
+async function runPool<T>(items: T[], size: number, fn: (item: T, index: number) => Promise<void>) {
+    let next = 0;
+    await Promise.all(Array.from({ length: size }, async () => {
+        while (!stopReason) {
+            if (MAX_CALLS && S.calls >= MAX_CALLS) { stopReason = `call budget of ${MAX_CALLS} reached (resume later with the same command)`; return; }
+            const i = next++;
+            if (i >= items.length) return;
+            await fn(items[i], i);
+            await sleep(PACING_MS);
+        }
+    }));
+}
+
+// ── Dry-run sample ────────────────────────────────────────────────────────────
+const score = (j: Job) => {
+    const redo = j.fields.filter((f) => j.kinds[f] === 'redo' || j.kinds[f] === 'energy-redo').length;
+    const labels = new Set(j.fields.flatMap((f) => (f === 'physical_guidance' ? [] : findBodyClaims(j.source[f]))).filter((l) => TRANSLATION_KEYS[l]));
+    return redo * 3 + labels.size * 2 + j.fields.length;
+};
+
+/** Per transiting sign: the row that exercises the most (pilot redo, glossary terms, several lines) and a plain energy-only row. */
+function pickSample(jobs: Job[], perSign: number): Job[] {
+    const picked: Job[] = [];
+    for (const sign of SIGNS) {
+        const inSign = jobs.filter((j) => j.row.transiting_moon_sign === sign);
+        const hardest = [...inSign].sort((a, b) => score(b) - score(a) || hash(a.row.id) - hash(b.row.id))[0];
+        const plain = inSign.filter((j) => j !== hardest && j.fields.length === 1 && j.fields[0] === 'physical_guidance').sort((a, b) => hash(a.row.id) - hash(b.row.id))[0];
+        const rest = inSign.filter((j) => j !== hardest && j !== plain).sort((a, b) => score(b) - score(a))[0];
+        picked.push(...[hardest, plain, rest].filter(Boolean).slice(0, perSign) as Job[]);
+    }
+    return picked;
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+async function main() {
+    if (!SUPABASE_KEY) { console.error('SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1); }
+    fs.mkdirSync(OUT, { recursive: true });
+    const { rows, jobs } = await plan();
+    const planSummary = summarizePlan(rows, jobs);
+    console.log(JSON.stringify(planSummary, null, 2));
+    if (MEASURE) return;
+    if (!GEMINI_KEY) { console.error('GEMINI_API_KEY not set'); process.exit(1); }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const started = Date.now();
+
+    if (!RUN) {
+        const sample = pickSample(jobs, Math.max(1, Math.round(SAMPLE / SIGNS.length))).slice(0, SAMPLE);
+        console.log(`\nDRY RUN: ${sample.length} sample rows. Nothing is written to the database.\n`);
+        const results: Result[] = [];
+        await runPool(sample, CONCURRENCY, async (job, i) => {
+            const r = await processJob(job, i + 1, false, null);
+            results[i] = r;
+            console.log(`[${String(i + 1).padStart(2, '0')}/${sample.length}] ${r.sun} Sun • ${r.moon} Moon → ${r.transit}  fields: ${r.flagged.join(', ')}  ${r.after ? `ok (${r.attempts} attempt${r.attempts > 1 ? 's' : ''})` : 'FAILED'}`);
+        });
+        const done = results.filter(Boolean);
+        const ok = done.filter((r) => r.after);
+        const stats = {
+            plan: planSummary,
+            sampled: done.length, succeeded: ok.length, failed: done.length - ok.length,
+            passedFirstTry: S.firstTry, totalAttempts: S.attempts,
+            tokens: S.usage, sampleCostUSD: +costUSD(S.usage).toFixed(4),
+            estimatedFullRunUSD: +((costUSD(S.usage) / Math.max(1, done.length)) * jobs.length).toFixed(2),
+            ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT, note: 'third-party listing, unverified' },
+        };
+        fs.writeFileSync(path.join(OUT, 'dry-run-results.json'), JSON.stringify({ stats, results: done }, null, 2));
+        const md: string[] = [`# Triad regeneration: dry run (${new Date().toISOString().slice(0, 10)})`, '', '```json', JSON.stringify(stats, null, 2), '```', ''];
+        done.forEach((r) => {
+            md.push(`## ${r.n}. ${r.sun} Sun • ${r.moon} Moon → ${r.transit} Moon${r.title ? ` — ${r.title}` : ''}`);
+            md.push(`Lines: ${r.flagged.map((f) => `${f} (${r.kinds[f]})`).join(', ')} · attempts: ${r.attempts}`, '');
+            for (const f of r.flagged) {
+                md.push(`**${LABEL[f]}**`, '', `> BEFORE (stored now): ${r.before[f]}`, '');
+                if (r.source[f] && r.source[f] !== r.before[f]) md.push(`> ORIGINAL (backup): ${r.source[f]}`, '');
+                md.push(`> AFTER: ${r.after ? r.after[f] : '(failed)'}`, '');
+            }
+        });
+        fs.writeFileSync(path.join(OUT, 'dry-run-samples.md'), md.join('\n'));
+        console.log('\n' + JSON.stringify(stats, null, 2));
+        return;
+    }
+
+    // ── Full run ──
+    const queue = [...jobs].sort((a, b) => hash(a.row.id) - hash(b.row.id)); // mixed order, so neighbours in the variety window differ
+    const todo = LIMIT ? queue.slice(0, LIMIT) : queue;
+    const logPath = path.join(OUT, 'run-log.jsonl');
+    const failPath = path.join(OUT, 'run-failures.jsonl');
+    await tgSend(`Triad regeneration started: ${todo.length} rows in batches of ${BATCH}.`);
+    console.log(`\nFULL RUN: ${todo.length} rows, batches of ${BATCH}, concurrency ${CONCURRENCY}. Writes to triad_states.\n`);
+
+    for (let b = 0; b < todo.length && !stopReason; b += BATCH) {
+        const batch = todo.slice(b, b + BATCH);
+        await runPool(batch, CONCURRENCY, async (job, i) => {
+            const r = await processJob(job, b + i + 1, true, supabase);
+            if (r.status !== 'quota') fs.appendFileSync(r.after ? logPath : failPath, JSON.stringify(r) + '\n');
+            if ((S.rows % 25) === 0) console.log(`  ${S.rows}/${todo.length} rows · written ${S.written} · failed ${S.failedRows} · stale ${S.stale} · $${costUSD(S.usage).toFixed(2)}`);
+        });
+        const line = `Batch ${Math.floor(b / BATCH) + 1}/${Math.ceil(todo.length / BATCH)} done: ${S.rows}/${todo.length} rows, written ${S.written}, failed ${S.failedRows}, stale ${S.stale}, cost so far $${costUSD(S.usage).toFixed(2)}.`;
+        console.log(line);
+        await tgSend(line);
+    }
+
+    const summary = {
+        stoppedEarly: stopReason || null,
+        rowsPlanned: todo.length, rowsProcessed: S.rows, written: S.written, staleSkipped: S.stale, failedAllRetries: S.failedRows,
+        apiCalls: S.calls, apiCallFailures: S.callFailures, firstTryRows: S.firstTry, rowsNeedingRetry: S.retriedRows,
+        tokens: S.usage, actualCostUSD: +costUSD(S.usage).toFixed(2),
+        ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT, note: 'third-party listing, unverified' },
+        minutes: +((Date.now() - started) / 60000).toFixed(1),
+    };
+    fs.writeFileSync(path.join(OUT, 'run-summary.json'), JSON.stringify(summary, null, 2));
+    console.log('\n' + JSON.stringify(summary, null, 2));
+    await tgSend(stopReason ? `Triad regeneration STOPPED: ${stopReason}. Written so far: ${S.written}.` : `Triad regeneration complete: ${S.written} rows written, ${S.failedRows} failed, $${costUSD(S.usage).toFixed(2)}.`);
+    if (stopReason) process.exit(2);
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });

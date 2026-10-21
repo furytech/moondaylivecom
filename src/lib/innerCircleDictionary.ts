@@ -26,7 +26,7 @@ export const INNER_CIRCLE: Record<string, SignaturePillar> = {
   },
   Cancer: {
     psychological: "Nurturing the inner child. Emotional safety.",
-    spiritual: "The Mother Principle. Cellular healing.",
+    spiritual: "The Mother Principle. Healing that settles in slowly and deeply.",
     material: "Home sanctuary work. Cooking/Family.",
   },
   Leo: {

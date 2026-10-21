@@ -25,6 +25,7 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { findBodyClaims } from '../src/lib/dailyContentGuard';
+import { GLOSSARY_PROMPT } from './lib/languageGlossary';
 
 // ── Env ──────────────────────────────────────────────────────────────────────
 const envLocalPath = path.resolve(process.cwd(), '.env.local');
@@ -112,7 +113,9 @@ CONTENT RULES (these override everything else):
 - Speak to mood, energy, focus, pace, relationships and behaviour.
 - Plain everyday self-care is welcome: take a slow walk, rest early, drink some water, stretch, step outside.
 - Never use medical or pseudo-medical language: no body systems, symptoms, organs, nervous system, circulation, spinal fluid, hormones, diagnoses, treatments or health advice, and never explain a mechanism inside the body.
-- Warm and specific to this Blueprint, never generic. Reflective, not predictive. Nothing fear-based.
+- Warm and specific to this Blueprint, never generic. Reflective, not predictive. Nothing fear-based. US spelling.
+
+${GLOSSARY_PROMPT}
 
 Write the daily Triad state for this exact combination.
 Consider how the transiting ${transitSign} Moon (${transitEl} energy) moves through

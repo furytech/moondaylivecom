@@ -17,28 +17,45 @@ export interface BodyClaimTerm {
 
 const t = (term: string, re: RegExp): BodyClaimTerm => ({ term, re });
 
+// Every label with a phrase in docs/language-glossary.md ("translate, never soften") is a place to translate the term
+// into lived experience, not to delete it or swap in a vague stand-in. See scripts/lib/languageGlossary.ts.
 export const BODY_CLAIM_TERMS: BodyClaimTerm[] = [
-  t("nervous system", /\bnervous[\s-]+system\w*/i),
+  t("nervous system", /\bnervous[\s-]+system\w*|\bneural\b|\bneurons?\b|\bneurotransmitter\w*|\bvagus\b|\bbrain[\s-]?stem\b/i),
+  t("stress chemistry", /\bfight[\s,-]*(?:or|and)?[\s-]*flight\b|\badrenal\w*|\bcortisol\b/i),
+  t("anxiety", /\banxieties\b|\banxiety\b/i),
+  t("depression", /\bdepress(?:ion|ed|ive)\b/i),
+  t("insomnia", /\binsomnia\w*|\bsleeplessness\b/i),
+  t("hypochondria", /\bhypochondri\w*/i),
   t("spinal / spine", /\b(spinal|spine|cerebrospinal)\b/i),
-  t("circulation", /\b(circulation|circulatory|bloodstream|blood\s+(pressure|flow|sugar))\b/i),
+  t("circulation", /\b(circulation|circulatory|bloodstream|blood)\b/i),
   t("dehydration", /\bdehydrat\w*/i),
   t("symptoms", /\bsymptom\w*/i),
   t("organs", /\borgans?\b/i),
+  t(
+    "internal organs / tissue",
+    /\b(kidneys?|liver|bladder|bowels?|thyroid|pancrea\w*|spleen|gall\s?bladder|lymph\w*|cardio\w*|cardiac|vascular|glands?|tissues?|cells?|cellular|molecul\w*|enzymes?|palpitations?|skeletal|fascia)\b|\bdry[\s-]brush\w*/i
+  ),
+  t("chest / belly", /\b(chest|belly|bellies|abdomen\w*|abdominal|pelvi\w*|torso|solar\s+plexus)\b/i),
+  t("conditions / diagnoses", /\b(panic\s+attacks?|ptsd|trauma\w*|disorders?|ocd|bipolar|adhd|psychosis|phobias?|schizo\w*|mental\s+(?:health|illness))\b/i),
+  t("hygiene / clinical phrasing", /\b(hygiene|hygienic|sterile|pathology|pathological|psychiatr\w*|therapy|therapist\w*|clinical(?:ly)?\s+(?:proven|tested|speaking))\b/i),
   // "gut feeling / gut instinct" are plain idioms for intuition, not anatomy
   t(
     "digestion / gut",
     /\b(digestion|digestive|stomach|intestin\w*)\b|\bgut\b(?!\s*[- ]?(feeling|feelings|instinct|instincts|check|reaction|reactions|sense|call|response))/i
   ),
   t("immune / inflammation", /\b(immune|immunity|inflammat\w*)\b/i),
-  t("hormones", /\b(hormon\w*|adrenal\w*|cortisol|metabolism|metabolic)\b/i),
+  t("hormones", /\b(hormon\w*|endocrine)\b/i),
+  // "metabolize your feelings" is a figure of speech for working through them: say that instead
+  t("metabolism", /\bmetabol\w*/i),
   t("breathing / lungs", /\b(respirat\w*|lungs?|shallow\s+breath\w*)\b/i),
   t("muscles / joints", /\b(muscle\w*|muscular|joints?|ribcage|tendons?)\b/i),
   t("head / chest sensations", /\b(headaches?|migraines?|behind\s+the\s+eyes|upper\s+chest|heart\s+rate)\b/i),
   t(
     "medical / health advice",
-    /\b(medical|medic(ation|ine)s?|doctor|diagnos\w*|illness|disease|therapeutic|nausea|insomnia|cure[sd]?|treatments?|remed(y|ies)|prescri\w*|supplements?|detox\w*|dosage)\b/i
+    /\b(medical|medic(ation|ine)s?|doctor|diagnos\w*|illness|disease|therapeutic|nausea|cure[sd]?|treatments?|remed(y|ies)|prescri\w*|supplements?|detox\w*|dosage)\b/i
   ),
-  t("physiology / body systems", /\b(somatic|bodily\s+(function|system)s?|body\s+systems?|physiolog\w*|biochemi\w*|biological)\b/i),
+  t("somatic / body tension", /\b(somatic\w*|body\s+tension)\b/i),
+  t("physiology / body systems", /\b(bodily\s+(function|system|process|fluid)s?|body\s+systems?|physiolog\w*|biochemi\w*|biological)\b/i),
 ];
 
 /** The terms that appear in `text`, for a report or a rejection message. Empty means clean. */

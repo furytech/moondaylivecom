@@ -112,12 +112,12 @@ export const OPENINGS: string[] = [
     'open with the first thing they will notice this morning',
     'open by addressing them directly with "you"',
     'open with one plain sentence on what kind of day it is',
-    'open with what the day asks of them',
+    'open with a verb that tells them what to do first (never start with "The day" or "Today")',
     'open with a simple image of motion that matches the pace, such as a river, a tide or a drumbeat (no seasons, no body imagery)',
     'open with the element of the Moon (fire, earth, air or water) and what it does to the day',
     'open with the best use of the first hour',
     'open with what to protect today',
-    'open with what the day rewards',
+    'open with the kind of effort that pays off (never start with "The day")',
 ];
 
 // Phrases earlier drafts leaned on in almost every line.
@@ -172,7 +172,8 @@ const WALK = /\bwalk(s|ed|ing)?\b/i;
 const EARLY_NIGHT = /\b(early night|rest early|rest earlier|bed early|early to bed|early evening in|early evening of)\b/i;
 
 // Body parts and sensations are out of the energy line even when they are not medical (the guard only blocks mechanism language).
-const BODY_PARTS = /\b(legs?|knees?|calves|ankles?|hips?|shoulders?|jaw|neck|palms?|pulses?|heartbeats?|heart\s+beats?|heart\s+(?:rate|racing|pounding)|racing\s+heart|pounding\s+heart)\b/i;
+// (Shoulders and jaw are not listed: the glossary uses "tight shoulders" and "a clenched jaw" as lived-experience wording.)
+const BODY_PARTS = /\b(legs?|knees?|calves|ankles?|pulses?|heartbeats?|heart\s+beats?|heart\s+(?:rate|racing|pounding)|racing\s+heart|pounding\s+heart)\b/i;
 
 // Seasons and the weather of the year: the same day is a different season for every reader.
 const SEASONS = /\b(autumn\w*|winter\w*|summer\w*|spring(?:time)?(?!\s+(?:into|to|up|forward|back))|season\w*|snow\w*|frost\w*|harvest\w*|blossom\w*|heat\s?wave|(?:this|the|early|late|last|next)\s+fall|falling\s+leaves|dry\s+leaves|crunching\s+leaves)\b/i;
@@ -234,6 +235,31 @@ export function findUnassignedCrutches(text: string, a: Assignment): string[] {
     return found;
 }
 
+// Variety across the run: in any 24 consecutive energy lines, a five-word phrase is in at most 2 lines, and no
+// three-word opening starts more than 2 (no two-word opening more than 3).
+export const WINDOW = 24;
+export const MAX_SAME_PHRASE = 2;
+export const MAX_SAME_OPENING3 = 2;
+export const MAX_SAME_OPENING2 = 3;
+
+const opening = (text: string, n: number): string => words(text).slice(0, n).join(' ');
+
+/**
+ * What a new energy line repeats from the lines just before it. `previous` holds the (WINDOW - 1) lines accepted before it,
+ * so every window of 24 consecutive lines is covered when each line is checked against its predecessors.
+ */
+export function windowProblems(text: string, previous: string[]): string[] {
+    const found: string[] = [];
+    const prevGrams = previous.map(fiveGrams);
+    for (const g of fiveGrams(text)) {
+        if (prevGrams.filter((s) => s.has(g)).length >= MAX_SAME_PHRASE) found.push(`the phrase "${g}" is already used in other days`);
+    }
+    const o3 = opening(text, 3), o2 = opening(text, 2);
+    if (previous.filter((p) => opening(p, 3) === o3).length >= MAX_SAME_OPENING3) found.push(`the opening "${o3}..." is used too often`);
+    if (previous.filter((p) => opening(p, 2) === o2).length >= MAX_SAME_OPENING2) found.push(`the opening "${o2}..." is used too often`);
+    return found;
+}
+
 /** The prompt fragment that tells the model which ideas, pace and closing to use for this row. */
 export function varietyInstruction(a: Assignment): string {
     return [
@@ -242,7 +268,7 @@ export function varietyInstruction(a: Assignment): string {
         `Pace shape for the day, as a theme to paraphrase and never to quote: ${a.paceShape}.`,
         `Open this way: ${a.opening}. Close the last sentence this way: ${a.closing}.`,
         `Write complete, natural sentences that read well aloud. The first sentence is a full sentence, never a one-word lead-in followed by a comma, and no sentence starts with a capital letter right after a comma. Do not use ellipses.`,
-        `Do not mention seasons, the time of year, or seasonal scenery (autumn leaves, snow, summer heat), and do not mention body parts or physical sensations (legs, pulse, heartbeat, shoulders, jaw, neck).`,
+        `Do not mention seasons, the time of year, or seasonal scenery (autumn leaves, snow, summer heat), and do not mention legs, knees, pulse or heartbeat. Use US spelling (favorite, color, center). Vary how you begin: do not start with "The day" and do not reuse a stock opening.`,
         `Never use the phrases "the atmosphere", "it is fine to" or "permission to". Keep it to 2-3 sentences and about 420 characters.`,
     ].join(' ');
 }
