@@ -5,10 +5,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 import { safeLunarIntelligence, safeTimeUntilNextSign } from "@/lib/safeLunar";
-import MoonCalculationFallback from "@/components/MoonCalculationFallback";
-import CalculationBoundary from "@/components/CalculationBoundary";
-import { getSignSymbol } from "@/lib/forecastEngine";
-import { Lock, Sparkles, Crown, Clock, ExternalLink, Moon, Star, Info, ChevronRight } from "lucide-react";
+import { Crown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
@@ -18,10 +15,6 @@ import MoonSignModal from "@/components/MoonSignModal";
 import EducationModal from "@/components/EducationModal";
 import { INNER_CIRCLE, PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 
-import DailyForecast from "@/components/DailyForecast";
-import BlueprintIdentity from "@/components/BlueprintIdentity";
-import BlueprintPreviewCard from "@/components/BlueprintPreviewCard";
-import LuminaryGate from "@/components/LuminaryGate";
 import SetPasswordStep, { needsPassword } from "@/components/SetPasswordStep";
 import NamePrompt, { hasAskedForName } from "@/components/NamePrompt";
 import { clearPendingMoonSign, loadPendingMoonSign } from "@/lib/pendingMoonSign";
@@ -36,15 +29,12 @@ import {
   shouldShowShareNudge,
   type ShareNudgeState,
 } from "@/lib/shareNudge";
-import DailyRitual from "@/components/DailyRitual";
-import GreatCycleSection from "@/components/GreatCycleSection";
-import LunarSignatureSection from "@/components/LunarSignatureSection";
-import VoidIntervalSection from "@/components/VoidIntervalSection";
-import LunarReturnCard from "@/components/sovereign/LunarReturnCard";
-import type { ZodiacSign } from "@/lib/sovereignEngine";
-import ClimateGauge from "@/components/ClimateGauge";
 import FirstRunOnboarding from "@/components/FirstRunOnboarding";
-import { Skeleton } from "@/components/ui/skeleton";
+import BlueprintTabBar from "@/components/blueprint/BlueprintTabBar";
+import TodayTab from "@/components/blueprint/TodayTab";
+import NatalTab from "@/components/blueprint/NatalTab";
+import { useUserTimezone } from "@/hooks/useUserTimezone";
+import { defaultBlueprintTab, parseBlueprintTab, type BlueprintTab } from "@/lib/blueprintTabs";
 import { calculateSunSign } from "@/lib/moonSign";
 import { fetchCombinationProfile } from "@/services/combinationService";
 import type { CombinationProfile } from "@/types";
@@ -61,7 +51,7 @@ interface UserProfile {
 
 const Blueprint = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, session, subscription, checkSubscription } = useAuth();
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -106,12 +96,41 @@ const Blueprint = () => {
   // First time this member opens their Blueprint on this device: "Welcome, <name>"; after that "Welcome back, <name>".
   const blueprintReady = !!user && !passwordPending && !profileLoading && !!userProfile && !!displayedMoonSign;
   const firstVisitRef = useRef<boolean | null>(null);
-  if (firstVisitRef.current === null && blueprintReady && user) {
-    firstVisitRef.current = !hasVisitedBlueprint(user.id);
+  const tabReady = !!user && !passwordPending && !profileLoading;
+  if (firstVisitRef.current === null && tabReady && user) {
+    firstVisitRef.current = !hasVisitedBlueprint(user.id, user.user_metadata);
   }
   useEffect(() => {
-    if (blueprintReady && user) markBlueprintVisited(user.id);
+    if (blueprintReady && user) markBlueprintVisited(user.id, user.user_metadata);
   }, [blueprintReady, user]);
+
+  // The tab lives in the URL (?tab=today | ?tab=blueprint). With no tab in the URL, a first-ever visit opens
+  // My Blueprint and every later visit opens Today; the choice is written into the URL (replace) so back/forward
+  // move between tabs the member actually opened.
+  const { timezone } = useUserTimezone();
+  const requestedTab = parseBlueprintTab(searchParams.get("tab"));
+  const defaultTab = defaultBlueprintTab(firstVisitRef.current === true);
+  const activeTab: BlueprintTab = requestedTab ?? defaultTab;
+  useEffect(() => {
+    if (!tabReady || requestedTab) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", defaultTab);
+        return next;
+      },
+      { replace: true }
+    );
+  }, [tabReady, requestedTab, defaultTab, setSearchParams]);
+  const changeTab = (tab: BlueprintTab) => {
+    if (tab === activeTab) return;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("tab", tab);
+      return next;
+    });
+    window.scrollTo({ top: 0 });
+  };
   // Share-your-Moon-sign nudge: kept per account, shown only once the name prompt has been saved or skipped.
   const [nudgeState, setNudgeState] = useState<ShareNudgeState>(() => parseShareNudge(user?.user_metadata?.share_nudge));
   const [nudgeVisit, setNudgeVisit] = useState<"idle" | "visible" | "closed">("idle");
@@ -406,6 +425,18 @@ const Blueprint = () => {
     ],
   };
 
+  const nudgeCard =
+    nudgeVisit === "visible" && displayedMoonSign ? (
+      <ShareNudgeCard
+        sign={displayedMoonSign}
+        onShareClick={(method, completed) => void recordShareClick("nudge", method, completed).then(setNudgeState)}
+        onDismiss={() => {
+          setNudgeVisit("closed");
+          void recordNudgeDismissed(nudgeState).then(setNudgeState);
+        }}
+      />
+    ) : null;
+
   // Accounts made from the birthday + email step choose their password first, right after confirming.
   if (passwordPending) {
     return (
@@ -490,260 +521,50 @@ const Blueprint = () => {
             </p>
           </div>
 
-          {/* Dashboard Grid - Birth Moon & Today's Moon */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
-            {/* Birth Moon Sign */}
-            <GlassmorphismCard className="animate-fade-up stagger-1">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <Moon className="w-5 h-5 text-primary" />
-                <h2 className="font-display text-lg tracking-widest text-foreground uppercase">
-                  Your Birth Moon
-                </h2>
-              </div>
-              
-              {profileLoading ? (
-                <div className="flex flex-col items-center py-8">
-                  <Skeleton className="w-16 h-16 rounded-full mb-6" />
-                  <Skeleton className="h-8 w-32 mb-3" />
-                  <Skeleton className="h-5 w-24" />
-                </div>
-              ) : displayedMoonSign ? (
-                <div className="flex flex-col items-center py-8">
-                  <span className="text-6xl text-primary font-display mb-6">
-                    {getSignSymbol(displayedMoonSign)}
-                  </span>
-                  <p className="font-display text-3xl text-primary mb-3">
-                    {displayedMoonSign}
-                  </p>
-                  <p className="font-serif text-lg text-muted-foreground">
-                    Your Natal Moon
-                  </p>
-                </div>
-              ) : null}
+          <BlueprintTabBar active={activeTab} onChange={changeTab} />
 
-              {displayedMoonSign && (
-                <div className="border-t border-primary/10 pt-6 mt-auto">
-                  <button
-                    onClick={() => setMoonSignModalOpen(true)}
-                    className="w-full group inline-flex items-center justify-between gap-2 px-5 py-3 rounded-xl btn-lime font-sans text-[15px] md:text-base font-medium normal-case tracking-normal transition-all duration-300 min-h-[56px] text-left leading-snug"
-                  >
-                    <span>Your Emotional Blueprint, Set at Birth</span>
-                    <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
-                  </button>
-                </div>
-              )}
-            </GlassmorphismCard>
-
-            {/* Today's Moon */}
-            <GlassmorphismCard className="animate-fade-up stagger-2">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <Star className="w-5 h-5 text-primary" />
-                <h2 className="font-display text-lg tracking-widest text-foreground uppercase">
-                  Today's Moon
-                </h2>
-              </div>
-
-              {lunar ? (
-                <>
-                  <div className="flex flex-col items-center py-8">
-                    <span className="text-6xl text-primary font-display mb-6">{lunar.sign.symbol}</span>
-                    <p className="font-display text-3xl text-primary mb-3">
-                      {lunar.sign.name}
-                    </p>
-                    <p className="font-serif text-lg text-muted-foreground mb-4">
-                      {lunar.phase.name} • {lunar.phase.illumination}%
-                    </p>
-                    <div className="flex items-center justify-center gap-3 text-cream-muted">
-                      <Clock className="w-5 h-5 text-primary" />
-                      <span className="font-serif text-lg">
-                        Next sign in{" "}
-                        <span className="text-primary font-display">
-                          {timeUntilTransition || "—"}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-primary/10 pt-6 mt-auto">
-                    <button
-                      onClick={() => setTodaysMoonModalOpen(true)}
-                      className="w-full group inline-flex items-center justify-between gap-2 px-5 py-3 rounded-xl btn-lime font-sans text-[15px] md:text-base font-medium normal-case tracking-normal transition-all duration-300 min-h-[56px] text-left leading-snug"
-                    >
-                      <span>About Today's Moon Energy</span>
-                      <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <MoonCalculationFallback
-                  bare
-                  title="Today's Moon is unavailable"
-                  message={lunarState.error ?? undefined}
-                  onRetry={retryLunar}
-                  retrying={retrying}
-                />
-              )}
-            </GlassmorphismCard>
-
-          </div>
-
-          {nudgeVisit === "visible" && displayedMoonSign && (
-            <ShareNudgeCard
-              sign={displayedMoonSign}
-              onShareClick={(method, completed) => void recordShareClick("nudge", method, completed).then(setNudgeState)}
-              onDismiss={() => {
-                setNudgeVisit("closed");
-                void recordNudgeDismissed(nudgeState).then(setNudgeState);
-              }}
+          {!tabReady ? (
+            <div className="flex justify-center py-16">
+              <MoonLoader size="md" />
+            </div>
+          ) : activeTab === "today" ? (
+            <TodayTab
+              lunar={lunar}
+              lunarError={lunarState.error ?? null}
+              retrying={retrying}
+              onRetry={retryLunar}
+              timeUntilTransition={timeUntilTransition}
+              moonData={moonDataCompat}
+              natalMoon={displayedMoonSign || null}
+              natalSun={displayedSunSign}
+              isPro={isPro}
+              showUpgrade={!isPro && !!userProfile && !!displayedMoonSign}
+              timezone={timezone}
+              onOpenTodaysMoon={() => setTodaysMoonModalOpen(true)}
+              onUpgradeClick={handleOpenPricing}
+              onPrimaryUpgrade={() => navigate("/pricing")}
+              onSelectPlan={handleSelectPlan}
+              checkoutLoading={checkoutLoading}
+              afterMoon={nudgeCard}
             />
-          )}
-
-          {/* Share Your Moon CTA */}
-          {displayedMoonSign && (
-            <div className="mt-8 flex justify-center animate-fade-up stagger-2">
-              <button
-                onClick={() => navigate("/my-moon-card")}
-                className="group inline-flex items-center justify-between gap-2 px-5 py-3 rounded-xl btn-lime font-sans text-[15px] md:text-base font-medium normal-case tracking-normal transition-all duration-300 min-h-[56px] text-left leading-snug"
-              >
-                <span>Share Your Moon Sign</span>
-                <ChevronRight className="w-4 h-4 shrink-0 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
-              </button>
-            </div>
-          )}
-
-          {/* Layer 1 — Blueprint Identity (Archetype Reveal) */}
-          {combinationProfile && (
-            <div className="mt-12 animate-fade-up stagger-2">
-              <BlueprintIdentity
-                profile={combinationProfile}
-                currentMoonSign={lunar?.sign.name}
-                isPro={isPro}
-              />
-
-              {/* Free tier: preview of the full Blueprint right after the archetype reveal. The upgrade card comes after all free content, below. */}
-              {!isPro && (
-                <div className="mt-8 animate-fade-up">
-                  <BlueprintPreviewCard
-                    combinationSynthesis={combinationProfile.combination_synthesis}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Layer 2 & 3 — Daily Forecast (Transit Bridge & Triad Activation) */}
-          {displayedMoonSign && moonDataCompat && (
-            <div className="mt-12 animate-fade-up stagger-3">
-              <CalculationBoundary scope="DailyForecast" title="Today's forecast is unavailable">
-                <DailyForecast
-                  birthMoonSign={displayedMoonSign}
-                  currentMoon={moonDataCompat}
-                  natalSunSign={displayedSunSign}
-                  isPro={isPro}
-                  showGate={false}
-                  onUpgradeClick={handleOpenPricing}
-                  onSelectPlan={handleSelectPlan}
-                  checkoutLoading={checkoutLoading}
-                />
-              </CalculationBoundary>
-            </div>
-          )}
-
-          {/* The one upgrade card: directly after the last free section, once the profile has confirmed this is not a Luminary member */}
-          {!isPro && userProfile && displayedMoonSign && (
-            <div className="animate-fade-up">
-              <LuminaryGate
-                currentMoonSign={lunar?.sign.name || displayedMoonSign || "Current"}
-                birthMoonSign={displayedMoonSign || "Birth"}
-                onPrimaryClick={() => navigate("/pricing")}
-                onSelectPlan={handleSelectPlan}
-                onUnlockClick={handleOpenPricing}
-                loading={checkoutLoading}
-              />
-            </div>
-          )}
-
-          {/* Lunar sections — Luminary only */}
-          {isPro && lunar ? (
-            <CalculationBoundary scope="LunarSections" title="Your lunar readings are unavailable">
-              {/* Daily Ritual */}
-              <div className="mt-12 animate-fade-up stagger-3">
-                <DailyRitual
-                  currentMoonSign={lunar.sign.name}
-                  birthMoonSign={displayedMoonSign || null}
-                  moonPhase={lunar.phase.name}
-                  isPro={isPro}
-                  onUpgradeClick={handleOpenPricing}
-                />
-              </div>
-
-              {/* Emotional Climate Gauge (Today's Frequency) */}
-              <div className="mt-12">
-                <ClimateGauge illumination={lunar.phase.illumination} sign={lunar.sign.name} />
-              </div>
-
-              {/* === LUNAR INTELLIGENCE SECTIONS === */}
-
-              {/* 1. The Great Cycle (Phases) */}
-              <div className="mt-12">
-                <GreatCycleSection lunar={lunar} isSubscriber={userProfile?.is_subscriber ?? false} onUpgradeClick={handleOpenPricing} />
-              </div>
-
-              {/* 2. The Lunar Signature (Signs) */}
-              <div className="mt-12">
-                <LunarSignatureSection
-                  lunar={lunar}
-                  isPro={userProfile?.is_subscriber ?? false}
-                  onUpgradeClick={handleOpenPricing}
-                />
-              </div>
-
-              {/* 3. Lunar Signal (VoC) */}
-              <div className="mt-12">
-                <VoidIntervalSection
-                  lunar={lunar}
-                  isPro={userProfile?.is_subscriber ?? false}
-                  onUpgradeClick={handleOpenPricing}
-                />
-              </div>
-            </CalculationBoundary>
-          ) : isPro && !lunar ? (
-            <div className="mt-12">
-              <MoonCalculationFallback
-                title="Your lunar readings are unavailable"
-                message={lunarState.error ?? undefined}
-                onRetry={retryLunar}
-                retrying={retrying}
-              />
-            </div>
-          ) : null}
-
-
-          {/* Lunar Return Tracker — Sovereign only */}
-          {isPro && displayedMoonSign && (
-            <div className="mt-12 animate-fade-up">
-              <LunarReturnCard natalMoon={displayedMoonSign as ZodiacSign} />
-            </div>
-          )}
-
-          {/* Manage Subscription (Pro only) */}
-          {isPro && (
-            <div className="mt-12 text-center animate-fade-up stagger-4">
-              <button
-                onClick={handleManageSubscription}
-                disabled={portalLoading}
-                className="inline-flex items-center gap-3 font-serif text-lg text-cream-muted elegant-hover"
-              >
-                {portalLoading ? (
-                  <MoonLoader size="sm" />
-                ) : (
-                  <>
-                    <ExternalLink className="w-5 h-5" />
-                    Manage Subscription
-                  </>
-                )}
-              </button>
-            </div>
+          ) : (
+            <NatalTab
+              profileLoading={profileLoading}
+              natalMoon={displayedMoonSign || null}
+              combinationProfile={combinationProfile}
+              currentMoonSign={lunar?.sign.name}
+              isPro={isPro}
+              showUpgrade={!isPro && !!userProfile && !!displayedMoonSign}
+              onOpenMoonSign={() => setMoonSignModalOpen(true)}
+              onShareMoonSign={() => navigate("/my-moon-card")}
+              onUpgradeClick={handleOpenPricing}
+              onPrimaryUpgrade={() => navigate("/pricing")}
+              onSelectPlan={handleSelectPlan}
+              checkoutLoading={checkoutLoading}
+              onManageSubscription={handleManageSubscription}
+              portalLoading={portalLoading}
+              afterBirthMoon={nudgeCard}
+            />
           )}
         </div>
       </main>

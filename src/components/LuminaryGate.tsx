@@ -102,7 +102,7 @@ export const LuminaryGate: React.FC<LuminaryGateProps> = ({
         <button
           type="button"
           onClick={handleYearlyClick}
-          className="text-xs md:text-sm text-cream-muted/70 font-serif mt-3 hover:text-primary transition-colors cursor-pointer underline-offset-4 hover:underline"
+          className="inline-flex items-center justify-center min-h-11 px-3 text-xs md:text-sm text-cream-muted/70 font-serif mt-1 hover:text-primary transition-colors cursor-pointer underline-offset-4 hover:underline"
         >
           or $58.88/year · cancel anytime
         </button>

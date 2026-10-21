@@ -30,6 +30,13 @@ interface BlueprintIdentityProps {
   className?: string;
   currentMoonSign?: string | null;
   isPro?: boolean;
+  /**
+   * Render one part as its own card (the My Blueprint tab) instead of everything in one card.
+   * "hero" is the combination title, shown once; the daily Triad number lives in <TriadStateLine /> on Today.
+   */
+  section?: "hero" | "strengths" | "synthesis" | "essence";
+  /** Anchor id for the section (jump links) */
+  sectionId?: string;
 }
 
 export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
@@ -37,6 +44,8 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
   className,
   currentMoonSign,
   isPro = true,
+  section,
+  sectionId,
 }) => {
   if (!profile) return null;
 
@@ -107,129 +116,213 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
     return paragraphs;
   })();
 
+  const eyebrow = (
+    <div className="text-center mb-3">
+      <p className="font-display text-xs text-primary/80 uppercase tracking-widest flex items-center justify-center gap-2">
+        <Sparkles className="w-3.5 h-3.5 text-primary" />
+        <span>Natal Blueprint · Core Identity</span>
+        <Sparkles className="w-3.5 h-3.5 text-primary" />
+      </p>
+    </div>
+  );
+
+  const triadHook = (
+    <>
+      {/* Dominant Triad Hook: Crisp gold (#c9a84c) without glow or blur */}
+      <p
+        className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight md:tracking-wide leading-tight mb-1"
+        style={{ color: "#c9a84c" }}
+      >
+        ✦ {triadNumber !== null ? triadNumber.toLocaleString() : "401"} of 1,728 ✦
+      </p>
+      <p className="font-serif text-xs text-cream-muted/80 mb-2">
+        Your natal Sun · your natal Moon · today's transiting Moon
+      </p>
+    </>
+  );
+
+  const rarityLine = (
+    <p className="font-serif italic text-sm md:text-base text-cream-muted/90 mb-5 max-w-md mx-auto leading-relaxed">
+      Your combination exists in less than 0.06% of people
+    </p>
+  );
+
+  const titleBlock = (
+    <div className="pt-1">
+      <p className="font-display text-xs uppercase tracking-[0.2em] text-primary/80 mb-1">
+        Your Blueprint Identity
+      </p>
+      <h1
+        className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wide mb-1 leading-tight break-words"
+        style={{ color: "#d4af37", textShadow: "0 0 22px rgba(212, 175, 55, 0.35)", textWrap: "balance" }}
+      >
+        {displayTitle}
+      </h1>
+      <p className="font-serif text-xs text-cream-muted/70 mb-2">
+        Your Sun + Moon combination · 1 of 144
+      </p>
+      {pairingSubtitle && (
+        <p className="font-display text-xs md:text-sm text-primary/70 tracking-widest uppercase">
+          {pairingSubtitle}
+        </p>
+      )}
+    </div>
+  );
+
+  // 2. luminous_expression: Horizontal row of trait chips
+  const traitsBlock =
+    traits.length > 0 ? (
+      <div className="flex flex-wrap items-center justify-center gap-2 md:gap-2.5 mb-8 max-w-2xl mx-auto">
+        {traits.map((trait, index) => {
+          const capitalized = trait ? trait.charAt(0).toUpperCase() + trait.slice(1) : "";
+          return (
+            <span
+              key={index}
+              className="px-4 py-2.5 rounded-xl text-left text-[15px] md:text-base font-sans font-normal normal-case leading-relaxed tracking-normal bg-primary/10 border border-primary/20 text-cream max-w-full"
+            >
+              {capitalized}
+            </span>
+          );
+        })}
+      </div>
+    ) : null;
+
+  // 3. combination_synthesis: Explicitly left-aligned paragraph chunks filling full width (Luminary only)
+  const synthesisBlock =
+    isPro && synthesisParagraphs.length > 0 ? (
+      <div className="w-full mb-10 text-left !text-left" style={{ textAlign: "left", width: "100%" }}>
+        {synthesisParagraphs.map((paragraph, index) => (
+          <p
+            key={index}
+            className="w-full font-serif text-base md:text-lg text-cream-muted leading-relaxed not-italic font-normal text-left !text-left indent-0 !indent-0"
+            style={{ marginBottom: "1.2em", textIndent: 0, textAlign: "left" }}
+          >
+            {paragraph}
+          </p>
+        ))}
+      </div>
+    ) : null;
+
+  // 4. solar_essence + lunar_essence: Side by side descriptors (Luminary only)
+  const essenceBlock =
+    isPro && (profile.solar_essence || profile.lunar_essence) ? (
+      <div className="grid md:grid-cols-2 gap-6 pt-8 border-t border-primary/15">
+        {profile.solar_essence && (
+          <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
+            <div className="flex items-center gap-2 mb-2 text-primary">
+              <Sun className="w-4 h-4 text-primary" />
+              <h2 className="font-display text-xs uppercase tracking-widest text-primary">
+                Natal Sun · Conscious Drive
+              </h2>
+            </div>
+            <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+              {profile.solar_essence}
+            </p>
+          </div>
+        )}
+
+        {profile.lunar_essence && (
+          <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
+            <div className="flex items-center gap-2 mb-2 text-primary">
+              <Moon className="w-4 h-4 text-primary" />
+              <h2 className="font-display text-xs uppercase tracking-widest text-primary">
+                Natal Moon · Instinctual Sanctuary
+              </h2>
+            </div>
+            <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
+              {profile.lunar_essence}
+            </p>
+          </div>
+        )}
+      </div>
+    ) : null;
+
+  if (section) {
+    const heading = (text: string) => (
+      <h2 className="font-display text-lg tracking-widest text-foreground uppercase text-center mb-5">{text}</h2>
+    );
+    if (section === "hero") {
+      return (
+        <GlassmorphismCard size="lg" className={className}>
+          {eyebrow}
+          <div className="text-center">
+            {rarityLine}
+            {titleBlock}
+          </div>
+        </GlassmorphismCard>
+      );
+    }
+    if (section === "strengths") {
+      return traitsBlock ? (
+        <GlassmorphismCard size="md" className={className}>
+          <div id={sectionId} className="scroll-mt-32">
+            {heading("Strengths")}
+            <div className="[&>div]:mb-0">{traitsBlock}</div>
+          </div>
+        </GlassmorphismCard>
+      ) : null;
+    }
+    if (section === "synthesis") {
+      return synthesisBlock ? (
+        <GlassmorphismCard size="md" className={className}>
+          <div id={sectionId} className="scroll-mt-32">
+            {heading("Synthesis")}
+            <div className="[&>div]:mb-0">{synthesisBlock}</div>
+          </div>
+        </GlassmorphismCard>
+      ) : null;
+    }
+    return essenceBlock ? (
+      <GlassmorphismCard size="md" className={className}>
+        <div id={sectionId} className="scroll-mt-32">
+          {heading("Essence")}
+          <div className="[&>div]:pt-0 [&>div]:border-t-0">{essenceBlock}</div>
+        </div>
+      </GlassmorphismCard>
+    ) : null;
+  }
+
   return (
       <GlassmorphismCard size="lg" className={className}>
         {/* Header Eyebrow */}
-        <div className="text-center mb-3">
-          <p className="font-display text-xs text-primary/80 uppercase tracking-widest flex items-center justify-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span>Natal Blueprint · Core Identity</span>
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-          </p>
-        </div>
+        {eyebrow}
 
         {/* 1. Dominant Triad Hook & Identity Reveal */}
         <div className="text-center mb-6">
-          {/* Dominant Triad Hook: Crisp gold (#c9a84c) without glow or blur */}
-          <p
-            className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight md:tracking-wide leading-tight mb-1"
-            style={{ color: "#c9a84c" }}
-          >
-            ✦ {triadNumber !== null ? triadNumber.toLocaleString() : "401"} of 1,728 ✦
-          </p>
-          <p className="font-serif text-xs text-cream-muted/80 mb-2">
-            Your natal Sun · your natal Moon · today's transiting Moon
-          </p>
+          {triadHook}
 
           {/* Line 2: Rarity text in smaller italic */}
-          <p className="font-serif italic text-sm md:text-base text-cream-muted/90 mb-5 max-w-md mx-auto leading-relaxed">
-            Your combination exists in less than 0.06% of people
-          </p>
+          {rarityLine}
 
           {/* Archetype Name: Primary H1 identity reveal */}
-          <div className="pt-1">
-            <p className="font-display text-xs uppercase tracking-[0.2em] text-primary/80 mb-1">
-              Your Blueprint Identity
-            </p>
-            <h1
-              className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wide mb-1 leading-tight break-words"
-              style={{ color: "#d4af37", textShadow: "0 0 22px rgba(212, 175, 55, 0.35)", textWrap: "balance" }}
-            >
-              {displayTitle}
-            </h1>
-            <p className="font-serif text-xs text-cream-muted/70 mb-2">
-              Your Sun + Moon combination · 1 of 144
-            </p>
-            {pairingSubtitle && (
-              <p className="font-display text-xs md:text-sm text-primary/70 tracking-widest uppercase">
-                {pairingSubtitle}
-              </p>
-            )}
-          </div>
+          {titleBlock}
         </div>
 
-        {/* 2. luminous_expression: Horizontal row of trait chips */}
-        {traits.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-2.5 mb-8 max-w-2xl mx-auto">
-              {traits.map((trait, index) => {
-                const capitalized = trait ? trait.charAt(0).toUpperCase() + trait.slice(1) : "";
-                return (
-                  <span
-                      key={index}
-                      className="px-4 py-2.5 rounded-xl text-left text-[15px] md:text-base font-sans font-normal normal-case leading-relaxed tracking-normal bg-primary/10 border border-primary/20 text-cream max-w-full"
-                  >
-                    {capitalized}
-                  </span>
-                );
-              })}
-            </div>
-        )}
-
-        {/* 3. combination_synthesis: Explicitly left-aligned paragraph chunks filling full width (Luminary only) */}
-        {isPro && synthesisParagraphs.length > 0 && (
-            <div
-                className="w-full mb-10 text-left !text-left"
-                style={{ textAlign: "left", width: "100%" }}
-            >
-              {synthesisParagraphs.map((paragraph, index) => (
-                  <p
-                      key={index}
-                      className="w-full font-serif text-base md:text-lg text-cream-muted leading-relaxed not-italic font-normal text-left !text-left indent-0 !indent-0"
-                      style={{
-                        marginBottom: "1.2em",
-                        textIndent: 0,
-                        textAlign: "left",
-                      }}
-                  >
-                    {paragraph}
-                  </p>
-              ))}
-            </div>
-        )}
-
-        {/* 4. solar_essence + lunar_essence: Side by side descriptors (Luminary only) */}
-        {isPro && (profile.solar_essence || profile.lunar_essence) && (
-            <div className="grid md:grid-cols-2 gap-6 pt-8 border-t border-primary/15">
-              {profile.solar_essence && (
-                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-                    <div className="flex items-center gap-2 mb-2 text-primary">
-                      <Sun className="w-4 h-4 text-primary" />
-                      <h2 className="font-display text-xs uppercase tracking-widest text-primary">
-                        Natal Sun · Conscious Drive
-                      </h2>
-                    </div>
-                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
-                      {profile.solar_essence}
-                    </p>
-                  </div>
-              )}
-
-              {profile.lunar_essence && (
-                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-                    <div className="flex items-center gap-2 mb-2 text-primary">
-                      <Moon className="w-4 h-4 text-primary" />
-                      <h2 className="font-display text-xs uppercase tracking-widest text-primary">
-                        Natal Moon · Instinctual Sanctuary
-                      </h2>
-                    </div>
-                    <p className="font-serif text-base md:text-lg text-cream-muted leading-relaxed">
-                      {profile.lunar_essence}
-                    </p>
-                  </div>
-              )}
-            </div>
-        )}
+        {traitsBlock}
+        {synthesisBlock}
+        {essenceBlock}
       </GlassmorphismCard>
+  );
+};
+
+/**
+ * Today's Triad state: your natal Sun, your natal Moon and today's transiting Moon, as one of 1,728. It changes
+ * daily, so it belongs on the Today tab, not in the permanent identity.
+ */
+export const TriadStateLine: React.FC<{ sunSign?: string | null; moonSign?: string | null; transitSign?: string | null }> = ({
+  sunSign,
+  moonSign,
+  transitSign,
+}) => {
+  const n = getTriadStateNumber(sunSign, moonSign, transitSign);
+  if (n === null) return null;
+  return (
+    <div className="text-center">
+      <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight leading-tight" style={{ color: "#c9a84c" }}>
+        ✦ {n.toLocaleString()} of 1,728 ✦
+      </p>
+      <p className="font-serif text-xs text-cream-muted/80">Your natal Sun · your natal Moon · today's transiting Moon</p>
+    </div>
   );
 };
 

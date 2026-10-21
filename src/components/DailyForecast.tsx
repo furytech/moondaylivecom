@@ -39,7 +39,7 @@ export function getLockedPreview(text?: string | null, words = 8): string {
 }
 
 /** The first locked section for free members: a heading and a faded line, directly under the last free content. */
-const LockedSectionPreview: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({
+export const LockedSectionPreview: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({
   icon,
   title,
   children,
@@ -93,7 +93,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
 
   if (loading) {
     return (
-      <GlassmorphismCard size="lg">
+      <GlassmorphismCard size="md">
         <div className="flex items-center justify-center gap-3 mb-8">
           <Sparkles className="w-5 h-5 text-primary" />
           <h2 className="font-display text-xl tracking-widest text-foreground uppercase">
@@ -127,7 +127,7 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
   );
 
   return (
-    <GlassmorphismCard size="lg">
+    <GlassmorphismCard size="md">
       <div className="flex items-center justify-center gap-3 mb-8">
         <Sparkles className="w-5 h-5 text-primary" />
         <h2 className="font-display text-xl tracking-widest text-foreground uppercase">

@@ -56,6 +56,8 @@ function renderBlueprint(opts: {
   passwordPending?: boolean;
   birthday?: string | null;
   noMoonSign?: boolean;
+  /** Which tab the URL asks for; null = no tab in the URL. Defaults to My Blueprint. */
+  tab?: "today" | "blueprint" | null;
   /** Account age in days; omitted = an older account */
   ageDays?: number;
   shareNudge?: Record<string, unknown>;
@@ -95,7 +97,7 @@ function renderBlueprint(opts: {
   } as never);
   return render(
     <HelmetProvider>
-      <MemoryRouter initialEntries={["/blueprint"]}>
+      <MemoryRouter initialEntries={[opts.tab === null ? "/blueprint" : `/blueprint?tab=${opts.tab ?? "blueprint"}`]}>
         <Routes>
           <Route path="/blueprint" element={<Blueprint />} />
           <Route path="/transition-quiz" element={<p>quiz page</p>} />
@@ -291,8 +293,7 @@ describe("Share-your-Moon-sign nudge on the Blueprint", () => {
     expect(shared.url).toBe("https://moondaylive.com/shared-moon/libra");
     expect(JSON.stringify(shared)).not.toMatch(/1985|Scorpio|birthday/i);
     expect(await screen.findByText("Thank you for sharing. It means a lot.")).toBeInTheDocument();
-    // @ts-expect-error cleanup of the stub
-    delete navigator.share;
+    delete (navigator as { share?: unknown }).share;
   });
 });
 
