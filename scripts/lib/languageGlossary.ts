@@ -42,9 +42,13 @@ export const ALLOWED_AS_IS = ['a hand over the heart', 'a warm bath', 'a foot so
 export const GLOSSARY_PROMPT = `TRANSLATE, NEVER SOFTEN. Every medical, clinical or diagnostic term must be replaced by a plain, descriptive phrase that keeps its exact meaning and function, described as lived experience (how it feels and how it affects mood, energy and reactions), never as anatomy or diagnosis. Do not delete the idea and do not swap in a vague stand-in ("your deeper instincts", "your inner waters", "your inner critic"): say what the term actually does. Use these phrasings, adjusting only the grammar to fit the sentence:
 ${GLOSSARY.map((g) => `- ${g.from} -> ${g.say.map((s) => `"${s}"`).join(' / ')}`).join('\n')}
 Follow the same principle for any term not listed: describe how it feels and what it does to mood, energy and reactions. Allowed as written: ${ALLOWED_AS_IS.join(', ')}.
-ADAPT THE GRAMMAR so every sentence still reads naturally: reword the clause around the glossary phrase (change the verb, the article or the word order), never paste a phrase where it does not fit. Examples:
+ADAPT THE GRAMMAR so every sentence still reads naturally: reword the clause around the glossary phrase (change the verb, the article or the word order), never paste a phrase where it does not fit.
+NERVOUS SYSTEM: where the original uses it as a noun ("your nervous system", "exhaust your nervous system", "tending your nervous system", "soothe your nervous system", "offer generosity to your nervous system"), use the SHORT NOUN FORM "your sensitivity to everything coming at you". Use the long clause "how you take in and process the day's events (and how much they stir or settle your mood)" ONLY where a whole clause fits grammatically, for example after "in", "show yourself" or "notice". Never put the long clause after "tending", "soothe", "exhaust", "wear down", "offering ... to" or in any noun position. Every sentence needs all its connecting words (by, from, while, as, to) and must be clear on first read.
+Examples:
 - "exhausting your nervous system" -> "wearing down your sensitivity to everything coming at you"
-- "soothe your nervous system" -> "soothe how the day's events land on you and stir your mood"
+- "soothe your nervous system" -> "soothe your sensitivity to everything coming at you"
+- "tending your own nervous system" -> "tending your own sensitivity to everything coming at you"
+- "offer generosity to your weary nervous system" -> "offer generosity to your weary sensitivity to everything coming at you"
 - "performance anxiety" -> "a restless, uneasy worry about performing that's hard to set down"
 - "absorbing the ambient anxieties of everyone around you" -> "absorbing the restless, uneasy worries around you that are hard to set down"
 - "severe hypochondria" -> "turning every small twinge into a worst-case story"
@@ -88,6 +92,19 @@ export const SUGGESTED_PHRASE: Record<string, string> = {
     'hygiene / clinical phrasing': phrase('clinical phrasing'),
     'chest / belly': phrase('hand on belly'),
 };
+
+/**
+ * Glossary phrases pasted where they do not read: the long nervous-system clause in a noun position ("tending how you take in..."),
+ * or a glossary noun phrase running straight into a gerund with no connecting word ("...coming at you trying to...").
+ */
+const LONG_CLAUSE_NOUN_POSITION = /\b(?:tend(?:ing|s)?|soothe[sd]?|soothing|exhaust(?:ing|s|ed)?|wear(?:ing)?\s+down|wears\s+down|offer(?:ing)?[^.,;]{0,60}\bto|generosity\s+to|reset\s+(?:for|to))\s+(?:your\s+(?:own\s+)?)?how\s+you\s+take\s+in\b/i;
+const NO_CONNECTOR = /\bcoming\s+at\s+you\s+(?:trying|attempting|working|struggling)\b/i;
+export function findAwkwardGlossaryUse(text: string): string[] {
+    const found: string[] = [];
+    if (LONG_CLAUSE_NOUN_POSITION.test(text)) found.push('the long "how you take in and process the day\'s events" clause is in a noun position: use "your sensitivity to everything coming at you"');
+    if (NO_CONNECTOR.test(text)) found.push('a connecting word is missing after "coming at you" (for example "by trying")');
+    return found;
+}
 
 const GESTURE_ON_BODY = /\bhands?\b[^.]{0,60}\b(belly|chest|abdomen|womb|solar plexus)\b|\bwarm(?:th)?\b[^.]{0,30}\b(chest|belly)\b/i;
 

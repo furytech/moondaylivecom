@@ -33,9 +33,9 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { BODY_CLAIM_TERMS, findBodyClaims } from '../src/lib/dailyContentGuard';
-import { assignVariety, findUnassignedCrutches, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
+import { assignVariety, findUnassignedCrutches, findBodyRegions, findPredictions, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
 import { judgeRewrites, QuotaExhausted, isDailyQuota, JUDGE_MODEL, Overloaded, OVERLOAD_PATIENCE_MS, waitOrGiveUp, type Patience } from './lib/rewriteJudge';
-import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation } from './lib/languageGlossary';
+import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation, findAwkwardGlossaryUse } from './lib/languageGlossary';
 
 for (const f of ['.env.local', '.env']) {
     const p = path.resolve(process.cwd(), f);
@@ -241,10 +241,18 @@ function validate(job: Job, json: Record<string, string>, recent: string[]): str
         if (f === 'physical_guidance') {
             if (text.length > 900) problems.push(`${f} too long`);
             for (const c of findUnassignedCrutches(text, assignVariety(job.row))) problems.push(c.startsWith('a ') || c.startsWith('an ') ? `used ${c} without being assigned it` : `problem: ${c}`);
+            for (const a of findAwkwardGlossaryUse(text)) problems.push(`${f}: ${a}`);
             problems.push(...windowProblems(text, recent));
         } else {
             if (text.length > Math.max(900, source.length * 1.3)) problems.push(`${f} too long`);
             if (text === source) problems.push(`${f} unchanged`);
+            // Nothing new about the body or about what will happen to the reader may be introduced by a rewrite.
+            const sourceRegions = findBodyRegions(source);
+            for (const r of findBodyRegions(text)) if (!sourceRegions.includes(r)) problems.push(`${f}: new body region "${r}" that the original did not mention`);
+            const wasPredicting = findPredictions(source).length;
+            const nowPredicting = findPredictions(text);
+            if (nowPredicting.length > wasPredicting) problems.push(`${f}: new prediction "${nowPredicting[nowPredicting.length - 1]}" (the original did not predict)`);
+            for (const a of findAwkwardGlossaryUse(text)) problems.push(`${f}: ${a}`);
             for (const label of findBodyClaims(source)) {
                 const key = requiredTranslation(label, source);
                 if (key && !key.test(text)) problems.push(`${f}: replace "${label}" with the glossary wording, e.g. "${SUGGESTED_PHRASE[label]}"`);
@@ -484,7 +492,13 @@ function pickSample(jobs: Job[], perSign: number): Job[] {
 async function main() {
     if (!SUPABASE_KEY) { console.error('SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1); }
     fs.mkdirSync(OUT, { recursive: true });
-    const { rows, jobs } = await plan();
+    const planned = await plan();
+    const rows = planned.rows;
+    // Stage 1: only the rows of the Sun/Moon combinations in --combos-file (a JSON list of [sun, moon] pairs).
+    const combosFile = arg('combos-file');
+    const combos = combosFile ? new Set((JSON.parse(fs.readFileSync(combosFile, 'utf8')) as string[][]).map(([s, m]) => `${s}|${m}`)) : null;
+    const jobs = combos ? planned.jobs.filter((j) => combos.has(`${j.row.natal_sun_sign}|${j.row.natal_moon_sign}`)) : planned.jobs;
+    if (combos) console.log(`STAGE: ${combos.size} combinations -> ${rows.filter((r) => combos.has(`${r.natal_sun_sign}|${r.natal_moon_sign}`)).length} rows in the table, ${jobs.length} of them need work.\n`);
     const planSummary = summarizePlan(rows, jobs);
     console.log(JSON.stringify(planSummary, null, 2));
     if (MEASURE) return;
@@ -494,7 +508,10 @@ async function main() {
     const started = Date.now();
 
     if (!RUN) {
-        const sample = pickSample(jobs, Math.max(1, Math.round(SAMPLE / SIGNS.length))).slice(0, SAMPLE);
+        // --all: every row that needs work (in the stage), in a mixed order; otherwise the hardest-plus-plain sample.
+        const sample = flag('all')
+            ? [...jobs].sort((a, b) => hash(a.row.id) - hash(b.row.id))
+            : pickSample(jobs, Math.max(1, Math.round(SAMPLE / SIGNS.length))).slice(0, SAMPLE);
         console.log(`\nDRY RUN: ${sample.length} sample rows. Nothing is written to the database.\n`);
         const results: Result[] = [];
         await runPool(sample, CONCURRENCY, async (job, i) => {
@@ -529,6 +546,34 @@ async function main() {
             const n = Math.max(1, rs.length);
             return { c, sampled: rs.length, planRows: planCount[c], meanCostUSD: rs.reduce((s, r) => s + costUSD(r.usage), 0) / n, meanRowSeconds: rs.reduce((s, r) => s + (r.ms ?? 0), 0) / n / 1000, meanCalls: rs.reduce((s, r) => s + r.attempts, 0) / n };
         });
+        // Why drafts were rejected (each reason counted once per rejected draft), so the weak spots are visible.
+        const reasonOf = (p: string): string => {
+            const t = p.toLowerCase();
+            if (/copied phrase/.test(t)) return 'copied an activity or pace phrase from the idea list';
+            if (/already used in other days|used too often/.test(t)) return 'repeated phrase or opening within 24 lines';
+            if (/one-word lead-in|capital letter|full stop|ellipsis/.test(t)) return 'awkward opening or sentence';
+            if (/prediction/.test(t)) return 'prediction about the reader';
+            if (/body region|body part/.test(t)) return 'body region or part';
+            if (/season|time-of-year/.test(t)) return 'season or time-of-year word';
+            if (/without being assigned|"the atmosphere"|"it is fine|"permission to"|high-octane/.test(t)) return 'stock phrase or unassigned walk / early night';
+            if (/long "how you take in|connecting word is missing/.test(t)) return 'glossary phrase pasted clumsily';
+            if (/glossary wording|replace "/.test(t)) return 'glossary phrase missing for a clinical term';
+            if (/still contains/.test(t)) return 'clinical or body term still present';
+            if (/vague stand-in/.test(t)) return 'vague stand-in for a clinical term';
+            if (/us spelling/.test(t)) return 'UK spelling';
+            if (/unchanged/.test(t)) return 'line left unchanged';
+            if (/^editor:/.test(t)) return 'editor read rejected the final draft';
+            if (/too long/.test(t)) return 'too long';
+            if (/missing/.test(t)) return 'field missing from the reply';
+            return 'other';
+        };
+        const rejectedByReason: Record<string, number> = {};
+        let rejectedDrafts = 0;
+        for (const r of done) for (const rej of r.rejections) {
+            if (/service busy|^API error/.test(rej)) continue;
+            rejectedDrafts++;
+            for (const reason of new Set(rej.split('; ').map(reasonOf))) rejectedByReason[reason] = (rejectedByReason[reason] ?? 0) + 1;
+        }
         const projectedCostUSD = perClass.reduce((s, p) => s + p.meanCostUSD * p.planRows, 0);
         const projectedRowSeconds = perClass.reduce((s, p) => s + p.meanRowSeconds * p.planRows, 0);
         const stats = {
@@ -537,6 +582,7 @@ async function main() {
             sampled: done.length, succeeded: ok.length, needsReview: done.length - ok.length, busyOnFirstPass: busyFirstPass, stillBusyAfterPasses: done.filter((r) => r.status === 'busy').length,
             needsReviewDetail: done.filter((r) => !r.after).map((r) => ({ n: r.n, status: r.status, row: `${r.sun}/${r.moon}→${r.transit}`, why: (r.rejections.at(-1) ?? '').slice(0, 300) })),
             editorRejected: S.editorRejected,
+            rejectedDrafts, rejectedByReason: Object.fromEntries(Object.entries(rejectedByReason).sort((a, b) => b[1] - a[1])),
             passedFirstTry: S.firstTry, totalDraftCalls: S.attempts, totalApiCalls: S.calls,
             tokens: S.usage, sampleCostUSD: +costUSD(S.usage).toFixed(4),
             timing: {

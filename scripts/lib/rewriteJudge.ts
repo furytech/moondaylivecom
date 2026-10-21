@@ -50,7 +50,10 @@ ${items.map((it, i) => `LINE ${i + 1} (${it.field})\nSOURCE: ${JSON.stringify(it
 For each line, judge ONLY the places where the rewrite differs from the source. Ignore awkwardness that is already in the source. A line fails if any changed passage:
 1. is ungrammatical or reads unnaturally (a pasted phrase that does not fit the sentence, a doubled article such as "the ambient a ...", a verb that cannot take the new phrase, a clause that no longer makes sense);
 2. changes the meaning or function of the original instead of translating it (a gesture, an instruction or a feeling replaced by something different or vague);
-3. still contains or introduces medical, clinical, diagnostic or anatomical wording (organs, nervous system, hormones, symptoms, conditions).
+3. still contains or introduces medical, clinical, diagnostic or anatomical wording (organs, nervous system, hormones, symptoms, conditions);
+4. is missing a connecting word (by, from, while, as, to, and so on) so that a clause runs straight into the next ("wearing down your sensitivity trying to solve..." instead of "...by trying to solve...");
+5. has a clause whose meaning is unclear on first read, or a long glossary clause used where a short noun fits ("tending how you take in and process the day's events", "offering generosity to soothe how you take in...");
+6. mentions a body part or body region that the SOURCE did not mention (for example "upper body", "lower back", "chest", "hips", "neck"), other than the approved hand over the heart, tight shoulders and clenched jaw.
 These phrasings are APPROVED replacements and must never be failed for their wording (a hand over the heart, tight shoulders, a clenched jaw, slow breathing, a warm bath or foot soak, eucalyptus, frankincense, or any of: ${APPROVED}). Fail them only if the sentence around them is ungrammatical or the meaning changed.
 Do not fail a line for style preferences or for being longer than the source.
 Return ONLY JSON: {"results": [{"line": 1, "ok": true|false, "problems": ["short description of each defect and the exact words; empty when ok"]}, ...]} with one entry per line.`;

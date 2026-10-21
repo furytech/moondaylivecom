@@ -21,8 +21,8 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { judgeRewrite } from './lib/rewriteJudge';
 import { findBodyClaims } from '../src/lib/dailyContentGuard';
-import { assignVariety, findUnassignedCrutches, windowProblems, WINDOW } from './lib/triadVariety';
-import { VAGUE_SUBSTITUTES, findUkSpelling, SUGGESTED_PHRASE, requiredTranslation } from './lib/languageGlossary';
+import { assignVariety, findUnassignedCrutches, findBodyRegions, findPredictions, windowProblems, WINDOW } from './lib/triadVariety';
+import { VAGUE_SUBSTITUTES, findUkSpelling, SUGGESTED_PHRASE, requiredTranslation, findAwkwardGlossaryUse } from './lib/languageGlossary';
 
 const file = process.argv.find((a, i) => i >= 2 && !a.startsWith('--'));
 if (!file) { console.error('Usage: npx tsx scripts/check-regen-output.ts <dry-run-results.json | run-log.jsonl>'); process.exit(1); }
@@ -45,11 +45,15 @@ for (const r of results) {
         const uk = findUkSpelling(text);
         if (uk && findUkSpelling(source) !== uk) found.push(`UK spelling "${uk}"`);
         for (const v of VAGUE_SUBSTITUTES) if (v.test(text) && !v.test(source)) found.push(`vague stand-in "${text.match(v)![0]}"`);
+        for (const a of findAwkwardGlossaryUse(text)) found.push(a);
         if (field === 'physical_guidance') {
             found.push(...findUnassignedCrutches(text, assignVariety({ triad_number: r.triadNumber ?? null, natal_sun_sign: r.sun, natal_moon_sign: r.moon, transiting_moon_sign: r.transit })));
             if (text.length > 900) found.push('longer than 900 characters');
         } else {
             if (text === source) found.push('unchanged');
+            const sourceRegions = findBodyRegions(source);
+            for (const region of findBodyRegions(text)) if (!sourceRegions.includes(region)) found.push(`new body region "${region}" that the original did not mention`);
+            if (findPredictions(text).length > findPredictions(source).length) found.push(`new prediction "${findPredictions(text).at(-1)}"`);
             for (const label of findBodyClaims(source)) {
                 const key = requiredTranslation(label, source);
                 if (key && !key.test(text)) found.push(`"${label}" not translated with the glossary wording (e.g. "${SUGGESTED_PHRASE[label]}")`);
