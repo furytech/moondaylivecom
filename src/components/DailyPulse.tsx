@@ -54,7 +54,7 @@ const LENSES: LensSpec[] = [
     register: "sidereal",
     numeral: "II",
     eyebrow: "Lens Two · Sidereal",
-    title: "The Internal Nervous System",
+    title: "The Internal Wiring",
     subtitle: "The wiring beneath the surface.",
     pickSign: (t) => t.sidereal.sign,
     position: (t) => t.sidereal.formatted,
@@ -117,19 +117,19 @@ function LensDetail({
       role="region"
       aria-label={`${lens.title} details`}
       hidden={!open}
-      className={`mx-auto w-full max-w-2xl rounded-sm border border-[hsl(var(--lime-accent)/0.4)] bg-[hsl(var(--navy-dark)/0.55)] p-5 sm:p-6 text-left animate-fade-in ${className}`}
+      className={`mx-auto w-full max-w-2xl rounded-sm border border-[hsl(var(--lime-accent)/0.4)] bg-[hsl(var(--navy-dark)/0.55)] p-4 sm:p-6 text-left animate-fade-in ${className}`}
     >
       <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--lime-accent))] mb-2 text-center">
         {lens.title} in {sign}
       </div>
       <DecoDivider />
-      <p className="font-sans font-normal normal-case text-base leading-relaxed text-[hsl(var(--lime-accent-light))] text-center mb-3">
+      <p className="font-sans font-normal normal-case text-base leading-relaxed text-[hsl(var(--lime-accent-light))] text-left mb-3">
         {attr.headline}
       </p>
-      <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-center">
+      <p className="text-[14px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-left">
         {attr.detail}
       </p>
-      <div className="mt-4 mx-auto max-w-md text-center text-[12px] italic text-[hsl(var(--cream)/0.7)] border-t border-[hsl(var(--lime-accent)/0.25)] pt-3">
+      <div className="mt-4 mx-auto max-w-md text-left text-[12px] italic text-[hsl(var(--cream)/0.7)] border-t border-[hsl(var(--lime-accent)/0.25)] pt-3">
         <span className="not-italic uppercase tracking-[0.3em] text-[10px] text-[hsl(var(--lime-accent))] block mb-1">
           Practice
         </span>
@@ -269,7 +269,7 @@ export default function DailyPulse({
               {/* The whole card is tappable; the button inside is the accessible control. */}
               <div
                 onClick={() => setOpenLens(isOpen ? null : lens.key)}
-                className={`group relative h-full flex flex-col rounded-sm border p-5 text-center transition-all cursor-pointer md:row-start-1 ${COLUMN_START[index]} ${
+                className={`group relative h-full flex flex-col rounded-sm border p-4 sm:p-5 text-center transition-all cursor-pointer md:row-start-1 ${COLUMN_START[index]} ${
                   isOpen
                     ? "border-[hsl(var(--lime-accent)/0.7)] bg-[hsl(var(--navy-dark)/0.85)]"
                     : "border-[hsl(var(--gold-medium)/0.3)] bg-[hsl(var(--navy-dark)/0.6)] hover:border-[hsl(var(--gold-medium)/0.55)] hover:bg-[hsl(var(--navy-dark)/0.8)]"
@@ -284,7 +284,7 @@ export default function DailyPulse({
                 <h3 className={`font-display text-base sm:text-lg tracking-wide min-h-[3.5rem] flex items-center justify-center ${isOpen ? "text-[hsl(var(--lime-accent-light))]" : "text-[hsl(var(--cream))]"}`}>
                   {lens.title}
                 </h3>
-                <p className={`mt-1 text-[12px] leading-snug min-h-[2.5rem] ${isOpen ? "text-[hsl(var(--cream)/0.85)]" : "text-[hsl(var(--cream)/0.6)] italic"}`}>
+                <p className={`mt-1 text-[12px] leading-snug min-h-[2.5rem] text-left ${isOpen ? "text-[hsl(var(--cream)/0.85)]" : "text-[hsl(var(--cream)/0.6)] italic"}`}>
                   {lens.subtitle}
                 </p>
                 <div className="mt-auto pt-4">
@@ -327,25 +327,25 @@ export default function DailyPulse({
         </div>
 
         {synthesisSlot ?? (
-          <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.35)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
+          <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.35)] bg-[hsl(var(--navy-dark)/0.4)] p-4 sm:p-6 text-center">
             <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))] mb-1">
               Luminary Synthesis
             </div>
-            <div className="text-[11px] italic text-[hsl(var(--cream)/0.55)] mb-3">
+            <div className="text-[11px] italic text-[hsl(var(--cream)/0.55)] mb-3 text-center">
               {synthesis.subtitle}
             </div>
-            <p className="text-[14px] sm:text-[15px] leading-relaxed text-[hsl(var(--cream)/0.85)]">
+            <p className="text-[14px] sm:text-[15px] leading-relaxed text-[hsl(var(--cream)/0.85)] text-left">
               {synthesis.body}
             </p>
             {synthesis.frictionCue && (
-              <div className="mt-4 mx-auto max-w-lg text-sm leading-relaxed normal-case tracking-normal text-[hsl(var(--gold-medium)/0.95)] border-t border-[hsl(var(--gold-medium)/0.3)] pt-3">
+              <div className="mt-4 mx-auto max-w-lg text-left text-sm leading-relaxed normal-case tracking-normal text-[hsl(var(--gold-medium)/0.95)] border-t border-[hsl(var(--gold-medium)/0.3)] pt-3">
                 {synthesis.frictionCue}
               </div>
             )}
           </div>
         )}
 
-        <p className="mt-6 text-sm leading-relaxed text-[hsl(var(--cream)/0.55)] normal-case tracking-normal">
+        <p className="mt-6 text-sm leading-relaxed text-[hsl(var(--cream)/0.55)] normal-case tracking-normal text-left">
           No predictions here. The simulation runs on probabilities — you're the one who collapses the wavefunction into your next reality.
         </p>
       </section>

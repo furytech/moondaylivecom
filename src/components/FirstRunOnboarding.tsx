@@ -54,7 +54,7 @@ const FirstRunOnboarding = () => {
         <p className="font-display text-xs text-primary uppercase tracking-[0.22em] mb-2">
           Start here
         </p>
-        <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider">
+        <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider text-center">
           How Moonday reads your chart
         </h2>
       </div>

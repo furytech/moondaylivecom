@@ -476,7 +476,7 @@ const Blueprint = () => {
       </div>
       <Navigation />
       
-      <main className="flex-1 flex flex-col items-start pt-[68px] pb-6 px-6 relative z-20">
+      <main className="flex-1 flex flex-col items-start pt-[68px] pb-6 px-4 sm:px-6 relative z-20">
         <div className="max-w-5xl mx-auto w-full">
           {/* Success Message */}
           {success && (

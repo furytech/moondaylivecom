@@ -6,6 +6,12 @@ interface GlassmorphismCardProps {
   className?: string;
   glowColor?: "gold" | "blue" | "purple";
   size?: "sm" | "md" | "lg";
+  /**
+   * For a card whose children are cards of their own. On phones the outer frame disappears (no border,
+   * background or padding) so the inner cards run the full width of the page gutter instead of sitting in a
+   * frame inside a frame. From the sm breakpoint up it looks exactly as before.
+   */
+  flush?: boolean;
 }
 
 const GlassmorphismCard = ({
@@ -13,6 +19,7 @@ const GlassmorphismCard = ({
   className,
   glowColor = "gold",
   size = "md",
+  flush = false,
 }: GlassmorphismCardProps) => {
   const glowStyles = {
     gold: "border-[hsl(var(--reveal-strong)/0.95)] shadow-[0_0_60px_-15px_hsl(239,84%,67%,0.25),inset_0_0_0_1px_hsl(var(--reveal)/0.18)] hover:border-[hsl(var(--reveal-strong))] hover:shadow-[0_0_80px_-15px_hsl(239,84%,67%,0.35),inset_0_0_0_1px_hsl(var(--reveal)/0.28)]",
@@ -20,10 +27,11 @@ const GlassmorphismCard = ({
     purple: "shadow-[0_0_60px_-15px_hsl(280,60%,50%,0.2)] border-purple-400/45 hover:border-purple-400/65",
   };
 
+  // 16px of padding on phones (the card already sits inside the page's 16px gutter), the original padding from sm up.
   const sizeStyles = {
-    sm: "p-6 md:p-8",
-    md: "p-8 md:p-10",
-    lg: "p-10 md:p-14",
+    sm: "p-4 sm:p-6 md:p-8",
+    md: "p-4 sm:p-8 md:p-10",
+    lg: "p-4 sm:p-10 md:p-14",
   };
 
   return (
@@ -34,6 +42,8 @@ const GlassmorphismCard = ({
         "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/[0.08] before:via-white/[0.04] before:to-transparent before:opacity-100 before:transition-opacity before:duration-500 hover:before:opacity-100",
         glowStyles[glowColor],
         sizeStyles[size],
+        flush &&
+          "max-sm:border-0 max-sm:bg-transparent max-sm:shadow-none max-sm:p-0 max-sm:rounded-none max-sm:backdrop-blur-none max-sm:before:hidden",
         className
       )}
     >

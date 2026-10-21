@@ -94,7 +94,7 @@ const NatalTab = ({
         <div id="bp-birth-moon" className="scroll-mt-32 space-y-5">
           <div className="flex items-center justify-center gap-2">
             <Moon className="w-5 h-5 text-primary" aria-hidden="true" />
-            <h2 className="font-display text-lg tracking-widest text-foreground uppercase">Your Birth Moon</h2>
+            <h2 className="font-display text-lg tracking-widest text-foreground uppercase text-center">Your Birth Moon</h2>
           </div>
 
           {profileLoading ? (

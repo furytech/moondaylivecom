@@ -70,7 +70,7 @@ const ShareNudgeCard = ({ sign, onShareClick, onDismiss }: ShareNudgeCardProps) 
     <GlassmorphismCard className="mt-8 animate-fade-up" size="sm">
       <section aria-label="Share your Moon sign" className="space-y-4 text-left">
         <div className="space-y-1">
-          <h2 className="font-sans text-lg normal-case tracking-normal font-semibold text-foreground text-left">
+          <h2 className="font-sans text-lg normal-case tracking-normal font-semibold text-foreground text-center">
             Know someone who'd love this?
           </h2>
           <p className="font-serif text-base text-cream-muted text-left">Share your Moon sign with them.</p>

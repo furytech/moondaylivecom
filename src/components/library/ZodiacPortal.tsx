@@ -66,13 +66,13 @@ export function ZodiacPortal({ content, index }: ZodiacPortalProps) {
       />
 
       <div className="flex flex-1 flex-col items-center gap-1.5 px-3 py-4 md:px-4 text-center">
-        <h2 className="font-display font-light text-base md:text-lg text-foreground/90 tracking-[0.12em] uppercase group-hover:text-primary transition-colors duration-300">
+        <h2 className="font-display font-light text-base md:text-lg text-foreground/90 tracking-[0.12em] uppercase group-hover:text-primary transition-colors duration-300 text-center">
           {content.sign} Moon
         </h2>
         {archetype && (
           <p className="font-display text-[11px] md:text-xs tracking-[0.2em] uppercase text-primary/80">{archetype}</p>
         )}
-        {summary && <p className="font-serif text-sm text-cream-muted leading-snug">{summary}</p>}
+        {summary && <p className="font-serif text-sm text-cream-muted leading-snug text-left">{summary}</p>}
       </div>
     </Link>
   );

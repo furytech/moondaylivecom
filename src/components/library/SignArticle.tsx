@@ -6,7 +6,7 @@ import type { LibraryArticle } from "@/content/library";
 import { useAuth } from "@/contexts/AuthContext";
 
 const linkClass = "text-primary underline underline-offset-4 hover:text-primary/80";
-const h2Class = "font-display text-xl md:text-2xl text-primary tracking-[0.08em] text-left scroll-mt-24 mb-4";
+const h2Class = "font-display text-xl md:text-2xl text-primary tracking-[0.08em] text-center scroll-mt-24 mb-4";
 const pClass = "font-serif text-base md:text-lg text-cream-muted leading-relaxed text-left my-4";
 
 export const PROFILE_ANCHOR = "profile";
@@ -22,7 +22,7 @@ export function articleToc(article: LibraryArticle) {
 export function OnThisPage({ article }: { article: LibraryArticle }) {
   return (
     <nav aria-label="On this page" className="rounded-xl border border-primary/15 bg-navy-medium/20 p-4">
-      <h2 className="font-display text-xs tracking-[0.2em] uppercase text-primary/80 text-left mb-3">On this page</h2>
+      <h2 className="font-display text-xs tracking-[0.2em] uppercase text-primary/80 mb-3 text-center">On this page</h2>
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-left list-none p-0 m-0">
         {articleToc(article).map((item) => (
           <li key={item.id} className="text-left">
@@ -73,7 +73,7 @@ export function SignArticle({ article }: { article: LibraryArticle }) {
             ))}
             {section.list && (
               <div className="my-5 rounded-xl border border-primary/10 p-5 text-left">
-                <h3 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 text-left mb-3">
+                <h3 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3 text-center">
                   {section.list.title}
                 </h3>
                 <ul className="space-y-3 text-left list-none p-0 m-0">
@@ -114,7 +114,7 @@ export function SignArticle({ article }: { article: LibraryArticle }) {
       </section>
 
       <section aria-labelledby="closing-h" className="rounded-xl border border-primary/25 bg-primary/[0.05] p-6 md:p-8">
-        <h2 id="closing-h" className="font-display text-xl md:text-2xl text-primary tracking-[0.08em] text-left mb-3">
+        <h2 id="closing-h" className="font-display text-xl md:text-2xl text-primary tracking-[0.08em] text-center mb-3">
           {article.closing.heading}
         </h2>
         <p className={pClass}>{article.closing.text}</p>

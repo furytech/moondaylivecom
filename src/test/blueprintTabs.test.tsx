@@ -182,7 +182,7 @@ describe("Blueprint tabs", () => {
       const moon = within(panel).getByRole("heading", { name: /^(Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces)$/ });
       const triad = within(panel).getByText(/of 1,728/);
       const forecast = within(panel).getByText("Daily Lunar Forecast");
-      const body = within(panel).getByText("Your body today");
+      const body = within(panel).getByText("Your energy today");
       const peek = within(panel).getByTestId("locked-section-preview");
       const gate = within(panel).getByText("Now you know who you are.");
       const back = within(panel).getByText(/^Come back tomorrow: the Moon enters \w+/);
@@ -193,7 +193,7 @@ describe("Blueprint tabs", () => {
       expect(follows(body, peek)).toBe(true);
       expect(follows(peek, gate)).toBe(true);
       expect(follows(gate, back)).toBe(true);
-      expect(within(panel).getAllByText("UNLOCK LUMINARY — $6.88/month")).toHaveLength(1);
+      expect(within(panel).getAllByText("Unlock Luminary — $6.88/month")).toHaveLength(1);
     });
 
     it("keeps the combination title and the natal sections off the Today tab", async () => {
@@ -281,7 +281,7 @@ describe("Blueprint tabs", () => {
     it("left-aligns the forecast copy and uses no rounded-full pills for text on either tab", async () => {
       const a = renderBlueprint({ visited: true, tab: "today" });
       const panel = await screen.findByRole("tabpanel");
-      for (const text of [/First body sentence/, /is moving through the sky/]) {
+      for (const text of [/First body sentence/, /Luminary shows how the \w+ Moon meets your/]) {
         expect(within(panel).getByText(text).closest("p")?.className).toMatch(/text-left/);
       }
       const pillsWithText = (root: HTMLElement) =>

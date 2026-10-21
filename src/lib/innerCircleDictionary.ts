@@ -16,7 +16,7 @@ export const INNER_CIRCLE: Record<string, SignaturePillar> = {
   },
   Taurus: {
     psychological: "Cultivate 'I HAVE.' Root in worthiness.",
-    spiritual: "Practice Embodiment. Find sacred in physical.",
+    spiritual: "Practice presence. Find the sacred in the everyday.",
     material: "Financial stewardship. Planting seeds.",
   },
   Gemini: {

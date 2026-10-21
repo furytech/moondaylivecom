@@ -61,7 +61,7 @@ const NamePrompt = ({ userId, onDone }: NamePromptProps) => {
     <GlassmorphismCard className="mb-6 animate-fade-up" size="sm">
       <form onSubmit={handleSave} className="space-y-4 text-left" aria-label="What should we call you?">
         <div className="space-y-1">
-          <h2 className="font-sans text-lg normal-case tracking-normal font-semibold text-foreground text-left">
+          <h2 className="font-sans text-lg normal-case tracking-normal font-semibold text-foreground text-center">
             What should we call you?
           </h2>
           <p className="font-serif text-sm text-cream-muted text-left">Optional. We'll use it to greet you.</p>

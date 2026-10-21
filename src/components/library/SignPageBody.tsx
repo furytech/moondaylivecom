@@ -26,7 +26,7 @@ export function SignPageBody({ sign }: { sign: string }) {
         {article && <SignArticle article={article} />}
 
         <nav aria-label="All Moon signs">
-          <h2 className="font-display text-sm tracking-[0.2em] uppercase text-primary/80 mb-3">
+          <h2 className="font-display text-sm tracking-[0.2em] uppercase text-primary/80 mb-3 text-center">
             All Moon signs
           </h2>
           <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -44,7 +44,7 @@ export function SignPageBody({ sign }: { sign: string }) {
           </ul>
         </nav>
 
-        <p className="text-center font-serif text-sm text-muted-foreground">
+        <p className="text-left font-serif text-sm text-muted-foreground">
           Looking for today's Moon?{" "}
           <Link to="/pulse" className={linkClass}>
             See the Daily Pulse →

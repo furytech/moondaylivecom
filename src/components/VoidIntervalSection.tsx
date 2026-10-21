@@ -35,7 +35,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
 
   return (
     <>
-    <GlassmorphismCard size="lg" className="animate-fade-up stagger-4 shadow-glow">
+    <GlassmorphismCard size="lg" flush className="animate-fade-up stagger-4 shadow-glow">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/90 uppercase tracking-[0.2em] mb-3">
           Lunar Signal
@@ -46,7 +46,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
             {statusLabel}
           </h2>
         </div>
-        <p className="font-serif text-lg text-cream-muted mb-6">
+        <p className="font-serif text-lg text-cream-muted mb-6 text-left">
           {isVoid
             ? "The Moon is between signs. Routine tasks only."
             : "The Moon's signal is clear. Act with confidence."}
@@ -79,7 +79,7 @@ const VoidIntervalSection = ({ lunar, isPro, onUpgradeClick }: VoidIntervalSecti
         <p className="font-serif text-sm text-muted-foreground italic text-left mb-3">
           Note: These transitions are gradual rather than black and white; you may feel the shift slightly before or after these times.
         </p>
-        <p className="font-serif text-xs text-primary/80 text-center tracking-wide">
+        <p className="font-serif text-xs text-primary/80 text-left tracking-wide">
           Times shown in your local timezone (Moon content published in UTC).
         </p>
       </div>

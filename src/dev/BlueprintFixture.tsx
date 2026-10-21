@@ -1,14 +1,18 @@
-// DEV ONLY. Renders the real Blueprint page for a mocked member, so layout and behaviour can be checked
-// without an account:  /dev/blueprint?member=free|luminary&tab=today|blueprint&visited=1&name=Maya
+// DEV ONLY. Renders the real Blueprint, Lenses or Daily Pulse page for a mocked member, so layout and behaviour can
+// be checked without an account:
+//   /dev/blueprint?member=free|luminary&tab=today|blueprint&visited=1&name=Maya
+//   /dev/lenses?member=luminary        /dev/pulse?member=free
 //
 // It is only reachable when import.meta.env.DEV is true (App.tsx lazy-imports it behind that check), so it is
 // removed from production builds. It patches the shared Supabase client in place; nothing is sent anywhere.
 
 import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Blueprint from "@/pages/Blueprint";
+import Lenses from "@/pages/Triad";
+import Pulse from "@/pages/Pulse";
 
 const combination = {
   id: "fixture",
@@ -29,16 +33,21 @@ const combination = {
   default_behaviors: [],
 };
 
+// Realistic lengths (the stored rows run about 480 characters for the energy line, 300-460 for the rest) and,
+// like the generator now requires, no body or health language.
 const triad = {
   physical_guidance:
-    "The electric, cerebral frequency of the transiting Moon may cause a subtle static in your usually fluid nervous system, often felt as tension behind the eyes or shallow breathing in the upper chest. Your deep Water body, accustomed to tides and visceral grounding, may want warmth and slower breath today.",
+    "The quick, restless pace of this Aquarius Moon runs through your usually steady Water rhythm, so your energy may come in bursts rather than a flow. You may find focus easier in short, finished loops than in one long push. Let the day move at the speed of conversation, and save the deep work for the quiet hours when the noise settles.",
   emotional_guidance:
-    "Feelings may arrive as thoughts today. Name them out loud, or write them down, before deciding what they mean.",
+    "Your natal Cancer Moon feels things slowly and completely, while today's Air Moon wants to name them quickly. The gap between the two can read as distance, even when you care a great deal. Say the feeling out loud, even if it comes out imperfectly, and let someone you trust meet you in the middle instead of waiting to be asked.",
   spiritual_guidance:
-    "Notice the difference between a passing mood and a quiet knowing. The second one stays when the room goes silent.",
-  daily_ritual: "Hold something warm for three minutes, breathe slowly, and say what you need in one sentence.",
-  shadow_activation: "Over-explaining a feeling so that no one can get close to it.",
-  integration_invitation: "Let one person see the unpolished version of how you feel.",
+    "Notice the difference between a passing mood and a quiet knowing. The mood shifts with every conversation; the knowing stays when the room goes silent. Today invites you to trust the second one, and to let the first one pass without making a decision from it. What you keep returning to is usually the honest answer.",
+  daily_ritual:
+    "Write three honest lines before noon: what you feel, what you need, and one small thing you can offer someone else. Read them once, then put the page away. The point is not to solve the day but to give your feelings a place to land before the conversations begin, so you can meet them with more patience.",
+  shadow_activation:
+    "Over-explaining a feeling until no one can get close to it. When the day speeds up, you may talk around what is tender instead of saying it plainly, and then wonder why you were not understood.",
+  integration_invitation:
+    "Let one person see the unpolished version of how you feel today. A short, plain sentence is enough. Notice that being understood does not require being perfectly articulate.",
 };
 
 function patchSupabase(member: "free" | "luminary", visited: boolean, name: string | null, ageDays: number) {
@@ -107,9 +116,12 @@ export default function BlueprintFixture() {
 
   useMemo(() => patchSupabase(member, visited, name, ageDays), [member, visited, name, ageDays]);
 
+  const { pathname } = useLocation();
+  const Page = pathname.endsWith("/lenses") ? Lenses : pathname.endsWith("/pulse") ? Pulse : Blueprint;
+
   return (
     <AuthProvider>
-      <Blueprint />
+      <Page />
     </AuthProvider>
   );
 }

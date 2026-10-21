@@ -60,10 +60,10 @@ export default function ClimateGauge({ illumination, sign }: Props) {
   const dash = (score / 100) * circumference;
 
   return (
-    <GlassmorphismCard className="animate-fade-up">
+    <GlassmorphismCard flush className="animate-fade-up">
       <div className="flex items-center justify-center gap-2 mb-6">
         <Activity className="w-5 h-5 text-primary" />
-        <h2 className="font-display text-lg tracking-widest text-foreground uppercase">
+        <h2 className="font-display text-lg tracking-widest text-foreground uppercase text-center">
           Today's Frequency
         </h2>
       </div>

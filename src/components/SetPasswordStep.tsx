@@ -41,7 +41,7 @@ const SetPasswordStep = () => {
         <form onSubmit={handleSubmit} className="space-y-5 text-left">
           <div className="space-y-2">
             <p className="font-display text-xs uppercase tracking-[0.3em] text-primary text-center">Email confirmed</p>
-            <h1 className="font-sans text-2xl normal-case tracking-normal font-semibold text-foreground text-left leading-snug">
+            <h1 className="font-sans text-2xl normal-case tracking-normal font-semibold text-foreground text-center leading-snug">
               Set a password to open your Blueprint
             </h1>
             <p className="font-serif text-base text-cream-muted leading-relaxed text-left">

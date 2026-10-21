@@ -33,11 +33,13 @@ Moonday Live (moondaylive.com) is a lunar astrology wellness app.
 - Cancellation must stay online: Account → "Manage subscription" opens the Stripe Customer Portal (cancels at the end of the paid period). Required by state auto-renewal laws.
 - Moon-change birthdays use the Moon Cusp Quiz (src/lib/moonCuspQuiz.ts, src/lib/cuspDay.ts): pair-specific Moon questions, the user's own timezone, clock-weighted scoring. Close results let the person choose; never silently save a tie. Call it a "Moon-change birthday", not "Between Phases".
 - Signup email order: confirmation email first, then the Blueprint email after confirmation.
+- Daily content never makes body, health or medical claims. It speaks to mood, energy, focus, relationships and behaviour, never physical symptoms, body systems or health advice. Generators must use src/lib/dailyContentGuard.ts (findBodyClaims / stripBodyClaims); `npx tsx scripts/audit-body-claims.ts` lists any static copy that slips.
 - Tone: reflective, not predictive. No fear-based engagement. Blueprint strength statements stay around 30 words (owner's decision; don't shorten).
 
 ## Design rules
 - Brand: dark navy background; gold (#d4af37) for significant moments and main buttons; violet for the personal/Blueprint layer; amber for live data.
 - Menus and tab bars never scroll horizontally. Every option must be visible without swiping; on phones, wrap into a grid instead.
+- Alignment: card and section headings are centered. Body content (paragraphs, lists, forecast text) is always left-aligned. On phones, nested cards never sit inside an outer bordered frame: use `<GlassmorphismCard flush>` for a card that wraps other cards, and keep card padding to about 16px below the sm breakpoint.
 - Typography: the engraved display font is only for short headings and labels (6 words or fewer). Sentences use the body font in sentence case. Text that wraps to more than one line never goes in a rounded-full pill; use rounded-xl.
 - The Sun + Moon combination title is the anchor metaphor of every reading. Always show it as a hero element (display font, gold), never as inline small text, and only once per page.
 - Expand/collapse toggles look like buttons, never like labels. On public pages, collapsed content must be present in the HTML at load (hidden, not mounted on click) so search engines can index it.

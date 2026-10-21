@@ -435,6 +435,11 @@
   .sov-card { padding: 2rem 1.875rem; }
 }
 .sov-card--wide { height: auto; }
+/* A sov-card that wraps cards of its own: no outer frame on phones, so the inner cards use the full width. */
+@media (max-width: 639px) {
+  .sov-card--flush { padding: 0; border: 0; background: none; backdrop-filter: none; border-radius: 0; }
+  .sov-card--flush::after { display: none; }
+}
 
 /* Secondary data label/value pair sitting above the hero insight */
 .sov-data {

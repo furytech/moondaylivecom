@@ -107,7 +107,7 @@ const BRIDGE_SENTENCES: Record<BridgeKey, string> = {
   'air-fixed-fire':
       'A Fire Moon injects urgency into your principled thinking — the vision wants to move now, not eventually. Decide which principle is worth acting on today.',
   'air-fixed-earth':
-      'An Earth Moon asks your abstract systems-thinking to find one concrete point of contact. The idea is valid; today asks what it touches in the physical world.',
+      'An Earth Moon asks your abstract systems-thinking to find one concrete point of contact. The idea is valid; today asks what it touches in the real world.',
   'air-fixed-air':
       'A second Air current amplifies your already strong mental focus. Innovation and unconventional thinking flow freely — give the ideas room to breathe.',
   'air-fixed-water':

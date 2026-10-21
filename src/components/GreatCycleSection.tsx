@@ -27,12 +27,12 @@ const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSe
 
   return (
     <>
-    <GlassmorphismCard size="lg" className="animate-fade-up stagger-2">
+    <GlassmorphismCard size="lg" flush className="animate-fade-up stagger-2">
       <div className="text-center mb-10">
         <p className="font-display text-sm text-primary/90 uppercase tracking-[0.2em] mb-3">
           The Great Cycle
         </p>
-        <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider mb-2">
+        <h2 className="font-display text-2xl md:text-3xl text-gold-gradient tracking-wider mb-2 text-center">
           {lunar.phase.emoji} {lunar.phase.name}
         </h2>
         <p className="font-serif text-lg text-cream-muted mb-6">

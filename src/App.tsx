@@ -149,16 +149,18 @@ export const App = () => (
               <Route path="/signup" element={<SignupRedirect />} />
               <Route path="/your-moon-sign" element={<YourMoonSign />} />
               <Route path="/shared-moon/:sign" element={<SharedMoon />} />
-              {BlueprintFixture && (
-                <Route
-                  path="/dev/blueprint"
-                  element={
-                    <Suspense fallback={null}>
-                      <BlueprintFixture />
-                    </Suspense>
-                  }
-                />
-              )}
+              {BlueprintFixture &&
+                ["blueprint", "lenses", "pulse"].map((page) => (
+                  <Route
+                    key={page}
+                    path={`/dev/${page}`}
+                    element={
+                      <Suspense fallback={null}>
+                        <BlueprintFixture />
+                      </Suspense>
+                    }
+                  />
+                ))}
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:category/:slug" element={<BlogPost />} />
               <Route path="/blog/:slug" element={<BlogPost />} />

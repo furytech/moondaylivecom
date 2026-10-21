@@ -78,17 +78,17 @@ export function SignDetailContent({ content, afterHeader }: SignDetailContentPro
               <TabsContent value="essence" forceMount className="animate-fade-up data-[state=inactive]:hidden">
                 <div className="space-y-8">
                   <div className="text-center">
-                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4">
+                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4 text-center">
                       {content.essence.title}
                     </h3>
-                    <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed italic max-w-2xl mx-auto">
+                    <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed italic max-w-2xl mx-auto text-left">
                       {content.essence.poetry}
                     </p>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8 mt-10">
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Core Wounds
                       </h4>
                       <ul className="space-y-3 text-left">
@@ -102,7 +102,7 @@ export function SignDetailContent({ content, afterHeader }: SignDetailContentPro
                     </div>
 
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         Soul Gifts
                       </h4>
                       <ul className="space-y-3 text-left">
@@ -122,10 +122,10 @@ export function SignDetailContent({ content, afterHeader }: SignDetailContentPro
               <TabsContent value="shadow" forceMount className="animate-fade-up data-[state=inactive]:hidden">
                 <div className="space-y-8">
                   <div className="text-center">
-                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4">
+                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-4 text-center">
                       {content.shadow.title}
                     </h3>
-                    <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed max-w-2xl mx-auto">
+                    <p className="font-serif text-lg md:text-xl text-cream-muted leading-relaxed max-w-2xl mx-auto text-left">
                       {content.shadow.rawTruth}
                     </p>
                   </div>
@@ -177,7 +177,7 @@ export function SignDetailContent({ content, afterHeader }: SignDetailContentPro
               <TabsContent value="ritual" forceMount className="animate-fade-up data-[state=inactive]:hidden">
                 <div className="space-y-8">
                   <div className="text-center">
-                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-2">
+                    <h3 className="font-display text-lg md:text-xl text-primary tracking-[0.2em] uppercase mb-2 text-center">
                       {content.ritual.title}
                     </h3>
                     <p className="font-serif text-muted-foreground tracking-wide uppercase text-sm">
@@ -190,12 +190,12 @@ export function SignDetailContent({ content, afterHeader }: SignDetailContentPro
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3 text-center">
                         Optimal Timing
                       </h4>
                       <p className="font-serif text-cream-muted text-left">{content.ritual.timing}</p>
 
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3 mt-6">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-3 mt-6 text-center">
                         Sacred Tools
                       </h4>
                       <ul className="space-y-2 text-left">
@@ -209,7 +209,7 @@ export function SignDetailContent({ content, afterHeader }: SignDetailContentPro
                     </div>
 
                     <div className="border border-primary/10 p-6">
-                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4">
+                      <h4 className="font-display text-xs tracking-[0.2em] uppercase text-primary/90 mb-4 text-center">
                         The Practice
                       </h4>
                       <ol className="space-y-3 text-left">

@@ -29,11 +29,11 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
   const ritual = getDailyRitual(currentMoonSign);
 
   return (
-    <GlassmorphismCard size="lg" className={isPro ? "shadow-glow" : ""}>
+    <GlassmorphismCard size="lg" flush className={isPro ? "shadow-glow" : ""}>
       {/* Header */}
       <div className="flex items-center justify-center gap-3 mb-8">
         <Moon className="w-5 h-5 text-primary" />
-        <h2 className="font-display text-xl tracking-widest text-foreground uppercase">
+        <h2 className="font-display text-xl tracking-widest text-foreground uppercase text-center">
           Daily Ritual
         </h2>
         <Moon className="w-5 h-5 text-primary" />
@@ -41,7 +41,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
 
       {/* Ritual Title & Element */}
       <div className="text-center mb-6">
-        <h3 className="font-display text-2xl text-gold-gradient mb-2">{ritual.title}</h3>
+        <h3 className="font-display text-2xl text-gold-gradient mb-2 text-center">{ritual.title}</h3>
         <span className="font-display text-xs text-primary/90 uppercase tracking-widest">
           {ritual.element} Element
         </span>
@@ -100,7 +100,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
         <div className="border-t border-primary/20 pt-8">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Crown className="w-5 h-5 text-primary" />
-            <h3 className="font-display text-lg tracking-widest text-primary uppercase">
+            <h3 className="font-display text-lg tracking-widest text-primary uppercase text-center">
               Luminary Insight
             </h3>
           </div>
@@ -120,7 +120,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
             <div className="w-12 h-12 rounded-full glass-card flex items-center justify-center mx-auto mb-5 shadow-glow">
               <Moon className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-display text-lg text-gold-gradient mb-4 tracking-widest uppercase">
+            <h3 className="font-display text-lg text-gold-gradient mb-4 tracking-widest uppercase text-center">
               Complete Your Profile
             </h3>
             <p className="font-serif text-base text-cream-muted mb-6 max-w-md mx-auto text-left">
@@ -135,7 +135,7 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
             <div className="w-12 h-12 rounded-full glass-card flex items-center justify-center mx-auto mb-5 shadow-glow">
               <Lock className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-display text-lg text-gold-gradient mb-6 tracking-widest uppercase">
+            <h3 className="font-display text-lg text-gold-gradient mb-6 tracking-widest uppercase text-center">
               Luminary Features
             </h3>
             <ul className="space-y-4 text-left max-w-md mx-auto mb-8">

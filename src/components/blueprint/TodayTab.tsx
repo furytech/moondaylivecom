@@ -107,24 +107,22 @@ const TodayTab = ({
       {/* Today's Moon */}
       <GlassmorphismCard size="sm" className="animate-fade-up">
         {lunar ? (
-          <div className="space-y-5">
-            <div className="flex items-center gap-5">
-              <span className="text-6xl leading-none text-primary font-display" aria-hidden="true">
+          <div className="space-y-4">
+            <div className="flex flex-col items-center text-center gap-1">
+              <p className="font-display text-xs uppercase tracking-[0.25em] text-primary/80 text-center">Today's Moon</p>
+              <span className="text-5xl leading-none text-primary font-display" aria-hidden="true">
                 {lunar.sign.symbol}
               </span>
-              <div className="min-w-0 space-y-1">
-                <p className="font-display text-xs uppercase tracking-[0.25em] text-primary/80 text-left">Today's Moon</p>
-                <h2 className="font-display text-3xl text-primary leading-tight text-left">{lunar.sign.name}</h2>
-                <p className="font-serif text-base text-muted-foreground text-left">
-                  {lunar.phase.name} • {lunar.phase.illumination}%
-                </p>
-                <p className="flex items-center gap-2 font-serif text-base text-cream-muted text-left">
-                  <Clock className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
-                  <span>
-                    Next sign in <span className="text-primary font-display">{timeUntilTransition || "—"}</span>
-                  </span>
-                </p>
-              </div>
+              <h2 className="font-display text-3xl text-primary leading-tight text-center">{lunar.sign.name}</h2>
+              <p className="font-serif text-base text-muted-foreground text-center">
+                {lunar.phase.name} • {lunar.phase.illumination}%
+              </p>
+              <p className="flex items-center justify-center gap-2 font-serif text-base text-cream-muted text-center">
+                <Clock className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
+                <span>
+                  Next sign in <span className="text-primary font-display">{timeUntilTransition || "—"}</span>
+                </span>
+              </p>
             </div>
             <button type="button" onClick={onOpenTodaysMoon} className={buttonClass}>
               <span>About Today's Moon Energy</span>

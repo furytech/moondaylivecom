@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { findBodyClaims } from '../src/lib/dailyContentGuard';
 
 const envLocalPath = path.resolve(process.cwd(), '.env.local');
 if (fs.existsSync(envLocalPath)) dotenv.config({ path: envLocalPath });
@@ -49,11 +50,17 @@ BLUEPRINT: ${sun} Sun + ${moon} Moon — "${title}"
 TODAY'S TRANSITING MOON: ${transit} (${ELEMENT[transit]} · ${MODALITY[transit]})
 TRIAD NUMBER: #${num} of 1,728
 
+CONTENT RULES (these override everything else):
+- Speak only to mood, energy, focus, pace, relationships and behaviour.
+- Never describe physical symptoms, body systems, body parts or sensations, or health, medical or wellness advice.
+- Never use words like: body, physical, nervous system, spine, circulation, hydration, symptoms, organs, digestion, muscles, hormones, immune.
+- Reflective, not predictive. Nothing fear-based.
+
 Write the daily Triad state for this exact combination. Consider how the transiting ${transit} Moon moves through the lens of a ${sun} Sun + ${moon} Moon Blueprint.
 
 Return ONLY valid JSON, no markdown:
 {
-  "physical_guidance": "2-3 sentences specific to this Blueprint under ${transit} Moon.",
+  "physical_guidance": "2-3 sentences on how ${transit} Moon shows up in the energy, pace and focus of this Blueprint. No body, health or medical language.",
   "emotional_guidance": "2-3 sentences on emotional tone for this Blueprint under ${transit} Moon.",
   "spiritual_guidance": "2-3 sentences on spiritual invitation of this transit for this Blueprint.",
   "daily_ritual": "One specific actionable practice (2-3 sentences) for this Blueprint under ${transit} Moon.",
@@ -80,12 +87,24 @@ async function callGemini(prompt: string, attempt = 0): Promise<any> {
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     const clean = text.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
-    try { return JSON.parse(clean); }
+    let parsed: any;
+    try { parsed = JSON.parse(clean); }
     catch {
         const match = clean.match(/\{[\s\S]*\}/);
-        if (match) return JSON.parse(match[0]);
-        throw new Error('Could not parse JSON');
+        if (!match) throw new Error('Could not parse JSON');
+        parsed = JSON.parse(match[0]);
     }
+    // Daily content never makes body, health or medical claims: ask again, then give up on this row.
+    const hits = Object.entries(parsed as Record<string, unknown>)
+        .filter(([, v]) => typeof v === 'string')
+        .flatMap(([k, v]) => findBodyClaims(v as string).map((t) => `${k}: ${t}`));
+    if (hits.length > 0) {
+        if (attempt < 3) return callGemini(`${prompt}
+
+YOUR LAST DRAFT BROKE THE CONTENT RULES (${hits.join('; ')}). Rewrite it with no body, health or medical language at all.`, attempt + 1);
+        throw new Error(`Body/health claims: ${hits.join('; ')}`);
+    }
+    return parsed;
 }
 
 async function main() {

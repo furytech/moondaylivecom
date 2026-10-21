@@ -5,7 +5,8 @@
  *   144 Blueprint profiles × 12 transiting moon signs
  *
  * Each Triad state contains:
- *   - physical_guidance    : how this transit affects the body
+ *   - physical_guidance    : how this transit shows up in energy, pace and focus (the column keeps its name;
+ *                            it is shown as "Your energy today" and never makes body or health claims)
  *   - emotional_guidance   : how this transit affects emotional tone
  *   - spiritual_guidance   : how this transit affects spiritual practice
  *   - daily_ritual         : one specific actionable practice
@@ -23,6 +24,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { findBodyClaims } from '../src/lib/dailyContentGuard';
 
 // ── Env ──────────────────────────────────────────────────────────────────────
 const envLocalPath = path.resolve(process.cwd(), '.env.local');
@@ -106,6 +108,12 @@ BLUEPRINT: ${sunSign} Sun + ${moonSign} Moon — "${combinationTitle}"
 TODAY'S TRANSITING MOON: ${transitSign} (${transitEl} · ${transitMod})
 TRIAD NUMBER: #${triadNum} of 1,728
 
+CONTENT RULES (these override everything else):
+- Speak only to mood, energy, focus, pace, relationships and behaviour.
+- Never describe physical symptoms, body systems, body parts or sensations, or health, medical or wellness advice.
+- Never use words like: body, physical, nervous system, spine, circulation, hydration, symptoms, organs, digestion, muscles, hormones, immune.
+- Reflective, not predictive. Nothing fear-based.
+
 Write the daily Triad state for this exact combination.
 Consider how the transiting ${transitSign} Moon (${transitEl} energy) moves through
 the lens of a person whose core Blueprint is ${sunSign} Sun + ${moonSign} Moon.
@@ -116,7 +124,7 @@ specific friction or flow that must be named precisely.
 Return ONLY valid JSON, no markdown, no explanation:
 
 {
-  "physical_guidance": "2-3 sentences: how this ${transitSign} Moon transit physically affects this Blueprint today. Specific body systems, energy level, sensory experience. NOT generic moon-in-sign information — this must reflect how a ${sunSign}/${moonSign} person specifically experiences ${transitSign} energy in the body.",
+  "physical_guidance": "2-3 sentences: how this ${transitSign} Moon transit shows up in the energy, pace and focus of this Blueprint today, and what that does to how they move through their day. NOT generic moon-in-sign information — this must reflect how a ${sunSign}/${moonSign} person specifically experiences ${transitSign} energy. No body, health or medical language.",
   "emotional_guidance": "2-3 sentences: the emotional tone and undercurrent for this Blueprint under ${transitSign} Moon. How the natal ${natalMoonEl} Moon meets the transiting ${transitEl} energy. Where tension or ease arises.",
   "spiritual_guidance": "2-3 sentences: the spiritual invitation of this transit for this Blueprint. What deeper pattern or soul lesson this ${transitSign} transit activates specifically within the ${sunSign}/${moonSign} nature.",
   "daily_ritual": "One specific, actionable practice (2-3 sentences) calibrated to both the Blueprint's dominant element (${natalSunEl}/${natalMoonEl}) and the transiting ${transitSign} energy. Not generic — something this specific combination would actually do.",
@@ -163,13 +171,27 @@ async function callGemini(prompt: string, attempt = 0): Promise<any> {
     if (!text) throw new Error('Empty Gemini response');
 
     const clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    let parsed: any;
     try {
-        return JSON.parse(clean);
+        parsed = JSON.parse(clean);
     } catch {
         const match = clean.match(/\{[\s\S]*\}/);
-        if (match) return JSON.parse(match[0]);
-        throw new Error('Could not parse JSON from Gemini response');
+        if (!match) throw new Error('Could not parse JSON from Gemini response');
+        parsed = JSON.parse(match[0]);
     }
+
+    // Daily content never makes body, health or medical claims: reject the draft and ask again.
+    const hits = Object.entries(parsed as Record<string, unknown>)
+        .filter(([, v]) => typeof v === 'string')
+        .flatMap(([k, v]) => findBodyClaims(v as string).map((t) => `${k}: ${t}`));
+    if (hits.length > 0) {
+        if (attempt < MAX_RETRIES) {
+            process.stdout.write(` [body claims: ${hits.join('; ')}; retrying]`);
+            return callGemini(`${prompt}\n\nYOUR LAST DRAFT BROKE THE CONTENT RULES (${hits.join('; ')}). Rewrite it with no body, health or medical language at all.`, attempt + 1);
+        }
+        throw new Error(`Body/health claims after ${attempt + 1} attempts: ${hits.join('; ')}`);
+    }
+    return parsed;
 }
 
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }

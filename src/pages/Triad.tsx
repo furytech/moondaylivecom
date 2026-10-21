@@ -54,7 +54,7 @@ function PositionBlock({
         {eyebrow}
       </div>
       <div className="flex flex-col gap-1 mb-5">
-        <h2 className="font-display text-2xl sm:text-3xl tracking-wide text-[hsl(var(--sov-ivory))]">
+        <h2 className="font-display text-2xl sm:text-3xl tracking-wide text-[hsl(var(--sov-ivory))] text-center">
           {title}
         </h2>
         {meta && (
@@ -75,28 +75,28 @@ function PositionBlock({
         </div>
       </div>
 
-      <p className="text-[15px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.78)] mb-4">
+      <p className="text-[15px] leading-relaxed italic text-[hsl(var(--sov-ivory)/0.78)] mb-4 text-left">
         {intro}
       </p>
 
       <div className="space-y-4">
         <div>
-          <h3 className="font-display text-[11px] tracking-[0.25em] uppercase text-[hsl(var(--sov-champagne))] mb-1.5">
+          <h3 className="font-display text-[11px] tracking-[0.25em] uppercase text-[hsl(var(--sov-champagne))] mb-1.5 text-center">
             What it is
           </h3>
-          <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.75)]">{what}</p>
+          <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.75)] text-left">{what}</p>
         </div>
         <div>
-          <h3 className="font-display text-[11px] tracking-[0.25em] uppercase text-[hsl(var(--sov-champagne))] mb-1.5">
+          <h3 className="font-display text-[11px] tracking-[0.25em] uppercase text-[hsl(var(--sov-champagne))] mb-1.5 text-center">
             How it's measured
           </h3>
-          <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.75)]">{how}</p>
+          <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.75)] text-left">{how}</p>
         </div>
         <div>
-          <h3 className="font-display text-[11px] tracking-[0.25em] uppercase text-[hsl(var(--sov-champagne))] mb-1.5">
+          <h3 className="font-display text-[11px] tracking-[0.25em] uppercase text-[hsl(var(--sov-champagne))] mb-1.5 text-center">
             How to use it
           </h3>
-          <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.75)]">{use}</p>
+          <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.75)] text-left">{use}</p>
         </div>
       </div>
     </article>
@@ -186,14 +186,13 @@ function CalibratingScreen() {
 function PersonalTriadCard({ panel }: { panel: Extract<TriadPanelContent, { kind: "personal" }> }) {
   return (
     <div className="mx-auto max-w-2xl rounded-sm border border-[hsl(var(--gold-medium)/0.45)] bg-[hsl(var(--navy-dark)/0.4)] p-5 sm:p-6 text-center">
-      <h3
-        className="font-display text-base sm:text-lg tracking-wide text-[#d4af37] tabular-nums"
+      <h3 className="font-display text-base sm:text-lg tracking-wide text-[#d4af37] tabular-nums text-center"
         style={{ textWrap: "balance" }}
       >
         {panel.heading}
       </h3>
       {panel.subheading && (
-        <p className="mt-1 text-sm normal-case tracking-normal leading-snug text-violet-200">
+        <p className="mt-1 text-sm normal-case tracking-normal leading-snug text-violet-200 text-left">
           {panel.subheading}
         </p>
       )}
@@ -235,7 +234,7 @@ function TriadLoadingCard() {
       <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--gold-medium))]">
         Today's Triad
       </div>
-      <p className="mt-2 text-sm normal-case tracking-normal text-[hsl(var(--cream)/0.55)]">
+      <p className="mt-2 text-sm normal-case tracking-normal text-[hsl(var(--cream)/0.55)] text-left">
         Reading your Triad…
       </p>
     </div>
@@ -339,7 +338,7 @@ export default function Triad() {
           <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--sov-champagne))] mb-3">
             Lenses unavailable
           </div>
-          <p className="text-sm normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] mb-5">
+          <p className="text-sm normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.7)] mb-5 text-left">
             We couldn't load your Lenses just now. Check your connection and try again.
           </p>
           <button
@@ -366,10 +365,10 @@ export default function Triad() {
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
               The Lenses
             </div>
-            <h1 className="font-display text-3xl tracking-tight text-[hsl(var(--sov-ivory))]">
+            <h1 className="font-display text-3xl tracking-tight text-[hsl(var(--sov-ivory))] text-center">
               Part of Luminary
             </h1>
-            <p className="mt-3 text-sm sm:text-base normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.65)]">
+            <p className="mt-3 text-sm sm:text-base normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.65)] text-left">
               Luminary reads today's Moon through your own Sun and Moon.
             </p>
             <Link
@@ -408,18 +407,17 @@ export default function Triad() {
             <div className="text-[10px] uppercase tracking-[0.5em] text-[hsl(var(--sov-champagne))] mb-2">
               The Lenses
             </div>
-            <h1 className="font-display text-3xl md:text-4xl tracking-tight text-[hsl(var(--sov-ivory))]">
+            <h1 className="font-display text-3xl md:text-4xl tracking-tight text-[hsl(var(--sov-ivory))] text-center">
               Three Lenses, One Luminary View
             </h1>
-            <p className="mt-3 text-sm sm:text-base text-[hsl(var(--sov-ivory)/0.65)] max-w-xl mx-auto leading-relaxed">
+            <p className="mt-3 text-sm sm:text-base text-[hsl(var(--sov-ivory)/0.65)] max-w-xl mx-auto leading-relaxed text-left">
               The same Moon, read through three lenses — Persona, Wiring, Soul.
             </p>
             <div className="mt-6 mx-auto max-w-xl">
               {hero.kicker && (
-                <p className="text-sm normal-case tracking-normal text-violet-200">{hero.kicker}</p>
+                <p className="text-sm normal-case tracking-normal text-violet-200 text-left">{hero.kicker}</p>
               )}
-              <h2
-                className="mt-2 font-display text-[1.75rem] sm:text-4xl md:text-5xl leading-[1.15] tracking-wide text-[#d4af37] break-words"
+              <h2 className="mt-2 font-display text-[1.75rem] sm:text-4xl md:text-5xl leading-[1.15] tracking-wide text-[#d4af37] break-words text-center"
                 style={{ textWrap: "balance", textShadow: "0 0 22px rgba(212, 175, 55, 0.35)" }}
               >
                 {hero.headline}
@@ -444,13 +442,13 @@ export default function Triad() {
               <div className="text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--sov-champagne))] mb-3">
                 Three Lenses, One Luminary View
               </div>
-              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-3">
+              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-3 text-left">
                 The three positions rarely agree — and that is the point. When today's Tropical,
                 Sidereal, and Draconic Moon positions all land in the same sign, the day is
                 unusually unified: outer weather, inner wiring, and soul direction are pulling in
                 one line. On these days, move boldly.
               </p>
-              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-4">
+              <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.78)] mb-4 text-left">
                 Most days, however, these perspectives diverge. Read them as a sequence to
                 understand the layers of your experience:
               </p>
@@ -466,7 +464,7 @@ export default function Triad() {
                   <span className="text-[hsl(var(--sov-champagne))] font-medium">
                     The Sidereal Lens (The Wiring):
                   </span>{" "}
-                  your actual astronomical alignment — how your nervous system is truly responding
+                  your actual astronomical alignment — how your inner wiring is truly responding
                   to the cosmic environment, regardless of the social weather.
                 </li>
                 <li>
@@ -477,7 +475,7 @@ export default function Triad() {
                   experience to deliver you toward.
                 </li>
               </ul>
-              <p className="mt-5 text-sm normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.6)]">
+              <p className="mt-5 text-sm normal-case tracking-normal leading-relaxed text-[hsl(var(--sov-ivory)/0.6)] text-left">
                 For self-reflection and entertainment ·{" "}
                 <a href="/disclaimer" className="underline hover:text-[hsl(var(--sov-champagne))]">
                   Read the disclaimer

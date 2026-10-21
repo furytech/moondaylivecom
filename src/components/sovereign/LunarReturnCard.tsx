@@ -20,7 +20,7 @@ export default function LunarReturnCard({ natalMoon }: Props) {
   const shared = returns[0];
 
   return (
-    <div className="sov-card">
+    <div className="sov-card sov-card--flush">
       <div className="text-[10px] uppercase tracking-[0.4em] text-[hsl(var(--sov-champagne))] mb-2 text-center">
         Lunar Return
       </div>

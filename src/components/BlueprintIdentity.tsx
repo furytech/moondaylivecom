@@ -152,8 +152,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
       <p className="font-display text-xs uppercase tracking-[0.2em] text-primary/80 mb-1">
         Your Blueprint Identity
       </p>
-      <h1
-        className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wide mb-1 leading-tight break-words"
+      <h1 className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wide mb-1 leading-tight break-words text-center"
         style={{ color: "#d4af37", textShadow: "0 0 22px rgba(212, 175, 55, 0.35)", textWrap: "balance" }}
       >
         {displayTitle}
@@ -209,9 +208,9 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
       <div className="grid md:grid-cols-2 gap-6 pt-8 border-t border-primary/15">
         {profile.solar_essence && (
           <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-            <div className="flex items-center gap-2 mb-2 text-primary">
+            <div className="flex items-center justify-center gap-2 mb-3 text-primary">
               <Sun className="w-4 h-4 text-primary" />
-              <h2 className="font-display text-xs uppercase tracking-widest text-primary">
+              <h2 className="font-display text-xs uppercase tracking-widest text-primary text-center">
                 Natal Sun · Conscious Drive
               </h2>
             </div>
@@ -223,9 +222,9 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
 
         {profile.lunar_essence && (
           <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-            <div className="flex items-center gap-2 mb-2 text-primary">
+            <div className="flex items-center justify-center gap-2 mb-3 text-primary">
               <Moon className="w-4 h-4 text-primary" />
-              <h2 className="font-display text-xs uppercase tracking-widest text-primary">
+              <h2 className="font-display text-xs uppercase tracking-widest text-primary text-center">
                 Natal Moon · Instinctual Sanctuary
               </h2>
             </div>
@@ -254,7 +253,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
     }
     if (section === "strengths") {
       return traitsBlock ? (
-        <GlassmorphismCard size="md" className={className}>
+        <GlassmorphismCard size="md" flush className={className}>
           <div id={sectionId} className="scroll-mt-32">
             {heading("Strengths")}
             <div className="[&>div]:mb-0">{traitsBlock}</div>
@@ -273,7 +272,7 @@ export const BlueprintIdentity: React.FC<BlueprintIdentityProps> = ({
       ) : null;
     }
     return essenceBlock ? (
-      <GlassmorphismCard size="md" className={className}>
+      <GlassmorphismCard size="md" flush className={className}>
         <div id={sectionId} className="scroll-mt-32">
           {heading("Essence")}
           <div className="[&>div]:pt-0 [&>div]:border-t-0">{essenceBlock}</div>
@@ -321,7 +320,7 @@ export const TriadStateLine: React.FC<{ sunSign?: string | null; moonSign?: stri
       <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight leading-tight text-amber-300">
         ✦ {n.toLocaleString()} of 1,728 ✦
       </p>
-      <p className="font-serif text-xs text-cream-muted/80">Your natal Sun · your natal Moon · today's transiting Moon</p>
+      <p className="font-serif text-xs text-cream-muted/80 text-center">Natal Sun · natal Moon · today's Moon</p>
     </div>
   );
 };

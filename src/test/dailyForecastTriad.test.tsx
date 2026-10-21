@@ -12,7 +12,7 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
   };
 
   const mockTriadData: useLunarForecastModule.TriadData = {
-    physical_guidance: "Breathwork expands the ribcage and settles restless pulse.",
+    physical_guidance: "Steady pacing settles a restless mind and sharpens focus.",
     emotional_guidance: "Air currents invite your watery feelings to express verbally.",
     spiritual_guidance: "Observe the distinction between passing thoughts and sacred intuition.",
     daily_ritual: "Write three uncensored stream-of-consciousness pages before sunrise.",
@@ -45,7 +45,7 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
     expect(screen.getByText(/Air Moon/i)).toBeDefined();
 
     // 2. Physical guidance
-    expect(screen.getByText("Your body today")).toBeDefined();
+    expect(screen.getByText("Your energy today")).toBeDefined();
     expect(screen.getByText(mockTriadData.physical_guidance)).toBeDefined();
 
     // 3. Emotional guidance
@@ -84,7 +84,7 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
         headline: "A Harmonious Confluence",
         forecast: "Steady winds support deep inner contemplation.",
         energy: "Reflective Caliber",
-        luckyFocus: "Somatic Grounding",
+        luckyFocus: "Steady Grounding",
       },
       triadData: null,
       loading: false,
@@ -105,10 +105,10 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
     expect(screen.getByText("Today's Energy")).toBeDefined();
     expect(screen.getByText("Reflective Caliber")).toBeDefined();
     expect(screen.getByText("Lucky Focus")).toBeDefined();
-    expect(screen.getByText("Somatic Grounding")).toBeDefined();
+    expect(screen.getByText("Steady Grounding")).toBeDefined();
 
     // Triad labels should NOT show
-    expect(screen.queryByText("Your body today")).toBeNull();
+    expect(screen.queryByText("Your energy today")).toBeNull();
     expect(screen.queryByText("Today's practice")).toBeNull();
   });
 
@@ -139,17 +139,15 @@ describe("DailyForecast Component - Layer 2 & Layer 3 Triad Restructuring", () =
     expect(screen.getByText(/Air Moon/i)).toBeDefined();
 
     // Free users see: Body section preview
-    expect(screen.getByText("Your body today")).toBeDefined();
+    expect(screen.getByText("Your energy today")).toBeDefined();
     expect(screen.getByText(/First sentence of body guidance\. Second sentence of body guidance\./)).toBeDefined();
 
     // Free users see: Gate component with dynamic moon signs and checkout button
     expect(screen.getByText("Now you know who you are.")).toBeDefined();
     expect(
-      screen.getByText(
-        /The Gemini Moon is moving through the sky — and your natal Cancer Moon is feeling it\. Luminary shows you how that's shaping your emotions/i
-      )
+      screen.getByText(/Luminary shows how the Gemini Moon meets your Cancer Moon, every day\./)
     ).toBeDefined();
-    expect(screen.getByText("UNLOCK LUMINARY — $6.88/month")).toBeDefined();
+    expect(screen.getByText("Unlock Luminary — $6.88/month")).toBeDefined();
     expect(screen.getByText("or $58.88/year · cancel anytime")).toBeDefined();
 
     // The first locked section appears only as a short faded preview (heading + opening words), never in full:

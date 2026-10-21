@@ -7,6 +7,7 @@ import { SIGN_ELEMENT, SIGN_MODALITY, ZodiacSign } from "@/lib/sovereignEngine";
 import GlassmorphismCard from "./GlassmorphismCard";
 import { Skeleton } from "./ui/skeleton";
 import LuminaryGate from "./LuminaryGate";
+import { stripBodyClaimsFromRecord } from "@/lib/dailyContentGuard";
 
 export function getBodyPreview(text?: string | null): { preview: string; blurredRemainder: string } {
   if (!text) return { preview: "", blurredRemainder: "" };
@@ -19,7 +20,7 @@ export function getBodyPreview(text?: string | null): { preview: string; blurred
   if (sentences.length <= 2) {
     return {
       preview: sentences.join(" "),
-      blurredRemainder: "Somatic grounding channels your internal reservoir into balanced momentum across every step.",
+      blurredRemainder: "Steady focus channels your momentum into balanced progress across every step of the day.",
     };
   }
 
@@ -46,12 +47,12 @@ export const LockedSectionPreview: React.FC<{ icon: React.ReactNode; title: stri
 }) => (
   <div
     data-testid="locked-section-preview"
-    className="relative overflow-hidden rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10"
+    className="relative overflow-hidden rounded-xl p-4 sm:p-5 md:p-6 bg-navy-medium/30 border border-primary/10"
   >
-    <div className="flex items-center gap-2 mb-2 text-primary">
+    <div className="flex items-center justify-center gap-2 mb-3 text-primary text-center">
       {icon}
-      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">{title}</h3>
-      <Lock className="w-3.5 h-3.5 ml-auto text-primary/70" aria-label="Locked for Luminary" />
+      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium text-center">{title}</h3>
+      <Lock className="w-3.5 h-3.5 shrink-0 text-primary/70" aria-label="Locked for Luminary" />
     </div>
     {children}
     <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-navy-dark via-navy-dark/80 to-transparent pointer-events-none" />
@@ -81,11 +82,13 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
   checkoutLoading = false,
   showGate = true,
 }) => {
-  const { forecast, triadData: hookTriadData, loading } = useLunarForecast(
+  const { forecast: rawForecast, triadData: hookTriadData, loading } = useLunarForecast(
     birthMoonSign,
     currentMoon,
     natalSunSign
   );
+
+  const forecast = rawForecast ? stripBodyClaimsFromRecord(rawForecast) : rawForecast;
 
   const natalElement = SIGN_ELEMENT[birthMoonSign as ZodiacSign] || "Water";
   const natalModality = SIGN_MODALITY[birthMoonSign as ZodiacSign] || "Cardinal";
@@ -93,10 +96,10 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
 
   if (loading) {
     return (
-      <GlassmorphismCard size="md">
+      <GlassmorphismCard size="md" flush>
         <div className="flex items-center justify-center gap-3 mb-5">
           <Sparkles className="w-5 h-5 text-primary" />
-          <h2 className="font-display text-lg sm:text-xl tracking-wider sm:tracking-widest text-foreground uppercase">
+          <h2 className="font-display text-lg sm:text-xl tracking-wider sm:tracking-widest text-foreground uppercase text-center">
             Daily Lunar Forecast
           </h2>
           <Sparkles className="w-5 h-5 text-primary" />
@@ -117,7 +120,9 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
     return null;
   }
 
-  const activeTriad = propTriadData || hookTriadData || forecast?.triadData;
+  // Daily content never makes body, health or medical claims: a stored line that does is not shown.
+  const rawTriad = propTriadData || hookTriadData || rawForecast?.triadData;
+  const activeTriad = rawTriad ? stripBodyClaimsFromRecord(rawTriad) : rawTriad;
   const hasTriadData = Boolean(
     activeTriad &&
       (activeTriad.physical_guidance ||
@@ -127,10 +132,10 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
   );
 
   return (
-    <GlassmorphismCard size="md">
+    <GlassmorphismCard size="md" flush>
       <div className="flex items-center justify-center gap-3 mb-5">
         <Sparkles className="w-5 h-5 text-primary" />
-        <h2 className="font-display text-lg sm:text-xl tracking-wider sm:tracking-widest text-foreground uppercase">
+        <h2 className="font-display text-lg sm:text-xl tracking-wider sm:tracking-widest text-foreground uppercase text-center">
           Daily Lunar Forecast
         </h2>
         <Sparkles className="w-5 h-5 text-primary" />
@@ -176,11 +181,11 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
           <div className="space-y-5 mb-6">
             {/* 2. Physical guidance */}
             {activeTriad.physical_guidance && (
-              <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-                <div className="flex items-center gap-2 mb-2 text-primary">
+              <div className="rounded-xl p-4 sm:p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
+                <div className="flex items-center justify-center gap-2 mb-3 text-primary text-center">
                   <Activity className="w-4 h-4 text-primary" />
-                  <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">
-                    Your body today
+                  <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium text-center">
+                    Your energy today
                   </h3>
                 </div>
                 {isPro ? (
@@ -228,10 +233,10 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
               <>
                 {/* 3. Emotional guidance */}
                 {activeTriad.emotional_guidance && (
-                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-                    <div className="flex items-center gap-2 mb-2 text-primary">
+                  <div className="rounded-xl p-4 sm:p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
+                    <div className="flex items-center justify-center gap-2 mb-3 text-primary text-center">
                       <Heart className="w-4 h-4 text-primary" />
-                      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium text-center">
                         Your emotional field
                       </h3>
                     </div>
@@ -243,10 +248,10 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
 
                 {/* 4. Spiritual guidance */}
                 {activeTriad.spiritual_guidance && (
-                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
-                    <div className="flex items-center gap-2 mb-2 text-primary">
+                  <div className="rounded-xl p-4 sm:p-5 md:p-6 bg-navy-medium/30 border border-primary/10">
+                    <div className="flex items-center justify-center gap-2 mb-3 text-primary text-center">
                       <Compass className="w-4 h-4 text-primary" />
-                      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary font-medium text-center">
                         The deeper invitation
                       </h3>
                     </div>
@@ -264,10 +269,10 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
             <>
               {/* 5. Daily ritual — styled as a distinct "practice" takeaway block */}
               {activeTriad.daily_ritual && (
-                <div className="mb-10 rounded-xl p-6 bg-primary/10 border border-primary/30 shadow-lg relative overflow-hidden">
-                  <div className="flex items-center gap-2.5 mb-3 text-primary">
+                <div className="mb-8 rounded-xl p-4 sm:p-6 bg-primary/10 border border-primary/30 shadow-lg relative overflow-hidden">
+                  <div className="flex items-center justify-center gap-2.5 mb-3 text-primary text-center">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    <h3 className="font-display text-sm uppercase tracking-widest font-semibold text-primary">
+                    <h3 className="font-display text-sm uppercase tracking-widest font-semibold text-primary text-center">
                       Today's practice
                     </h3>
                   </div>
@@ -287,10 +292,10 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
               {/* Shadow Layer: 7. Shadow activation & 8. Integration invitation */}
               <div className="grid md:grid-cols-2 gap-5 pt-2">
                 {activeTriad.shadow_activation && (
-                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/15 border border-primary/10">
-                    <div className="flex items-center gap-2 mb-2 text-primary/80">
+                  <div className="rounded-xl p-4 sm:p-5 md:p-6 bg-navy-medium/15 border border-primary/10">
+                    <div className="flex items-center justify-center gap-2 mb-3 text-primary/80 text-center">
                       <Eye className="w-4 h-4 text-primary/80" />
-                      <h3 className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium text-center">
                         What to watch for
                       </h3>
                     </div>
@@ -301,10 +306,10 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
                 )}
 
                 {activeTriad.integration_invitation && (
-                  <div className="rounded-xl p-5 md:p-6 bg-navy-medium/15 border border-primary/10">
-                    <div className="flex items-center gap-2 mb-2 text-primary/80">
+                  <div className="rounded-xl p-4 sm:p-5 md:p-6 bg-navy-medium/15 border border-primary/10">
+                    <div className="flex items-center justify-center gap-2 mb-3 text-primary/80 text-center">
                       <Shield className="w-4 h-4 text-primary/80" />
-                      <h3 className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium">
+                      <h3 className="font-display text-xs uppercase tracking-widest text-primary/80 font-medium text-center">
                         The integration opportunity
                       </h3>
                     </div>

@@ -10,7 +10,7 @@ import {
 
    Three lenses map to three registers of meaning:
      • Tropical  → Social weather (collective communication)
-     • Sidereal  → Internal nervous system (biological + grounding)
+     • Sidereal  → Internal wiring (inner rhythm + grounding)
      • Draconic  → Soul intent (evolutionary "why")
 
    Tone: Nouveau-Deco. Sophisticated, precise, sovereign.
@@ -45,9 +45,9 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Open the meeting with the verb, not the apology.",
     },
     sidereal: {
-      headline: "The nervous system is primed to discharge.",
+      headline: "Your wiring is primed to move.",
       detail:
-        "Physical energy concentrates near the head and hands. The body wants forward motion; stillness without an outlet becomes friction.",
+        "Energy runs fast and wants an outlet. You want forward motion; stillness without an outlet becomes friction.",
       practice: "Move once with intent before you sit down to think.",
     },
     draconic: {
@@ -67,7 +67,7 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
     sidereal: {
       headline: "Body wants traction, not stimulation.",
       detail:
-        "The nervous system regulates through the senses — texture, weight, breath, slow food. Overstimulation reads as static.",
+        "Your focus settles through simple, steady inputs — texture, weight, a slow meal, a quiet room. Overstimulation reads as static.",
       practice: "Reduce inputs by one channel for the next two hours.",
     },
     draconic: {
@@ -85,9 +85,9 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Send the three-sentence note instead of the essay.",
     },
     sidereal: {
-      headline: "Nervous system is gathering signal.",
+      headline: "Your wiring is gathering signal.",
       detail:
-        "Lungs and hands lead. Capture quickly and sort later — premature synthesis will feel forced and fail to hold.",
+        "Instinct and hands lead. Capture quickly and sort later — premature synthesis will feel forced and fail to hold.",
       practice: "Keep an open notebook for the next four hours; do not edit yet.",
     },
     draconic: {
@@ -105,10 +105,10 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Open with care, then deliver the substance.",
     },
     sidereal: {
-      headline: "Nervous system is reading the room.",
+      headline: "Your wiring is reading the room.",
       detail:
-        "The body is acting as a barometer; the gut is data, not noise. Honor what the feeling reports before you argue with it.",
-      practice: "Eat warm. Drink water. Decide after.",
+        "Your mood is acting as a barometer; the feeling is data, not noise. Honor what it reports before you argue with it.",
+      practice: "Slow down. Sit with it. Decide after.",
     },
     draconic: {
       headline: "Soul intent: tend the inner room.",
@@ -127,7 +127,7 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
     sidereal: {
       headline: "Body regulates through expression.",
       detail:
-        "The heart and spine want to be used. Performance — even small, private performance — discharges what would otherwise stagnate.",
+        "Your confidence wants to be used. Performance — even small, private performance — discharges what would otherwise stagnate.",
       practice: "Speak one paragraph aloud before you write it.",
     },
     draconic: {
@@ -145,9 +145,9 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Edit one existing thing rather than start a new one.",
     },
     sidereal: {
-      headline: "Nervous system is in audit mode.",
+      headline: "Your wiring is in audit mode.",
       detail:
-        "Excellent for editing, punishing for first drafts. The body wants order; give it a small completed loop to settle.",
+        "Excellent for editing, punishing for first drafts. Your mind wants order; give it a small completed loop to settle.",
       practice: "Close one open task fully before opening another.",
     },
     draconic: {
@@ -165,9 +165,9 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "State both sides aloud before you choose.",
     },
     sidereal: {
-      headline: "Nervous system is relational.",
+      headline: "Your wiring is relational.",
       detail:
-        "The body calibrates through other bodies. Decisions made in pure solitude today will need a second pass with another voice.",
+        "You calibrate through other people. Decisions made in pure solitude today will need a second pass with another voice.",
       practice: "Run the choice past one person whose taste you trust.",
     },
     draconic: {
@@ -185,9 +185,9 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Ask the question whose answer you actually want.",
     },
     sidereal: {
-      headline: "Nervous system is concentrating.",
+      headline: "Your wiring is concentrating.",
       detail:
-        "Depth of focus is available; small talk will cost disproportionately. The body wants the long, single-tracked task.",
+        "Depth of focus is available; small talk will cost disproportionately. Your focus wants the long, single-tracked task.",
       practice: "Block one ninety-minute window of single focus.",
     },
     draconic: {
@@ -205,7 +205,7 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Lead with the why; the how can follow.",
     },
     sidereal: {
-      headline: "Nervous system is expansive.",
+      headline: "Your wiring is expansive.",
       detail:
         "Movement — literal walking, or conceptual range — restores signal. Confinement to a single small frame will read as static.",
       practice: "Take the conversation outside, even for ten minutes.",
@@ -245,9 +245,9 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Lead with the rule; demo it once.",
     },
     sidereal: {
-      headline: "Nervous system is pattern-seeking.",
+      headline: "Your wiring is pattern-seeking.",
       detail:
-        "Step back two paces before any close-up decision. The body wants altitude — the wide view will calm what proximity agitates.",
+        "Step back two paces before any close-up decision. Your mind wants altitude — the wide view will calm what proximity agitates.",
       practice: "Walk away from the screen and look at the whole board.",
     },
     draconic: {
@@ -265,9 +265,9 @@ export const SIGN_ATTRIBUTES: SignAttributeLibrary = {
       practice: "Soften the email by one degree before sending.",
     },
     sidereal: {
-      headline: "Nervous system is permeable.",
+      headline: "Your wiring is permeable.",
       detail:
-        "You will absorb whichever room you sit in. Curate inputs deliberately — environment is medication today, not background.",
+        "You will absorb whichever room you sit in. Curate inputs deliberately — your surroundings set the tone today, not just the backdrop.",
       practice: "Choose the room you work from with intention.",
     },
     draconic: {
@@ -329,7 +329,7 @@ export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   if (allSame) {
     return {
       subtitle: `Unified in ${social}`,
-      body: `All three lenses are reading ${social} today — the room, your nervous system, and your underlying direction are running on one channel. Use the clarity: pick the work that benefits from focus, and ${lowerFirst(socialAttr.practice)} ${internalAttr.practice} Days like this don't come often, so spend the alignment instead of admiring it.`,
+      body: `All three lenses are reading ${social} today — the room, your wiring, and your underlying direction are running on one channel. Use the clarity: pick the work that benefits from focus, and ${lowerFirst(socialAttr.practice)} ${internalAttr.practice} Days like this don't come often, so spend the alignment instead of admiring it.`,
     };
   }
 
@@ -346,7 +346,7 @@ export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   if (sameSI && !sameID) {
     return {
       subtitle: `Outer accord · ${social}`,
-      body: `The room and your nervous system are both in ${social}, so the surface of the day will move easily. Underneath, your longer arc is pulling toward ${soul} — note it, don't suppress it. ${capFirst(soulAttr.practice)} after the visible work is closed, and the day pays you twice.`,
+      body: `The room and your wiring are both in ${social}, so the surface of the day will move easily. Underneath, your longer arc is pulling toward ${soul} — note it, don't suppress it. ${capFirst(soulAttr.practice)} after the visible work is closed, and the day pays you twice.`,
     };
   }
 
@@ -354,7 +354,7 @@ export function generateSynthesis(triad: TriadMoon): SynthesisResult {
   if (sameSD && !sameSI) {
     return {
       subtitle: `Direction agrees · ${social}`,
-      body: `Where you're headed and where the room is pointing both read ${social}, but your nervous system is tuned to ${internal} — the disagreement is about pace, not destination. Adjust the cadence to your body: ${lowerFirst(internalAttr.practice)} The output won't change; the cost of producing it will drop noticeably.`,
+      body: `Where you're headed and where the room is pointing both read ${social}, but your wiring is tuned to ${internal} — the disagreement is about pace, not destination. Adjust the cadence to your own rhythm: ${lowerFirst(internalAttr.practice)} The output won't change; the cost of producing it will drop noticeably.`,
       frictionCue: `Outer ${social} · Inner ${internal} — adjust cadence, not course.`,
     };
   }
