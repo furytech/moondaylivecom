@@ -603,6 +603,13 @@ async function main() {
     const combos = combosFile ? new Set((JSON.parse(fs.readFileSync(combosFile, 'utf8')) as string[][]).map(([s, m]) => `${s}|${m}`)) : null;
     const jobs = combos ? planned.jobs.filter((j) => combos.has(`${j.row.natal_sun_sign}|${j.row.natal_moon_sign}`)) : planned.jobs;
     if (combos) console.log(`STAGE: ${combos.size} combinations -> ${rows.filter((r) => combos.has(`${r.natal_sun_sign}|${r.natal_moon_sign}`)).length} rows in the table, ${jobs.length} of them need work.\n`);
+    // --exclude-combos-file: leave out the rows of combinations already done (a JSON list of [sun, moon] pairs).
+    const excludeFile = arg('exclude-combos-file');
+    if (excludeFile) {
+        const skip = new Set((JSON.parse(fs.readFileSync(excludeFile, 'utf8')) as string[][]).map(([s, m]) => `${s}|${m}`));
+        for (let i = jobs.length - 1; i >= 0; i--) if (skip.has(`${jobs[i].row.natal_sun_sign}|${jobs[i].row.natal_moon_sign}`)) jobs.splice(i, 1);
+        console.log(`EXCLUDED ${skip.size} combinations; ${jobs.length} rows left that need work.\n`);
+    }
     // --ids-file: only these row ids (a JSON list), e.g. the rows a previous stage run did not finish.
     const idsFile = arg('ids-file');
     if (idsFile) {
@@ -621,7 +628,7 @@ async function main() {
     if (!RUN) {
         // --all: every row that needs work (in the stage), in a mixed order; otherwise the hardest-plus-plain sample.
         const sample = flag('all')
-            ? [...jobs].sort((a, b) => hash(a.row.id) - hash(b.row.id))
+            ? [...jobs].sort((a, b) => hash(a.row.id) - hash(b.row.id)).slice(0, LIMIT || undefined)
             : pickSample(jobs, Math.max(1, Math.round(SAMPLE / SIGNS.length))).slice(0, SAMPLE);
         console.log(`\nDRY RUN: ${sample.length} sample rows. Nothing is written to the database.\n`);
         const results: Result[] = [];
