@@ -66,18 +66,19 @@ Examples:
  * A rewrite of a line that contained the term passes only if it carries the glossary wording for it.
  */
 export const TRANSLATION_KEYS: Record<string, RegExp> = {
-    'nervous system': /take in and process|sensitivity to everything|stir or settle|stirs? (?:up )?your mood|settles? your mood|day'?s events (?:land|stir|settle)/i,
-    'stress chemistry': /keyed-up|braced-for-impact|on-alert/i,
-    anxiety: /(?:restless|uneasy)[^.]{0,25}worr|worr[^.]{0,40}hard to set down/i,
-    depression: /heavy,? low mood/i,
+    // The glossary wording and its approved variants (scripts/lib/phraseVariants.ts) all satisfy these.
+    'nervous system': /take in and (?:process|work through)|absorb and process|sensitivity to (?:everything|all that)|how deeply you feel everything|how sensitively you take in|stir or settle|stirs? (?:up )?your mood|settles? your mood|day'?s events (?:land|stir|settle)/i,
+    'stress chemistry': /keyed-up|braced-for-impact|on-alert|wound-up|revved-up|on-edge/i,
+    anxiety: /(?:restless|uneasy|nagging)[^.]{0,30}(?:worr|unease)|worr[^.]{0,40}(?:hard to set down|let go)/i,
+    depression: /heavy,? low mood|low,? heavy mood/i,
     insomnia: /restless night/i,
-    hypochondria: /imagining the worst about your health|worst-case story/i,
-    hormones: /emotional tides/i,
-    'somatic / body tension': /stress you carry/i,
+    hypochondria: /imagining the worst about your health|worst-case|twinge/i,
+    hormones: /emotional tides|ebb and flow of your emotions|rise and fall of your moods/i,
+    'somatic / body tension': /stress you (?:carry|hold)|physical weight of the stress/i,
     'immune / inflammation': /resilience|bounce back/i,
-    circulation: /energy moving freely|moving freely/i,
-    'hygiene / clinical phrasing': /cleansing ritual|ritual of release/i,
-    'chest / belly': /hand over your heart|sense of warmth gather|warmth gather/i,
+    circulation: /energy (?:moving|flowing) (?:freely|without)|moving freely/i,
+    'hygiene / clinical phrasing': /cleansing ritual|washing ritual|ritual of cleansing|ritual of release/i,
+    'chest / belly': /over your heart|warmth[^.,;]{0,25}settl/i,
 };
 
 const phrase = (from: string): string => GLOSSARY.find((g) => g.from.startsWith(from))!.say[0];

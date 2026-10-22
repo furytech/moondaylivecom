@@ -6,6 +6,7 @@
  * copy editor. One call covers every rewritten line of a row.
  */
 import { GLOSSARY } from './languageGlossary';
+import { FAMILIES } from './phraseVariants';
 
 /** One model for the whole run (the writer in regen-flagged-triads.ts uses the same constant). */
 export const JUDGE_MODEL = 'gemini-3.6-flash';
@@ -37,7 +38,7 @@ export async function waitOrGiveUp(p: Patience, attempt: number, spentMs: number
     p.ms -= wait;
     await nap(wait);
 }
-const APPROVED = GLOSSARY.flatMap((g) => g.say).map((s) => `"${s}"`).join(', ');
+const APPROVED = [...GLOSSARY.flatMap((g) => g.say), ...FAMILIES.flatMap((f) => f.variants.map((x) => x.display))].map((s) => `"${s}"`).join(', ');
 
 /** The API key's daily quota is used up (free tier: requests per day). Waiting a few minutes will not help, so callers stop. */
 export class QuotaExhausted extends Error {

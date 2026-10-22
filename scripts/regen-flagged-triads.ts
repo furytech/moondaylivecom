@@ -37,6 +37,7 @@ import { BODY_CLAIM_TERMS, findBodyClaims } from '../src/lib/dailyContentGuard';
 import { assignVariety, findUnassignedCrutches, findBodyRegions, findBodySensations, findPredictions, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
 import { judgeRewrites, QuotaExhausted, isDailyQuota, JUDGE_MODEL, Overloaded, OVERLOAD_PATIENCE_MS, waitOrGiveUp, countStatus, httpStats, type Patience } from './lib/rewriteJudge';
 import { rowProblems } from './lib/outputChecks';
+import { PhraseLedger, rotationPrompt, MAX_PER_COMBINATION } from './lib/phraseVariants';
 import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation, findAwkwardGlossaryUse } from './lib/languageGlossary';
 
 for (const f of ['.env.local', '.env']) {
@@ -163,6 +164,19 @@ function instructionFor(f: Field, job: Job): string {
     return `"${f}": "A minimal rewrite of the ${LABEL[f]} text below. Keep every word that is not medical, clinical or diagnostic exactly as written, and keep its meaning, voice, imagery and length. Replace each medical or clinical term with its glossary phrase (translate, never soften), adjusting only the grammar. TEXT TO REWRITE: ${JSON.stringify(src)}"`;
 }
 
+// ── Phrase rotation (no glossary phrasing more than twice in one Sun/Moon combination) ──
+const phraseLedger = new PhraseLedger();
+const comboOf = (r: { natal_sun_sign: string; natal_moon_sign: string }) => `${r.natal_sun_sign}|${r.natal_moon_sign}`;
+/** The lines this job will replace (what the table holds now). */
+const replacedTexts = (job: Job) => job.fields.map((f) => job.row[f]);
+
+function rotationFor(job: Job): string {
+    const labels = new Set<string>();
+    for (const f of job.fields) if (f !== 'physical_guidance') for (const l of findBodyClaims(job.source[f])) labels.add(l);
+    // The hand-over-the-heart and warmth phrasings are offered together whenever a chest or belly mention is being translated.
+    return rotationPrompt(comboOf(job.row), phraseLedger, labels, replacedTexts(job), SIGNS.indexOf(job.row.transiting_moon_sign) + (job.row.triad_number ?? 0));
+}
+
 function buildPrompt(job: Job): string {
     const row = job.row;
     const sun = row.natal_sun_sign, moon = row.natal_moon_sign, transit = row.transiting_moon_sign;
@@ -181,6 +195,8 @@ ${context || '(none)'}
 ${RULES}
 
 ${GLOSSARY_PROMPT}
+
+${rotationFor(job)}
 
 Write ONLY these fields:
 {
@@ -274,6 +290,11 @@ function validate(job: Job, json: Record<string, string>, recent: string[]): str
             }
         }
     }
+    // No glossary phrasing more than MAX_PER_COMBINATION times across this Sun/Moon combination's 12 readings.
+    const newTexts = job.fields.map((f) => (typeof json[f] === 'string' ? json[f].trim() : '')).filter(Boolean);
+    for (const over of phraseLedger.overLimit(comboOf(job.row), replacedTexts(job), newTexts)) {
+        problems.push(`the phrasing "${over.display}" would appear ${over.total} times in this Sun/Moon combination (the most allowed is ${MAX_PER_COMBINATION}): use a different listed phrasing`);
+    }
     return problems;
 }
 
@@ -343,15 +364,16 @@ function summarizePlan(rows: Row[], jobs: Job[]) {
 }
 
 // ── Processing ────────────────────────────────────────────────────────────────
-const S = { rows: 0, written: 0, stale: 0, failedRows: 0, editorRejected: 0, editorRevisions: 0, calls: 0, callFailures: 0, attempts: 0, firstTry: 0, retriedRows: 0, usage: { prompt: 0, output: 0, thoughts: 0 } as Usage };
+let reviewPass = false; // true while the needs-review rows get their one extra pass (they are already counted)
+const S = { rows: 0, written: 0, stale: 0, failedRows: 0, errorRows: 0, editorRejected: 0, editorRevisions: 0, calls: 0, callFailures: 0, attempts: 0, firstTry: 0, retriedRows: 0, usage: { prompt: 0, output: 0, thoughts: 0 } as Usage };
 const recentEnergy: string[] = [];
 let seq = 0;
 let stopReason = '';
 
 function checkStop() {
     if (stopReason) return;
-    if (S.calls >= 40 && S.callFailures / S.calls > 0.05) stopReason = `more than 5% of API calls failed (${S.callFailures} of ${S.calls})`;
-    else if (S.rows >= 40 && S.failedRows / S.rows > 0.10) stopReason = `more than 10% of rows failed every retry (${S.failedRows} of ${S.rows})`;
+    // Stop only when more than 10% of rows fail on CONTENT (rules or editor, after every retry). A busy service (503) or a network blip does not count.
+    if (S.rows >= 40 && S.failedRows / S.rows > 0.10) stopReason = `more than 10% of rows failed on content (${S.failedRows} of ${S.rows})`;
 }
 
 async function tgSend(msg: string) {
@@ -433,6 +455,7 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
         if (problems.length === 0) {
             after = Object.fromEntries(job.fields.map((f) => [f, res.json[f].trim()]));
             if (after.physical_guidance) recentEnergy.push(after.physical_guidance);
+            phraseLedger.replace(comboOf(row), replacedTexts(job), Object.values(after));
             break;
         }
         rejections.push(problems.join('; '));
@@ -457,14 +480,18 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
         // still to do (a busy row gets a second pass at the end; it does not count toward the 10% stop rule).
         return { n, seq: null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign, title: row.combination_title, flagged: job.fields, kinds: job.kinds, attempts, rejections, usage: used, before: {}, source: {}, after: null, status, ms: Date.now() - t0 };
     }
-    S.rows++; S.attempts += attempts;
     if (status === 'written') S.written++;
     if (status === 'stale') S.stale++;
-    if (NEEDS_REVIEW.includes(status)) S.failedRows++;
-    if (status === 'review') S.editorRejected++;
-    if (after && attempts === 1) S.firstTry++;
-    if (attempts > 1) S.retriedRows++;
-    checkStop();
+    if (!reviewPass) {
+        S.rows++; S.attempts += attempts;
+        // Only content failures (rules or the editor) count toward the stop rule; a network error or a busy service does not.
+        if (status === 'failed' || status === 'review') S.failedRows++;
+        if (status === 'error') S.errorRows++;
+        if (status === 'review') S.editorRejected++;
+        if (after && attempts === 1) S.firstTry++;
+        if (attempts > 1) S.retriedRows++;
+        checkStop();
+    }
 
     return {
         n, seq: after ? ++seq : null, id: row.id, triadNumber: row.triad_number, sun: row.natal_sun_sign, moon: row.natal_moon_sign, transit: row.transiting_moon_sign,
@@ -617,6 +644,8 @@ async function main() {
         for (let i = jobs.length - 1; i >= 0; i--) if (!ids.has(jobs[i].row.id)) jobs.splice(i, 1);
         console.log(`IDS: ${ids.size} row ids given, ${jobs.length} of them need work.\n`);
     }
+    // Tally every phrasing already in the table, per Sun/Moon combination, so the "at most twice" rule counts what is already there.
+    for (const r of rows) for (const f of FIELDS) phraseLedger.add(comboOf(r), r[f]);
     const planSummary = summarizePlan(combos ? rows.filter((r) => combos.has(`${r.natal_sun_sign}|${r.natal_moon_sign}`)) : rows, jobs);
     console.log(JSON.stringify(planSummary, null, 2));
     if (MEASURE) return;
@@ -748,9 +777,12 @@ async function main() {
             : []
     );
     const busyJobs: Array<{ job: Job; n: number }> = [];
+    // Rows that failed on content (or a network error) wait here for one more pass at the end, before they are written to the review list.
+    const reviewCandidates: Array<{ job: Job; n: number; was: Result['status'] }> = [];
     const handle = async (job: Job, n: number, collectBusy = true) => {
         const r = await processJob(job, n, true, supabase);
         if (r.status === 'busy') { if (collectBusy) busyJobs.push({ job, n }); }
+        else if (NEEDS_REVIEW.includes(r.status) && !reviewPass) reviewCandidates.push({ job, n, was: r.status });
         else if (r.status !== 'quota') fs.appendFileSync(r.after ? logPath : reviewPath, JSON.stringify(r) + '\n');
         if ((S.rows % 25) === 0) console.log(`  ${S.rows}/${todo.length} rows · written ${S.written} · needs review ${S.failedRows} · busy for now ${busyJobs.length} · stale ${S.stale} · $${costUSD(S.usage).toFixed(2)}`);
         return r;
@@ -778,10 +810,29 @@ async function main() {
     // Rows still busy after every pass are not failures; they stay as they are and go on the list as "busy" so a later run picks them up.
     for (const p of pending) fs.appendFileSync(reviewPath, JSON.stringify({ id: p.job.row.id, status: 'busy', flagged: p.job.fields }) + '\n');
 
+    // One more pass over the rows that failed on content: fresh attempts, then whatever still fails goes on the review list for good.
+    const toReview = reviewCandidates.splice(0);
+    let rescued = 0;
+    if (toReview.length && !stopReason) {
+        const line = `Review pass: ${toReview.length} row(s) that failed on content get one more pass.`;
+        console.log(line);
+        await tgSend(line);
+        reviewPass = true;
+        await runPool(toReview, CONCURRENCY, async (p) => {
+            const r = await processJob(p.job, p.n, true, supabase);
+            if (r.after) { rescued++; if (p.was === 'error') S.errorRows--; else S.failedRows--; fs.appendFileSync(logPath, JSON.stringify(r) + '\n'); }
+            else if (r.status === 'busy') fs.appendFileSync(reviewPath, JSON.stringify({ id: p.job.row.id, status: 'busy', flagged: p.job.fields }) + '\n');
+            else if (r.status !== 'quota') fs.appendFileSync(reviewPath, JSON.stringify(r) + '\n');
+        });
+        reviewPass = false;
+    }
+    // If the run was stopped before the review pass, the candidates still go on the list with their failure.
+    for (const p of reviewCandidates) fs.appendFileSync(reviewPath, JSON.stringify({ id: p.job.row.id, status: 'failed', flagged: p.job.fields }) + '\n');
+
     const summary = {
         stoppedEarly: stopReason || null,
         model: MODEL, concurrency: CONCURRENCY, budgetUSD: BUDGET_USD,
-        rowsPlanned: todo.length, rowsProcessed: S.rows, written: S.written, staleSkipped: S.stale, needsReview: S.failedRows, ofWhichEditorRejected: S.editorRejected, stillBusyAfterAllPasses: pending.length,
+        rowsPlanned: todo.length, rowsProcessed: S.rows, written: S.written, staleSkipped: S.stale, needsReviewAfterReviewPass: S.failedRows, rescuedByReviewPass: rescued, networkErrorRows: S.errorRows, ofWhichEditorRejected: S.editorRejected, stillBusyAfterAllPasses: pending.length,
         apiCalls: S.calls, apiCallFailures: S.callFailures, firstTryRows: S.firstTry, rowsNeedingRetry: S.retriedRows,
         tokens: S.usage, actualCostUSD: +costUSD(S.usage).toFixed(2),
         ratesUSDPerMillion: { input: RATE_IN, output: RATE_OUT },
