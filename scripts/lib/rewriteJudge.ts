@@ -11,19 +11,19 @@ import { GLOSSARY } from './languageGlossary';
 export const JUDGE_MODEL = 'gemini-3.6-flash';
 
 /**
- * How long one row may spend waiting out a busy service (503 and the like). When it is used up the row gives up, keeps its
- * current text, goes on the needs-review list, and the run moves on.
+ * How long one row may spend waiting out a busy service (503 and the like) in one pass: 3 minutes. When it is used up the row
+ * gives up for this pass, keeps its current text, and the run moves on; later passes try it again.
  */
-export const OVERLOAD_PATIENCE_MS = 20000;
+export const OVERLOAD_PATIENCE_MS = 180000;
 export interface Patience { ms: number; }
 export class Overloaded extends Error {
     constructor(detail: string) { super(`service busy, gave up on this row: ${detail}`); this.name = 'Overloaded'; }
 }
 const nap = (ms: number) => new Promise((r) => setTimeout(r, ms));
-/** Back off briefly (2s, 4s, 8s...) from this row's patience, or throw Overloaded when it would run out. */
+/** Back off (2s, 4s, 8s... up to 30s) from this row's patience, or throw Overloaded when it would run out. */
 export async function waitOrGiveUp(p: Patience, attempt: number, spentMs: number, detail: string): Promise<void> {
     p.ms -= spentMs;
-    const wait = Math.min(2000 * Math.pow(2, attempt), 8000);
+    const wait = Math.min(2000 * Math.pow(2, attempt), 30000);
     if (p.ms - wait < 0) throw new Overloaded(detail.slice(0, 160));
     p.ms -= wait;
     await nap(wait);
@@ -53,9 +53,12 @@ For each line, judge ONLY the places where the rewrite differs from the source. 
 3. still contains or introduces medical, clinical, diagnostic or anatomical wording (organs, nervous system, hormones, symptoms, conditions);
 4. is missing a connecting word (by, from, while, as, to, and so on) so that a clause runs straight into the next ("wearing down your sensitivity trying to solve..." instead of "...by trying to solve...");
 5. has a clause whose meaning is unclear on first read, or a long glossary clause used where a short noun fits ("tending how you take in and process the day's events", "offering generosity to soothe how you take in...");
-6. mentions a body part or body region that the SOURCE did not mention (for example "upper body", "lower back", "chest", "hips", "neck"), other than the approved hand over the heart, tight shoulders and clenched jaw.
-These phrasings are APPROVED replacements and must never be failed for their wording (a hand over the heart, tight shoulders, a clenched jaw, slow breathing, a warm bath or foot soak, eucalyptus, frankincense, or any of: ${APPROVED}). Fail them only if the sentence around them is ungrammatical or the meaning changed.
-Do not fail a line for style preferences or for being longer than the source.
+6. adds a body part, body region or physical sensation that the SOURCE did not have (for example "upper body", "lower back", "hips", "pelvis", "jaw", "shoulders", "tight", "clenched"). The only body meaning allowed is the approved "the stress you carry and feel physically" and the hand over the heart;
+7. uses an approved glossary phrase that fits the grammar but not the meaning, so the sentence says something that makes no sense (for example "cool the heated Air element in your sensitivity to everything coming at you": a sensitivity is something you have, nothing sits inside it); or uses "cleansing ritual" for something that is not about bathing or washing (for example "sleep hygiene" must be "sleep routine").
+These phrasings are APPROVED replacements and must never be failed for their wording (a hand over the heart, slow breathing, a warm bath or foot soak, eucalyptus, frankincense, "the stress you carry and feel physically", or any of: ${APPROVED}). Fail them only if the sentence around them is ungrammatical, makes no sense, or the meaning changed.
+The heart (as in "a hand over your heart") and "a sense of warmth gather and settle" are approved glossary wording and are never an added body part or sensation, even when the source named the chest or belly instead.
+Moving where a held object rests is NOT a failure: "hold a stone against your chest" becoming "hold a stone as you rest a hand over your heart" is fine.
+Do not fail a line for style preferences or for being longer than the source. Each problem you report should say exactly what to change so the writer can fix it in one revision.
 Return ONLY JSON: {"results": [{"line": 1, "ok": true|false, "problems": ["short description of each defect and the exact words; empty when ok"]}, ...]} with one entry per line.`;
 
 export async function judgeRewrites(items: JudgeItem[], apiKey: string, patience: Patience = { ms: OVERLOAD_PATIENCE_MS }): Promise<JudgeBatch> {

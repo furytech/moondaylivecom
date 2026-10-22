@@ -54,6 +54,9 @@ describe("daily content guard", () => {
       "That keyed-up, braced-for-impact feeling eases when you slow your breathing.",
       "Notice the stress you carry, like tight shoulders or a clenched jaw.",
       "Let a sense of warmth gather and settle.",
+      // everyday figures of speech that only look clinical
+      "You may catch yourself weaponizing the silent treatment when you feel exposed.",
+      "Your shell does not need to become a prison cell, and sterile perfection is not the goal.",
     ];
     for (const text of allowed) expect(findBodyClaims(text), text).toEqual([]);
   });

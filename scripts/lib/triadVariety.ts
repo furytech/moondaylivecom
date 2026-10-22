@@ -187,12 +187,21 @@ export function findPredictions(text: string): string[] {
     });
 }
 
-// Body regions (the glossary's own "tight shoulders" and "a clenched jaw" are allowed, so shoulders and jaw are not listed).
-const BODY_REGIONS = /\b(?:(?:upper|lower|mid)[\s-]+(?:body|back|abdomen|belly|torso|limbs?)|torso|limbs?|extremit(?:y|ies)|hips?|neck|throat|thighs?|forearms?|sternum|ribs?)\b/gi;
+// Body regions. The only body meaning a rewrite may carry is the glossary's "the stress you carry and feel physically" and the hand
+// over the heart, so jaw, shoulders and pelvis are listed too; heart and hands are not.
+const BODY_REGIONS = /\b(?:(?:upper|lower|mid)[\s-]+(?:body|back|abdomen|belly|torso|limbs?)|torso|limbs?|extremit(?:y|ies)|hips?|neck|throat|thighs?|forearms?|sternum|ribs?|jaws?|shoulders?|pelvi(?:s|c)|skull|scalp|forehead|temples?|wrists?|shins?|ankles?|calves)\b/gi;
 
-/** Body-region mentions in `text` ("upper body", "lower back", "hips", "neck"...). */
+/** Body-region mentions in `text` ("upper body", "lower back", "hips", "jaw", "shoulders", "pelvis"...). */
 export function findBodyRegions(text: string): string[] {
     return [...text.matchAll(BODY_REGIONS)].map((m) => m[0].toLowerCase());
+}
+
+// Body sensations a rewrite must not add ("tight", "clenched", "aching", "tingling"...).
+const BODY_SENSATIONS = /\b(?:tight(?:ness|ens|ening)?|clench\w*|ache[sd]?|aching|tingl\w*|numb\w*|throb\w*|tremor\w*|shiver\w*|twitch\w*|cramp\w*)\b/gi;
+
+/** Body sensations named in `text`. */
+export function findBodySensations(text: string): string[] {
+    return [...text.matchAll(BODY_SENSATIONS)].map((m) => m[0].toLowerCase());
 }
 
 // Seasons and the weather of the year: the same day is a different season for every reader.
@@ -251,6 +260,7 @@ export function findUnassignedCrutches(text: string, a: Assignment): string[] {
     // Tone: reflective, not predictive ("you may", "you might", never "you will").
     for (const p of findPredictions(text)) found.push(`the prediction "${p}" (say what the day may ask or invite, never what will happen to the reader)`);
     for (const region of findBodyRegions(text)) found.push(`the body region "${region}"`);
+    for (const s of findBodySensations(text)) found.push(`the body sensation "${s}"`);
     const season = text.match(SEASONS);
     if (season) found.push(`the season or time-of-year word "${season[0]}"`);
     for (const c of findCopiedPhrases(text)) found.push(`the copied phrase "${c}"`);

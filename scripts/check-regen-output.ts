@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { judgeRewrite } from './lib/rewriteJudge';
 import { findBodyClaims } from '../src/lib/dailyContentGuard';
-import { assignVariety, findUnassignedCrutches, findBodyRegions, findPredictions, windowProblems, WINDOW } from './lib/triadVariety';
+import { assignVariety, findUnassignedCrutches, findBodyRegions, findBodySensations, findPredictions, windowProblems, WINDOW } from './lib/triadVariety';
 import { VAGUE_SUBSTITUTES, findUkSpelling, SUGGESTED_PHRASE, requiredTranslation, findAwkwardGlossaryUse } from './lib/languageGlossary';
 
 const file = process.argv.find((a, i) => i >= 2 && !a.startsWith('--'));
@@ -53,6 +53,8 @@ for (const r of results) {
             if (text === source) found.push('unchanged');
             const sourceRegions = findBodyRegions(source);
             for (const region of findBodyRegions(text)) if (!sourceRegions.includes(region)) found.push(`new body region "${region}" that the original did not mention`);
+            const sourceSensations = findBodySensations(source);
+            for (const s of findBodySensations(text)) if (!sourceSensations.includes(s)) found.push(`new body sensation "${s}" that the original did not mention`);
             if (findPredictions(text).length > findPredictions(source).length) found.push(`new prediction "${findPredictions(text).at(-1)}"`);
             for (const label of findBodyClaims(source)) {
                 const key = requiredTranslation(label, source);

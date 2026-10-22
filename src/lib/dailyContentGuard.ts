@@ -33,11 +33,11 @@ export const BODY_CLAIM_TERMS: BodyClaimTerm[] = [
   t("organs", /\borgans?\b/i),
   t(
     "internal organs / tissue",
-    /\b(kidneys?|liver|bladder|bowels?|thyroid|pancrea\w*|spleen|gall\s?bladder|lymph\w*|cardio\w*|cardiac|vascular|glands?|tissues?|cells?|cellular|molecul\w*|enzymes?|palpitations?|skeletal|fascia)\b|\bdry[\s-]brush\w*/i
+    /\b(kidneys?|liver|bladder|bowels?|thyroid|pancrea\w*|spleen|gall\s?bladder|lymph\w*|cardio\w*|cardiac|vascular|glands?|tissues?|cells|cellular|molecul\w*|enzymes?|palpitations?|skeletal|fascia)\b|\bdry[\s-]brush\w*/i
   ),
   t("chest / belly", /\b(chest|belly|bellies|abdomen\w*|abdominal|pelvi\w*|torso|solar\s+plexus)\b/i),
   t("conditions / diagnoses", /\b(panic\s+attacks?|ptsd|trauma\w*|disorders?|ocd|bipolar|adhd|psychosis|phobias?|schizo\w*|mental\s+(?:health|illness))\b/i),
-  t("hygiene / clinical phrasing", /\b(hygiene|hygienic|sterile|pathology|pathological|psychiatr\w*|therapy|therapist\w*|clinical(?:ly)?\s+(?:proven|tested|speaking))\b/i),
+  t("hygiene / clinical phrasing", /\b(hygiene|hygienic|pathology|pathological|psychiatr\w*|therapy|therapist\w*|clinical(?:ly)?\s+(?:proven|tested|speaking))\b/i),
   // "gut feeling / gut instinct" are plain idioms for intuition, not anatomy
   t(
     "digestion / gut",
@@ -52,7 +52,7 @@ export const BODY_CLAIM_TERMS: BodyClaimTerm[] = [
   t("head / chest sensations", /\b(headaches?|migraines?|behind\s+the\s+eyes|upper\s+chest|heart\s+rate)\b/i),
   t(
     "medical / health advice",
-    /\b(medical|medic(ation|ine)s?|doctor|diagnos\w*|illness|disease|therapeutic|nausea|cure[sd]?|treatments?|remed(y|ies)|prescri\w*|supplements?|detox\w*|dosage)\b/i
+    /\b(medical|medic(ation|ine)s?|doctor|diagnos\w*|illness|disease|therapeutic|nausea|cure[sd]?|(?<!silent\s)treatments?|remed(y|ies)|prescri\w*|supplements?|detox\w*|dosage)\b/i
   ),
   t("somatic / body tension", /\b(somatic\w*|body\s+tension)\b/i),
   t("physiology / body systems", /\b(bodily\s+(function|system|process|fluid)s?|body\s+systems?|physiolog\w*|biochemi\w*|biological)\b/i),

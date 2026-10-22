@@ -17,16 +17,21 @@ Do not delete the idea. Do not swap in a stand-in that loses the meaning ("your 
 | insomnia | "a restless night where sleep won't come easily" |
 | hypochondria | "imagining the worst about your health" / "turning every small twinge into a worst-case story" |
 | hormones | "your natural emotional tides" |
-| somatic / body tension | "the stress you carry and feel physically, like tight shoulders or a clenched jaw" |
+| somatic / body tension | "the stress you carry and feel physically" (no body parts added: "tight shoulders" or "a clenched jaw" only if the original line already named them) |
 | immune system | "your resilience, your ability to bounce back" |
 | circulation, blood flow | "your energy moving freely instead of feeling stuck" |
-| clinical phrasing ("bodily hygiene") | ritual language: "a simple cleansing ritual" |
+| clinical phrasing ("bodily hygiene"), in a bathing or washing context only | ritual language: "a simple cleansing ritual" |
+| sleep hygiene | "sleep routine" |
 | a foot bath | "a warm foot soak scented with eucalyptus, as a ritual of release" |
 | metabolize (as a figure for feelings) | "work through", "let it move through you and settle" |
 | hand on belly, warm your chest | "rest one hand over your heart as a quiet gesture of kindness to yourself", "let a sense of warmth gather and settle" |
 
 **Allowed as written:** a hand over the heart, a warm bath, a foot soak, slow breathing, scents like eucalyptus or
 frankincense, plain self-care ("take a slow walk", "rest early", "drink some water", "stretch").
+
+**No new body.** A rewrite never adds a body part, body region or physical sensation that the original line did not have (no "tight jaw", "clenched shoulders", "upper body", "pelvis"). Only the approved wording may carry a body meaning: "the stress you carry and feel physically" and the hand over the heart. Moving where a held object rests ("against your chest" becomes "as you rest a hand over your heart") is fine.
+
+**Fit, not just words.** A glossary phrase must fit the sentence in grammar and in meaning. "Your sensitivity to everything coming at you" is something you have, not a place: nothing sits "in" it. Use the short noun form wherever a noun fits and the long "how you take in and process the day's events" clause only where a whole clause fits.
 
 **Any term not listed:** follow the same principle. Say what it feels like and what it does to mood, energy and reactions.
 

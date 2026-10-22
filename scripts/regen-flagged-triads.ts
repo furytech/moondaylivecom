@@ -33,7 +33,7 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { BODY_CLAIM_TERMS, findBodyClaims } from '../src/lib/dailyContentGuard';
-import { assignVariety, findUnassignedCrutches, findBodyRegions, findPredictions, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
+import { assignVariety, findUnassignedCrutches, findBodyRegions, findBodySensations, findPredictions, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
 import { judgeRewrites, QuotaExhausted, isDailyQuota, JUDGE_MODEL, Overloaded, OVERLOAD_PATIENCE_MS, waitOrGiveUp, type Patience } from './lib/rewriteJudge';
 import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation, findAwkwardGlossaryUse } from './lib/languageGlossary';
 
@@ -249,6 +249,8 @@ function validate(job: Job, json: Record<string, string>, recent: string[]): str
             // Nothing new about the body or about what will happen to the reader may be introduced by a rewrite.
             const sourceRegions = findBodyRegions(source);
             for (const r of findBodyRegions(text)) if (!sourceRegions.includes(r)) problems.push(`${f}: new body region "${r}" that the original did not mention`);
+            const sourceSensations = findBodySensations(source);
+            for (const s of findBodySensations(text)) if (!sourceSensations.includes(s)) problems.push(`${f}: new body sensation "${s}" that the original did not mention`);
             const wasPredicting = findPredictions(source).length;
             const nowPredicting = findPredictions(text);
             if (nowPredicting.length > wasPredicting) problems.push(`${f}: new prediction "${nowPredicting[nowPredicting.length - 1]}" (the original did not predict)`);
@@ -328,7 +330,7 @@ function summarizePlan(rows: Row[], jobs: Job[]) {
 }
 
 // ── Processing ────────────────────────────────────────────────────────────────
-const S = { rows: 0, written: 0, stale: 0, failedRows: 0, editorRejected: 0, calls: 0, callFailures: 0, attempts: 0, firstTry: 0, retriedRows: 0, usage: { prompt: 0, output: 0, thoughts: 0 } as Usage };
+const S = { rows: 0, written: 0, stale: 0, failedRows: 0, editorRejected: 0, editorRevisions: 0, calls: 0, callFailures: 0, attempts: 0, firstTry: 0, retriedRows: 0, usage: { prompt: 0, output: 0, thoughts: 0 } as Usage };
 const recentEnergy: string[] = [];
 let seq = 0;
 let stopReason = '';
@@ -378,7 +380,8 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
     let status: Result['status'] = 'failed';
     let lastDraft: Record<string, string> | undefined;
     const t0 = Date.now();
-    const patience: Patience = { ms: OVERLOAD_PATIENCE_MS }; // time this row may spend waiting out a busy service
+    const patience: Patience = { ms: OVERLOAD_PATIENCE_MS }; // time this row may spend waiting out a busy service in this pass
+    let editorRevisions = 0;
 
     while (attempts <= MAX_RETRIES && !after) {
         if (costUSD(S.usage) >= BUDGET_USD) { stopReason = stopReason || `dollar budget of $${BUDGET_USD} reached`; status = 'quota'; break; }
@@ -401,6 +404,14 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
             const editor = await judgeRow(job, res.json, used, patience);
             if (editor.includes('quota exhausted')) { status = 'quota'; break; }
             if (editor.includes('service busy')) { status = 'busy'; rejections.push('editor read unavailable: service busy, gave up on this row'); break; }
+            if (editor.length && editorRevisions < 1) {
+                // One revision using the editor's note. The revised draft goes through every rule again and, if it passes, the editor again.
+                editorRevisions++; S.editorRevisions++;
+                rejections.push(`editor asked for a revision: ${editor.join('; ')}`);
+                prompt += `\n\nTHE COPY EDITOR REJECTED YOUR LAST DRAFT: ${editor.join('; ')}. Revise it, fixing exactly what the editor named and nothing else: keep every glossary translation that was fine, add no body part or physical sensation, use the short noun form "your sensitivity to everything coming at you" where a noun fits, and make every sentence grammatical and sensible on first read.`;
+                await sleep(PACING_MS);
+                continue;
+            }
             if (editor.length) { status = 'review'; rejections.push(`editor: ${editor.join('; ')}`); break; }
             // The variety window may have moved while waiting.
             problems = validate(job, res.json, recentEnergy.slice(-(WINDOW - 1)));
@@ -451,9 +462,37 @@ async function processJob(job: Job, n: number, write: boolean, supabase: ReturnT
     };
 }
 
-/** Extra passes over rows that only gave up because the service was busy, with a pause before each. */
-const BUSY_PASSES = 3;
-const BUSY_PAUSE_MS = 20000;
+/** Hours the extra passes over busy-service rows may go on, and how long to rest between passes (1, 2, 3... minutes, up to 5). */
+const MAX_HOURS = Number(arg('max-hours', '6'));
+const BUSY_PAUSE_MS = 60000;
+/** Passes in a row that finish nothing new: only rows the service keeps refusing remain, so stop. */
+const NO_PROGRESS_LIMIT = 3;
+
+/**
+ * Keep making passes over rows that only gave up on a busy service (each row waits up to 3 minutes per pass) until none are left,
+ * only rows that the service keeps refusing remain (NO_PROGRESS_LIMIT passes in a row finish nothing), or MAX_HOURS have passed.
+ * `runOne` returns true when the row is still busy. Returns the rows still busy.
+ */
+async function busyPasses<T>(items: T[], runOne: (t: T) => Promise<boolean>, startedAt: number, announce: (msg: string) => Promise<void> | void): Promise<T[]> {
+    let pending = items;
+    let noProgress = 0;
+    for (let pass = 2; pending.length && !stopReason; pass++) {
+        if (Date.now() - startedAt > MAX_HOURS * 3600 * 1000) { await announce(`${MAX_HOURS}-hour limit reached; ${pending.length} row(s) still busy.`); break; }
+        const rest = Math.min(BUSY_PAUSE_MS * (noProgress + 1), 5 * 60 * 1000);
+        await announce(`Pass ${pass}: ${pending.length} row(s) only gave up on a busy service; trying again after ${Math.round(rest / 1000)}s.`);
+        await sleep(rest);
+        const still: T[] = [];
+        const touched = new Set<T>();
+        await runPool(pending, CONCURRENCY, async (t) => { touched.add(t); if (await runOne(t)) still.push(t); });
+        for (const t of pending) if (!touched.has(t)) still.push(t); // not reached because the run was stopped
+        const finished = pending.length - still.length;
+        noProgress = finished === 0 ? noProgress + 1 : 0;
+        await announce(`  pass ${pass}: ${finished} finished, ${still.length} still busy.`);
+        pending = still;
+        if (noProgress >= NO_PROGRESS_LIMIT) { await announce(`Only rows the service keeps refusing remain (${pending.length}); stopping the passes.`); break; }
+    }
+    return pending;
+}
 
 async function runPool<T>(items: T[], size: number, fn: (item: T, index: number) => Promise<void>) {
     let next = 0;
@@ -499,6 +538,13 @@ async function main() {
     const combos = combosFile ? new Set((JSON.parse(fs.readFileSync(combosFile, 'utf8')) as string[][]).map(([s, m]) => `${s}|${m}`)) : null;
     const jobs = combos ? planned.jobs.filter((j) => combos.has(`${j.row.natal_sun_sign}|${j.row.natal_moon_sign}`)) : planned.jobs;
     if (combos) console.log(`STAGE: ${combos.size} combinations -> ${rows.filter((r) => combos.has(`${r.natal_sun_sign}|${r.natal_moon_sign}`)).length} rows in the table, ${jobs.length} of them need work.\n`);
+    // --ids-file: only these row ids (a JSON list), e.g. the rows a previous stage run did not finish.
+    const idsFile = arg('ids-file');
+    if (idsFile) {
+        const ids = new Set<string>(JSON.parse(fs.readFileSync(idsFile, 'utf8')));
+        for (let i = jobs.length - 1; i >= 0; i--) if (!ids.has(jobs[i].row.id)) jobs.splice(i, 1);
+        console.log(`IDS: ${ids.size} row ids given, ${jobs.length} of them need work.\n`);
+    }
     const planSummary = summarizePlan(rows, jobs);
     console.log(JSON.stringify(planSummary, null, 2));
     if (MEASURE) return;
@@ -519,20 +565,20 @@ async function main() {
             results[i] = r;
             console.log(`[${String(i + 1).padStart(2, '0')}/${sample.length}] ${r.sun} Sun • ${r.moon} Moon → ${r.transit}  fields: ${r.flagged.join(', ')}  ${r.after ? `ok (${r.attempts} attempt${r.attempts > 1 ? 's' : ''})` : 'FAILED'}`);
         });
-        // Second (and third) pass over rows that only gave up because the service was busy.
+        // More passes over rows that only gave up because the service was busy (up to MAX_HOURS, until only refused rows remain).
         const busyFirstPass = results.filter((r) => r?.status === 'busy').length;
-        for (let pass = 2; pass <= BUSY_PASSES + 1 && !stopReason; pass++) {
-            const idx = results.map((r, i) => (r?.status === 'busy' ? i : -1)).filter((i) => i >= 0);
-            if (!idx.length) break;
-            console.log(`\nPass ${pass}: ${idx.length} row(s) only gave up on a busy service; trying again after ${BUSY_PAUSE_MS / 1000}s.`);
-            await sleep(BUSY_PAUSE_MS);
-            await runPool(idx, CONCURRENCY, async (i) => {
+        await busyPasses(
+            results.map((r, i) => (r?.status === 'busy' ? i : -1)).filter((i) => i >= 0),
+            async (i) => {
                 const r = await processJob(sample[i], i + 1, false, null);
                 r.ms = (r.ms ?? 0) + (results[i].ms ?? 0);
                 results[i] = r;
-                console.log(`[${String(i + 1).padStart(2, '0')}/${sample.length}] ${r.sun} Sun • ${r.moon} Moon → ${r.transit}  ${r.after ? `ok (pass ${pass})` : r.status === 'busy' ? 'still busy' : 'FAILED'}`);
-            });
-        }
+                console.log(`[${String(i + 1).padStart(3, '0')}/${sample.length}] ${r.sun} Sun • ${r.moon} Moon → ${r.transit}  ${r.after ? 'ok' : r.status === 'busy' ? 'still busy' : `NEEDS REVIEW (${r.status})`}`);
+                return r.status === 'busy';
+            },
+            started,
+            (m) => console.log('\n' + m)
+        );
         const done = results.filter(Boolean);
         const ok = done.filter((r) => r.after);
         const wallSeconds = (Date.now() - started) / 1000;
@@ -562,7 +608,8 @@ async function main() {
             if (/vague stand-in/.test(t)) return 'vague stand-in for a clinical term';
             if (/us spelling/.test(t)) return 'UK spelling';
             if (/unchanged/.test(t)) return 'line left unchanged';
-            if (/^editor:/.test(t)) return 'editor read rejected the final draft';
+            if (/^editor asked for a revision/.test(t)) return 'editor asked for a revision (first rejection)';
+            if (/^editor:/.test(t)) return 'editor rejected the revised draft (row goes to review)';
             if (/too long/.test(t)) return 'too long';
             if (/missing/.test(t)) return 'field missing from the reply';
             return 'other';
@@ -572,7 +619,8 @@ async function main() {
         for (const r of done) for (const rej of r.rejections) {
             if (/service busy|^API error/.test(rej)) continue;
             rejectedDrafts++;
-            for (const reason of new Set(rej.split('; ').map(reasonOf))) rejectedByReason[reason] = (rejectedByReason[reason] ?? 0) + 1;
+            const reasons = /^editor/.test(rej) ? [reasonOf(rej)] : rej.split('; ').map(reasonOf);
+            for (const reason of new Set(reasons)) rejectedByReason[reason] = (rejectedByReason[reason] ?? 0) + 1;
         }
         const projectedCostUSD = perClass.reduce((s, p) => s + p.meanCostUSD * p.planRows, 0);
         const projectedRowSeconds = perClass.reduce((s, p) => s + p.meanRowSeconds * p.planRows, 0);
@@ -581,7 +629,7 @@ async function main() {
             model: MODEL, concurrency: CONCURRENCY,
             sampled: done.length, succeeded: ok.length, needsReview: done.length - ok.length, busyOnFirstPass: busyFirstPass, stillBusyAfterPasses: done.filter((r) => r.status === 'busy').length,
             needsReviewDetail: done.filter((r) => !r.after).map((r) => ({ n: r.n, status: r.status, row: `${r.sun}/${r.moon}→${r.transit}`, why: (r.rejections.at(-1) ?? '').slice(0, 300) })),
-            editorRejected: S.editorRejected,
+            editorRevisionsRequested: S.editorRevisions, editorRejectedAfterRevision: S.editorRejected,
             rejectedDrafts, rejectedByReason: Object.fromEntries(Object.entries(rejectedByReason).sort((a, b) => b[1] - a[1])),
             passedFirstTry: S.firstTry, totalDraftCalls: S.attempts, totalApiCalls: S.calls,
             tokens: S.usage, sampleCostUSD: +costUSD(S.usage).toFixed(4),
@@ -627,9 +675,9 @@ async function main() {
             : []
     );
     const busyJobs: Array<{ job: Job; n: number }> = [];
-    const handle = async (job: Job, n: number) => {
+    const handle = async (job: Job, n: number, collectBusy = true) => {
         const r = await processJob(job, n, true, supabase);
-        if (r.status === 'busy') busyJobs.push({ job, n });
+        if (r.status === 'busy') { if (collectBusy) busyJobs.push({ job, n }); }
         else if (r.status !== 'quota') fs.appendFileSync(r.after ? logPath : reviewPath, JSON.stringify(r) + '\n');
         if ((S.rows % 25) === 0) console.log(`  ${S.rows}/${todo.length} rows · written ${S.written} · needs review ${S.failedRows} · busy for now ${busyJobs.length} · stale ${S.stale} · $${costUSD(S.usage).toFixed(2)}`);
         return r;
@@ -647,16 +695,13 @@ async function main() {
         await tgSend(line);
     }
 
-    // Second (and third, fourth) pass over rows that only gave up because the service was busy.
-    let pending = busyJobs.splice(0);
-    for (let pass = 2; pass <= BUSY_PASSES + 1 && pending.length && !stopReason; pass++) {
-        const line = `Pass ${pass}: ${pending.length} row(s) only gave up on a busy service; trying again after ${BUSY_PAUSE_MS / 1000}s.`;
-        console.log(line);
-        await tgSend(line);
-        await sleep(BUSY_PAUSE_MS);
-        await runPool(pending, CONCURRENCY, async (p) => { await handle(p.job, p.n); });
-        pending = busyJobs.splice(0);
-    }
+    // More passes over rows that only gave up because the service was busy (up to MAX_HOURS, until only refused rows remain).
+    const pending = await busyPasses(
+        busyJobs.splice(0),
+        async (p) => (await handle(p.job, p.n, false)).status === 'busy',
+        started,
+        async (m) => { console.log(m); await tgSend(m); }
+    );
     // Rows still busy after every pass are not failures; they stay as they are and go on the list as "busy" so a later run picks them up.
     for (const p of pending) fs.appendFileSync(reviewPath, JSON.stringify({ id: p.job.row.id, status: 'busy', flagged: p.job.fields }) + '\n');
 
