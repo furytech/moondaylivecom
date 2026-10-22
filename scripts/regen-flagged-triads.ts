@@ -32,9 +32,11 @@ import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { BODY_CLAIM_TERMS, findBodyClaims } from '../src/lib/dailyContentGuard';
 import { assignVariety, findUnassignedCrutches, findBodyRegions, findBodySensations, findPredictions, varietyInstruction, windowProblems, WINDOW } from './lib/triadVariety';
-import { judgeRewrites, QuotaExhausted, isDailyQuota, JUDGE_MODEL, Overloaded, OVERLOAD_PATIENCE_MS, waitOrGiveUp, type Patience } from './lib/rewriteJudge';
+import { judgeRewrites, QuotaExhausted, isDailyQuota, JUDGE_MODEL, Overloaded, OVERLOAD_PATIENCE_MS, waitOrGiveUp, countStatus, httpStats, type Patience } from './lib/rewriteJudge';
+import { rowProblems } from './lib/outputChecks';
 import { GLOSSARY_PROMPT, SUGGESTED_PHRASE, TRANSLATION_KEYS, VAGUE_SUBSTITUTES, findUkSpelling, requiredTranslation, findAwkwardGlossaryUse } from './lib/languageGlossary';
 
 for (const f of ['.env.local', '.env']) {
@@ -123,6 +125,15 @@ function energyProblems(row: Row, text: string): string[] {
     return found;
 }
 
+// ── Ledger of vetted writes ───────────────────────────────────────────────────
+// Lines that differ from the original are either leftovers of the 12-row pilot (written before the glossary, so they get redone)
+// or lines this script wrote after review. The ledger records the second kind (row, field, hash of the text) so they are never redone.
+const sha = (s: string) => crypto.createHash('sha1').update(s).digest('hex').slice(0, 16);
+const LEDGER_PATH = arg('ledger') ?? path.join(path.dirname(arg('backup-file') ?? path.join(OUT, 'x')), 'vetted-ledger.json');
+const vetted: Set<string> = new Set(fs.existsSync(LEDGER_PATH) ? (JSON.parse(fs.readFileSync(LEDGER_PATH, 'utf8')) as string[]) : []);
+const vettedKey = (id: string, field: string, text: string) => `${id}|${field}|${sha(text)}`;
+const isVetted = (id: string, field: string, text: string) => vetted.has(vettedKey(id, field, text));
+
 function planJob(row: Row, orig: Row | undefined): Job | null {
     const job: Job = { row, fields: [], kinds: {}, source: {} };
     for (const f of FIELDS) {
@@ -132,11 +143,11 @@ function planJob(row: Row, orig: Row | undefined): Job | null {
         const changed = original !== live; // the pilot rewrote this column
         if (f === 'physical_guidance') {
             if (!clean(live)) { job.fields.push(f); job.kinds[f] = 'new'; job.source[f] = live; }
-            else if (changed && energyProblems(row, live).length) { job.fields.push(f); job.kinds[f] = 'energy-redo'; job.source[f] = original; }
+            else if (changed && !isVetted(row.id, f, live) && energyProblems(row, live).length) { job.fields.push(f); job.kinds[f] = 'energy-redo'; job.source[f] = original; }
             continue;
         }
         if (!clean(live)) { job.fields.push(f); job.kinds[f] = changed ? 'redo' : 'rewrite'; job.source[f] = changed ? original : live; }
-        else if (changed && !clean(original)) { job.fields.push(f); job.kinds[f] = 'redo'; job.source[f] = original; }
+        else if (changed && !isVetted(row.id, f, live) && !clean(original)) { job.fields.push(f); job.kinds[f] = 'redo'; job.source[f] = original; }
     }
     return job.fields.length ? job : null;
 }
@@ -199,10 +210,12 @@ async function callGemini(prompt: string, patience: Patience): Promise<{ json: R
         });
         if (res.status === 429) {
             const body = await res.text();
+            countStatus(429, isDailyQuota(body));
             if (isDailyQuota(body)) throw new QuotaExhausted(body);
             await waitOrGiveUp(patience, attempt, Date.now() - t, `429 ${body.slice(0, 120)}`);
             continue;
         }
+        countStatus(res.status);
         if (!res.ok) {
             const body = (await res.text()).slice(0, 200);
             // 503 "high demand" and other server-side errors: back off briefly; when this row's patience (about 20s) is used up
@@ -527,10 +540,62 @@ function pickSample(jobs: Job[], perSign: number): Job[] {
     return picked;
 }
 
+// ── Apply reviewed results ────────────────────────────────────────────────────
+/**
+ * --apply-from=<results.json>[,<results.json>...] [--combos-file=...] [--confirm-write]
+ * Writes already-reviewed dry-run results (no new model calls). For each row the LAST file that mentions it wins. A row is written
+ * only if the independent checker rules pass for it; every other row keeps its current text. Only the rewritten columns are
+ * updated, and only while each still equals the text the dry run read ("before"). Without --confirm-write it only reports.
+ */
+async function applyReviewed() {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY!);
+    const files = arg('apply-from')!.split(',').filter(Boolean);
+    const latest = new Map<string, { r: any; file: number }>();
+    files.forEach((file, fi) => { for (const r of JSON.parse(fs.readFileSync(file, 'utf8')).results) latest.set(r.id, { r, file: fi }); });
+    const comboFile = arg('combos-file');
+    const inStage = comboFile ? new Set((JSON.parse(fs.readFileSync(comboFile, 'utf8')) as string[][]).map(([s, m]) => `${s}|${m}`)) : null;
+
+    const clean: Array<{ r: any; file: number }> = [];
+    const held: Array<{ r: any; why: string }> = [];
+    for (const e of latest.values()) {
+        if (inStage && !inStage.has(`${e.r.sun}|${e.r.moon}`)) continue;
+        const problems = rowProblems(e.r);
+        if (problems.length) held.push({ r: e.r, why: problems.slice(0, 3).join(' / ') });
+        else clean.push(e);
+    }
+    // Variety across the whole set to be written (information: each run already enforced it inside itself).
+    const energy = clean.filter((e) => e.r.after.physical_guidance).sort((a, b) => a.file - b.file || (a.r.seq ?? a.r.n) - (b.r.seq ?? b.r.n)).map((e) => e.r.after.physical_guidance as string);
+    let varietyHits = 0;
+    energy.forEach((text, i) => { varietyHits += windowProblems(text, energy.slice(Math.max(0, i - (WINDOW - 1)), i)).length; });
+    console.log(`APPLY: ${latest.size} rows in the reports${inStage ? ` (${[...latest.values()].filter((e) => inStage.has(`${e.r.sun}|${e.r.moon}`)).length} in the stage)` : ''}.`);
+    console.log(`  pass the checker and would be written: ${clean.length}`);
+    console.log(`  keep their current text (review list): ${held.length}`);
+    held.forEach((h) => console.log(`    - ${h.r.sun}/${h.r.moon}→${h.r.transit}: ${h.why.slice(0, 160)}`));
+    console.log(`  variety violations across the set, in 24-line windows: ${varietyHits}`);
+    if (!flag('confirm-write')) { console.log('\nPreview only. Add --confirm-write to write.'); return; }
+
+    const log: any[] = [];
+    for (const { r } of clean) {
+        const cols = r.flagged as Field[];
+        let q = (supabase as any).from('triad_states').update({ ...r.after, updated_at: new Date().toISOString() }).eq('id', r.id);
+        for (const f of cols) q = q.eq(f, r.before[f]);
+        const { data, error } = await q.select('id');
+        if (error) throw error;
+        log.push({ id: r.id, sun: r.sun, moon: r.moon, transit: r.transit, columns: cols, updated: (data?.length ?? 0) === 1, before: r.before, after: r.after });
+    }
+    // Remember what was written after review, so a later plan never redoes these lines.
+    for (const l of log.filter((x) => x.updated)) for (const f of l.columns) vetted.add(vettedKey(l.id, f, l.after[f]));
+    fs.writeFileSync(LEDGER_PATH, JSON.stringify([...vetted], null, 0));
+    fs.writeFileSync(path.join(OUT, 'apply-log.json'), JSON.stringify({ written: log.filter((l) => l.updated).length, stale: log.filter((l) => !l.updated).length, held: held.map((h) => ({ id: h.r.id, why: h.why })), log }, null, 2));
+    console.log(`\nWROTE ${log.filter((l) => l.updated).length} rows; ${log.filter((l) => !l.updated).length} skipped because the stored text had changed. Log: ${path.join(OUT, 'apply-log.json')}`);
+    if (log.some((l) => !l.updated)) process.exit(1);
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
     if (!SUPABASE_KEY) { console.error('SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1); }
     fs.mkdirSync(OUT, { recursive: true });
+    if (arg('apply-from')) { await applyReviewed(); return; }
     const planned = await plan();
     const rows = planned.rows;
     // Stage 1: only the rows of the Sun/Moon combinations in --combos-file (a JSON list of [sun, moon] pairs).
@@ -545,7 +610,7 @@ async function main() {
         for (let i = jobs.length - 1; i >= 0; i--) if (!ids.has(jobs[i].row.id)) jobs.splice(i, 1);
         console.log(`IDS: ${ids.size} row ids given, ${jobs.length} of them need work.\n`);
     }
-    const planSummary = summarizePlan(rows, jobs);
+    const planSummary = summarizePlan(combos ? rows.filter((r) => combos.has(`${r.natal_sun_sign}|${r.natal_moon_sign}`)) : rows, jobs);
     console.log(JSON.stringify(planSummary, null, 2));
     if (MEASURE) return;
     if (!GEMINI_KEY) { console.error('GEMINI_API_KEY not set'); process.exit(1); }
@@ -633,6 +698,7 @@ async function main() {
             rejectedDrafts, rejectedByReason: Object.fromEntries(Object.entries(rejectedByReason).sort((a, b) => b[1] - a[1])),
             passedFirstTry: S.firstTry, totalDraftCalls: S.attempts, totalApiCalls: S.calls,
             tokens: S.usage, sampleCostUSD: +costUSD(S.usage).toFixed(4),
+            apiResponses: { ...httpStats },
             timing: {
                 wallSeconds: +wallSeconds.toFixed(1),
                 wallSecondsPerRow: +(wallSeconds / Math.max(1, done.length)).toFixed(1),

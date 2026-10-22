@@ -15,6 +15,15 @@ export const JUDGE_MODEL = 'gemini-3.6-flash';
  * gives up for this pass, keeps its current text, and the run moves on; later passes try it again.
  */
 export const OVERLOAD_PATIENCE_MS = 180000;
+/** What the API answered, by status, across writer and editor calls (so a concurrency test can show whether 429s appear). */
+export const httpStats = { ok: 0, rateLimited429: 0, dailyQuota429: 0, busy503: 0, other5xx: 0, other: 0 };
+export function countStatus(status: number, dailyQuota = false): void {
+    if (status === 200) httpStats.ok++;
+    else if (status === 429) dailyQuota ? httpStats.dailyQuota429++ : httpStats.rateLimited429++;
+    else if (status === 503) httpStats.busy503++;
+    else if (status >= 500) httpStats.other5xx++;
+    else httpStats.other++;
+}
 export interface Patience { ms: number; }
 export class Overloaded extends Error {
     constructor(detail: string) { super(`service busy, gave up on this row: ${detail}`); this.name = 'Overloaded'; }
@@ -75,10 +84,12 @@ export async function judgeRewrites(items: JudgeItem[], apiKey: string, patience
         });
         if (res.status === 429) {
             const body = await res.text();
+            countStatus(429, isDailyQuota(body));
             if (isDailyQuota(body)) throw new QuotaExhausted(body);
             await waitOrGiveUp(patience, attempt, Date.now() - t, `editor 429 ${body.slice(0, 120)}`);
             continue;
         }
+        countStatus(res.status);
         if (!res.ok) {
             const body = (await res.text()).slice(0, 200);
             if (res.status >= 500) { await waitOrGiveUp(patience, attempt, Date.now() - t, `editor ${res.status} ${body}`); continue; }
