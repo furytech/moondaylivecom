@@ -1,4 +1,6 @@
--- PROPOSED TESTS for supabase/proposed/triad_states_lockdown.sql. Run AFTER the lockdown is approved and applied.
+-- TESTS for supabase/proposed/triad_states_lockdown.sql (APPLIED 2026-10-23). Run on the live project the same
+-- day with one free and one paid member: blocks A-E all passed (each rolled back); anonymous probe PASS.
+-- Re-run any time after changes to the policy, the function or the user_profiles flags.
 -- Project ggrhuhwxbwrfbbcwcrmv only. Every block is one transaction that ends in ROLLBACK, so nothing is changed.
 -- Each block is self-checking: it raises "FAIL: ..." on a problem and finishes silently when it passes
 -- (the SQL editor shows "Success. No rows returned" for a pass). Run the blocks one at a time.

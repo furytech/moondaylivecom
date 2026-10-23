@@ -1,4 +1,5 @@
--- PROPOSED, NOT APPLIED. Undoes supabase/proposed/triad_states_lockdown.sql. Project ggrhuhwxbwrfbbcwcrmv only.
+-- NOT RUN (kept ready). Undoes supabase/proposed/triad_states_lockdown.sql, which was APPLIED 2026-10-23.
+-- Project ggrhuhwxbwrfbbcwcrmv only.
 --
 -- What it restores: the state the anonymous probe saw before the lockdown, i.e. anon and signed-in users can
 -- read every triad_states row (HTTP 206, 1728 rows). That is the INSECURE state: use it only if the lockdown

@@ -1,6 +1,9 @@
 # triad_states lockdown: audit, app impact, apply order
 
-Status: PROPOSED. Nothing here has been applied to any database. Project ggrhuhwxbwrfbbcwcrmv only.
+Status: **APPLIED 2026-10-23** to project ggrhuhwxbwrfbbcwcrmv. Verified the same day: tests A-E passed on the live project
+(rolled back), the anonymous probe returns 401 for `triad_states` and the backup (PASS), and the Luminary Lenses and Today
+tabs load. Not checked: a free member's Today tab in a browser (the preview path is covered by unit tests and test B).
+The sections below are the original proposal, kept for reference; the rollback is `triad_states_lockdown_rollback.sql`.
 
 Files: `triad_states_lockdown.sql` (apply), `triad_states_lockdown_rollback.sql`, `triad_states_lockdown_tests.sql`,
 `scripts/probe-anon-access.ts` (read-only anonymous probe, counts only).

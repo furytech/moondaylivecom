@@ -1,5 +1,7 @@
--- PROPOSED, NOT APPLIED. Do not run until the owner approves. Project ggrhuhwxbwrfbbcwcrmv only.
--- Not a migration. Rollback: supabase/proposed/triad_states_lockdown_rollback.sql
+-- APPLIED 2026-10-23 to project ggrhuhwxbwrfbbcwcrmv (one transaction, pasted without these comments; Success).
+-- Verified the same day: tests A-E passed on the live project (rolled back), anonymous probe PASS.
+-- Kept for reference and rollback. Not a migration: it is idempotent, but there is no need to re-run it.
+-- Rollback: supabase/proposed/triad_states_lockdown_rollback.sql (restores the insecure public read)
 -- Tests:    supabase/proposed/triad_states_lockdown_tests.sql   (and scripts/probe-anon-access.ts)
 -- Notes:    supabase/proposed/triad_states_lockdown_notes.md     (audit, app impact, apply order)
 --
