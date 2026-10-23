@@ -4,14 +4,11 @@
 -- read every triad_states row (HTTP 206, 1728 rows). That is the INSECURE state: use it only if the lockdown
 -- breaks the app and the fix needs time.
 --
--- What it does not restore, on purpose:
---   * write privileges for anon/authenticated (members never write these tables; the lockdown removed them).
---     If the pre-flight output saved before the lockdown shows the app depended on any, re-grant exactly those.
---   * the original policy names (unknown; the pre-flight output has them). A single public read policy gives the
---     same read behaviour.
---   * RLS stays ON. With the public policy below, behaviour is the same as before for reads.
---   * triad_states_backup_2026_10_21: anon was already refused before the lockdown, so nothing to put back.
---     If the pre-flight shows `authenticated` had a grant on it, re-grant that one privilege.
+-- The state it restores was read from the live project on 2026-10-23 (read-only catalog queries):
+--   * triad_states: RLS on, ONE policy "Public read access for triad states" (select, anon + authenticated, using true).
+--   * anon and authenticated held SELECT, REFERENCES, TRIGGER, TRUNCATE; never INSERT, UPDATE or DELETE.
+--   * triad_states_backup_2026_10_21: RLS on, no policy, no grants for anon/authenticated. The lockdown only
+--     re-asserts that, so there is nothing to put back for it.
 
 begin;
 
@@ -23,7 +20,8 @@ create policy "Public read access for triad states"
   to anon, authenticated
   using (true);
 
-grant select on table public.triad_states to anon, authenticated;
+-- exactly the privileges anon and authenticated held on 2026-10-23 (no INSERT/UPDATE/DELETE ever)
+grant select, references, trigger, truncate on table public.triad_states to anon, authenticated;
 
 drop function if exists public.get_my_triad_preview(text);
 

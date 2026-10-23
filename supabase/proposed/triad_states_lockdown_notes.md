@@ -24,11 +24,12 @@ generated types plus the migrations plus `triad_states_backup_2026_10_21`.
 | content_drafts, cron_secrets, dispatch_logs, email_send_log, email_send_state, email_unsubscribe_tokens, guest_contributions, mfa_backup_codes, moon_history, moon_ingress_notifications, suppressed_emails, system_errors, system_settings | refused | No, correct |
 | signups | 404 (no such table) | n/a |
 
-`triad_states` is the only table that leaks. Not tested, because a test would have to write to the live database:
-whether anon or any signed-in member can INSERT/UPDATE/DELETE `triad_states`. `scripts/generate-triads.ts` and
-`scripts/fix-missing-triads.ts` fall back to the anon key when no service key is set, which hints that writes may have
-been possible. The pre-flight `role_table_grants` query in the SQL answers it read-only. The lockdown removes all write
-privileges from anon and authenticated either way.
+`triad_states` is the only table that leaks. Writes (answered read-only on 2026-10-23 from the catalog, nothing written): **anon and members cannot write `triad_states`.**
+The only policy is `Public read access for triad states` (select, anon + authenticated, `using (true)`), and neither role
+holds INSERT, UPDATE or DELETE. They do hold TRUNCATE, REFERENCES and TRIGGER; the REST API cannot issue those and neither
+role has a database login, so there is no path, but the lockdown removes them. Only `service_role` can write. The backup table
+has no grants at all for anon/authenticated; `service_role` holds only TRUNCATE (not SELECT) on it, and the lockdown leaves that alone.
+RLS was already on for both tables, so the leak is the public read policy.
 
 ## 2. How the app reads triad_states
 
@@ -60,10 +61,9 @@ of the same row".
 
 ## 4. What the app would break on (and the fix)
 
-1. **Free members' Today tab (the real change).** The hook's direct read returns nothing for them, so they fall through to
-   the generic `daily_forecasts` / local forecast. Not an error, but they lose the triad teaser until the app is patched
-   to call the function. Patch (not applied, needs your go; ships safely BEFORE the SQL because it falls back to the old
-   read if the function does not exist yet):
+1. **Free members' Today tab (the real change). DONE, commit 76a7a3f, live and safe before the SQL.** Without a patch their
+   direct read would return nothing and they would fall through to the generic forecast. The patch below calls the function
+   and falls back to the old read (narrowed to the two teaser columns) while the function does not exist. Shape of the change:
 
    ```ts
    // useLunarForecast(birthMoonSign, currentMoon, natalSunSign, isPro = true)  and  DailyForecast passes isPro
@@ -81,19 +81,22 @@ of the same row".
    `TriadData` fields stay `""` for free members, which the UI already treats as locked.
 2. **Members whose profile has no natal pair.** The policy matches `user_profiles.natal_sun_sign/natal_moon_sign`. The page
    itself falls back to a Sun computed from the birthday and to the legacy `moon_sign` (`Blueprint.tsx:86-87`). Anyone with
-   a null natal column finds no row and sees the generic forecast. The pre-flight count query gives the number; the
-   2026-10-20 combination_profiles lockdown already backfilled the known cases.
+   a null natal column finds no row and sees the generic forecast (tested for both free and Luminary paths). Pre-flight,
+   2026-10-23: 21 members, **1 with no natal pair (no birthday on file), 0 of them paid**; 0 members whose natal Moon differs
+   from the legacy `moon_sign`; the 2 paid members both have a natal pair. `Triad.tsx` (Lenses) already treats "no row" as the generic panel.
 3. **"Paid" is judged by profile flags in the database, but the app also trusts a live Stripe check** (`subscription.subscribed`
    in `isLuminaryMember`). Someone just subscribed whose flags have not been written yet sees the generic Triad for those
    moments. The stripe-webhook and check-subscription functions write the flags with the service role.
 4. **Scripts that run without a service key** (`generate-triads.ts`, `fix-missing-triads.ts`) fall back to the anon key and
-   will stop working. Run them with `SUPABASE_SERVICE_ROLE_KEY` set, as the regeneration scripts already require.
+   would stop working (and could not have written anyway: anon has no write privilege). `.env.local` has a valid service-role key
+   for this project, so they use it. `regen-flagged-triads.ts` has no anon fallback at all: it exits without the service key.
 5. Nothing else reads the table. `BlueprintFixture.tsx` and the Vitest suites mock the client, so they are unaffected.
 
 ## 5. Order to apply (when you give the go)
 
-1. Run the pre-flight queries at the top of `triad_states_lockdown.sql`; save the output.
-2. Ship the app patch from section 4.1 (safe before the SQL).
+0. Wait until the Triad rewrite session has finished writing rows (the lockdown does not touch the service role, but wait anyway).
+1. Run `triad_states_lockdown_preflight.sql` (read-only, one result); save the output.
+2. The app patch from section 4.1 is already shipped.
 3. Apply `triad_states_lockdown.sql` (one transaction; idempotent; it also runs `notify pgrst, 'reload schema'`).
 4. Run `triad_states_lockdown_tests.sql` blocks A to E with a real free and paid member, then the anonymous probe:
    `npx tsx scripts/probe-anon-access.ts --expect-denied triad_states triad_states_backup_2026_10_21` (expect PASS) and

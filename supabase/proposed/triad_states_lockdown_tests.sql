@@ -205,8 +205,8 @@ declare n int;
 begin
   select count(*) into n from public.triad_states;
   if n <> 1728 then raise exception 'FAIL: service role sees % triad_states rows (expected 1728)', n; end if;
-  perform 1 from public.triad_states_backup_2026_10_21 limit 1;   -- must not raise
   update public.triad_states set updated_at = updated_at where false;   -- write privilege still present
+  -- (the backup table is not tested here: service_role has never had SELECT on it, and the lockdown leaves that as is)
 end
 $$;
 rollback;

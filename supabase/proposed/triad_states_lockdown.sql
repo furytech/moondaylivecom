@@ -117,14 +117,14 @@ $$;
 revoke all on function public.get_my_triad_preview(text) from public, anon;
 grant execute on function public.get_my_triad_preview(text) to authenticated, service_role;
 
--- STEP 5: the backup table: service role only. RLS on and no policy means members get nothing even if a
--- grant is ever added by mistake.
+-- STEP 5: the backup table: no access for anon or members. RLS is already on with no policy, so members get
+-- nothing even if a grant is ever added by mistake. service_role's grants on it are deliberately left exactly
+-- as they are today (checked 2026-10-23: it has no SELECT there; the owner/postgres reads it in the SQL editor).
 do $$
 begin
   if to_regclass('public.triad_states_backup_2026_10_21') is not null then
     alter table public.triad_states_backup_2026_10_21 enable row level security;
     revoke all on table public.triad_states_backup_2026_10_21 from public, anon, authenticated;
-    grant all on table public.triad_states_backup_2026_10_21 to service_role;
   end if;
 end
 $$;
