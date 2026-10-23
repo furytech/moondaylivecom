@@ -81,7 +81,7 @@ const Pricing = () => {
         setTeaserMoonSign(birthMoonSign);
         setTeaserLoading(true);
         const current = getCurrentMoon();
-        const { data, error: fnError } = await supabase.functions.invoke("Luminary-teaser", {
+        const { data, error: fnError } = await supabase.functions.invoke("sovereign-teaser", {
           body: {
             birthMoonSign,
             currentMoonSign: current.sign,
@@ -122,7 +122,7 @@ const Pricing = () => {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (fnError) throw fnError;
-      if (data?.url) window.open(data.url, "_blank");
+      if (data?.url) window.location.href = data.url;
     } catch (err) {
       console.error("Portal error:", err);
       setError("Unable to open subscription management. Please try again.");
@@ -151,7 +151,7 @@ const Pricing = () => {
       });
 
       if (fnError) throw fnError;
-      if (data?.url) window.open(data.url, "_blank");
+      if (data?.url) window.location.href = data.url;
     } catch (err: unknown) {
       console.error("Checkout error:", err);
       setError("Unable to start checkout. Please try again.");

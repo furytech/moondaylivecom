@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { processStripeEvent, type StripeEventLike } from "../_shared/stripeWebhookCore.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -69,119 +70,55 @@ serve(async (req) => {
 
     logStep("Event received", { type: event.type, id: event.id });
 
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const customerEmail = session.customer_details?.email || session.customer_email;
-
-      if (!customerEmail) {
-        logStep("ERROR: No customer email in checkout session");
-        return new Response(JSON.stringify({ error: "No customer email" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
-      }
-
-      logStep("Activating subscription for customer", { email: customerEmail });
-
-      // Find the user profile by email and activate subscription
-      const { data: profiles, error: fetchError } = await supabaseClient
-        .from("user_profiles")
-        .select("id, user_id")
-        .eq("email", customerEmail)
-        .limit(1);
-
-      if (fetchError) {
-        logStep("ERROR fetching profile", { error: fetchError.message });
-        throw new Error(`Failed to fetch profile: ${fetchError.message}`);
-      }
-
-      if (profiles && profiles.length > 0) {
-        const { error: updateError } = await supabaseClient
+    const result = await processStripeEvent(event as unknown as StripeEventLike, {
+      claimEvent: async (eventId, eventType) => {
+        const { error } = await supabaseClient
+          .from("stripe_webhook_events")
+          .insert({ event_id: eventId, event_type: eventType });
+        if (!error) return "claimed";
+        if (error.code === "23505") return "duplicate";
+        // Table missing (migration not applied yet) or any other failure: process the event anyway.
+        logStep("WARNING: dedupe insert failed", { code: error.code, error: error.message });
+        return "unavailable";
+      },
+      releaseEvent: async (eventId) => {
+        await supabaseClient.from("stripe_webhook_events").delete().eq("event_id", eventId);
+      },
+      getCustomerEmail: async (customerId) => {
+        const customer = await stripe.customers.retrieve(customerId);
+        if (customer.deleted || !("email" in customer) || !customer.email) return null;
+        return customer.email;
+      },
+      listSubscriptions: async (customerId) => {
+        const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 });
+        return subs.data.map((s) => ({ id: s.id, status: s.status, created: s.created }));
+      },
+      findUserIdByEmail: async (email) => {
+        const { data, error } = await supabaseClient
           .from("user_profiles")
-          .update({
-            is_subscriber: true,
-            subscription_status: "luminary",
-          })
-          .eq("user_id", profiles[0].user_id);
-
-        if (updateError) {
-          logStep("ERROR updating profile", { error: updateError.message });
-          throw new Error(`Failed to update profile: ${updateError.message}`);
+          .select("user_id")
+          .eq("email", email)
+          .limit(1);
+        if (error) {
+          logStep("ERROR fetching profile", { error: error.message });
+          throw new Error(`Failed to fetch profile: ${error.message}`);
         }
+        return data && data.length > 0 ? data[0].user_id : null;
+      },
+      updateProfileByUserId: async (userId, update) => {
+        const { error } = await supabaseClient.from("user_profiles").update(update).eq("user_id", userId);
+        return { error: error?.message };
+      },
+      updateProfileByEmail: async (email, update) => {
+        const { error } = await supabaseClient.from("user_profiles").update(update).eq("email", email);
+        return { error: error?.message };
+      },
+      log: logStep,
+    });
 
-        logStep("Subscription activated successfully", { userId: profiles[0].user_id });
-      } else {
-        logStep("WARNING: No user profile found for email", { email: customerEmail });
-      }
-    }
-
-    if (
-      event.type === "customer.subscription.created" ||
-      event.type === "customer.subscription.updated" ||
-      event.type === "customer.subscription.deleted"
-    ) {
-      const subscription = event.data.object as Stripe.Subscription;
-      const customerId = subscription.customer as string;
-
-      // Look up customer email from Stripe
-      const customer = await stripe.customers.retrieve(customerId);
-      if (customer.deleted || !("email" in customer) || !customer.email) {
-        logStep("WARNING: Customer deleted or no email");
-        return new Response(JSON.stringify({ received: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
-      // Only two outcomes are safe to write:
-      //  - GRANT access for statuses Stripe considers paid/entitled.
-      //  - REVOKE access only for terminal statuses.
-      // Everything in between (past_due, unpaid, incomplete, paused) is a
-      // transient state — Stripe is still retrying or the first invoice has not
-      // settled yet — so we leave the profile untouched rather than locking a
-      // paying member out mid-cycle or racing checkout.session.completed.
-      const GRANT_STATUSES = new Set(["active", "trialing"]);
-      const REVOKE_STATUSES = new Set(["canceled", "incomplete_expired"]);
-
-      const deleted = event.type === "customer.subscription.deleted";
-      const grant = !deleted && GRANT_STATUSES.has(subscription.status);
-      const revoke = deleted || REVOKE_STATUSES.has(subscription.status);
-
-      if (!grant && !revoke) {
-        logStep("Transient subscription status - leaving access unchanged", {
-          email: customer.email,
-          status: subscription.status,
-        });
-        return new Response(JSON.stringify({ received: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
-      const { error: updateError } = await supabaseClient
-        .from("user_profiles")
-        .update({
-          is_subscriber: grant,
-          subscription_status: grant ? "luminary" : "free",
-        })
-        .eq("email", customer.email);
-
-      if (updateError) {
-        logStep("ERROR syncing subscription", { error: updateError.message });
-      } else {
-        logStep("Subscription synced", {
-          email: customer.email,
-          status: subscription.status,
-          action: grant ? "granted" : "revoked",
-        });
-      }
-
-    }
-
-
-    return new Response(JSON.stringify({ received: true }), {
+    return new Response(JSON.stringify(result.body), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
+      status: result.status,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

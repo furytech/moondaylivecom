@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { bearerToken } from "../_shared/subscriptionAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +33,26 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Auth first: a missing or invalid token is a 401, never a 500.
+    const token = bearerToken(req.headers.get("Authorization"));
+    if (!token) {
+      logStep("No auth header - returning 401");
+      return new Response(JSON.stringify({ error: "Authentication required", code: "missing_token" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+    const { data: authData, error: authError } = await supabaseClient.auth.getUser(token);
+    const user = authData?.user;
+    if (authError || !user?.email) {
+      logStep("Invalid session - returning 401", { error: authError?.message });
+      return new Response(JSON.stringify({ error: "Authentication required", code: "invalid_token" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+    logStep("User authenticated", { userId: user.id, email: user.email });
+
     const { priceId } = await req.json();
     logStep("Received price ID", { priceId });
 
@@ -45,13 +66,6 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     

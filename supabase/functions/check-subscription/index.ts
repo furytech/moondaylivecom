@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkSubscription } from "../_shared/checkSubscriptionCore.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,71 +54,23 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length === 0) {
-      logStep("No customer found, returning unsubscribed state");
-      return new Response(JSON.stringify({ subscribed: false }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
+    const result = await checkSubscription(user.email, {
+      findCustomerId: async (email) => {
+        const customers = await stripe.customers.list({ email, limit: 1 });
+        return customers.data.length > 0 ? customers.data[0].id : null;
+      },
+      listSubscriptions: async (customerId) => {
+        const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 });
+        return subs.data;
+      },
+      updateProfileByEmail: async (email, update) => {
+        const { error } = await supabaseClient.from("user_profiles").update(update).eq("email", email);
+        return { error: error?.message };
+      },
+      log: logStep,
     });
-    
-    const hasActiveSub = subscriptions.data.length > 0;
-    let productId = null;
-    let priceId = null;
-    let subscriptionEnd = null;
-    let subscriptionStart = null;
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      logStep("Active subscription found", { subscriptionId: subscription.id });
-
-      if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
-        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      }
-      if (subscription.start_date && typeof subscription.start_date === 'number') {
-        subscriptionStart = new Date(subscription.start_date * 1000).toISOString();
-      }
-      const priceObj = subscription.items?.data?.[0]?.price;
-      if (priceObj?.product) productId = priceObj.product;
-      if (priceObj?.id) priceId = priceObj.id;
-    } else {
-      logStep("No active subscription found");
-    }
-
-    // Sync Stripe status to user_profiles to prevent drift
-    const newStatus = hasActiveSub ? "sovereign" : "free";
-    const { error: syncError } = await supabaseClient
-      .from("user_profiles")
-      .update({
-        is_subscriber: hasActiveSub,
-        subscription_status: newStatus,
-      })
-      .eq("email", user.email);
-
-    if (syncError) {
-      logStep("WARNING: Failed to sync profile", { error: syncError.message });
-    } else {
-      logStep("Profile synced", { status: newStatus });
-    }
-
-    return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      product_id: productId,
-      price_id: priceId,
-      subscription_end: subscriptionEnd,
-      subscription_start: subscriptionStart,
-    }), {
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
