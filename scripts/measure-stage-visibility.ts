@@ -41,8 +41,10 @@ async function load(): Promise<any[]> {
 }
 
 async function main() {
-    const combos = new Set((JSON.parse(fs.readFileSync(arg('combos-file')!, 'utf8')) as string[][]).map(([s, m]) => `${s}|${m}`));
-    const rows = (await load()).filter((r) => combos.has(`${r.natal_sun_sign}|${r.natal_moon_sign}`));
+    // Without --combos-file the whole table is measured.
+    const comboFile = arg('combos-file');
+    const combos = comboFile ? new Set((JSON.parse(fs.readFileSync(comboFile, 'utf8')) as string[][]).map(([s, m]) => `${s}|${m}`)) : null;
+    const rows = (await load()).filter((r) => !combos || combos.has(`${r.natal_sun_sign}|${r.natal_moon_sign}`));
     let rowsLosingField = 0, rowsLosingSentences = 0, fieldsGone = 0, fieldsPartial = 0;
     const perField: Record<string, number> = {};
     for (const r of rows) {

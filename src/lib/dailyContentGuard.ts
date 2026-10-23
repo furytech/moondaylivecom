@@ -17,6 +17,31 @@ export interface BodyClaimTerm {
 
 const t = (term: string, re: RegExp): BodyClaimTerm => ({ term, re });
 
+// Medical and health advice. Everyday figures of speech and craft words are not claims, but every health use stays flagged:
+//  - "cure" is allowed only when its sentence is clearly about a material ("let the clay cure", "while the foundation cures"),
+//    and never as "cure your anxiety / pain / ..." whatever else the sentence mentions
+//  - "royal treatment" and "silent treatment" are idioms; any other "treatment" is flagged
+//  - "heal" is flagged when its object is the body, an illness, pain, symptoms or an injury; "treat" when its object is an illness, pain,
+//    symptoms or an injury ("treat your body like a temple" is an idiom and is allowed)
+const CURING_MATERIALS = "concrete|clay|resin|paint|foundation|plaster|cement|mortar|glaze|epoxy|varnish|ceramic|pottery";
+const HEALTH_OBJECTS = "anxiety|stress|pain|illness|illnesses|ills|ailments?|diseases?|loneliness|grief|worry|worries|fatigue|insomnia|sadness|depression";
+const HEALTH_ONLY_OBJECTS = "illness|illnesses|disease|diseases|pain|symptoms?|ailments?|conditions?|injur\\w+|wounds?";
+const MEDICAL_ADVICE = new RegExp(
+  [
+    "\\b(?:medical|medic(?:ation|ine)s?|doctor|diagnos\\w*|illness|disease|therapeutic|nausea|remed(?:y|ies)|prescri\\w*|supplements?|detox\\w*|dosage)\\b",
+    "\\b(?<!(?:silent|royal)\\s)treatments?\\b",
+    // the verb, unless the same line names a curing material anywhere before or after it
+    `(?<![\\s\\S]*\\b(?:${CURING_MATERIALS})\\b[\\s\\S]*)\\bcure[sd]?\\b(?![\\s\\S]*\\b(?:${CURING_MATERIALS})\\b)`,
+    // always flagged, whatever material is nearby: the noun ("a cure", "no cure", "cure for") and a cure of anxiety, pain and the like
+    "\\b(?:a|an|the|no|any|your|their|its|true|real|only|natural)\\s+cures?\\b|\\bcures?\\s+for\\b",
+    `\\bcures?\\s+(?:your\\s+|the\\s+|my\\s+)?(?:${HEALTH_OBJECTS})\\b`,
+    // "heal your body" is a health claim; "treat your body like a temple" is an idiom about self-respect and is allowed
+    `\\bheal(?:s|ed|ing)?\\s+(?:your\\s+|the\\s+|my\\s+)?(?:body|${HEALTH_ONLY_OBJECTS})\\b`,
+    `\\btreat(?:s|ed|ing)?\\s+(?:your\\s+|the\\s+|my\\s+|a\\s+)?(?:${HEALTH_ONLY_OBJECTS})\\b`,
+  ].join("|"),
+  "i"
+);
+
 // Every label with a phrase in docs/language-glossary.md ("translate, never soften") is a place to translate the term
 // into lived experience, not to delete it or swap in a vague stand-in. See scripts/lib/languageGlossary.ts.
 export const BODY_CLAIM_TERMS: BodyClaimTerm[] = [
@@ -50,10 +75,7 @@ export const BODY_CLAIM_TERMS: BodyClaimTerm[] = [
   t("breathing / lungs", /\b(respirat\w*|lungs?|shallow\s+breath\w*)\b/i),
   t("muscles / joints", /\b(muscle\w*|muscular|joints?|ribcage|tendons?)\b/i),
   t("head / chest sensations", /\b(headaches?|migraines?|behind\s+the\s+eyes|upper\s+chest|heart\s+rate)\b/i),
-  t(
-    "medical / health advice",
-    /\b(medical|medic(ation|ine)s?|doctor|diagnos\w*|illness|disease|therapeutic|nausea|cure[sd]?|(?<!silent\s)treatments?|remed(y|ies)|prescri\w*|supplements?|detox\w*|dosage)\b/i
-  ),
+  t("medical / health advice", MEDICAL_ADVICE),
   t("somatic / body tension", /\b(somatic\w*|body\s+tension)\b/i),
   t("physiology / body systems", /\b(bodily\s+(function|system|process|fluid)s?|body\s+systems?|physiolog\w*|biochemi\w*|biological)\b/i),
 ];

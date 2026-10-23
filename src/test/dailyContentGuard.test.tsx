@@ -46,6 +46,30 @@ describe("daily content guard", () => {
     for (const [text, label] of flagged) expect(findBodyClaims(text), text).toContain(label);
   });
 
+  it("allows cure only for a material, and royal / silent treatment, but keeps every health use of cure, treat and heal flagged", () => {
+    const allowed = [
+      "Leave the clay to cure overnight before you sand it.",
+      "Wait while the foundation cures, and let the weight rest.",
+      "Let the resin cure, then bake and cure the glaze in direct sunlight.",
+      "You may crave the royal treatment, or fall back on the silent treatment.",
+      "Mold a block of terracotta clay with your bare hands. Then place it in the direct sunlight to bake and cure.",
+      "Use a pottery session to channel your impatience, then leave the piece to cure as a testament.",
+      "Stop treating your body like an inconvenient vehicle and try treating it like a temple.",
+    ];
+    for (const text of allowed) expect(findBodyClaims(text), text).toEqual([]);
+    const flagged = [
+      "A cure for your loneliness is closer than you think.",
+      "Let this evening cure your anxiety, clay or no clay.",
+      "She was cured by the weekend.",
+      "Try a new treatment for the pain.",
+      "Treat your illness gently and heal your body with rest.",
+      "Heal the pain in your back.",
+      "Mold the clay with your hands. A cure for loneliness is warmth.",
+      "Knead the clay, then find a cure for what ails you.",
+    ];
+    for (const text of flagged) expect(findBodyClaims(text), text).toContain("medical / health advice");
+  });
+
   it("allows the everyday gestures the glossary keeps", () => {
     const allowed = [
       "Rest one hand over your heart as a quiet gesture of kindness to yourself.",

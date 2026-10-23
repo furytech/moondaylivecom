@@ -45,6 +45,7 @@ ${GLOSSARY.map((g) => `- ${g.from} -> ${g.say.map((s) => `"${s}"`).join(' / ')}`
 Follow the same principle for any term not listed: describe how it feels and what it does to mood, energy and reactions. Allowed as written: ${ALLOWED_AS_IS.join(', ')}.
 ADAPT THE GRAMMAR so every sentence still reads naturally: reword the clause around the glossary phrase (change the verb, the article or the word order), never paste a phrase where it does not fit.
 NO NEW BODY: a rewrite must never add a body part, body region or physical sensation that the original line did not have (no "tight jaw", "clenched shoulders", "upper body", "pelvis"). Only the approved glossary wording may carry a body meaning, and only as "the stress you carry and feel physically" or the hand-over-the-heart gesture. Moving where a held object rests is fine ("against your chest" -> "as you rest a hand over your heart").
+FIGURES OF SPEECH: when a medical word is used as a figure ("a double-air dosage", "Scorpio's medicine of absolute release", "a remedy for restlessness"), say the same figure without the medical word ("a double measure of air", "Scorpio's gift of absolute release", "a way through restlessness"). Never leave the medical word in.
 HYGIENE: "bodily hygiene" becomes "a simple cleansing ritual" only in a bathing or washing context. "Sleep hygiene" becomes "sleep routine".
 NERVOUS SYSTEM: where the original uses it as a noun ("your nervous system", "exhaust your nervous system", "tending your nervous system", "soothe your nervous system", "offer generosity to your nervous system"), use the SHORT NOUN FORM "your sensitivity to everything coming at you". Use the long clause "how you take in and process the day's events (and how much they stir or settle your mood)" ONLY where a whole clause fits grammatically, for example after "in", "show yourself" or "notice". Never put the long clause after "tending", "soothe", "exhaust", "wear down", "offering ... to" or in any noun position. Every sentence needs all its connecting words (by, from, while, as, to) and must be clear on first read.
 Examples:
@@ -126,6 +127,13 @@ export function requiredTranslation(label: string, source: string): RegExp | nul
     if (label === 'chest / belly') return GESTURE_ON_BODY.test(source) ? TRANSLATION_KEYS[label] : null;
     // "reactive inflammation in your heart" is a figure of speech, not the immune system
     if (label === 'immune / inflammation') return /\bimmun/i.test(source) ? TRANSLATION_KEYS[label] : null;
+    // "somatic" as an adjective of an experience ("somatic stillness", "somatic wisdom", "somatic surrender") must not become the noun
+    // phrase "the stress you carry...": that changes the meaning (stillness is not stress). It becomes "physical" or "felt" (stillness you
+    // feel physically). Only "somatic tension / stress / rigidity..." and "body tension" take the stress phrase. (Proposed 2026-10-23.)
+    if (label === 'somatic / body tension') {
+        const adjective = /\bsomatic\s+\w+/i.test(source) && !/\bsomatic\s+(?:tension|stress|rigidity|fatigue|turbulence|holding|armou?r)/i.test(source);
+        return adjective ? /\b(?:physical|felt)\b|feel[s]?\s+physically|stress you (?:carry|hold)/i : TRANSLATION_KEYS[label];
+    }
     // "blood-red" is a color; only the flow of blood is the glossary's circulation
     if (label === 'circulation') return /circulat|blood\s*flow|bloodstream/i.test(source) ? TRANSLATION_KEYS[label] : null;
     // "Sleep hygiene" is a sleep routine; "bodily hygiene" is a cleansing ritual only when the line is about bathing or washing.

@@ -516,6 +516,8 @@ const NO_PROGRESS_LIMIT = 3;
 async function busyPasses<T>(items: T[], runOne: (t: T) => Promise<boolean>, startedAt: number, announce: (msg: string) => Promise<void> | void): Promise<T[]> {
     let pending = items;
     let noProgress = 0;
+    // The window is measured from the start of the busy-service passes themselves, not from the start of the whole run.
+    startedAt = Date.now();
     for (let pass = 2; pending.length && !stopReason; pass++) {
         if (Date.now() - startedAt > MAX_HOURS * 3600 * 1000) { await announce(`${MAX_HOURS}-hour limit reached; ${pending.length} row(s) still busy.`); break; }
         const rest = Math.min(BUSY_PAUSE_MS * (noProgress + 1), 5 * 60 * 1000);
