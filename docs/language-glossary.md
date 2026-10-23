@@ -17,7 +17,9 @@ Do not delete the idea. Do not swap in a stand-in that loses the meaning ("your 
 | insomnia | "a restless night where sleep won't come easily" |
 | hypochondria | "imagining the worst about your health" / "turning every small twinge into a worst-case story" |
 | hormones | "your natural emotional tides" |
-| somatic / body tension | "the stress you carry and feel physically" (no body parts added: "tight shoulders" or "a clenched jaw" only if the original line already named them) |
+| somatic (adjective or adverb: "somatic stillness", "somatic wisdom", "processing it somatically") | "physical" or "felt": physical stillness, physical surrender, felt wisdom, "letting it move through you as felt, physical experience" |
+| somatic tension / rigidity / fatigue / turbulence, "body tension" (a tension noun) | "the stress you carry and feel physically" (no body parts added: "tight shoulders" or "a clenched jaw" only if the original line already named them) |
+| a body location where a feeling is stored ("in your joints", "in your physical tissue", "in your body") | "inside you", "deep within you" (never the stress phrase: "from the stress you carry" is nonsense) |
 | immune system | "your resilience, your ability to bounce back" |
 | circulation, blood flow | "your energy moving freely instead of feeling stuck" |
 | clinical phrasing ("bodily hygiene"), in a bathing or washing context only | ritual language: "a simple cleansing ritual" |
@@ -32,6 +34,10 @@ frankincense, plain self-care ("take a slow walk", "rest early", "drink some wat
 **No new body.** A rewrite never adds a body part, body region or physical sensation that the original line did not have (no "tight jaw", "clenched shoulders", "upper body", "pelvis"). Only the approved wording may carry a body meaning: "the stress you carry and feel physically" and the hand over the heart. Moving where a held object rests ("against your chest" becomes "as you rest a hand over your heart") is fine.
 
 **Fit, not just words.** A glossary phrase must fit the sentence in grammar and in meaning. "Your sensitivity to everything coming at you" is something you have, not a place: nothing sits "in" it. Use the short noun form wherever a noun fits and the long "how you take in and process the day's events" clause only where a whole clause fits.
+
+**Somatic is usually an adjective.** "Somatic stillness" is stillness, not stress, so replacing it with the noun phrase "the stress you carry" changes the meaning (found 2026-10-23 in 29 stored lines, plus 29 more where a body location had become the same phrase). Check what the word is doing in its sentence before reaching for a glossary phrase: adjective or adverb becomes "physical" or "felt"; a genuine tension noun keeps the stress phrase; a location becomes "inside you" or "deep within you".
+
+**A glossary phrase is never a place or a container.** Nothing sits "in", passes "through", or is cleared "from" "your sensitivity to everything coming at you" or "the stress you carry and feel physically". If the original said "clear the static from your nervous system", say "clear the static from your whole being and ease your sensitivity to everything coming at you". The checker (`findAwkwardGlossaryUse`) rejects these slots. "Work through the stress you carry" is a verb phrase and is fine, and the clause form is fine after "in" when it means "in the way" ("show yourself, in how you take in and process the day, that…").
 
 **Any term not listed:** follow the same principle. Say what it feels like and what it does to mood, energy and reactions.
 

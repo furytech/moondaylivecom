@@ -105,6 +105,15 @@ export const SUGGESTED_PHRASE: Record<string, string> = {
  * or a glossary noun phrase running straight into a gerund with no connecting word ("...coming at you trying to...").
  */
 const LONG_CLAUSE_NOUN_POSITION = /\b(?:tend(?:ing|s)?|soothe[sd]?|soothing|exhaust(?:ing|s|ed)?|wear(?:ing)?\s+down|wears\s+down|offer(?:ing)?[^.,;]{0,60}\bto|generosity\s+to|reset\s+(?:for|to))\s+(?:your\s+(?:own\s+)?)?how\s+you\s+take\s+in\b/i;
+// Glossary phrases that name something you HAVE or FEEL (a sensitivity, the stress you carry), never a place or a container.
+const NOT_A_PLACE =
+    '(?:(?:your\\s+)?(?:own\\s+|weary\\s+|tired\\s+|overactive\\s+|scattered\\s+|fluid\\s+)?sensitivity to (?:everything|all that)|how deeply you feel everything|(?:the\\s+)?(?:physical weight of the )?stress you (?:carry|hold))';
+// "in / into / within / inside / through / across / onto / out of" + the phrase ("work through the stress you carry" is a verb phrase, so it is allowed),
+// and "clear / draw out / absorb / release / wash ... from" + the phrase. The clause forms ("show yourself, in how you take in...") describe a manner and are allowed.
+const CONTAINER_SLOT = new RegExp(
+    `\\b(?:in|into|within|inside|(?<!\\bwork(?:s|ed|ing)?\\s)through|across|onto|out of)\\s+(?:the\\s+|a\\s+)?${NOT_A_PLACE}|\\b(?:clear\\w*|draw\\w*|absorb\\w*|releas\\w*|wash\\w*|remov\\w*|dissolv\\w*|lift\\w*|pull\\w*)\\b[^.;]{0,50}\\bfrom\\s+${NOT_A_PLACE}`,
+    'gi'
+);
 // The glossary noun phrase fits grammatically in "heated Air element in your sensitivity to everything coming at you" but means nothing there.
 const SENSITIVITY_AS_PLACE = /\b(?:in|within|inside|through|across|into|throughout)\s+your\s+(?:own\s+|weary\s+|tired\s+)?sensitivity\s+to\s+everything\s+coming\s+at\s+you\b/i;
 const NO_CONNECTOR =/\bcoming\s+at\s+you\s+(?:trying|attempting|working|struggling)\b/i;
@@ -112,6 +121,7 @@ export function findAwkwardGlossaryUse(text: string): string[] {
     const found: string[] = [];
     if (LONG_CLAUSE_NOUN_POSITION.test(text)) found.push('the long "how you take in and process the day\'s events" clause is in a noun position: use "your sensitivity to everything coming at you"');
     if (NO_CONNECTOR.test(text)) found.push('a connecting word is missing after "coming at you" (for example "by trying")');
+    for (const m of text.matchAll(CONTAINER_SLOT)) found.push(`"${m[0].trim()}": a glossary phrase cannot be a place or a container (nothing sits in, passes through or is cleared from "your sensitivity to everything coming at you" or "the stress you carry"); reword the clause`);
     if (SENSITIVITY_AS_PLACE.test(text)) found.push('"your sensitivity to everything coming at you" is a faculty, not a place: nothing can sit in, within or inside it (reword the clause)');
     return found;
 }
@@ -131,7 +141,9 @@ export function requiredTranslation(label: string, source: string): RegExp | nul
     // phrase "the stress you carry...": that changes the meaning (stillness is not stress). It becomes "physical" or "felt" (stillness you
     // feel physically). Only "somatic tension / stress / rigidity..." and "body tension" take the stress phrase. (Proposed 2026-10-23.)
     if (label === 'somatic / body tension') {
-        const adjective = /\bsomatic\s+\w+/i.test(source) && !/\bsomatic\s+(?:tension|stress|rigidity|fatigue|turbulence|holding|armou?r)/i.test(source);
+        // "somatic X" and "somatically" are adjective / adverb uses; "somatic tension|stress|rigidity|fatigue|turbulence|holding|armor" and "body tension" are tension nouns.
+        const tensionNoun = /\bsomatic\s+(?:tension|stress|rigidity|fatigue|turbulence|holding|armou?r)/i.test(source) || /\bbody\s+tension\b/i.test(source);
+        const adjective = /\bsomatic(?:ally)?\b/i.test(source) && !tensionNoun;
         return adjective ? /\b(?:physical|felt)\b|feel[s]?\s+physically|stress you (?:carry|hold)/i : TRANSLATION_KEYS[label];
     }
     // "blood-red" is a color; only the flow of blood is the glossary's circulation
