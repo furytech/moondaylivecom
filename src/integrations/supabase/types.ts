@@ -1063,6 +1063,13 @@ export type Database = {
           email: string
         }[]
       }
+      get_my_triad_preview: {
+        Args: { p_transiting_moon_sign: string }
+        Returns: {
+          emotional_guidance: string | null
+          physical_guidance: string | null
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

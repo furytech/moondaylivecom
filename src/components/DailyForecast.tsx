@@ -85,7 +85,8 @@ const DailyForecast: React.FC<DailyForecastProps> = ({
   const { forecast: rawForecast, triadData: hookTriadData, loading } = useLunarForecast(
     birthMoonSign,
     currentMoon,
-    natalSunSign
+    natalSunSign,
+    isPro
   );
 
   const forecast = rawForecast ? stripBodyClaimsFromRecord(rawForecast) : rawForecast;

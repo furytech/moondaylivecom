@@ -29,10 +29,59 @@ export interface UseLunarForecastResult {
   error: string | null;
 }
 
+const TRIAD_COLUMNS =
+  "physical_guidance, emotional_guidance, spiritual_guidance, daily_ritual, shadow_activation, integration_invitation";
+const TRIAD_PREVIEW_COLUMNS = "physical_guidance, emotional_guidance";
+
+type TriadRow = Partial<Record<keyof TriadData, string | null>>;
+
+/** PostgREST / Postgres say "no such function" with these codes (the lockdown SQL has not been applied yet). */
+function isMissingFunction(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === "PGRST202" ||
+    error.code === "42883" ||
+    /could not find the function/i.test(error.message ?? "")
+  );
+}
+
+/**
+ * Today's Triad row for this member. Luminary members read their own row (all six columns). Free members
+ * only ever get the teaser, through get_my_triad_preview, which cuts the text on the server. Until that
+ * function exists in the database, free members use the old read, narrowed to the two teaser columns.
+ * No row (or an error) means "nothing to show": the caller falls back to the generic forecast.
+ */
+async function fetchTriadRow(
+  isPro: boolean,
+  natalSunSign: string,
+  birthMoonSign: string,
+  transitSign: string
+): Promise<{ row: TriadRow | null; error: unknown }> {
+  const readTable = async (columns: string) => {
+    const { data, error } = await supabase
+      .from("triad_states")
+      .select(columns)
+      .eq("natal_sun_sign", natalSunSign)
+      .eq("natal_moon_sign", birthMoonSign)
+      .eq("transiting_moon_sign", transitSign)
+      .maybeSingle();
+    return { row: (data as TriadRow | null) ?? null, error };
+  };
+
+  if (isPro) return readTable(TRIAD_COLUMNS);
+
+  const { data, error } = await supabase.rpc("get_my_triad_preview", { p_transiting_moon_sign: transitSign });
+  if (error) {
+    if (isMissingFunction(error)) return readTable(TRIAD_PREVIEW_COLUMNS);
+    return { row: null, error };
+  }
+  return { row: (Array.isArray(data) ? data[0] : data) ?? null, error: null };
+}
+
 export function useLunarForecast(
   birthMoonSign: string,
   currentMoon: CurrentMoonData,
-  natalSunSign?: string | null
+  natalSunSign?: string | null,
+  isPro: boolean = true
 ): UseLunarForecastResult {
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [triadData, setTriadData] = useState<TriadData | null>(null);
@@ -51,15 +100,12 @@ export function useLunarForecast(
 
       try {
         if (natalSunSign) {
-          const { data: dbTriad, error: triadError } = await supabase
-            .from("triad_states")
-            .select(
-              "physical_guidance, emotional_guidance, spiritual_guidance, daily_ritual, shadow_activation, integration_invitation"
-            )
-            .eq("natal_sun_sign", natalSunSign)
-            .eq("natal_moon_sign", birthMoonSign)
-            .eq("transiting_moon_sign", currentMoon.sign)
-            .maybeSingle();
+          const { row: dbTriad, error: triadError } = await fetchTriadRow(
+            isPro,
+            natalSunSign,
+            birthMoonSign,
+            currentMoon.sign
+          );
 
           if (triadError) {
             console.error("Error fetching triad forecast:", triadError);
@@ -154,7 +200,7 @@ export function useLunarForecast(
     };
 
     fetchForecast();
-  }, [birthMoonSign, currentMoon.sign, currentMoon.phase, natalSunSign]);
+  }, [birthMoonSign, currentMoon.sign, currentMoon.phase, natalSunSign, isPro]);
 
   return { forecast, triadData, loading, error };
 }
