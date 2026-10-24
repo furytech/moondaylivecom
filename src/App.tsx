@@ -54,6 +54,7 @@ import GuestStudio from "./pages/GuestStudio";
 import Transit from "./pages/Transit";
 import IdleSessionGuard from "./components/IdleSessionGuard";
 import TriadPreview from "./pages/TriadPreview";
+import ConfirmLanding from "./components/ConfirmLanding";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,7 @@ export const App = () => (
           <Sonner />
           <BrowserRouter>
             <AuthRecoveryHandler />
+            <ConfirmLanding />
             <LowercasePath />
             <ScrollToTop />
             <IdleSessionGuard />

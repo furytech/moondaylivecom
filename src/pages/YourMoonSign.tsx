@@ -10,12 +10,15 @@ import { loadRevealState } from "@/lib/revealState";
 import { getMoonSignByName } from "@/lib/moonSign";
 import { getMoonSignDeepDive } from "@/lib/moonSignContent";
 import { formatBirthdayLong } from "@/lib/cuspDay";
+import { useAdvanceOnConfirm } from "@/hooks/useAdvanceOnConfirm";
 
 const GOLD = "#d4af37";
 
 /** The reveal, shown straight after the account is created. Nothing here can be reached without an email. */
 const YourMoonSign = () => {
   const state = useMemo(() => loadRevealState(), []);
+  // Confirming in another tab of this browser moves this tab on to the Blueprint by itself.
+  useAdvanceOnConfirm();
   if (!state) return <Navigate to="/" replace />;
 
   const moon = state.kind === "reveal" ? getMoonSignByName(state.moonSign) : null;

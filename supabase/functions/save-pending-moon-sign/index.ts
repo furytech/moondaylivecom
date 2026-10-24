@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { EclipticGeoMoon, AstroTime } from "https://esm.sh/astronomy-engine@2.1.19";
 import { decideSettle } from "../_shared/pendingMoonSignRules.ts";
+import { validMoonSigns } from "../_shared/cuspSigns.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,15 +35,19 @@ serve(async (req) => {
     const { data: userData } = await admin.auth.admin.getUserById(userId);
     const { data: profile } = await admin
       .from("user_profiles")
-      .select("birthday, moon_sign, natal_moon_sign")
+      .select("birthday, timezone, moon_sign, natal_moon_sign")
       .eq("user_id", userId)
       .maybeSingle();
 
-    const decision = decideSettle(sign, userData?.user ?? null, profile ?? null);
+    // Only the one or two Moon signs this birth date can have (in the member's own timezone) are accepted.
+    const validSigns = profile?.birthday
+      ? validMoonSigns(profile.birthday, profile.timezone ?? "UTC", (ms) => EclipticGeoMoon(new AstroTime(new Date(ms))).lon)
+      : null;
+    const decision = decideSettle(sign, userData?.user ?? null, profile ?? null, Date.now(), validSigns);
     if (decision !== "ok") {
       console.log("[SAVE-PENDING-MOON-SIGN] not saved", { decision });
       // Do not reveal whether an id exists: anything but a bad sign answers the same way.
-      return decision === "bad_sign" ? json({ error: "Invalid request" }, 400) : json({ saved: false });
+      return decision === "bad_sign" || decision === "wrong_sign_for_birthday" ? json({ error: "Invalid request" }, 400) : json({ saved: false });
     }
 
     const { error } = await admin

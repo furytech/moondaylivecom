@@ -85,3 +85,41 @@ describe("save-pending-moon-sign rules", () => {
     expect(decideSettle("Aries", freshUser, { ...emptyProfile, birthday: null }, NOW)).toBe("no_birthday");
   });
 });
+
+import { EclipticGeoMoon, AstroTime } from "astronomy-engine";
+import { validMoonSigns } from "../../supabase/functions/_shared/cuspSigns";
+import { getLocalCuspDay } from "../lib/cuspDay";
+
+const lon = (ms: number) => EclipticGeoMoon(new AstroTime(new Date(ms))).lon;
+
+describe("save-pending-moon-sign: sign must be valid for the birth date", () => {
+  it("a Moon-change birthday (Feb 7, 1992, New York) accepts exactly its two signs", () => {
+    const signs = validMoonSigns("1992-02-07", "America/New_York", lon);
+    expect(signs).toEqual(["Pisces", "Aries"]);
+    expect(decideSettle("Pisces", freshUser, emptyProfile, NOW, signs)).toBe("ok");
+    expect(decideSettle("Aries", freshUser, emptyProfile, NOW, signs)).toBe("ok");
+  });
+
+  it("rejects any other sign for that birthday, even a real zodiac sign", () => {
+    const signs = validMoonSigns("1992-02-07", "America/New_York", lon);
+    for (const other of ["Taurus", "Gemini", "Aquarius", "Leo"]) {
+      expect(decideSettle(other, freshUser, emptyProfile, NOW, signs)).toBe("wrong_sign_for_birthday");
+    }
+  });
+
+  it("an ordinary day has a single valid sign", () => {
+    const signs = validMoonSigns("1992-02-08", "America/New_York", lon);
+    expect(signs).toHaveLength(1);
+    expect(decideSettle(signs[0], freshUser, emptyProfile, NOW, signs)).toBe("ok");
+  });
+
+  it("agrees with the app's own getLocalCuspDay across zones and dates", () => {
+    for (const tz of ["America/New_York", "Pacific/Auckland", "UTC", "Asia/Kolkata", "America/Los_Angeles"]) {
+      for (const bd of ["1992-02-07", "1985-07-19", "2001-11-30", "1999-03-01", "2010-12-25"]) {
+        const app = getLocalCuspDay(bd, tz);
+        const expected = app.from === app.to ? [app.from] : [app.from, app.to];
+        expect(validMoonSigns(bd, tz, lon)).toEqual(expected);
+      }
+    }
+  });
+});

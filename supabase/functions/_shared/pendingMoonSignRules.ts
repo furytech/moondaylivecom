@@ -19,16 +19,19 @@ export interface SettleProfile {
   natal_moon_sign: string | null;
 }
 
-export type SettleDecision = "ok" | "bad_sign" | "no_account" | "already_set" | "no_birthday" | "confirmed" | "expired";
+export type SettleDecision = "ok" | "bad_sign" | "wrong_sign_for_birthday" | "no_account" | "already_set" | "no_birthday" | "confirmed" | "expired";
 
 export function decideSettle(
   sign: unknown,
   user: SettleUser | null,
   profile: SettleProfile | null,
   now: number = Date.now(),
+  /** The signs this birth date can validly have (see cuspSigns.ts). null skips the check. */
+  validSigns: readonly string[] | null = null,
 ): SettleDecision {
   if (typeof sign !== "string" || !(ZODIAC_SIGNS as readonly string[]).includes(sign)) return "bad_sign";
   if (!user || !profile) return "no_account";
+  if (validSigns && !validSigns.includes(sign)) return "wrong_sign_for_birthday";
   // Never overwrite a sign that is already saved (birthdays and signs are locked after signup).
   if (profile.moon_sign || profile.natal_moon_sign) return "already_set";
   if (!profile.birthday) return "no_birthday";
