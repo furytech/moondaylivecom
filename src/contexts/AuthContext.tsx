@@ -22,6 +22,8 @@ interface SubscriptionStatus {
  */
 export interface SignUpOutcome {
   status: "created" | "existing" | "pending";
+  /** The new account's id (created only). Lets the Moon-change quiz save its result before the email is confirmed. */
+  userId?: string;
 }
 
 export interface SignUpOptions {
@@ -299,7 +301,7 @@ export const AuthProvider = ({ children, initialLoading = true }: AuthProviderPr
     // The Blueprint email is sent server-side after the user confirms their email
     // (DB trigger on auth.users -> send-blueprint-email).
     trackEvent("sign_up", { method: "email" });
-    return { status: "created" };
+    return { status: "created", userId: data.user?.id };
   };
 
   const handleSignOut = async () => {

@@ -78,7 +78,7 @@ export function useCreateRevealAccount() {
         return status;
       }
       if (moonSign === null) {
-        saveSignupDraft({ birthday, timezone, email });
+        saveSignupDraft({ birthday, timezone, email, userId: outcome?.userId });
         navigate("/transition-quiz");
         return status;
       }

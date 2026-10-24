@@ -17,7 +17,7 @@ import { INNER_CIRCLE, PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 
 import SetPasswordStep, { needsPassword } from "@/components/SetPasswordStep";
 import NamePrompt, { hasAskedForName } from "@/components/NamePrompt";
-import { clearPendingMoonSign, loadPendingMoonSign } from "@/lib/pendingMoonSign";
+import { clearPendingMoonSign, loadPendingMoonSign, nextStepForMember } from "@/lib/pendingMoonSign";
 import { requestBlueprintEmail } from "@/lib/blueprintEmail";
 import { hasVisitedBlueprint, markBlueprintVisited } from "@/lib/blueprintVisit";
 import ShareNudgeCard from "@/components/ShareNudgeCard";
@@ -183,14 +183,15 @@ const Blueprint = () => {
   const settlingRef = useRef(false);
   useEffect(() => {
     if (!user || passwordPending || profileLoading || !userProfile || settlingRef.current) return;
-    if (!userProfile.birthday || userProfile.natal_moon_sign || userProfile.moon_sign) return;
-    settlingRef.current = true;
-    const birthday = userProfile.birthday.split("T")[0];
     const pending = loadPendingMoonSign();
-    if (!pending || pending.birthday !== birthday) {
+    const step = nextStepForMember(userProfile, pending);
+    if (step === "stay") return;
+    settlingRef.current = true;
+    if (step === "quiz" || !pending) {
       navigate("/transition-quiz", { replace: true });
       return;
     }
+    const birthday = (userProfile.birthday ?? "").split("T")[0];
     (async () => {
       const sunSign = userProfile.natal_sun_sign || calculateSunSign(birthday);
       const { error } = await supabase

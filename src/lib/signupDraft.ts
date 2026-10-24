@@ -11,6 +11,8 @@ export interface SignupDraft {
   birthday: string;
   timezone: string;
   email: string;
+  /** The pending account's id, so the quiz result can be saved server-side before the email is confirmed. */
+  userId?: string;
 }
 
 export function loadSignupDraft(): SignupDraft | null {
@@ -19,7 +21,7 @@ export function loadSignupDraft(): SignupDraft | null {
     if (!raw) return null;
     const draft = JSON.parse(raw) as Partial<SignupDraft>;
     if (!draft.birthday || !isValidBirthday(draft.birthday) || !draft.timezone || !draft.email) return null;
-    return { birthday: draft.birthday, timezone: draft.timezone, email: draft.email };
+    return { birthday: draft.birthday, timezone: draft.timezone, email: draft.email, userId: draft.userId };
   } catch {
     return null;
   }

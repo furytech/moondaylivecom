@@ -17,6 +17,8 @@ project_id = "ggrhuhwxbwrfbbcwcrmv"
     verify_jwt = false
   [functions.preview-transactional-email]
     verify_jwt = false
+  [functions.save-pending-moon-sign]
+    verify_jwt = false
   [functions.sovereign-teaser]
     verify_jwt = false
   # Stripe signs webhooks; it does not send a Supabase JWT. Matches the live setting.

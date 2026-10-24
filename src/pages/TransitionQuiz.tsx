@@ -10,7 +10,7 @@ import MoonLoader from "@/components/MoonLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { REVEAL_PATH, clearSignupDraft, loadSignupDraft } from "@/lib/signupDraft";
 import { saveRevealState } from "@/lib/revealState";
-import { savePendingMoonSign } from "@/lib/pendingMoonSign";
+import { savePendingMoonSign, savePendingMoonSignRemote } from "@/lib/pendingMoonSign";
 import { requestBlueprintEmail } from "@/lib/blueprintEmail";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,10 +103,13 @@ const TransitionQuiz = () => {
 
   // A visitor's account already exists (it was created before the quiz, so no sign was shown without an email).
   // Hold the settled sign here until they confirm and sign in, then show the reveal.
-  const settleAsVisitor = (sign: string) => {
+  const settleAsVisitor = async (sign: string) => {
     if (!draft || settledRef.current) return;
     settledRef.current = true;
+    // Keep it on the server too: the confirmation link may open in another browser or device,
+    // where nothing stored here exists. The browser copy stays as a fallback.
     savePendingMoonSign({ birthday: draft.birthday, sign });
+    await savePendingMoonSignRemote(draft.userId, sign);
     saveRevealState({
       kind: "reveal",
       email: draft.email,
