@@ -20,7 +20,7 @@ export const faqs: Faq[] = [
   },
   {
     q: "Can I cancel my subscription?",
-    a: "Yes. Members can cancel anytime online: go to Account → Manage subscription. Your access continues until the end of the paid period. Please review our Refund Policy for details.",
+    a: "Yes. Members can cancel anytime online: go to Account → Manage or cancel membership. Your access continues until the end of the paid period. Please review our Refund Policy for details.",
   },
   {
     q: "Do you offer refunds?",
