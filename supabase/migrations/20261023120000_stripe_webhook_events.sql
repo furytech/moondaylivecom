@@ -1,3 +1,4 @@
+-- APPLIED 2026-10-24 in the Supabase SQL editor (project ggrhuhwxbwrfbbcwcrmv). Idempotent; no need to re-run.
 -- Event-ID dedupe for stripe-webhook. The function inserts each Stripe event id before it
 -- processes the event; a second delivery of the same id hits the primary key and is ignored.
 -- Additive only: one new table, nothing existing is touched.

@@ -1,3 +1,4 @@
+-- Run before the lockdown, which was APPLIED 2026-10-23. Kept for reference.
 -- READ-ONLY pre-flight for supabase/proposed/triad_states_lockdown.sql. Changes nothing. Project ggrhuhwxbwrfbbcwcrmv.
 -- One statement, one result cell: the SQL editor only shows the last statement's result, so everything is
 -- folded into a single JSON value. Counts and catalog metadata only; no member data and no triad text.
