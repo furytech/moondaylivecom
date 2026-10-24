@@ -1,3 +1,4 @@
+import ManageMembershipButton from "@/components/ManageMembershipButton";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +10,7 @@ import MoonLoader from "@/components/MoonLoader";
 import { useToast } from "@/hooks/use-toast";
 import { calculateMoonSignAsync, calculateSunSign } from "@/lib/moonSign";
 import { getLocalCuspDay } from "@/lib/cuspDay";
-import { Crown, ExternalLink, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell, Globe, User as UserIcon } from "lucide-react";
+import { Crown, LogOut, Moon, Mail, Calendar as CalendarIcon, Bell, Globe, User as UserIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -79,7 +80,6 @@ const Account = () => {
       ? `${birthYear}-${birthMonth.padStart(2, "0")}-${birthDay.padStart(2, "0")}`
       : "";
   const [saving, setSaving] = useState(false);
-  const [portalLoading, setPortalLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [alertFrequency, setAlertFrequency] = useState<"all" | "natal">("all");
   const [frequencySaving, setFrequencySaving] = useState(false);
@@ -251,29 +251,6 @@ const Account = () => {
       });
     } finally {
       setTimezoneSaving(false);
-    }
-  };
-
-  const handleManageSubscription = async () => {
-    if (!session) return;
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err) {
-      console.error("Portal error:", err);
-      toast({
-        title: "Billing portal unavailable",
-        description: (err as Error)?.message || "Please try again in a few moments.",
-        variant: "destructive",
-      });
-    } finally {
-      setPortalLoading(false);
     }
   };
 
@@ -569,20 +546,7 @@ const Account = () => {
                       <p className="font-serif text-base text-cream-muted mb-6">
                         All premium features are unlocked.
                       </p>
-                      <button
-                        onClick={handleManageSubscription}
-                        disabled={portalLoading}
-                        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 font-sans text-[15px] md:text-base text-primary transition-all duration-300 disabled:opacity-50 min-h-[48px]"
-                      >
-                        {portalLoading ? (
-                          <MoonLoader size="sm" />
-                        ) : (
-                          <>
-                            <ExternalLink className="w-4 h-4" />
-                            Manage subscription
-                          </>
-                        )}
-                      </button>
+                      <ManageMembershipButton />
                     </>
                   ) : (
                     <>

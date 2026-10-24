@@ -1,7 +1,7 @@
+import ManageMembershipButton from "@/components/ManageMembershipButton";
 import { useMemo, type ReactNode } from "react";
-import { ChevronRight, ExternalLink, Moon, Sun } from "lucide-react";
+import { ChevronRight, Moon, Sun } from "lucide-react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import MoonLoader from "@/components/MoonLoader";
 import BlueprintIdentity from "@/components/BlueprintIdentity";
 import BlueprintPreviewCard from "@/components/BlueprintPreviewCard";
 import LuminaryGate from "@/components/LuminaryGate";
@@ -27,8 +27,6 @@ interface NatalTabProps {
   onPrimaryUpgrade: () => void;
   onSelectPlan: (priceId: string) => Promise<void> | void;
   checkoutLoading: boolean;
-  onManageSubscription: () => void;
-  portalLoading: boolean;
   /** Shown right under the Birth Moon section (the share nudge, when it is due) */
   afterBirthMoon?: ReactNode;
 }
@@ -56,8 +54,6 @@ const NatalTab = ({
   onPrimaryUpgrade,
   onSelectPlan,
   checkoutLoading,
-  onManageSubscription,
-  portalLoading,
   afterBirthMoon,
 }: NatalTabProps) => {
   const entries = useMemo<IndexEntry[]>(() => {
@@ -181,21 +177,7 @@ const NatalTab = ({
           </div>
           <BackToTop />
           <div className="text-center">
-            <button
-              type="button"
-              onClick={onManageSubscription}
-              disabled={portalLoading}
-              className="inline-flex items-center justify-center gap-3 min-h-11 px-3 font-serif text-lg text-cream-muted elegant-hover"
-            >
-              {portalLoading ? (
-                <MoonLoader size="sm" />
-              ) : (
-                <>
-                  <ExternalLink className="w-5 h-5" aria-hidden="true" />
-                  Manage Subscription
-                </>
-              )}
-            </button>
+            <ManageMembershipButton />
           </div>
         </>
       )}

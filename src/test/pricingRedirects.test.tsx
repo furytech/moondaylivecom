@@ -15,6 +15,7 @@ const auth = {
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     functions: { invoke: (...args: unknown[]) => invoke(...args) },
+    auth: { getSession: async () => ({ data: { session: { access_token: "tok" } } }) },
     from: () => ({
       select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { moon_sign: "Cancer" } }) }) }),
     }),
@@ -79,7 +80,7 @@ describe("Pricing: same-tab redirects and teaser function name", () => {
     invoke.mockResolvedValue({ data: { url: "https://billing.stripe.com/p/session/test_1" }, error: null });
     try {
       renderPricing();
-      fireEvent.click(screen.getByRole("button", { name: /Manage Subscription/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Manage or cancel membership/i }));
       await waitFor(() => expect(window.location.href).toBe("https://billing.stripe.com/p/session/test_1"));
       expect(openSpy).not.toHaveBeenCalled();
     } finally {

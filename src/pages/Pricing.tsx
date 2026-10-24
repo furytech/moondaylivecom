@@ -1,9 +1,10 @@
+import ManageMembershipButton from "@/components/ManageMembershipButton";
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, Crown, Moon, ExternalLink, Sparkles } from "lucide-react";
+import { Check, X, Crown, Moon, Sparkles } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
 import Navigation from "@/components/Navigation";
@@ -52,7 +53,6 @@ const Pricing = () => {
     searchParams.get("plan") === "yearly" ? "yearly" : "yearly"
   );
   const [loading, setLoading] = useState(false);
-  const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState("");
   const [teaser, setTeaser] = useState<string>("");
   const [teaserLoading, setTeaserLoading] = useState(false);
@@ -113,24 +113,6 @@ const Pricing = () => {
 
   const formatDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : null;
-
-  const handleManageSubscription = async () => {
-    if (!session) return;
-    setPortalLoading(true);
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke("customer-portal", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (fnError) throw fnError;
-      if (data?.url) window.location.href = data.url;
-    } catch (err) {
-      console.error("Portal error:", err);
-      setError("Unable to open subscription management. Please try again.");
-    } finally {
-      setPortalLoading(false);
-    }
-  };
-
 
   const canceled = searchParams.get("canceled") === "true";
 
@@ -265,20 +247,7 @@ const Pricing = () => {
                 >
                   Enter Your Blueprint
                 </button>
-                <button
-                  onClick={handleManageSubscription}
-                  disabled={portalLoading}
-                  className="inline-flex items-center gap-2 font-serif text-base text-cream-muted elegant-hover disabled:opacity-50"
-                >
-                  {portalLoading ? (
-                    <MoonLoader size="sm" />
-                  ) : (
-                    <>
-                      <ExternalLink className="w-4 h-4" />
-                      Manage Subscription
-                    </>
-                  )}
-                </button>
+                <ManageMembershipButton />
               </div>
             </div>
           </GlassmorphismCard>

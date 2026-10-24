@@ -53,7 +53,6 @@ const Blueprint = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, session, subscription, checkSubscription } = useAuth();
-  const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [timeUntilTransition, setTimeUntilTransition] = useState("");
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
@@ -305,28 +304,6 @@ const Blueprint = () => {
     }
   }, [success, checkSubscription, user]);
 
-  const handleManageSubscription = async () => {
-    if (!session) return;
-    
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err) {
-      console.error("Portal error:", err);
-    } finally {
-      setPortalLoading(false);
-    }
-  };
-
   const handleOpenPricing = () => {
     if (!session) {
       navigate("/login");
@@ -562,8 +539,6 @@ const Blueprint = () => {
               onPrimaryUpgrade={() => navigate("/pricing")}
               onSelectPlan={handleSelectPlan}
               checkoutLoading={checkoutLoading}
-              onManageSubscription={handleManageSubscription}
-              portalLoading={portalLoading}
               afterBirthMoon={nudgeCard}
             />
           )}
