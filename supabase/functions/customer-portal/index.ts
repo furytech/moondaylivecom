@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { findPortalProfile, isPaidProfile } from "../_shared/portalProfile.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,16 +42,25 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Verify active Luminary subscription status from Supabase
-    const { data: profile } = await supabaseClient
-      .from("user_profiles")
-      .select("subscription_status, is_subscriber, stripe_customer_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    // Verify active Luminary subscription status from Supabase. Only columns that exist: asking for a missing
+    // column makes the whole query fail, which used to look like "no profile" and locked paying members out.
+    const columns = "subscription_status, is_subscriber";
+    const profile = await findPortalProfile(
+      {
+        byUserId: async (id) => {
+          const { data, error } = await supabaseClient.from("user_profiles").select(columns).eq("user_id", id).maybeSingle();
+          return { data, error: error?.message };
+        },
+        byEmail: async (mail) => {
+          const { data, error } = await supabaseClient.from("user_profiles").select(columns).eq("email", mail).limit(1).maybeSingle();
+          return { data, error: error?.message };
+        },
+      },
+      user.id,
+      user.email,
+    );
 
-    const isLuminary = profile?.subscription_status === "luminary" ||
-                       profile?.subscription_status === "sovereign" ||
-                       Boolean(profile?.is_subscriber);
+    const isLuminary = isPaidProfile(profile);
 
     if (!isLuminary) {
       logStep("User does not have an active Luminary subscription", { profile });
@@ -65,13 +75,11 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    // Find Stripe customer ID
-    let customerId = profile?.stripe_customer_id;
-    if (!customerId) {
-      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-      if (customers.data.length > 0) {
-        customerId = customers.data[0].id;
-      }
+    // Find the Stripe customer by the member's email (profiles do not store a Stripe customer id).
+    let customerId: string | undefined;
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
     }
 
     if (!customerId) {

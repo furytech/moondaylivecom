@@ -25,3 +25,6 @@ Always keep `verify_jwt = false` on stripe-webhook, or Stripe's deliveries are r
 `supabase/migrations/20261023120000_stripe_webhook_events.sql` creates `stripe_webhook_events`.
 Until it is applied, stripe-webhook logs a warning and processes every event (no dedupe), which
 is the same behavior as before. Once applied, dedupe starts with no redeploy.
+
+## customer-portal fix (2026-10-24)
+Before: v20, ezbr_sha256 5fff50bc3afbe042d9ffe8eb77ea3a375da1862f9c63efc5501b3cef0466637d. Roll back with the same deploy command from the earlier commit.
