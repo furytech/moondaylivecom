@@ -65,7 +65,7 @@ describe("Pricing: same-tab redirects and teaser function name", () => {
     fireEvent.click(screen.getByRole("button", { name: /Unlock Luminary/i }));
     await waitFor(() => expect(window.location.href).toBe("https://checkout.stripe.com/c/pay/cs_test_1"));
     expect(openSpy).not.toHaveBeenCalled();
-    expect(invoke).toHaveBeenCalledWith("create-checkout", expect.objectContaining({ body: { priceId: "price_1ULN4MJowQfvwg0ZjOGNtzgY" } }));
+    expect(invoke).toHaveBeenCalledWith("create-checkout", expect.objectContaining({ body: { priceId: "price_1ULN4MJowQfvwg0ZjOGNtzgY", returnOrigin: window.location.origin } }));
   });
 
   it("asks the deployed sovereign-teaser function for the teaser", async () => {
