@@ -128,7 +128,7 @@ const Pricing = () => {
     try {
       const priceId = PRICES[billingInterval].id;
       const { data, error: fnError } = await supabase.functions.invoke("create-checkout", {
-        body: { priceId },
+        body: { priceId, returnOrigin: window.location.origin },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
 

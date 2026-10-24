@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkoutUrls } from "../_shared/checkoutUrls.ts";
 import { bearerToken } from "../_shared/subscriptionAccess.ts";
 
 const corsHeaders = {
@@ -53,7 +54,7 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId } = await req.json();
+    const { priceId, returnOrigin } = await req.json();
     logStep("Received price ID", { priceId });
 
     if (typeof priceId !== "string" || !ALLOWED_PRICE_IDS.has(priceId)) {
@@ -77,8 +78,8 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Hardcoded redirect URLs — never trust client headers for payment redirects.
-    const SITE_URL = "https://moondaylive.com";
+    // Redirect URLs come from an exact allowlist of our own hosts, never from arbitrary client input.
+    const { success_url, cancel_url } = checkoutUrls(returnOrigin);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -91,8 +92,8 @@ serve(async (req) => {
       ],
       mode: "subscription",
       allow_promotion_codes: true,
-      success_url: `${SITE_URL}/welcome-sovereign`,
-      cancel_url: `${SITE_URL}/pricing?canceled=true`,
+      success_url,
+      cancel_url,
     });
 
     logStep("Checkout session created", { sessionId: session.id });
