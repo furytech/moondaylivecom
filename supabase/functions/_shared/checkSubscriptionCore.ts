@@ -10,7 +10,11 @@ import {
 export interface StripeSubscriptionForCheck extends SubscriptionLike {
   current_period_end?: number | null;
   start_date?: number | null;
-  items?: { data?: Array<{ price?: { id?: string; product?: unknown } }> };
+  /** True when the member cancelled: access continues until the period ends. */
+  cancel_at_period_end?: boolean | null;
+  cancel_at?: number | null;
+  // Newer Stripe API versions keep the billing period on the items, not on the subscription.
+  items?: { data?: Array<{ current_period_end?: number | null; price?: { id?: string; product?: unknown } }> };
 }
 
 export interface CheckDeps {
@@ -28,6 +32,8 @@ export interface CheckResult {
   price_id?: string | null;
   subscription_end?: string | null;
   subscription_start?: string | null;
+  /** True when the membership is set to end at the close of the paid period. */
+  cancel_at_period_end?: boolean;
 }
 
 const iso = (seconds: unknown): string | null =>
@@ -51,11 +57,16 @@ export async function checkSubscription(email: string, deps: CheckDeps): Promise
 
   const primary = pickPrimarySubscription(subscriptions)!;
   const price = primary.items?.data?.[0]?.price;
+  const cancelling = primary.cancel_at_period_end === true || typeof primary.cancel_at === "number";
+  // When cancelling, the end date is the day access stops.
+  const endSeconds =
+    (cancelling ? primary.cancel_at : null) ?? primary.current_period_end ?? primary.items?.data?.[0]?.current_period_end;
   return {
     subscribed: true,
     product_id: price?.product ?? null,
     price_id: price?.id ?? null,
-    subscription_end: iso(primary.current_period_end),
+    subscription_end: iso(endSeconds),
     subscription_start: iso(primary.start_date),
+    cancel_at_period_end: cancelling,
   };
 }

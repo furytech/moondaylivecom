@@ -3,16 +3,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Crown, Sparkles, Brain, Globe } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import GlassmorphismCard from "@/components/GlassmorphismCard";
-import { trackEvent } from "@/lib/analytics";
+import { trackPurchaseOnce } from "@/lib/analytics";
 import SEO from "@/components/SEO";
 
 const SubscriptionSuccess = () => {
   const navigate = useNavigate();
   const { user, checkSubscription, subscription } = useAuth();
   const [updating, setUpdating] = useState(true);
-  const purchaseTracked = useRef(false);
 
   // Confirm subscription status from server (webhook handles activation)
   useEffect(() => {
@@ -35,28 +34,11 @@ const SubscriptionSuccess = () => {
     confirmStatus();
   }, [user, checkSubscription]);
 
-  // Fire GA4 purchase event once when confirmed Sovereign
+  // GA4 purchase: once per subscription (a refresh or revisit never counts it twice).
   useEffect(() => {
-    if (purchaseTracked.current) return;
     if (!subscription.subscribed) return;
-
-    purchaseTracked.current = true;
-    const isYearly = (subscription.productId || "").toLowerCase().includes("year");
-    const value = isYearly ? 19.88 : 2.88;
-    trackEvent("purchase", {
-      transaction_id: `${user?.id ?? "anon"}-${Date.now()}`,
-      currency: "USD",
-      value,
-      items: [
-        {
-          item_id: isYearly ? "yearly" : "monthly",
-          item_name: `Sovereign ${isYearly ? "Yearly" : "Monthly"}`,
-          price: value,
-          quantity: 1,
-        },
-      ],
-    });
-  }, [subscription, user]);
+    trackPurchaseOnce(user?.id, subscription.subscriptionStart, subscription.priceId);
+  }, [subscription, user?.id]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">

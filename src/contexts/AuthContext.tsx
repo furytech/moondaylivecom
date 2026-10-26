@@ -12,6 +12,8 @@ interface SubscriptionStatus {
   priceId: string | null;
   subscriptionEnd: string | null;
   subscriptionStart: string | null;
+  /** The membership is set to end at the close of the paid period. */
+  cancelAtPeriodEnd?: boolean;
 }
 
 /**
@@ -136,6 +138,7 @@ export const AuthProvider = ({ children, initialLoading = true }: AuthProviderPr
         priceId: data?.price_id || null,
         subscriptionEnd: data?.subscription_end || null,
         subscriptionStart: data?.subscription_start || null,
+        cancelAtPeriodEnd: data?.cancel_at_period_end === true,
       });
     } catch (err) {
       console.error("Failed to check subscription:", err);

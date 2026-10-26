@@ -116,3 +116,22 @@ describe("create-checkout source", () => {
     expect(src).toContain("price_1ULN4MJowQfvwg0ZjOGNtzgY");
   });
 });
+
+describe("Pricing: billing terms line", () => {
+  it("states price, auto-renewal, one-click cancel and links Terms and Refund Policy", () => {
+    render(
+      <HelmetProvider>
+        <MemoryRouter>
+          <Pricing />
+        </MemoryRouter>
+      </HelmetProvider>,
+    );
+    const line = screen.getByTestId("billing-terms");
+    expect(line.textContent).toContain("$58.88 per year");
+    expect(line.textContent).toContain("renews automatically");
+    expect(line.textContent).toContain("cancel in one click from your Account page");
+    expect(line.querySelector('a[href="/terms"]')).toBeTruthy();
+    expect(line.querySelector('a[href="/refund"]')).toBeTruthy();
+    expect(line.className).toContain("text-left");
+  });
+});

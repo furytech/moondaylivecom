@@ -8,11 +8,13 @@ export const PORTAL_ERROR_TEXT =
 
 interface ManageMembershipButtonProps {
   className?: string;
+  /** Defaults to "Manage or cancel membership". */
+  label?: string;
 }
 
 /** One-click path to Stripe's customer portal (cancel, update card, invoices).
  *  Same-tab redirect; shows a plain-language message if it fails. Paid members only. */
-const ManageMembershipButton = ({ className = "" }: ManageMembershipButtonProps) => {
+const ManageMembershipButton = ({ className = "", label = "Manage or cancel membership" }: ManageMembershipButtonProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -49,7 +51,7 @@ const ManageMembershipButton = ({ className = "" }: ManageMembershipButtonProps)
         ) : (
           <>
             <ExternalLink className="w-4 h-4" aria-hidden="true" />
-            Manage or cancel membership
+            {label}
           </>
         )}
       </button>

@@ -1,7 +1,7 @@
 import ManageMembershipButton from "@/components/ManageMembershipButton";
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X, Crown, Moon, Sparkles } from "lucide-react";
@@ -13,6 +13,7 @@ import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
 import { useEffect } from "react";
 import { getCurrentMoon } from "@/lib/currentMoon";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 // Stripe Price IDs
 const PRICES = {
@@ -127,6 +128,7 @@ const Pricing = () => {
 
     try {
       const priceId = PRICES[billingInterval].id;
+      trackBeginCheckout(priceId);
       const { data, error: fnError } = await supabase.functions.invoke("create-checkout", {
         body: { priceId, returnOrigin: window.location.origin },
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -419,6 +421,13 @@ const Pricing = () => {
             >
               {loading ? <MoonLoader size="sm" /> : "Unlock Luminary"}
             </button>
+            <p className="font-serif text-sm text-cream-muted/80 leading-relaxed text-left mt-4" data-testid="billing-terms">
+              {PRICES[billingInterval].amount} per {PRICES[billingInterval].interval}. Your membership renews
+              automatically each {PRICES[billingInterval].interval} until you cancel. You can cancel in one click
+              from your Account page. See our{" "}
+              <Link to="/terms" className="underline underline-offset-4 text-primary/90">Terms</Link> and{" "}
+              <Link to="/refund" className="underline underline-offset-4 text-primary/90">Refund Policy</Link>.
+            </p>
           </GlassmorphismCard>
         </div>
 

@@ -84,6 +84,7 @@ describe("check-subscription", () => {
       price_id: "price_year",
       subscription_end: new Date(1_800_000_000 * 1000).toISOString(),
       subscription_start: new Date(1_700_000_000 * 1000).toISOString(),
+      cancel_at_period_end: false,
     });
   });
 
@@ -97,5 +98,34 @@ describe("check-subscription", () => {
     const deps = makeDeps([withPrice("sub_1", "active")], "db down");
     expect((await checkSubscription("m@x.com", deps)).subscribed).toBe(true);
     expect(deps.log).toHaveBeenCalledWith("WARNING: Failed to sync profile", { error: "db down" });
+  });
+});
+
+describe("check-subscription: cancel at period end", () => {
+  it("reports cancel_at_period_end and uses the cancel date as the end", async () => {
+    const sub = withPrice("sub_1", "active", { cancel_at_period_end: true, cancel_at: 1_790_000_000 });
+    const res = await checkSubscription("m@x.com", makeDeps([sub]));
+    expect(res.subscribed).toBe(true);
+    expect(res.cancel_at_period_end).toBe(true);
+    expect(res.subscription_end).toBe(new Date(1_790_000_000 * 1000).toISOString());
+  });
+
+  it("an ordinary active subscription is not cancelling", async () => {
+    const res = await checkSubscription("m@x.com", makeDeps([withPrice("sub_1", "active")]));
+    expect(res.cancel_at_period_end).toBe(false);
+  });
+
+  it("reads the period end from the item on newer Stripe API versions", async () => {
+    const sub = withPrice("sub_1", "active", {
+      current_period_end: undefined,
+      items: { data: [{ current_period_end: 1_795_000_000, price: { id: "price_year", product: "prod_1" } }] },
+    });
+    expect((await checkSubscription("m@x.com", makeDeps([sub]))).subscription_end).toBe(new Date(1_795_000_000 * 1000).toISOString());
+  });
+
+  it("access rules are unchanged: a cancelling active subscription is still subscribed", async () => {
+    const deps = makeDeps([withPrice("sub_1", "active", { cancel_at_period_end: true })]);
+    await checkSubscription("m@x.com", deps);
+    expect(deps.updateProfileByEmail).toHaveBeenCalledWith("m@x.com", PAID);
   });
 });

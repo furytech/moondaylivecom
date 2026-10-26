@@ -57,3 +57,4 @@ git checkout 891c2d2 -- supabase/functions/save-pending-moon-sign supabase/funct
 supabase functions deploy save-pending-moon-sign --no-verify-jwt --project-ref ggrhuhwxbwrfbbcwcrmv
 ```
 Run `git checkout main -- supabase/functions` afterwards to put the working tree back.
+| 2026-10-26 | check-subscription | v21 | Adds cancel_at_period_end and a correct end date to the response; access rules unchanged | v20 (sha 979c758f0016...) |

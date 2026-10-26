@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Crown, Sparkles, Check, X } from "lucide-react";
 import MoonLoader from "@/components/MoonLoader";
-import { trackEvent } from "@/lib/analytics";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 interface PricingModalProps {
   open: boolean;
@@ -37,15 +37,7 @@ const PricingModal = ({ open, onOpenChange, onSelectPlan, loading }: PricingModa
 
   const handleSelectPlan = async (priceId: string) => {
     setSelectedPlan(priceId);
-    const plan = PLANS.find((p) => p.priceId === priceId);
-    const value = plan ? parseFloat(plan.price.replace(/[^0-9.]/g, "")) : undefined;
-    trackEvent("begin_checkout", {
-      currency: "USD",
-      value,
-      items: plan
-        ? [{ item_id: plan.id, item_name: `Sovereign ${plan.name}`, price: value }]
-        : undefined,
-    });
+    trackBeginCheckout(priceId);
     await onSelectPlan(priceId);
     setSelectedPlan(null);
   };

@@ -1,4 +1,5 @@
 import ManageMembershipButton from "@/components/ManageMembershipButton";
+import { formatMembershipEnd } from "@/lib/membershipEnd";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -543,10 +544,21 @@ const Account = () => {
                           Luminary Member
                         </span>
                       </div>
-                      <p className="font-serif text-base text-cream-muted mb-6">
-                        All premium features are unlocked.
-                      </p>
-                      <ManageMembershipButton />
+                      {subscription.cancelAtPeriodEnd && subscription.subscriptionEnd ? (
+                        <>
+                          <p className="font-serif text-base text-cream-muted mb-6 text-left" data-testid="membership-ends">
+                            Your membership ends on {formatMembershipEnd(subscription.subscriptionEnd)}. You keep full access until then.
+                          </p>
+                          <ManageMembershipButton label="Resume membership" />
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-serif text-base text-cream-muted mb-6">
+                            All premium features are unlocked.
+                          </p>
+                          <ManageMembershipButton />
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
