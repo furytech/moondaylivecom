@@ -58,3 +58,14 @@ supabase functions deploy save-pending-moon-sign --no-verify-jwt --project-ref g
 ```
 Run `git checkout main -- supabase/functions` afterwards to put the working tree back.
 | 2026-10-26 | check-subscription | v21 | Adds cancel_at_period_end and a correct end date to the response; access rules unchanged | v20 (sha 979c758f0016...) |
+
+## make-social-bridge: due-time rule and push mode (2026-10-27)
+Before: v25, ezbr_sha256 20d6fc3c8037162125f4b21300918755f7bf406f21d35628ac39671d2ad08868. Now: v26.
+Rollback to the old behavior (returns every published, unposted transit, no due rule):
+```powershell
+git checkout 4112b5e -- supabase/functions/make-social-bridge
+supabase functions deploy make-social-bridge --no-verify-jwt --project-ref ggrhuhwxbwrfbbcwcrmv
+git checkout main -- supabase/functions/make-social-bridge
+```
+The cron job (supabase/migrations/20261027120000_social_push_cron.sql, NOT YET APPLIED) is paused with
+`select cron.unschedule('social-push-every-15-min');`
