@@ -7,6 +7,7 @@ import {
   dueRows,
   formatPostTime,
   postTimeFor,
+  postedForApproval,
   pushDue,
   socialStatus,
   transitTimesLine,
@@ -131,6 +132,53 @@ describe("the four states, derived from the stored row", () => {
     expect(dueRows(rows, [LEO], T("2026-10-28T00:00:00Z")).map((r) => r.id)).toEqual(["leo", "leo"]);
     const items = dueItems([row()], [LEO], T("2026-10-28T00:00:00Z"));
     expect(items[0]).toMatchObject({ window: LEO, postAt: T("2026-10-27T18:00:00Z") });
+  });
+});
+
+describe("second cycle: an old social_posted_at never blocks the new window", () => {
+  // Cycle 1 (LEO) posted Oct 27 18:05Z. Cycle 2 (NEXT_LEO, Nov 23 12:00Z = 7:00 AM EST, posts 7:00 AM ET = 12:00Z).
+  const OLD = "2026-10-27T18:05:00Z";
+  const W = [LEO, NEXT_LEO];
+
+  it("approved for the new window with the old marker still set (approve that did not clear it): Approved, due at post time", () => {
+    const r = row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: OLD });
+    expect(socialStatus(r, W, T("2026-11-22T00:00:00Z"))).toMatchObject({ state: "approved", due: false, window: NEXT_LEO });
+    expect(socialStatus(r, W, T("2026-11-23T12:00:00Z"))).toMatchObject({ state: "approved", due: true });
+    expect(dueDecision(r, W, T("2026-11-23T12:00:00Z"))).toBe("due");
+  });
+
+  it("a post made after the new approval counts as Posted", () => {
+    const r = row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: "2026-11-23T12:03:00Z" });
+    expect(socialStatus(r, W, T("2026-11-23T13:00:00Z")).state).toBe("posted");
+  });
+
+  it("push posts the second cycle, and a repeat check does not post it again", async () => {
+    const rows = [row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: OLD })];
+    const posted: string[] = [];
+    const deps: PushDeps<TransitRow> = {
+      fetchCandidates: async () => rows.filter((r) => !postedForApproval(r)),
+      fetchWindows: async () => W,
+      postToWebhook: vi.fn(async (r: TransitRow) => (posted.push(r.id), 200)),
+      markPosted: async (id, at) => { rows.find((r) => r.id === id)!.social_posted_at = at; },
+      now: () => T("2026-11-23T13:00:00Z"),
+      log: vi.fn(),
+    };
+    await pushDue(deps);
+    await pushDue(deps);
+    expect(posted).toEqual(["leo"]);
+    expect(rows[0].social_posted_at).toBe("2026-11-23T13:00:00.000Z");
+  });
+
+  it("claim and mark receive the approval time so the database check can ignore the old marker", async () => {
+    const rows = [row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: OLD })];
+    const claim = vi.fn(async () => true);
+    const markPosted = vi.fn(async () => undefined);
+    await pushDue({
+      fetchCandidates: async () => rows, fetchWindows: async () => W, postToWebhook: async () => 200,
+      claim, markPosted, now: () => T("2026-11-23T13:00:00Z"), log: vi.fn(),
+    });
+    expect(claim).toHaveBeenCalledWith("leo", T("2026-11-23T13:00:00Z"), "2026-11-21T09:00:00Z");
+    expect(markPosted).toHaveBeenCalledWith("leo", expect.any(String), "2026-11-21T09:00:00Z");
   });
 });
 

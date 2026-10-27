@@ -78,3 +78,5 @@ git checkout main -- supabase/functions/make-social-bridge supabase/functions/_s
 ```
 Migrations, both NOT YET APPLIED: 20261027120000_social_push_cron.sql (hourly job `social-push-hourly`), 20261027130000_social_alert_columns.sql (sending / failure / alert columns; the function works without them).
 Pause the cron with `select cron.unschedule('social-push-hourly');`
+
+(v28: stale social_posted_at from an earlier approval no longer blocks a new cycle; rollback: git checkout c6d04d3 -- supabase/functions/make-social-bridge supabase/functions/_shared/socialDue.ts, then redeploy)

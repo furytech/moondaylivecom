@@ -3,6 +3,7 @@ import {
   CLAIM_STALE_MINUTES,
   dueItems,
   earliestApproval,
+  postedForApproval,
   pushDue,
   transitTimesLine,
   type DueItem,
@@ -65,10 +66,10 @@ async function fetchCandidates() {
   const { data, error } = await supabase
     .from('transits')
     .select('*')
-    .eq('status', 'published')
-    .is('social_posted_at', null);
+    .eq('status', 'published');
   if (error) throw new Error(error.message);
-  return (data ?? []) as Array<TransitRow & Record<string, any>>;
+  // The due rule decides which are unposted for their CURRENT approval (a marker older than the approval is stale).
+  return ((data ?? []) as Array<TransitRow & Record<string, any>>).filter((r) => !postedForApproval(r));
 }
 
 /** Moon windows that had not ended at sinceMs (a missed card's window must still be known). */
@@ -88,6 +89,10 @@ const log = (step: string, details?: unknown) =>
 
 // The sending / failure / alert columns come from a migration that may not be applied yet. Every write to them
 // is allowed to fail quietly so posting itself never depends on it.
+/** PostgREST filter: no post yet for this approval (never posted, or the marker predates the approval). */
+const unpostedFilter = (approvedAt: string | null) =>
+  approvedAt ? `social_posted_at.is.null,social_posted_at.lt.${new Date(approvedAt).toISOString()}` : 'social_posted_at.is.null';
+
 const claimStale = () => new Date(Date.now() - CLAIM_STALE_MINUTES * 60000).toISOString();
 
 Deno.serve(async (req) => {
@@ -156,27 +161,28 @@ Deno.serve(async (req) => {
             clearTimeout(timer);
           }
         },
-        markPosted: async (rowId, at) => {
+        markPosted: async (rowId, at, approvedAt) => {
+          const unposted = unpostedFilter(approvedAt);
           const full = await supabase
             .from('transits')
             .update({ social_posted_at: at, social_sending_at: null, social_fail_count: 0, social_last_error: null })
             .eq('id', rowId)
-            .is('social_posted_at', null);
+            .or(unposted);
           if (!full.error) return;
           // The extra columns may not exist yet: record the post itself.
           const { error } = await supabase
             .from('transits')
             .update({ social_posted_at: at })
             .eq('id', rowId)
-            .is('social_posted_at', null);
+            .or(unposted);
           if (error) throw new Error(error.message);
         },
-        claim: async (rowId, nowMs) => {
+        claim: async (rowId, nowMs, approvedAt) => {
           const { data, error } = await supabase
             .from('transits')
             .update({ social_sending_at: new Date(nowMs).toISOString() })
             .eq('id', rowId)
-            .is('social_posted_at', null)
+            .or(unpostedFilter(approvedAt))
             .or(`social_sending_at.is.null,social_sending_at.lt.${claimStale()}`)
             .select('id');
           if (error) {

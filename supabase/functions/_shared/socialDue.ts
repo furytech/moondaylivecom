@@ -113,6 +113,15 @@ export function windowForApproval(windows: readonly TransitWindow[], sign: strin
   return windows.filter((w) => sameSign(w, sign) && Date.parse(w.end_time) > approvedAt).sort(byStart)[0] ?? null;
 }
 
+/** A post counts for THIS approval only if it happened at or after the approval. A marker left from an earlier
+ *  cycle (e.g. a writer that approves without clearing it) is stale and never blocks the new post. */
+export function postedForApproval(row: TransitRow): boolean {
+  if (!row.social_posted_at) return false;
+  const posted = Date.parse(row.social_posted_at);
+  const approved = row.published_at ? Date.parse(row.published_at) : NaN;
+  return !Number.isFinite(approved) || !Number.isFinite(posted) || posted >= approved;
+}
+
 export type SocialState = "pending" | "approved" | "posted" | "missed";
 
 export interface SocialStatus {
@@ -144,7 +153,7 @@ export function socialStatus(
     if (next && Date.parse(next.start_time) - now <= ROLLOVER_DAYS * 86400000) return none;
   }
 
-  if (row.social_posted_at) return { state: "posted", window, postAt, due: false };
+  if (postedForApproval(row)) return { state: "posted", window, postAt, due: false };
   if (ended) return { state: "missed", window, postAt, due: false };
   return { state: "approved", window, postAt, due: window !== null && postAt !== null && now >= postAt };
 }
@@ -244,9 +253,9 @@ export interface PushDeps<T extends TransitRow> {
   /** POST the payload to the Make webhook; resolves the HTTP status (rejects on network error or timeout). */
   postToWebhook(row: T, ctx: PushContext): Promise<number>;
   /** Set social_posted_at if it is still empty. Throws when the database write fails. */
-  markPosted(id: string, at: string): Promise<void>;
+  markPosted(id: string, at: string, approvedAt: string | null): Promise<void>;
   /** Mark the card "sending" so Undo and an overlapping run leave it alone. false = someone else is sending it. */
-  claim?(id: string, nowMs: number): Promise<boolean>;
+  claim?(id: string, nowMs: number, approvedAt: string | null): Promise<boolean>;
   /** Drop the sending mark after a failed attempt. */
   release?(id: string): Promise<void>;
   /** Store the failure; resolves how many attempts in a row have failed for this approval. */
@@ -323,7 +332,7 @@ export async function pushDue<T extends TransitRow>(deps: PushDeps<T>): Promise<
   result.due = items.length;
 
   for (const { row, window, postAt } of items) {
-    if (deps.claim && !(await deps.claim(row.id, now))) {
+    if (deps.claim && !(await deps.claim(row.id, now, row.published_at ?? null))) {
       deps.log("already being sent, skipped", { id: row.id });
       continue;
     }
@@ -357,7 +366,7 @@ export async function pushDue<T extends TransitRow>(deps: PushDeps<T>): Promise<
     let marked = false;
     for (let attempt = 0; attempt < 3 && !marked; attempt++) {
       try {
-        await deps.markPosted(row.id, new Date(deps.now()).toISOString());
+        await deps.markPosted(row.id, new Date(deps.now()).toISOString(), row.published_at ?? null);
         marked = true;
       } catch (err) {
         deps.log("could not mark posted, retrying", { id: row.id, attempt, reason: err instanceof Error ? err.message : String(err) });
