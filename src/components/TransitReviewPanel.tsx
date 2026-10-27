@@ -217,17 +217,19 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
               ? 'No moon schedule loaded for this sign yet'
               : status.due
               ? 'Due now: posts at the next hourly check'
+              : transit.socialPostedAt
+              ? `Approved · next post ${formatPostTime(status.postAt)}`
               : `Posts ${formatPostTime(status.postAt)}`}
           </p>
         )}
-        {status.state === 'posted' && transit.socialPostedAt && (
+        {status.state === 'posted' && status.postedAt !== null && (
           <p className="mb-3 text-left text-xs font-medium text-emerald-300">
-            Posted {formatPostTime(Date.parse(transit.socialPostedAt))}
+            Posted {formatPostTime(status.postedAt)}
           </p>
         )}
         {missed && (
           <p className="mb-3 text-left text-xs font-medium text-rose-300">
-            Missed: the transit ended and this was never posted
+            Missed: the transit ended and this cycle was never posted
           </p>
         )}
 
@@ -276,7 +278,7 @@ export const TransitReviewPanel: React.FC<TransitReviewPanelProps> = ({
               Approve
             </button>
           )}
-          {status.state === 'approved' && (
+          {(status.state === 'approved' || missed) && (
             <button
               type="button"
               disabled={isActionLoading}

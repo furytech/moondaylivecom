@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   approveTransit,
+  stateOf,
   undoApproval,
   undoAllApproved,
   batchApproveAllTransits,
@@ -96,7 +97,7 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
     localStorage.removeItem('moonday.makeWebhook');
   });
 
-  it('approve moves Pending to Approved with a targeted update (status, published_at, social_posted_at only)', async () => {
+  it('approve moves Pending to Approved with a targeted update (status and published_at only; the post marker is never written)', async () => {
     const t = transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] });
     withTransits(t.table);
 
@@ -109,8 +110,8 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
     expect(aries.publishedAt).toBe(new Date(NOW).toISOString());
     expect(t.update).toHaveBeenCalledTimes(1);
     const payload = t.update.mock.calls[0][0];
-    expect(Object.keys(payload).sort()).toEqual(['published_at', 'social_posted_at', 'status', 'updated_at']);
-    expect(payload).toMatchObject({ status: 'published', social_posted_at: null });
+    expect(Object.keys(payload).sort()).toEqual(['published_at', 'status', 'updated_at']);
+    expect(payload).toMatchObject({ status: 'published' });
     expect(t.upsert).not.toHaveBeenCalled();
   });
 
@@ -150,7 +151,7 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
     const result = await approveTransit('aries', mockTransits, WINDOWS);
     expect(result.success).toBe(true);
     expect(t.upsert).toHaveBeenCalledTimes(1);
-    expect(t.upsert.mock.calls[0][0][0]).toMatchObject({ id: 'aries', status: 'published', social_posted_at: null });
+    expect(t.upsert.mock.calls[0][0][0]).toMatchObject({ id: 'aries', status: 'published' });
     expect(t.upsert.mock.calls[0][1]).toEqual({ onConflict: 'id' });
   });
 
@@ -189,7 +190,12 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
     expect(taurus.status).toBe('pending');
     expect(taurus.publishedAt).toBeNull();
     expect(t.update.mock.calls[0][0]).toMatchObject({ status: 'pending', published_at: null });
-    expect(t.filters[0]).toEqual(expect.arrayContaining(['in:id,taurus', 'eq:status,published', 'is:social_posted_at,null']));
+    // Taurus posts Thu Oct 29 8:00 PM ET (00:00Z Oct 30): the post must not be out for THIS window
+    expect(t.filters[0]).toEqual(expect.arrayContaining([
+      'eq:id,taurus',
+      'eq:status,published',
+      'or:social_posted_at.is.null,social_posted_at.lt.2026-10-30T00:00:00.000Z',
+    ]));
     expect(t.filters[0].some((f) => f.startsWith('or:social_sending_at.is.null'))).toBe(true);
     expect(fetchSpy).not.toHaveBeenCalled();
   });
@@ -197,7 +203,8 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
   it('undo is refused for a Posted card, with no database write', async () => {
     const t = transitsTable();
     withTransits(t.table);
-    const posted = mockTransits.map((x) => (x.id === 'taurus' ? { ...x, socialPostedAt: '2026-10-25T12:00:00Z' } : x));
+    vi.setSystemTime(new Date('2026-10-30T01:00:00Z'));
+    const posted = mockTransits.map((x) => (x.id === 'taurus' ? { ...x, socialPostedAt: '2026-10-30T00:05:00Z' } : x));
     const result = await undoApproval('taurus', posted, WINDOWS);
     expect(result.success).toBe(false);
     expect(result.feedbackMessage).toContain('already gone out');
@@ -207,7 +214,7 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
   it('undo is refused when the database shows the post went out after this screen loaded', async () => {
     const t = transitsTable({
       updateResults: [{ data: [] }],
-      rows: [{ id: 'taurus', status: 'published', social_posted_at: '2026-10-26T11:59:00Z', social_sending_at: null }],
+      rows: [{ id: 'taurus', status: 'published', social_posted_at: '2026-10-30T00:05:00Z', social_sending_at: null }],
     });
     withTransits(t.table);
     const result = await undoApproval('taurus', mockTransits, WINDOWS);
@@ -233,8 +240,59 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
     const result = await undoApproval('taurus', mockTransits, WINDOWS);
     expect(result.success).toBe(true);
     expect(t.update).toHaveBeenCalledTimes(2);
-    expect(t.filters[1]).toContain('is:social_posted_at,null');
-    expect(t.filters[1].some((f) => f.startsWith('or:'))).toBe(false);
+    expect(t.filters[1]).toContain('or:social_posted_at.is.null,social_posted_at.lt.2026-10-30T00:00:00.000Z');
+    expect(t.filters[1].some((f) => f.startsWith('or:social_sending_at'))).toBe(false);
+  });
+
+  it('Undo sticks: the card is Pending afterwards, and a later content edit cannot bring the approval back', async () => {
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'taurus' }] }] });
+    withTransits(t.table, APPROVED_ARTICLE);
+    const undone = await undoApproval('taurus', mockTransits, WINDOWS);
+    const taurus = undone.updatedTransits.find((x) => x.id === 'taurus')!;
+    expect(stateOf(taurus, WINDOWS).state).toBe('pending');
+    // even at its post time the Pending card is not due
+    expect(stateOf(taurus, WINDOWS, Date.parse('2026-10-30T01:00:00Z'))).toMatchObject({ state: 'pending', due: false });
+
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    vi.mocked(supabase.from).mockReturnValue({ upsert: upsertMock } as unknown as ReturnType<typeof supabase.from>);
+    await updateTransitContent('taurus', { copy: 'edited' }, undone.updatedTransits);
+    expect(upsertMock.mock.calls[0][0]).not.toHaveProperty('status');
+    expect(upsertMock.mock.calls[0][0]).not.toHaveProperty('published_at');
+  });
+
+  it('a card carrying the previous cycle marker can still be undone before its new post (the marker is older than the post time)', async () => {
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'taurus' }] }] });
+    withTransits(t.table, APPROVED_ARTICLE);
+    const lastCycle = mockTransits.map((x) => (x.id === 'taurus' ? { ...x, socialPostedAt: '2026-10-02T00:05:00Z' } : x));
+    const result = await undoApproval('taurus', lastCycle, WINDOWS);
+    expect(result.success).toBe(true);
+    expect(result.updatedTransits.find((x) => x.id === 'taurus')?.status).toBe('pending');
+  });
+
+  it('a Missed card (standing approval, window ended unposted) can be undone', async () => {
+    vi.setSystemTime(new Date('2026-11-02T00:00:00Z')); // Taurus ended Nov 1 10:00Z, never posted
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'taurus' }] }] });
+    withTransits(t.table, APPROVED_ARTICLE);
+    expect(stateOf(mockTransits[1], WINDOWS).state).toBe('missed');
+    const result = await undoApproval('taurus', mockTransits, WINDOWS);
+    expect(result.success).toBe(true);
+  });
+
+  it('Approve also approves the journal article of the sign (so the journal does not wait on auto-approve-transit)', async () => {
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] });
+    const blog = withTransits(t.table, DRAFT_ARTICLE);
+    const result = await approveTransit('aries', mockTransits, WINDOWS);
+    expect(result.success).toBe(true);
+    expect(blog.query.eq).toHaveBeenCalledWith('zodiac_sign_tag', 'Aries');
+    expect(blog.updateMock).toHaveBeenCalledWith({ status: 'approved' });
+  });
+
+  it('Approve all also approves the journal article of each pending sign', async () => {
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] });
+    const blog = withTransits(t.table, DRAFT_ARTICLE);
+    await batchApproveAllTransits(mockTransits, WINDOWS);
+    expect(blog.query.eq).toHaveBeenCalledWith('zodiac_sign_tag', 'Aries');
+    expect(blog.updateMock).toHaveBeenCalledWith({ status: 'approved' });
   });
 
   it('only Approved cards can be undone: a Pending card is refused', async () => {
@@ -247,7 +305,7 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
 
   it('undo all returns every Approved card, leaves Pending and Posted alone, and counts refusals', async () => {
     const t = transitsTable({
-      updateResults: [{ data: [{ id: 'taurus' }] }],
+      updateResults: [{ data: [{ id: 'taurus' }] }, { data: [] }],
       rows: [{ id: 'gemini', status: 'published', social_posted_at: null, social_sending_at: '2026-10-26T11:59:30Z' }],
     });
     withTransits(t.table, APPROVED_ARTICLE);
@@ -265,7 +323,7 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
     const result = await undoAllApproved(all, windows);
 
     expect(result).toMatchObject({ undone: 1, refused: 1 });
-    expect(t.filters[0]).toContain('in:id,taurus,gemini');
+    expect(t.filters.map((f) => f[0])).toEqual(['eq:id,taurus', 'eq:id,gemini']);
     expect(result.updatedTransits.find((x) => x.id === 'taurus')?.status).toBe('pending');
     expect(result.updatedTransits.find((x) => x.id === 'gemini')?.status).toBe('published');
     expect(result.updatedTransits.find((x) => x.id === 'aries')?.status).toBe('pending');
@@ -280,7 +338,8 @@ describe('transitService - approve, undo and the removed Make.com ping', () => {
 
     expect(result.approved).toBe(1);
     expect(t.filters[0]).toContain('in:id,aries');
-    expect(t.update.mock.calls[0][0]).toMatchObject({ status: 'published', social_posted_at: null });
+    expect(t.update.mock.calls[0][0]).toMatchObject({ status: 'published' });
+    expect(t.update.mock.calls[0][0]).not.toHaveProperty('social_posted_at');
     expect(result.updatedTransits.find((x) => x.id === 'aries')?.status).toBe('published');
     // taurus was already approved: its approval time is untouched
     expect(result.updatedTransits.find((x) => x.id === 'taurus')?.publishedAt).toBe('2026-10-25T00:00:00.000Z');

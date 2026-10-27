@@ -57,10 +57,16 @@ describe('TransitDetailModal - one action button per state', () => {
     expect(screen.queryByRole('button', { name: /^approve$/i })).toBeNull();
   });
 
-  it.each(['posted', 'missed'] as const)('%s shows no approve or undo button', (state) => {
-    renderModal(state);
+  it('posted shows no approve or undo button', () => {
+    renderModal('posted');
     expect(screen.queryByRole('button', { name: /^approve$/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /undo approval/i })).toBeNull();
+  });
+
+  it('missed can only be undone (the standing approval is still on)', () => {
+    renderModal('missed');
+    expect(screen.queryByRole('button', { name: /^approve$/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /undo approval/i })).toBeDefined();
   });
 
   it('shows the state as a badge', () => {

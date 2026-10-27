@@ -14,8 +14,8 @@ alter table public.transits
   add column if not exists social_missed_alert_for text;
 
 comment on column public.transits.social_sending_at is 'Set while a post is being sent; a mark older than 10 minutes is treated as abandoned.';
-comment on column public.transits.social_fail_count is 'Failed post attempts in a row for the current approval (reset on success).';
-comment on column public.transits.social_fail_for is 'published_at of the approval social_fail_count belongs to (a new approval starts a new count).';
+comment on column public.transits.social_fail_count is 'Failed post attempts in a row for the current moon window (reset on success).';
+comment on column public.transits.social_fail_for is 'Start of the moon window social_fail_count belongs to (a new cycle starts a new count).';
 comment on column public.transits.social_last_error is 'Last post failure reason.';
 comment on column public.transits.social_fail_alert_for is 'Window start the "failed twice" email was sent for (once per card per window).';
 comment on column public.transits.social_missed_alert_for is 'Window start the "missed" email was sent for (once per card per window).';

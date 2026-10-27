@@ -423,22 +423,32 @@ describe('TransitReviewPanel - states, one button per card, Scheduled queue', ()
     expect(names).toEqual(['Leo', 'Virgo']);
   });
 
-  it('marks Missed cards clearly, with no action button', async () => {
+  it('marks Missed cards clearly; the standing approval can still be undone', async () => {
     // Taurus was approved before its Oct 10 window and never posted; the window ended Oct 12
     const missed = { ...mockTransits[0], status: 'published' as const, publishedAt: '2026-10-09T00:00:00Z' };
     panel([missed]);
     await waitFor(() => {
-      expect(within(queueSection()).getByText(/Missed: the transit ended and this was never posted/)).toBeDefined();
+      expect(within(queueSection()).getByText(/Missed: the transit ended and this cycle was never posted/)).toBeDefined();
     });
     expect(within(queueSection()).queryByRole('button', { name: /^approve$/i })).toBeNull();
-    expect(within(queueSection()).queryByRole('button', { name: /undo approval/i })).toBeNull();
+    expect(within(queueSection()).getByRole('button', { name: /undo approval/i })).toBeDefined();
+  });
+
+  it('after a post, the next cycle reads "Approved · next post <time>"', async () => {
+    const postedLastCycle = { ...mockTransits[2], publishedAt: '2026-09-20T00:00:00Z', socialPostedAt: '2026-09-19T22:05:00Z' };
+    panel([postedLastCycle]);
+    await waitFor(() => {
+      expect(within(queueSection()).getByText('Approved · next post Fri 6:00 PM ET')).toBeDefined();
+    });
   });
 
   it('a Posted card moves out of the queue and has no action button', async () => {
-    const posted = { ...mockTransits[2], publishedAt: '2026-10-13T00:00:00Z', socialPostedAt: '2026-10-13T11:00:00Z' };
+    // Leo posts Fri Oct 16 at 6:00 PM ET (22:00Z) and the post went out at 6:05 PM, while its window is running
+    vi.setSystemTime(new Date('2026-10-16T22:30:00Z'));
+    const posted = { ...mockTransits[2], publishedAt: '2026-10-13T00:00:00Z', socialPostedAt: '2026-10-16T22:05:00Z' };
     panel([posted]);
     await waitFor(() => {
-      expect(screen.getByText(/Posted (Tue|Mon) /)).toBeDefined();
+      expect(screen.getByText('Posted Fri 6:05 PM ET')).toBeDefined();
     });
     expect(within(queueSection()).queryByText('Leo')).toBeNull();
     expect(screen.queryByRole('button', { name: /^approve$/i })).toBeNull();

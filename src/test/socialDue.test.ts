@@ -7,7 +7,6 @@ import {
   dueRows,
   formatPostTime,
   postTimeFor,
-  postedForApproval,
   pushDue,
   socialStatus,
   transitTimesLine,
@@ -87,14 +86,15 @@ describe("the four states, derived from the stored row", () => {
     expect(socialStatus(row(), [LEO], T("2026-10-29T19:59:00Z"))).toMatchObject({ state: "approved", due: true });
   });
 
-  it("Posted: social_posted_at is set", () => {
+  it("Posted: the current window's post went out (social_posted_at is at or after its post time)", () => {
     const s = socialStatus(row({ social_posted_at: "2026-10-27T18:05:00Z" }), [LEO], T("2026-10-28T00:00:00Z"));
-    expect(s).toMatchObject({ state: "posted", due: false });
+    expect(s).toMatchObject({ state: "posted", due: false, postedAt: T("2026-10-27T18:05:00Z"), postAt: T("2026-10-27T18:00:00Z") });
   });
 
-  it("Missed: approved, window ended, never posted (and it stays Missed, never posts late)", () => {
-    expect(socialStatus(row(), [LEO], T("2026-10-29T20:00:00Z"))).toMatchObject({ state: "missed", due: false });
-    expect(socialStatus(row(), [LEO, NEXT_LEO], T("2026-11-05T00:00:00Z"))).toMatchObject({ state: "missed", due: false });
+  it("Missed: a window ended without a post (it never posts late); after a few days the card shows the next cycle", () => {
+    expect(socialStatus(row(), [LEO], T("2026-10-29T20:00:00Z"))).toMatchObject({ state: "missed", due: false, window: LEO });
+    expect(socialStatus(row(), [LEO, NEXT_LEO], T("2026-10-31T00:00:00Z"))).toMatchObject({ state: "missed", due: false });
+    expect(socialStatus(row(), [LEO, NEXT_LEO], T("2026-11-05T00:00:00Z"))).toMatchObject({ state: "approved", window: NEXT_LEO, due: false });
   });
 
   it("approved after the window ended is for the sign's next window, and waits for it", () => {
@@ -114,16 +114,17 @@ describe("the four states, derived from the stored row", () => {
     expect(dueDecision(row(), [LEO], T("2026-10-25T15:00:00Z"))).toBe("too_early");
   });
 
-  it("a finished cycle opens up as Pending again when the sign's next window is near", () => {
+  it("standing approval: there is no rollover to Pending; a finished cycle goes back to Approved for the next window", () => {
     const posted = row({ social_posted_at: "2026-10-27T18:05:00Z" });
-    expect(socialStatus(posted, [LEO, NEXT_LEO], T("2026-11-10T00:00:00Z")).state).toBe("posted");
-    expect(socialStatus(posted, [LEO, NEXT_LEO], T("2026-11-21T00:00:00Z")).state).toBe("pending");
-    expect(socialStatus(row(), [LEO, NEXT_LEO], T("2026-11-21T00:00:00Z")).state).toBe("pending");
+    expect(socialStatus(posted, [LEO, NEXT_LEO], T("2026-10-28T00:00:00Z")).state).toBe("posted");
+    for (const at of ["2026-11-10T00:00:00Z", "2026-11-21T00:00:00Z"]) {
+      expect(socialStatus(posted, [LEO, NEXT_LEO], T(at))).toMatchObject({ state: "approved", window: NEXT_LEO, postAt: T("2026-11-23T12:00:00Z"), due: false });
+    }
   });
 
   it("a card with no window yet is Approved but not due", () => {
     const s = socialStatus(row(), [], T("2026-10-27T20:00:00Z"));
-    expect(s).toMatchObject({ state: "approved", due: false, postAt: null });
+    expect(s).toMatchObject({ state: "approved", due: false, postAt: null, postedAt: null });
     expect(dueDecision(row(), [], T("2026-10-27T20:00:00Z"))).toBe("no_window");
   });
 
@@ -135,31 +136,59 @@ describe("the four states, derived from the stored row", () => {
   });
 });
 
-describe("second cycle: an old social_posted_at never blocks the new window", () => {
+// What the database does for markPosted: set the marker only if it is empty or older than the window's post time.
+const markLikeDb = (rows: TransitRow[]) => async (id: string, at: string, postAt: number) => {
+  const r = rows.find((x) => x.id === id)!;
+  if (!r.social_posted_at || Date.parse(r.social_posted_at) < postAt) r.social_posted_at = at;
+};
+
+// A runner that moves the clock, so consecutive hourly checks can be replayed.
+const hourly = (rows: TransitRow[], windows: TransitWindow[]) => {
+  let clock = 0;
+  const calls: Array<{ id: string; at: number; postAt: number }> = [];
+  const deps: PushDeps<TransitRow> = {
+    fetchCandidates: async () => rows.filter((r) => r.status === "published"),
+    fetchWindows: async () => windows,
+    postToWebhook: vi.fn(async (r: TransitRow, ctx) => (calls.push({ id: r.id, at: clock, postAt: ctx.postAt }), 200)),
+    markPosted: markLikeDb(rows),
+    now: () => clock,
+    log: vi.fn(),
+  };
+  const run = async (from: string, to: string, restamp?: (at: number) => void) => {
+    for (let t = T(from); t <= T(to); t += 3600000) {
+      clock = t;
+      await pushDue(deps);
+      restamp?.(t);
+    }
+  };
+  return { deps, calls, run };
+};
+
+describe("standing approval: every moon cycle posts once, an old marker never blocks", () => {
   // Cycle 1 (LEO) posted Oct 27 18:05Z. Cycle 2 (NEXT_LEO, Nov 23 12:00Z = 7:00 AM EST, posts 7:00 AM ET = 12:00Z).
   const OLD = "2026-10-27T18:05:00Z";
   const W = [LEO, NEXT_LEO];
 
-  it("approved for the new window with the old marker still set (approve that did not clear it): Approved, due at post time", () => {
-    const r = row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: OLD });
+  it("a card posted last cycle is Approved for the new window (no re-approval) and due at its post time", () => {
+    const r = row({ social_posted_at: OLD });
     expect(socialStatus(r, W, T("2026-11-22T00:00:00Z"))).toMatchObject({ state: "approved", due: false, window: NEXT_LEO });
     expect(socialStatus(r, W, T("2026-11-23T12:00:00Z"))).toMatchObject({ state: "approved", due: true });
     expect(dueDecision(r, W, T("2026-11-23T12:00:00Z"))).toBe("due");
   });
 
-  it("a post made after the new approval counts as Posted", () => {
-    const r = row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: "2026-11-23T12:03:00Z" });
-    expect(socialStatus(r, W, T("2026-11-23T13:00:00Z")).state).toBe("posted");
+  it("a post made at or after the new window's post time counts as Posted", () => {
+    const r = row({ social_posted_at: "2026-11-23T12:03:00Z" });
+    expect(socialStatus(r, W, T("2026-11-23T13:00:00Z"))).toMatchObject({ state: "posted", postedAt: T("2026-11-23T12:03:00Z") });
   });
 
   it("push posts the second cycle, and a repeat check does not post it again", async () => {
-    const rows = [row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: OLD })];
+    const rows = [row({ social_posted_at: OLD })];
     const posted: string[] = [];
     const deps: PushDeps<TransitRow> = {
-      fetchCandidates: async () => rows.filter((r) => !postedForApproval(r)),
+      fetchCandidates: async () => rows,
       fetchWindows: async () => W,
       postToWebhook: vi.fn(async (r: TransitRow) => (posted.push(r.id), 200)),
-      markPosted: async (id, at) => { rows.find((r) => r.id === id)!.social_posted_at = at; },
+      markPosted: markLikeDb(rows),
       now: () => T("2026-11-23T13:00:00Z"),
       log: vi.fn(),
     };
@@ -169,16 +198,51 @@ describe("second cycle: an old social_posted_at never blocks the new window", ()
     expect(rows[0].social_posted_at).toBe("2026-11-23T13:00:00.000Z");
   });
 
-  it("claim and mark receive the approval time so the database check can ignore the old marker", async () => {
-    const rows = [row({ published_at: "2026-11-21T09:00:00Z", social_posted_at: OLD })];
+  it("claim and mark receive the window's post time, the value the database compares the marker with", async () => {
+    const rows = [row({ social_posted_at: OLD })];
     const claim = vi.fn(async () => true);
     const markPosted = vi.fn(async () => undefined);
     await pushDue({
       fetchCandidates: async () => rows, fetchWindows: async () => W, postToWebhook: async () => 200,
       claim, markPosted, now: () => T("2026-11-23T13:00:00Z"), log: vi.fn(),
     });
-    expect(claim).toHaveBeenCalledWith("leo", T("2026-11-23T13:00:00Z"), "2026-11-21T09:00:00Z");
-    expect(markPosted).toHaveBeenCalledWith("leo", expect.any(String), "2026-11-21T09:00:00Z");
+    expect(claim).toHaveBeenCalledWith("leo", T("2026-11-23T13:00:00Z"), T("2026-11-23T12:00:00Z"));
+    expect(markPosted).toHaveBeenCalledWith("leo", expect.any(String), T("2026-11-23T12:00:00Z"));
+  });
+
+  it("a post made BEFORE the window starts is never re-sent (overnight start posts the evening before)", async () => {
+    // Moon enters Taurus Fri Oct 30 12:18 AM EDT (04:18Z); the post goes out Thu 8:00 PM EDT (00:00Z), before it starts.
+    const TAURUS = win("2026-10-30T04:18:00Z", "2026-11-01T10:00:00Z", "Taurus");
+    const rows = [row({ id: "taurus", sign: "Taurus" })];
+    const { calls, run } = hourly(rows, [TAURUS]);
+    await run("2026-10-29T23:00:00Z", "2026-10-29T23:00:00Z");
+    expect(calls).toHaveLength(0); // one hour early
+    await run("2026-10-30T00:00:00Z", "2026-11-01T12:00:00Z");
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ at: T("2026-10-30T00:00:00Z"), postAt: T("2026-10-30T00:00:00Z") });
+    expect(Date.parse(rows[0].social_posted_at!)).toBeLessThan(T(TAURUS.start_time));
+  });
+
+  it("consecutive hourly checks never double-post, even when the approval time is re-stamped between runs", async () => {
+    const rows = [row()];
+    const { calls, run } = hourly(rows, [LEO]);
+    await run("2026-10-27T10:00:00Z", "2026-10-29T21:00:00Z", (t) => { rows[0].published_at = new Date(t + 60000).toISOString(); });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].postAt).toBe(T("2026-10-27T18:00:00Z"));
+  });
+
+  it("a second cycle posts once, with no re-approval and the first cycle's marker still on the row", async () => {
+    const rows = [row()];
+    const { calls, run } = hourly(rows, [LEO, NEXT_LEO]);
+    await run("2026-10-27T10:00:00Z", "2026-11-26T00:00:00Z");
+    expect(calls.map((c) => c.postAt)).toEqual([T("2026-10-27T18:00:00Z"), T("2026-11-23T12:00:00Z")]);
+  });
+
+  it("a cycle approved after its window ended is skipped, and the next cycle still posts once", async () => {
+    const rows = [row({ published_at: "2026-10-30T00:00:00Z" })];
+    const { calls, run } = hourly(rows, [LEO, NEXT_LEO]);
+    await run("2026-10-30T00:00:00Z", "2026-11-26T00:00:00Z");
+    expect(calls.map((c) => c.postAt)).toEqual([T("2026-11-23T12:00:00Z")]);
   });
 });
 
@@ -209,7 +273,7 @@ const makeDeps = (
   const failures: Record<string, number> = {};
   const sent: Array<{ kind: string; id: string }> = [];
   const deps: PushDeps<TransitRow> = {
-    fetchCandidates: async () => rows.filter((r) => !posted[r.id] && !r.social_posted_at),
+    fetchCandidates: async () => rows.filter((r) => r.status === "published"),
     fetchWindows: async () => opts.windows ?? [LEO],
     postToWebhook: vi.fn(async (r: TransitRow) => {
       calls.push(r.id);
@@ -217,9 +281,10 @@ const makeDeps = (
       if (s instanceof Error) throw s;
       return s;
     }),
-    markPosted: vi.fn(async (id: string, at: string) => {
+    markPosted: vi.fn(async (id: string, at: string, postAt: number) => {
       if (opts.markError) throw new Error("db down");
       posted[id] = at;
+      await markLikeDb(rows)(id, at, postAt);
     }),
     now: () => T(opts.now ?? "2026-10-28T12:00:00Z"),
     log: vi.fn(),

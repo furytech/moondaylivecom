@@ -3,22 +3,25 @@
 // make-social-bridge wires the real ones, and Mission Control imports the same rule so the screen and the sender
 // can never disagree.
 //
-// Stored value: transits.status stays 'pending' | 'published' ('published' = approved by the admin). The four
-// DISPLAYED states are derived, nothing is migrated:
+// Stored value: transits.status stays 'pending' | 'published'. 'published' is a STANDING approval: the admin
+// approves a sign once and it carries over every moon cycle. Only Undo (status back to 'pending') ends it.
+// The four DISPLAYED states are derived, nothing is migrated:
 //   pending   status is not 'published' (the default; only Approve / Approve all leaves it)
-//   approved  published, not posted, and the card's window has not ended
-//   posted    social_posted_at is set
-//   missed    published, never posted, and the card's window has ended
+//   approved  published, and the sign's current window has not posted yet ("Posts <time>" / "next post <time>")
+//   posted    the current window's post went out (social_posted_at >= its scheduled post time)
+//   missed    a window ended (within the last few days) without a post
 //
-// A card's window is the first window of its sign (moon_transitions) that had not ended when it was approved
-// (published_at). Approve also clears social_posted_at, so a new approval always starts a clean cycle.
+// A card's current window is the first window of its sign (moon_transitions) that has not ended. Its post time
+// is scheduled_post_utc (below), which is usually BEFORE the window starts. A post counts for a window only if
+// social_posted_at >= that window's scheduled_post_utc, so a marker from an earlier cycle can never block a
+// later one, and published_at (which a re-stamp may move) takes no part in deciding what is due.
 //
 // Post time (schedule profile "primary", America/New_York), from the hour the transit STARTS in:
 //   10:00 PM - 11:59 PM  -> 8:00 PM the same evening
 //   12:00 AM -  6:59 AM  -> 8:00 PM the evening before
 //   7:00 AM  - 9:59 PM   -> the top of that hour
-// DUE = approved, now >= post time, window not ended. Approved after the post time with the window still
-// running is due at the next check.
+// DUE = approved, now >= scheduled_post_utc, window not ended, and (social_posted_at is null OR
+// social_posted_at < scheduled_post_utc). The claim and mark-posted writes use the same comparison.
 
 export type ScheduleName = "primary";
 
@@ -41,8 +44,10 @@ export const SCHEDULES: Record<ScheduleName, ScheduleProfile> = {
 
 export const POST_ZONE = SCHEDULES.primary.zone;
 
-/** A finished cycle shows as Pending again once the sign's next window starts within this many days. */
-export const ROLLOVER_DAYS = 3;
+/** A window that ended without a post shows as Missed for this many days, then the card shows the next cycle. */
+export const MISSED_SHOW_DAYS = 3;
+/** Windows are loaded from this many days back, so a just-ended (possibly Missed) window is still known. */
+export const WINDOW_LOOKBACK_DAYS = 5;
 /** A Missed alert is only sent for a window that ended this recently (old leftovers stay quiet). */
 export const MISSED_ALERT_MAX_AGE_HOURS = 48;
 /** A "sending" claim older than this is treated as abandoned. */
@@ -108,28 +113,39 @@ export function postTimeFor(window: TransitWindow, schedule: ScheduleName = "pri
 const byStart = (a: TransitWindow, b: TransitWindow) => Date.parse(a.start_time) - Date.parse(b.start_time);
 const sameSign = (w: TransitWindow, sign: string) => w.sign.toLowerCase() === sign.toLowerCase();
 
-/** The sign's window an approval at `approvedAt` is for: the first one that had not ended yet. */
-export function windowForApproval(windows: readonly TransitWindow[], sign: string, approvedAt: number): TransitWindow | null {
-  return windows.filter((w) => sameSign(w, sign) && Date.parse(w.end_time) > approvedAt).sort(byStart)[0] ?? null;
+/** The sign's current window: the first one that has not ended (running now, or the next one coming). */
+export function currentWindow(windows: readonly TransitWindow[], sign: string, now: number): TransitWindow | null {
+  return windows.filter((w) => sameSign(w, sign) && Date.parse(w.end_time) > now).sort(byStart)[0] ?? null;
 }
 
-/** A post counts for THIS approval only if it happened at or after the approval. A marker left from an earlier
- *  cycle (e.g. a writer that approves without clearing it) is stale and never blocks the new post. */
-export function postedForApproval(row: TransitRow): boolean {
+/** The sign's most recent window that has already ended. */
+export function lastEndedWindow(windows: readonly TransitWindow[], sign: string, now: number): TransitWindow | null {
+  const ended = windows.filter((w) => sameSign(w, sign) && Date.parse(w.end_time) <= now).sort(byStart);
+  return ended[ended.length - 1] ?? null;
+}
+
+/** Did a post go out for the window whose scheduled post time is `postAt`? Only a marker at or after that time
+ *  counts; an earlier one belongs to a previous cycle. A marker that cannot be read counts as posted (never risk
+ *  a second post). The database filters in make-social-bridge use this same comparison. */
+export function postedSince(row: TransitRow, postAt: number): boolean {
   if (!row.social_posted_at) return false;
   const posted = Date.parse(row.social_posted_at);
-  const approved = row.published_at ? Date.parse(row.published_at) : NaN;
-  return !Number.isFinite(approved) || !Number.isFinite(posted) || posted >= approved;
+  return !Number.isFinite(posted) || posted >= postAt;
 }
+
+/** Oldest instant the windows must cover to judge a card now. */
+export const windowsSince = (now: number): number => now - WINDOW_LOOKBACK_DAYS * 86400000;
 
 export type SocialState = "pending" | "approved" | "posted" | "missed";
 
 export interface SocialStatus {
   state: SocialState;
   window: TransitWindow | null;
-  /** UTC ms the card posts (or posted) at; null when it has no window. */
+  /** UTC ms of scheduled_post_utc for `window` (the next post, or the one that went out / was missed); null when it has no window. */
   postAt: number | null;
-  /** Approved, post time reached, window running: the next check sends it. */
+  /** UTC ms the post actually went out; set only in the Posted state. */
+  postedAt: number | null;
+  /** Approved, post time reached, window running, not yet posted: the next check sends it. */
   due: boolean;
 }
 
@@ -139,23 +155,28 @@ export function socialStatus(
   now: number,
   schedule: ScheduleName = "primary",
 ): SocialStatus {
-  const none: SocialStatus = { state: "pending", window: null, postAt: null, due: false };
-  if (row.status !== "published") return none;
+  if (row.status !== "published") return { state: "pending", window: null, postAt: null, postedAt: null, due: false };
+  const sign = row.sign || row.id;
 
-  const approvedAt = row.published_at ? Date.parse(row.published_at) : NaN;
-  const window = windowForApproval(windows, row.sign || row.id, Number.isFinite(approvedAt) ? approvedAt : now);
-  const postAt = window ? postTimeFor(window, schedule) : null;
-  const ended = window !== null && now >= Date.parse(window.end_time);
-
-  // A finished cycle whose sign comes round again soon is open for a new approval.
-  if (window && ended) {
-    const next = windows.filter((w) => sameSign(w, row.sign || row.id) && Date.parse(w.start_time) > Date.parse(window.start_time)).sort(byStart)[0];
-    if (next && Date.parse(next.start_time) - now <= ROLLOVER_DAYS * 86400000) return none;
+  // A window that just ended without a post (approved before it ended) is Missed for a few days.
+  const prev = lastEndedWindow(windows, sign, now);
+  if (prev && now - Date.parse(prev.end_time) <= MISSED_SHOW_DAYS * 86400000) {
+    const prevPostAt = postTimeFor(prev, schedule);
+    const approvedAt = row.published_at ? Date.parse(row.published_at) : NaN;
+    const approvedInTime = !Number.isFinite(approvedAt) || approvedAt < Date.parse(prev.end_time);
+    if (approvedInTime && !postedSince(row, prevPostAt)) {
+      return { state: "missed", window: prev, postAt: prevPostAt, postedAt: null, due: false };
+    }
   }
 
-  if (postedForApproval(row)) return { state: "posted", window, postAt, due: false };
-  if (ended) return { state: "missed", window, postAt, due: false };
-  return { state: "approved", window, postAt, due: window !== null && postAt !== null && now >= postAt };
+  const window = currentWindow(windows, sign, now);
+  if (!window) return { state: "approved", window: null, postAt: null, postedAt: null, due: false };
+  const postAt = postTimeFor(window, schedule);
+  if (postedSince(row, postAt)) {
+    const at = row.social_posted_at ? Date.parse(row.social_posted_at) : NaN;
+    return { state: "posted", window, postAt, postedAt: Number.isFinite(at) ? at : postAt, due: false };
+  }
+  return { state: "approved", window, postAt, postedAt: null, due: now >= postAt };
 }
 
 export type DueDecision = "due" | "not_published" | "already_posted" | "no_window" | "too_early" | "window_over";
@@ -187,16 +208,6 @@ export function dueItems<T extends TransitRow>(
 
 export const dueRows = <T extends TransitRow>(rows: readonly T[], windows: readonly TransitWindow[], now: number, schedule: ScheduleName = "primary"): T[] =>
   dueItems(rows, windows, now, schedule).map((i) => i.row);
-
-/** The oldest approval among rows (or now): windows must be loaded from here so a missed window is still known. */
-export function earliestApproval(rows: readonly TransitRow[], now: number): number {
-  let min = now;
-  for (const r of rows) {
-    const t = r.published_at ? Date.parse(r.published_at) : NaN;
-    if (Number.isFinite(t) && t < min) min = t;
-  }
-  return min;
-}
 
 /** "Sat 8:00 PM ET": the post time as the admin reads it. */
 export function formatPostTime(ms: number, schedule: ScheduleName = "primary"): string {
@@ -246,20 +257,22 @@ export const ALERT_FIELD: Record<AlertKind, string> = {
 export interface PushContext { window: TransitWindow; postAt: number }
 
 export interface PushDeps<T extends TransitRow> {
-  /** Published transits that have no social_posted_at. */
+  /** Published (standing-approved) transits. The due rule decides which of them are due. */
   fetchCandidates(): Promise<T[]>;
-  /** Moon windows that had not ended at `sinceMs` (the oldest approval among the candidates). */
+  /** Moon windows that had not ended at `sinceMs` (windowsSince(now): a just-ended window is still known). */
   fetchWindows(sinceMs: number): Promise<TransitWindow[]>;
   /** POST the payload to the Make webhook; resolves the HTTP status (rejects on network error or timeout). */
   postToWebhook(row: T, ctx: PushContext): Promise<number>;
-  /** Set social_posted_at if it is still empty. Throws when the database write fails. */
-  markPosted(id: string, at: string, approvedAt: string | null): Promise<void>;
-  /** Mark the card "sending" so Undo and an overlapping run leave it alone. false = someone else is sending it. */
-  claim?(id: string, nowMs: number, approvedAt: string | null): Promise<boolean>;
+  /** Set social_posted_at only if it is still empty or older than `postAt` (the window's scheduled post time).
+   *  Throws when the database write fails. */
+  markPosted(id: string, at: string, postAt: number): Promise<void>;
+  /** Mark the card "sending" so Undo and an overlapping run leave it alone. false = someone else is sending it
+   *  (or it already posted for this `postAt`). */
+  claim?(id: string, nowMs: number, postAt: number): Promise<boolean>;
   /** Drop the sending mark after a failed attempt. */
   release?(id: string): Promise<void>;
-  /** Store the failure; resolves how many attempts in a row have failed for this approval. */
-  recordFailure?(row: T, reason: string): Promise<number>;
+  /** Store the failure; resolves how many attempts in a row have failed for this window. */
+  recordFailure?(row: T, reason: string, window: TransitWindow): Promise<number>;
   /** Email the admin. Throws if the email could not be sent (it is then retried at the next check). */
   notify?(alert: SocialAlert<T>): Promise<void>;
   /** Remember the alert went out for this window, so it is sent once per card per event. */
@@ -289,7 +302,7 @@ export async function pushDue<T extends TransitRow>(deps: PushDeps<T>): Promise<
   const schedule = deps.schedule ?? "primary";
   const now = deps.now();
   const candidates = await deps.fetchCandidates();
-  const windows = await deps.fetchWindows(earliestApproval(candidates, now));
+  const windows = await deps.fetchWindows(windowsSince(now));
 
   const seen = new Set<string>();
   const unique = candidates.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
@@ -332,7 +345,7 @@ export async function pushDue<T extends TransitRow>(deps: PushDeps<T>): Promise<
   result.due = items.length;
 
   for (const { row, window, postAt } of items) {
-    if (deps.claim && !(await deps.claim(row.id, now, row.published_at ?? null))) {
+    if (deps.claim && !(await deps.claim(row.id, now, postAt))) {
       deps.log("already being sent, skipped", { id: row.id });
       continue;
     }
@@ -352,7 +365,7 @@ export async function pushDue<T extends TransitRow>(deps: PushDeps<T>): Promise<
       let count = 1;
       if (deps.recordFailure) {
         try {
-          count = await deps.recordFailure(row, failure);
+          count = await deps.recordFailure(row, failure, window);
         } catch (err) {
           deps.log("could not record the failure", { id: row.id, reason: err instanceof Error ? err.message : String(err) });
         }
@@ -366,7 +379,7 @@ export async function pushDue<T extends TransitRow>(deps: PushDeps<T>): Promise<
     let marked = false;
     for (let attempt = 0; attempt < 3 && !marked; attempt++) {
       try {
-        await deps.markPosted(row.id, new Date(deps.now()).toISOString(), row.published_at ?? null);
+        await deps.markPosted(row.id, new Date(deps.now()).toISOString(), postAt);
         marked = true;
       } catch (err) {
         deps.log("could not mark posted, retrying", { id: row.id, attempt, reason: err instanceof Error ? err.message : String(err) });

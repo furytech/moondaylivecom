@@ -259,13 +259,15 @@ export function stateOf(t: ZodiacSignTransit, windows: readonly TransitWindow[],
 
 const CLAIM_STALE_MS = CLAIM_STALE_MINUTES * 60000;
 
-/** Write an approval. Only status, published_at and social_posted_at are touched (the rest of the row is left alone,
- *  so a stale screen can never overwrite a post that has just gone out). A card with no database row yet is inserted. */
+/** Write an approval (a STANDING approval: it carries over every moon cycle until Undo). Only status and published_at
+ *  are touched (the rest of the row is left alone, so a stale screen can never overwrite a post that has just gone
+ *  out). social_posted_at is never written here: the due rule compares it with each window's post time, so an old
+ *  marker cannot block a later cycle and clearing it is not needed. A card with no database row yet is inserted. */
 async function writeApprovals(targets: ZodiacSignTransit[], stamp: string): Promise<void> {
   if (!import.meta.env.VITE_SUPABASE_URL || targets.length === 0) return;
   const { data, error } = await supabase
     .from('transits')
-    .update({ status: 'published', published_at: stamp, social_posted_at: null, updated_at: stamp })
+    .update({ status: 'published', published_at: stamp, updated_at: stamp })
     .in('id', targets.map((t) => t.id))
     .select('id');
   if (error) throw new Error(`Failed to approve transit in Supabase: ${error.message}`);
@@ -273,7 +275,7 @@ async function writeApprovals(targets: ZodiacSignTransit[], stamp: string): Prom
   const saved = new Set((data ?? []).map((r: { id: string }) => r.id));
   const missing = targets.filter((t) => !saved.has(t.id));
   if (missing.length > 0) {
-    const rows = missing.map((t) => toDbRow(t, { status: 'published', published_at: stamp, social_posted_at: null }));
+    const rows = missing.map((t) => toDbRow(t, { status: 'published', published_at: stamp }));
     const { error: insertError } = await supabase.from('transits').upsert(rows, { onConflict: 'id' });
     if (insertError) throw new Error(`Failed to approve transit in Supabase: ${insertError.message}`);
   }
@@ -300,7 +302,7 @@ export async function approveTransit(
   const stamp = new Date(now).toISOString();
   await writeApprovals([target], stamp);
 
-  const updatedTarget: ZodiacSignTransit = { ...target, status: 'published', publishedAt: stamp, socialPostedAt: null };
+  const updatedTarget: ZodiacSignTransit = { ...target, status: 'published', publishedAt: stamp };
   let blogSync: { success: boolean; error?: string } | null = null;
   if (import.meta.env.VITE_SUPABASE_URL) {
     // Queue the real journal article for this sign's upcoming ingress
@@ -334,37 +336,47 @@ export async function approveTransit(
 
 type UndoRefusal = 'posted' | 'sending' | 'not_approved';
 
-/** Return approved, unposted cards to Pending. Refuses any card that is posted or being sent right now.
+/** A card to take back to Pending, with the post time of the window it is in (its post must not have gone out). */
+interface UndoTarget { id: string; postAt: number | null }
+
+/** Return approved, unposted cards to Pending. Refuses any card whose post for its window is out or being sent
+ *  right now. A marker left from an earlier cycle is older than this window's post time and does not count.
  *  Resolves the ids that were undone and, for the rest, why not. */
-async function writeUndo(ids: string[]): Promise<{ undone: string[]; refused: Array<{ id: string; why: UndoRefusal }> }> {
-  if (!import.meta.env.VITE_SUPABASE_URL) return { undone: ids, refused: [] };
+async function writeUndo(targets: UndoTarget[]): Promise<{ undone: string[]; refused: Array<{ id: string; why: UndoRefusal }> }> {
+  if (!import.meta.env.VITE_SUPABASE_URL) return { undone: targets.map((t) => t.id), refused: [] };
   const stamp = new Date().toISOString();
   const stale = new Date(Date.now() - CLAIM_STALE_MS).toISOString();
-  const base = () =>
-    supabase
-      .from('transits')
-      .update({ status: 'pending', published_at: null, updated_at: stamp })
-      .in('id', ids)
-      .eq('status', 'published')
-      .is('social_posted_at', null);
 
-  let res = await base().or(`social_sending_at.is.null,social_sending_at.lt.${stale}`).select('id');
-  if (res.error) {
-    // The sending column comes from a migration that may not be applied yet: undo without that check.
-    res = await base().select('id');
-  }
-  if (res.error) throw new Error(`Failed to undo approval in Supabase: ${res.error.message}`);
+  const one = async (t: UndoTarget): Promise<boolean> => {
+    const base = () => {
+      const q = supabase
+        .from('transits')
+        .update({ status: 'pending', published_at: null, updated_at: stamp })
+        .eq('id', t.id)
+        .eq('status', 'published');
+      return t.postAt === null ? q : q.or(`social_posted_at.is.null,social_posted_at.lt.${new Date(t.postAt).toISOString()}`);
+    };
+    let res = await base().or(`social_sending_at.is.null,social_sending_at.lt.${stale}`).select('id');
+    if (res.error) {
+      // The sending column comes from a migration that may not be applied yet: undo without that check.
+      res = await base().select('id');
+    }
+    if (res.error) throw new Error(`Failed to undo approval in Supabase: ${res.error.message}`);
+    return (res.data ?? []).length > 0;
+  };
 
-  const undone = (res.data ?? []).map((r: { id: string }) => r.id);
-  const left = ids.filter((id) => !undone.includes(id));
+  const results = await Promise.all(targets.map(async (t) => ({ t, ok: await one(t) })));
+  const undone = results.filter((r) => r.ok).map((r) => r.t.id);
+  const left = results.filter((r) => !r.ok).map((r) => r.t);
   const refused: Array<{ id: string; why: UndoRefusal }> = [];
   if (left.length > 0) {
-    const { data } = await supabase.from('transits').select('id, status, social_posted_at, social_sending_at').in('id', left);
-    for (const id of left) {
-      const row = (data ?? []).find((r: { id: string }) => r.id === id) as
+    const { data } = await supabase.from('transits').select('id, status, social_posted_at, social_sending_at').in('id', left.map((t) => t.id));
+    for (const t of left) {
+      const row = (data ?? []).find((r: { id: string }) => r.id === t.id) as
         | { status?: string; social_posted_at?: string | null; social_sending_at?: string | null }
         | undefined;
-      refused.push({ id, why: row?.social_posted_at ? 'posted' : row?.status === 'pending' ? 'not_approved' : 'sending' });
+      const posted = !!row?.social_posted_at && (t.postAt === null || Date.parse(row.social_posted_at) >= t.postAt);
+      refused.push({ id: t.id, why: posted ? 'posted' : row?.status === 'pending' ? 'not_approved' : 'sending' });
     }
   }
   return { undone, refused };
@@ -390,17 +402,17 @@ export async function undoApproval(
   const target = currentTransits.find((t) => t.id === id);
   if (!target) return { success: false, updatedTransits: currentTransits };
 
-  const state = stateOf(target, windows).state;
-  if (state !== 'approved') {
+  const status = stateOf(target, windows);
+  if (status.state !== 'approved' && status.state !== 'missed') {
     return {
       success: false,
       updatedTransits: currentTransits,
       feedbackType: 'warning',
-      feedbackMessage: state === 'posted' ? refusalText('posted') : 'Only Approved cards can be undone.',
+      feedbackMessage: status.state === 'posted' ? refusalText('posted') : 'Only Approved cards can be undone.',
     };
   }
 
-  const { undone, refused } = await writeUndo([id]);
+  const { undone, refused } = await writeUndo([{ id, postAt: status.postAt }]);
   if (undone.length === 0) {
     return { success: false, updatedTransits: currentTransits, feedbackType: 'warning', feedbackMessage: refusalText(refused[0]?.why ?? 'sending') };
   }
@@ -439,20 +451,23 @@ export async function batchApproveAllTransits(
   return {
     success: true,
     approved: pending.length,
-    updatedTransits: currentTransits.map((t) => (ids.has(t.id) ? { ...t, status: 'published' as const, publishedAt: stamp, socialPostedAt: null } : t)),
+    updatedTransits: currentTransits.map((t) => (ids.has(t.id) ? { ...t, status: 'published' as const, publishedAt: stamp } : t)),
   };
 }
 
-/** Undo every Approved card that is not posted or being sent. */
+/** Undo every Approved (or Missed) card whose post for its window is not out or being sent. */
 export async function undoAllApproved(
   currentTransits: ZodiacSignTransit[],
   windows: readonly TransitWindow[] = []
 ): Promise<{ success: boolean; updatedTransits: ZodiacSignTransit[]; undone: number; refused: number }> {
-  const approved = currentTransits.filter((t) => stateOf(t, windows).state === 'approved');
+  const now = Date.now();
+  const approved = currentTransits
+    .map((t) => ({ t, s: stateOf(t, windows, now) }))
+    .filter(({ s }) => s.state === 'approved' || s.state === 'missed');
   if (approved.length === 0) return { success: true, updatedTransits: currentTransits, undone: 0, refused: 0 };
 
-  const { undone, refused } = await writeUndo(approved.map((t) => t.id));
-  await revokeJournal(approved.filter((t) => undone.includes(t.id)));
+  const { undone, refused } = await writeUndo(approved.map(({ t, s }) => ({ id: t.id, postAt: s.postAt })));
+  await revokeJournal(approved.map(({ t }) => t).filter((t) => undone.includes(t.id)));
   return {
     success: true,
     undone: undone.length,

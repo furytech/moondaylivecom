@@ -63,7 +63,8 @@ describe('E2E approval: scheduled confirmation, no Make.com ping', () => {
 
     const result = await approveTransit('gemini', [sampleTransit], WINDOWS);
 
-    expect(t.update.mock.calls[0][0]).toMatchObject({ status: 'published', social_posted_at: null });
+    expect(t.update.mock.calls[0][0]).toMatchObject({ status: 'published' });
+    expect(t.update.mock.calls[0][0]).not.toHaveProperty('social_posted_at');
     expect(result.success).toBe(true);
     expect(result.feedbackType).toBe('success');
     expect(result.feedbackMessage).toBe('Approved. Posts Wed 8:00 AM ET.');

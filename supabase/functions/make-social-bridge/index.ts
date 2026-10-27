@@ -2,10 +2,9 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   CLAIM_STALE_MINUTES,
   dueItems,
-  earliestApproval,
-  postedForApproval,
   pushDue,
   transitTimesLine,
+  windowsSince,
   type DueItem,
   type PushContext,
   type TransitRow,
@@ -61,15 +60,15 @@ function toPayload(t: TransitRow & Record<string, any>, ctx?: PushContext) {
   };
 }
 
-/** Published, unposted transits (the candidates); the due rule then narrows them. */
+/** Standing-approved transits (the candidates). Whether one is due is decided per window by the due rule: a
+ *  social_posted_at from an earlier cycle is older than this window's post time, so it never hides a card. */
 async function fetchCandidates() {
   const { data, error } = await supabase
     .from('transits')
     .select('*')
     .eq('status', 'published');
   if (error) throw new Error(error.message);
-  // The due rule decides which are unposted for their CURRENT approval (a marker older than the approval is stale).
-  return ((data ?? []) as Array<TransitRow & Record<string, any>>).filter((r) => !postedForApproval(r));
+  return (data ?? []) as Array<TransitRow & Record<string, any>>;
 }
 
 /** Moon windows that had not ended at sinceMs (a missed card's window must still be known). */
@@ -89,9 +88,10 @@ const log = (step: string, details?: unknown) =>
 
 // The sending / failure / alert columns come from a migration that may not be applied yet. Every write to them
 // is allowed to fail quietly so posting itself never depends on it.
-/** PostgREST filter: no post yet for this approval (never posted, or the marker predates the approval). */
-const unpostedFilter = (approvedAt: string | null) =>
-  approvedAt ? `social_posted_at.is.null,social_posted_at.lt.${new Date(approvedAt).toISOString()}` : 'social_posted_at.is.null';
+/** PostgREST filter, the database form of the due rule: no post yet for this window (never posted, or the marker
+ *  is older than the window's scheduled post time). Claim and mark-posted both use it. */
+const unpostedFilter = (postAt: number) =>
+  `social_posted_at.is.null,social_posted_at.lt.${new Date(postAt).toISOString()}`;
 
 const claimStale = () => new Date(Date.now() - CLAIM_STALE_MINUTES * 60000).toISOString();
 
@@ -161,8 +161,8 @@ Deno.serve(async (req) => {
             clearTimeout(timer);
           }
         },
-        markPosted: async (rowId, at, approvedAt) => {
-          const unposted = unpostedFilter(approvedAt);
+        markPosted: async (rowId, at, postAt) => {
+          const unposted = unpostedFilter(postAt);
           const full = await supabase
             .from('transits')
             .update({ social_posted_at: at, social_sending_at: null, social_fail_count: 0, social_last_error: null })
@@ -177,12 +177,12 @@ Deno.serve(async (req) => {
             .or(unposted);
           if (error) throw new Error(error.message);
         },
-        claim: async (rowId, nowMs, approvedAt) => {
+        claim: async (rowId, nowMs, postAt) => {
           const { data, error } = await supabase
             .from('transits')
             .update({ social_sending_at: new Date(nowMs).toISOString() })
             .eq('id', rowId)
-            .or(unpostedFilter(approvedAt))
+            .or(unpostedFilter(postAt))
             .or(`social_sending_at.is.null,social_sending_at.lt.${claimStale()}`)
             .select('id');
           if (error) {
@@ -194,12 +194,13 @@ Deno.serve(async (req) => {
         release: async (rowId) => {
           await supabase.from('transits').update({ social_sending_at: null }).eq('id', rowId);
         },
-        recordFailure: async (row: TransitRow & Record<string, any>, reason) => {
-          const sameApproval = row.social_fail_for === row.published_at;
-          const count = (sameApproval ? Number(row.social_fail_count) || 0 : 0) + 1;
+        recordFailure: async (row: TransitRow & Record<string, any>, reason, window) => {
+          // The count belongs to one window: a new moon cycle starts again at 1.
+          const sameWindow = row.social_fail_for === window.start_time;
+          const count = (sameWindow ? Number(row.social_fail_count) || 0 : 0) + 1;
           const { error } = await supabase
             .from('transits')
-            .update({ social_fail_count: count, social_fail_for: row.published_at ?? null, social_last_error: reason.slice(0, 300), social_sending_at: null })
+            .update({ social_fail_count: count, social_fail_for: window.start_time, social_last_error: reason.slice(0, 300), social_sending_at: null })
             .eq('id', row.id);
           if (error) {
             log('could not store the failure (migration not applied?)', { reason: error.message });
@@ -252,7 +253,7 @@ Deno.serve(async (req) => {
     // Only DUE records: approved, unposted, post time reached, transit not over (see _shared/socialDue.ts).
     try {
       const candidates = await fetchCandidates();
-      const windows = await fetchWindows(earliestApproval(candidates, Date.now()));
+      const windows = await fetchWindows(windowsSince(Date.now()));
       const due = dueItems(candidates, windows, Date.now())
         .sort((x: DueItem<TransitRow>, y: DueItem<TransitRow>) => x.postAt - y.postAt)
         .slice(0, 12)

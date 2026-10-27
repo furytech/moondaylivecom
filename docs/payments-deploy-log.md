@@ -80,3 +80,13 @@ Migrations, both NOT YET APPLIED: 20261027120000_social_push_cron.sql (hourly jo
 Pause the cron with `select cron.unschedule('social-push-hourly');`
 
 (v28: stale social_posted_at from an earlier approval no longer blocks a new cycle; rollback: git checkout c6d04d3 -- supabase/functions/make-social-bridge supabase/functions/_shared/socialDue.ts, then redeploy)
+
+## make-social-bridge: standing approval (2026-10-27)
+Before: v28 (commit eb06c77). Now: v29, ezbr_sha256 402b61c9a9c116513f68b51762f53ac6324aea88c10ea18cf00fb01d88c3cb5a.
+status='published' is a standing approval that carries over every moon cycle (no rollover to Pending; only Undo returns a sign to Pending). Due = now >= scheduled_post_utc, window not ended, and (social_posted_at is null or older than scheduled_post_utc); claim and mark-posted use the same comparison. Approve no longer writes social_posted_at.
+Rollback to v28 (per-approval rule). The `_shared` files are bundled with the function, so check out the shared folder too; the Mission Control screens need the matching front-end revert, so revert the commit instead of checking out single files if the site is also affected:
+```powershell
+git checkout eb06c77 -- supabase/functions/make-social-bridge supabase/functions/_shared/socialDue.ts
+supabase functions deploy make-social-bridge --no-verify-jwt --project-ref ggrhuhwxbwrfbbcwcrmv
+git checkout main -- supabase/functions/make-social-bridge supabase/functions/_shared/socialDue.ts
+```
