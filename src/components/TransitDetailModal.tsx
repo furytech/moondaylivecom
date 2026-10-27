@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ZodiacSignTransit } from '../types';
-import { X, Save, Sparkles, Send, RefreshCw, Image as ImageIcon, Calendar, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
+import { X, Save, Sparkles, Send, Undo2, Image as ImageIcon, Calendar, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { getDefaultTransitImageUrl } from '../lib/transitImages';
+import type { SocialStatus } from '../../supabase/functions/_shared/socialDue';
 
 export interface ApprovalFeedback {
   type: 'success' | 'warning' | 'error';
@@ -14,6 +15,9 @@ interface TransitDetailModalProps {
   onClose: () => void;
   onSaveContent: (id: string, updates: Partial<ZodiacSignTransit>) => void;
   onApprove: (id: string) => void;
+  onUndo?: (id: string) => void;
+  /** Pending / Approved / Posted / Missed, derived by the parent. Defaults to the stored status. */
+  socialStatus?: SocialStatus;
   feedback?: ApprovalFeedback | null;
   onDismissFeedback?: () => void;
 }
@@ -24,6 +28,8 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
   onClose,
   onSaveContent,
   onApprove,
+  onUndo,
+  socialStatus,
   feedback,
   onDismissFeedback
 }) => {
@@ -65,7 +71,15 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
     setTimeout(() => setIsSavedNotice(false), 2500);
   };
 
-  const isPublished = transit.status === 'published';
+  const state = socialStatus?.state ?? (transit.status === 'published' ? 'approved' : 'pending');
+  const badgeClass =
+    state === 'posted'
+      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+      : state === 'approved'
+      ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30'
+      : state === 'missed'
+      ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+      : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
@@ -81,13 +95,9 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
                 {transit.sign}
                 <span className="text-xs text-slate-400 font-normal">({transit.dates})</span>
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
-                    isPublished
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                  }`}
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium border ${badgeClass}`}
                 >
-                  {isPublished ? 'Published' : 'Pending Approval'}
+                  {state.charAt(0).toUpperCase() + state.slice(1)}
                 </span>
               </h3>
               <div className="text-xs text-indigo-400 flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
@@ -255,7 +265,7 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
                     {feedback.type === 'success'
                       ? 'Status: Approved'
                       : feedback.type === 'warning'
-                      ? 'Warning: Webhook Delivery'
+                      ? 'Notice'
                       : 'Approval Error'}
                   </p>
                   <p className="leading-relaxed opacity-95">{feedback.message}</p>
@@ -285,26 +295,24 @@ export const TransitDetailModal: React.FC<TransitDetailModalProps> = ({
           </button>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => onApprove(transit.id)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                isPublished
-                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
-              }`}
-            >
-              {isPublished ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Revoke to Pending</span>
-                </>
-              ) : (
-                <>
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Approve Sign</span>
-                </>
-              )}
-            </button>
+            {state === 'pending' && (
+              <button
+                onClick={() => onApprove(transit.id)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Approve</span>
+              </button>
+            )}
+            {state === 'approved' && (
+              <button
+                onClick={() => onUndo?.(transit.id)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+                <span>Undo approval</span>
+              </button>
+            )}
             <button
               onClick={onClose}
               className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition-colors"

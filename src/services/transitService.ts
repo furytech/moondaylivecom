@@ -1,6 +1,13 @@
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
 import { getDefaultTransitImageUrl } from '../lib/transitImages';
+import {
+  CLAIM_STALE_MINUTES,
+  formatPostTime,
+  socialStatus,
+  type SocialStatus,
+  type TransitWindow,
+} from '../../supabase/functions/_shared/socialDue';
 
 export function toDbRow(transit: ZodiacSignTransit, overrides: Partial<Record<string, unknown>> = {}) {
   const imageUrl = transit.imageUrl || transit.image_url || getDefaultTransitImageUrl(transit.id || transit.sign);
@@ -232,117 +239,73 @@ export async function syncTransitToBlogPost(
   }
 }
 
-export async function sendMakeWebhook(
-  transit: ZodiacSignTransit,
-  publishedAt: string
-): Promise<{ success: boolean; error?: string }> {
-  let webhookUrl =
-    import.meta.env.VITE_MAKE_WEBHOOK_URL?.trim() ||
-    (typeof window !== 'undefined' ? localStorage.getItem('moonday.makeWebhook')?.trim() : null);
-
-  if (!webhookUrl) {
-    try {
-      const { data } = await supabase
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'make_webhook_url')
-        .maybeSingle();
-      if (data?.value?.trim()) {
-        webhookUrl = data.value.trim();
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  if (!webhookUrl) {
-    console.warn('[sendMakeWebhook] No Make.com webhook URL configured.');
-    return { success: false, error: 'No Make.com webhook URL configured' };
-  }
-
-  try {
-    const payload = {
-      event: 'transit.approved',
-      source: 'moonday-mission-control',
-      transit: toDbRow(transit, { status: 'published', published_at: publishedAt }),
-      timestamp: new Date().toISOString(),
-    };
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000);
-
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (response.ok || response.status === 200 || response.status === 201 || response.status === 204) {
-      console.log('[sendMakeWebhook] Successfully delivered to Make.com');
-      return { success: true };
-    }
-
-    console.warn(`[sendMakeWebhook] Make.com returned status ${response.status}`);
-    return { success: false, error: `Make.com returned HTTP ${response.status}` };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error('[sendMakeWebhook] Failed to deliver to Make.com:', message);
-    return { success: false, error: message };
-  }
-}
-
 export interface ApproveTransitResult {
   success: boolean;
   updatedTransits: ZodiacSignTransit[];
-  action?: 'published' | 'pending';
-  webhookSuccess?: boolean;
+  action?: 'approved' | 'undone';
   feedbackMessage?: string;
   feedbackType?: 'success' | 'warning' | 'error';
   error?: string;
 }
 
+/** The displayed state of a card (Pending / Approved / Posted / Missed), derived from the stored row. */
+export function stateOf(t: ZodiacSignTransit, windows: readonly TransitWindow[], now: number = Date.now()): SocialStatus {
+  return socialStatus(
+    { id: t.id, sign: t.sign, status: t.status, published_at: t.publishedAt ?? null, social_posted_at: t.socialPostedAt ?? null },
+    windows,
+    now
+  );
+}
+
+const CLAIM_STALE_MS = CLAIM_STALE_MINUTES * 60000;
+
+/** Write an approval. Only status, published_at and social_posted_at are touched (the rest of the row is left alone,
+ *  so a stale screen can never overwrite a post that has just gone out). A card with no database row yet is inserted. */
+async function writeApprovals(targets: ZodiacSignTransit[], stamp: string): Promise<void> {
+  if (!import.meta.env.VITE_SUPABASE_URL || targets.length === 0) return;
+  const { data, error } = await supabase
+    .from('transits')
+    .update({ status: 'published', published_at: stamp, social_posted_at: null, updated_at: stamp })
+    .in('id', targets.map((t) => t.id))
+    .select('id');
+  if (error) throw new Error(`Failed to approve transit in Supabase: ${error.message}`);
+
+  const saved = new Set((data ?? []).map((r: { id: string }) => r.id));
+  const missing = targets.filter((t) => !saved.has(t.id));
+  if (missing.length > 0) {
+    const rows = missing.map((t) => toDbRow(t, { status: 'published', published_at: stamp, social_posted_at: null }));
+    const { error: insertError } = await supabase.from('transits').upsert(rows, { onConflict: 'id' });
+    if (insertError) throw new Error(`Failed to approve transit in Supabase: ${insertError.message}`);
+  }
+}
+
 export async function approveTransit(
   id: string,
-  currentTransits: ZodiacSignTransit[]
+  currentTransits: ZodiacSignTransit[],
+  windows: readonly TransitWindow[] = []
 ): Promise<ApproveTransitResult> {
   const target = currentTransits.find((t) => t.id === id);
   if (!target) return { success: false, updatedTransits: currentTransits };
 
-  const isPublished = target.status === 'published';
-  const newStatus = isPublished ? 'pending' : 'published';
-  const publishedAt = isPublished ? null : new Date().toISOString();
+  const now = Date.now();
+  if (stateOf(target, windows, now).state !== 'pending') {
+    return {
+      success: false,
+      updatedTransits: currentTransits,
+      feedbackType: 'warning',
+      feedbackMessage: 'This card is already approved or finished. Only Pending cards can be approved.',
+    };
+  }
+
+  const stamp = new Date(now).toISOString();
+  await writeApprovals([target], stamp);
+
+  const updatedTarget: ZodiacSignTransit = { ...target, status: 'published', publishedAt: stamp, socialPostedAt: null };
   let blogSync: { success: boolean; error?: string } | null = null;
-
-  // If Supabase credentials are present, execute live upsert
   if (import.meta.env.VITE_SUPABASE_URL) {
-    const dbPayload = toDbRow(target, {
-      status: newStatus,
-      published_at: publishedAt,
-    });
-
-    console.log('[approveTransit] Executing live Supabase upsert for transit ID:', id, 'Payload:', dbPayload);
-
-    const { data, error } = await supabase
-      .from('transits')
-      .upsert(dbPayload, { onConflict: 'id' });
-
-    if (error) {
-      console.error('[approveTransit] Supabase upsert failed:', error);
-      throw new Error(`Failed to approve transit in Supabase: ${error.message}`);
-    }
-
-    console.log('[approveTransit] Supabase upsert succeeded for transit ID:', id);
-
-    // Queue (or un-queue) the real journal article for this sign's upcoming ingress
+    // Queue the real journal article for this sign's upcoming ingress
     try {
-      const updatedTransitForBlog = { ...target, status: newStatus as any, publishedAt };
-      blogSync = await syncTransitToBlogPost(updatedTransitForBlog, newStatus === 'published');
-      console.log('[approveTransit] Journal article sync for sign:', target.sign, blogSync);
+      blogSync = await syncTransitToBlogPost(updatedTarget, true);
     } catch (blogErr) {
       blogSync = { success: false, error: blogErr instanceof Error ? blogErr.message : 'Journal sync failed' };
       console.error('[approveTransit] Error during journal blog post sync:', blogErr);
@@ -351,93 +314,151 @@ export async function approveTransit(
     console.warn('[approveTransit] VITE_SUPABASE_URL is not configured. Supabase write skipped, only local state updated.');
   }
 
-  const updatedTarget: ZodiacSignTransit = {
-    ...target,
-    status: newStatus,
-    publishedAt,
-  };
-
-  const updatedTransits = currentTransits.map((t) =>
-    t.id === id ? updatedTarget : t
-  );
-
-  if (newStatus === 'published') {
-    const webhookRes = await sendMakeWebhook(updatedTarget, publishedAt!);
-    const webhookSuccess = webhookRes.success;
-    const blogNote = blogSync && !blogSync.success ? ` Journal article not queued: ${blogSync.error}.` : '';
-    const feedbackMessage = webhookSuccess
-      ? `Approved. Sent to Make.com for syndication.${blogNote}`
-      : `Approval saved but Make.com webhook did not respond. Check your automation.${blogNote}`;
-    const feedbackType = webhookSuccess && !blogNote ? 'success' : 'warning';
-
-    return {
-      success: true,
-      updatedTransits,
-      action: 'published',
-      webhookSuccess,
-      feedbackMessage,
-      feedbackType,
-    };
-  }
+  const status = stateOf(updatedTarget, windows, now);
+  const when =
+    status.postAt === null
+      ? 'No moon schedule is loaded for this sign yet, so it will not post until one is.'
+      : status.postAt <= now
+        ? 'Its post time has passed, so it posts at the next hourly check.'
+        : `Posts ${formatPostTime(status.postAt)}.`;
+  const blogNote = blogSync && !blogSync.success ? ` Journal article not queued: ${blogSync.error}.` : '';
 
   return {
     success: true,
-    updatedTransits,
-    action: 'pending',
-    feedbackMessage: 'Transit revoked to pending.',
+    updatedTransits: currentTransits.map((t) => (t.id === id ? updatedTarget : t)),
+    action: 'approved',
+    feedbackMessage: `Approved. ${when}${blogNote}`,
+    feedbackType: blogNote || status.postAt === null ? 'warning' : 'success',
+  };
+}
+
+type UndoRefusal = 'posted' | 'sending' | 'not_approved';
+
+/** Return approved, unposted cards to Pending. Refuses any card that is posted or being sent right now.
+ *  Resolves the ids that were undone and, for the rest, why not. */
+async function writeUndo(ids: string[]): Promise<{ undone: string[]; refused: Array<{ id: string; why: UndoRefusal }> }> {
+  if (!import.meta.env.VITE_SUPABASE_URL) return { undone: ids, refused: [] };
+  const stamp = new Date().toISOString();
+  const stale = new Date(Date.now() - CLAIM_STALE_MS).toISOString();
+  const base = () =>
+    supabase
+      .from('transits')
+      .update({ status: 'pending', published_at: null, updated_at: stamp })
+      .in('id', ids)
+      .eq('status', 'published')
+      .is('social_posted_at', null);
+
+  let res = await base().or(`social_sending_at.is.null,social_sending_at.lt.${stale}`).select('id');
+  if (res.error) {
+    // The sending column comes from a migration that may not be applied yet: undo without that check.
+    res = await base().select('id');
+  }
+  if (res.error) throw new Error(`Failed to undo approval in Supabase: ${res.error.message}`);
+
+  const undone = (res.data ?? []).map((r: { id: string }) => r.id);
+  const left = ids.filter((id) => !undone.includes(id));
+  const refused: Array<{ id: string; why: UndoRefusal }> = [];
+  if (left.length > 0) {
+    const { data } = await supabase.from('transits').select('id, status, social_posted_at, social_sending_at').in('id', left);
+    for (const id of left) {
+      const row = (data ?? []).find((r: { id: string }) => r.id === id) as
+        | { status?: string; social_posted_at?: string | null; social_sending_at?: string | null }
+        | undefined;
+      refused.push({ id, why: row?.social_posted_at ? 'posted' : row?.status === 'pending' ? 'not_approved' : 'sending' });
+    }
+  }
+  return { undone, refused };
+}
+
+const refusalText = (why: UndoRefusal): string =>
+  why === 'posted'
+    ? "Can't undo: this post has already gone out."
+    : why === 'sending'
+      ? "Can't undo: this post is being sent right now. Check again in a minute."
+      : 'Nothing to undo: this card is not approved.';
+
+async function revokeJournal(updated: ZodiacSignTransit[]): Promise<void> {
+  if (!import.meta.env.VITE_SUPABASE_URL) return;
+  await Promise.allSettled(updated.map((t) => syncTransitToBlogPost({ ...t, status: 'pending', publishedAt: null }, false)));
+}
+
+export async function undoApproval(
+  id: string,
+  currentTransits: ZodiacSignTransit[],
+  windows: readonly TransitWindow[] = []
+): Promise<ApproveTransitResult> {
+  const target = currentTransits.find((t) => t.id === id);
+  if (!target) return { success: false, updatedTransits: currentTransits };
+
+  const state = stateOf(target, windows).state;
+  if (state !== 'approved') {
+    return {
+      success: false,
+      updatedTransits: currentTransits,
+      feedbackType: 'warning',
+      feedbackMessage: state === 'posted' ? refusalText('posted') : 'Only Approved cards can be undone.',
+    };
+  }
+
+  const { undone, refused } = await writeUndo([id]);
+  if (undone.length === 0) {
+    return { success: false, updatedTransits: currentTransits, feedbackType: 'warning', feedbackMessage: refusalText(refused[0]?.why ?? 'sending') };
+  }
+
+  await revokeJournal([target]);
+  return {
+    success: true,
+    updatedTransits: currentTransits.map((t) => (t.id === id ? { ...t, status: 'pending' as const, publishedAt: null } : t)),
+    action: 'undone',
+    feedbackMessage: `Approval undone. ${target.sign} is Pending again.`,
     feedbackType: 'success',
   };
 }
 
 export async function batchApproveAllTransits(
-  currentTransits: ZodiacSignTransit[]
-): Promise<{ success: boolean; updatedTransits: ZodiacSignTransit[]; error?: string }> {
-  const timestamp = new Date().toISOString();
+  currentTransits: ZodiacSignTransit[],
+  windows: readonly TransitWindow[] = []
+): Promise<{ success: boolean; updatedTransits: ZodiacSignTransit[]; approved: number; error?: string }> {
+  const now = Date.now();
+  const stamp = new Date(now).toISOString();
+  const pending = currentTransits.filter((t) => stateOf(t, windows, now).state === 'pending');
+  if (pending.length === 0) return { success: true, updatedTransits: currentTransits, approved: 0 };
+
+  await writeApprovals(pending, stamp);
 
   if (import.meta.env.VITE_SUPABASE_URL) {
-    const rows = currentTransits.map((t) =>
-      toDbRow(t, {
-        status: 'published',
-        published_at: timestamp,
-      })
-    );
-
-    console.log('[batchApproveAllTransits] Batch upserting 12 signs to Supabase transits table:', rows);
-
-    const { error } = await supabase
-      .from('transits')
-      .upsert(rows, { onConflict: 'id' });
-
-    if (error) {
-      console.error('[batchApproveAllTransits] Supabase batch update error:', error);
-      throw new Error(`Failed to batch approve transits in Supabase: ${error.message}`);
-    }
-
-    console.log('[batchApproveAllTransits] Supabase batch upsert succeeded for all transits.');
-
     // Queue each sign's upcoming journal article (signs with no upcoming article are skipped)
-    try {
-      const results = await Promise.allSettled(
-        currentTransits.map((t) =>
-          syncTransitToBlogPost({ ...t, status: 'published', publishedAt: timestamp }, true)
-        )
-      );
-      const queued = results.filter((r) => r.status === 'fulfilled' && r.value.success).length;
-      console.log(`[batchApproveAllTransits] Queued ${queued} of ${currentTransits.length} journal articles.`);
-    } catch (blogErr) {
-      console.error('[batchApproveAllTransits] Error during batch journal blog post sync:', blogErr);
-    }
-  } else {
-    console.warn('[batchApproveAllTransits] VITE_SUPABASE_URL is not configured. Supabase write skipped.');
+    const results = await Promise.allSettled(
+      pending.map((t) => syncTransitToBlogPost({ ...t, status: 'published', publishedAt: stamp }, true))
+    );
+    const queued = results.filter((r) => r.status === 'fulfilled' && r.value.success).length;
+    console.log(`[batchApproveAllTransits] Queued ${queued} of ${pending.length} journal articles.`);
   }
 
-  const updatedTransits = currentTransits.map((t) => ({
-    ...t,
-    status: 'published' as const,
-    publishedAt: timestamp
-  }));
+  const ids = new Set(pending.map((t) => t.id));
+  return {
+    success: true,
+    approved: pending.length,
+    updatedTransits: currentTransits.map((t) => (ids.has(t.id) ? { ...t, status: 'published' as const, publishedAt: stamp, socialPostedAt: null } : t)),
+  };
+}
 
-  return { success: true, updatedTransits };
+/** Undo every Approved card that is not posted or being sent. */
+export async function undoAllApproved(
+  currentTransits: ZodiacSignTransit[],
+  windows: readonly TransitWindow[] = []
+): Promise<{ success: boolean; updatedTransits: ZodiacSignTransit[]; undone: number; refused: number }> {
+  const approved = currentTransits.filter((t) => stateOf(t, windows).state === 'approved');
+  if (approved.length === 0) return { success: true, updatedTransits: currentTransits, undone: 0, refused: 0 };
+
+  const { undone, refused } = await writeUndo(approved.map((t) => t.id));
+  await revokeJournal(approved.filter((t) => undone.includes(t.id)));
+  return {
+    success: true,
+    undone: undone.length,
+    refused: refused.length,
+    updatedTransits: currentTransits.map((t) => (undone.includes(t.id) ? { ...t, status: 'pending' as const, publishedAt: null } : t)),
+  };
 }
 
 export async function updateTransitContent(
@@ -451,7 +472,8 @@ export async function updateTransitContent(
   const merged = { ...target, ...updates };
 
   if (import.meta.env.VITE_SUPABASE_URL) {
-    const dbPayload = toDbRow(merged);
+    // Content edits never touch the posting state: a stale screen must not undo an approval or a post.
+    const { status: _status, published_at: _publishedAt, social_posted_at: _postedAt, ...dbPayload } = toDbRow(merged);
     console.log('[updateTransitContent] Upserting content to Supabase transits table:', { id, payload: dbPayload });
 
     const { error } = await supabase

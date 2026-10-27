@@ -60,12 +60,21 @@ Run `git checkout main -- supabase/functions` afterwards to put the working tree
 | 2026-10-26 | check-subscription | v21 | Adds cancel_at_period_end and a correct end date to the response; access rules unchanged | v20 (sha 979c758f0016...) |
 
 ## make-social-bridge: due-time rule and push mode (2026-10-27)
-Before: v25, ezbr_sha256 20d6fc3c8037162125f4b21300918755f7bf406f21d35628ac39671d2ad08868. Now: v26.
+Before: v25, ezbr_sha256 20d6fc3c8037162125f4b21300918755f7bf406f21d35628ac39671d2ad08868. Then v26 (commit c0e814c: power-hour due rule, push mode).
 Rollback to the old behavior (returns every published, unposted transit, no due rule):
 ```powershell
 git checkout 4112b5e -- supabase/functions/make-social-bridge
 supabase functions deploy make-social-bridge --no-verify-jwt --project-ref ggrhuhwxbwrfbbcwcrmv
 git checkout main -- supabase/functions/make-social-bridge
 ```
-The cron job (supabase/migrations/20261027120000_social_push_cron.sql, NOT YET APPLIED) is paused with
-`select cron.unschedule('social-push-every-15-min');`
+
+## make-social-bridge: four-state lifecycle, start-time schedule, failure emails (2026-10-27)
+Before: v26 (commit c0e814c). Now: v27, ezbr_sha256 256888f5c70280aa4df846c20a3fa0d580a457a139523291e0326be2cbe16703.
+Rollback to v26 (power-hour rule, no emails). The `_shared` files are bundled with the function, so check out the shared folder too:
+```powershell
+git checkout c0e814c -- supabase/functions/make-social-bridge supabase/functions/_shared/socialDue.ts
+supabase functions deploy make-social-bridge --no-verify-jwt --project-ref ggrhuhwxbwrfbbcwcrmv
+git checkout main -- supabase/functions/make-social-bridge supabase/functions/_shared/socialDue.ts
+```
+Migrations, both NOT YET APPLIED: 20261027120000_social_push_cron.sql (hourly job `social-push-hourly`), 20261027130000_social_alert_columns.sql (sending / failure / alert columns; the function works without them).
+Pause the cron with `select cron.unschedule('social-push-hourly');`

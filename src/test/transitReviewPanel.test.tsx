@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TransitReviewPanel } from '../components/TransitReviewPanel';
 import { ZodiacSignTransit } from '../types';
@@ -284,8 +284,8 @@ describe('TransitReviewPanel - Sorting & Filtering Controls', () => {
       expect(screen.getByText('Cancer')).toBeDefined();
     });
 
-    // Click "Approve Sign" on pending transit
-    const approveButtons = screen.getAllByRole('button', { name: /approve sign/i });
+    // Click "Approve" on pending transit
+    const approveButtons = screen.getAllByRole('button', { name: /^approve$/i });
     fireEvent.click(approveButtons[0]);
     expect(onApprove).toHaveBeenCalled();
 
@@ -311,13 +311,12 @@ describe('TransitReviewPanel - Sorting & Filtering Controls', () => {
     });
 
     // Click "Pending (3)"
-    const pendingTab = screen.getByRole('button', { name: /pending \(3\)/i });
+    const pendingTab = screen.getByRole('button', { name: /^pending \(3\)/i });
     fireEvent.click(pendingTab);
 
-    // Cancer and Virgo should be in active list, Leo (published) should not be visible
+    // Cancer and Virgo are in the list; Leo (approved) lives in the Scheduled queue
     expect(screen.getByText('Cancer')).toBeDefined();
     expect(screen.getByText('Virgo')).toBeDefined();
-    expect(screen.queryByText('Leo')).toBeNull();
 
     // Past transits should show Taurus (which is pending)
     const pastBtn = screen.getByRole('button', { name: /past transits/i });
@@ -325,15 +324,13 @@ describe('TransitReviewPanel - Sorting & Filtering Controls', () => {
     fireEvent.click(pastBtn);
     expect(screen.getByText('Taurus')).toBeDefined();
 
-    // Click "Published (1)"
-    const publishedTab = screen.getByRole('button', { name: /published \(1\)/i });
-    fireEvent.click(publishedTab);
+    // Click "Posted (0)": nothing has posted, so the list empties but the queue stays
+    const postedTab = screen.getByRole('button', { name: /posted \(0\)/i });
+    fireEvent.click(postedTab);
 
-    // Leo is published and upcoming, so visible in active
     expect(screen.getByText('Leo')).toBeDefined();
     expect(screen.queryByText('Cancer')).toBeNull();
     expect(screen.queryByText('Virgo')).toBeNull();
-    // Taurus is pending, so not in past published
     expect(screen.queryByRole('button', { name: /past transits/i })).toBeNull();
   });
 
@@ -364,10 +361,117 @@ describe('TransitReviewPanel - Sorting & Filtering Controls', () => {
     expect(screen.getByText('Taurus')).toBeDefined();
 
     // Click Approve on the past card
-    const allApproveButtons = screen.getAllByRole('button', { name: /approve sign/i });
+    const allApproveButtons = screen.getAllByRole('button', { name: /^approve$/i });
     // Taurus is the last pending card rendered
     const lastApprove = allApproveButtons[allApproveButtons.length - 1];
     fireEvent.click(lastApprove);
     expect(onApprove).toHaveBeenCalledWith('taurus');
+  });
+});
+
+describe('TransitReviewPanel - states, one button per card, Scheduled queue', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-13T12:00:00Z') });
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const panel = (transits: ZodiacSignTransit[], extra: Partial<React.ComponentProps<typeof TransitReviewPanel>> = {}) =>
+    renderWithClient(
+      <TransitReviewPanel
+        transits={transits}
+        onApprove={vi.fn()}
+        onUndo={vi.fn()}
+        onBatchApprove={vi.fn()}
+        onUndoAll={vi.fn()}
+        onSelectTransit={vi.fn()}
+        onInspectPayload={vi.fn()}
+        {...extra}
+      />
+    );
+
+  const queueSection = () => screen.getByRole('region', { name: /scheduled queue/i });
+
+  it('shows Approved cards in the Scheduled queue with "Posts <weekday time> ET" and an "Undo approval" button', async () => {
+    const onUndo = vi.fn();
+    panel(mockTransits, { onUndo });
+
+    // Leo starts Fri Oct 16, 6:54 PM EDT, so it posts at 6:00 PM ET
+    await waitFor(() => {
+      expect(within(queueSection()).getByText('Posts Fri 6:00 PM ET')).toBeDefined();
+    });
+    expect(within(queueSection()).getByText('Approved')).toBeDefined();
+    const undo = within(queueSection()).getByRole('button', { name: /undo approval/i });
+    fireEvent.click(undo);
+    expect(onUndo).toHaveBeenCalledWith('leo');
+    // an approved card has no Approve button
+    expect(within(queueSection()).queryByRole('button', { name: /^approve$/i })).toBeNull();
+  });
+
+  it('sorts the queue by post time until posted', async () => {
+    const approvedVirgo = { ...mockTransits[3], status: 'published' as const, publishedAt: '2026-10-13T00:00:00Z' };
+    const approvedLeo = { ...mockTransits[2], publishedAt: '2026-10-13T00:00:00Z' };
+    // Virgo is listed first but posts later (Sun Oct 18, 8:00 PM ET) than Leo (Fri Oct 16, 6:00 PM ET)
+    panel([approvedVirgo, approvedLeo]);
+    await waitFor(() => {
+      expect(within(queueSection()).getByText('Posts Sun 8:00 PM ET')).toBeDefined();
+    });
+    const names = within(queueSection()).getAllByRole('heading', { level: 3 }).map((h) => h.textContent?.split('(')[0].trim());
+    expect(names).toEqual(['Leo', 'Virgo']);
+  });
+
+  it('marks Missed cards clearly, with no action button', async () => {
+    // Taurus was approved before its Oct 10 window and never posted; the window ended Oct 12
+    const missed = { ...mockTransits[0], status: 'published' as const, publishedAt: '2026-10-09T00:00:00Z' };
+    panel([missed]);
+    await waitFor(() => {
+      expect(within(queueSection()).getByText(/Missed: the transit ended and this was never posted/)).toBeDefined();
+    });
+    expect(within(queueSection()).queryByRole('button', { name: /^approve$/i })).toBeNull();
+    expect(within(queueSection()).queryByRole('button', { name: /undo approval/i })).toBeNull();
+  });
+
+  it('a Posted card moves out of the queue and has no action button', async () => {
+    const posted = { ...mockTransits[2], publishedAt: '2026-10-13T00:00:00Z', socialPostedAt: '2026-10-13T11:00:00Z' };
+    panel([posted]);
+    await waitFor(() => {
+      expect(screen.getByText(/Posted (Tue|Mon) /)).toBeDefined();
+    });
+    expect(within(queueSection()).queryByText('Leo')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^approve$/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /undo approval/i })).toBeNull();
+  });
+
+  it('Pending is the default: an unapproved card shows "Approve" and the Pending badge', async () => {
+    panel([mockTransits[1]]);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^approve$/i })).toBeDefined();
+    });
+    expect(screen.getAllByText('Pending').length).toBeGreaterThan(0);
+  });
+
+  it('has "Approve all pending" and "Undo all approved" side by side, wired to their handlers', async () => {
+    const onBatchApprove = vi.fn();
+    const onUndoAll = vi.fn();
+    panel(mockTransits, { onBatchApprove, onUndoAll });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /approve all pending \(3\)/i })).toBeDefined();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /approve all pending \(3\)/i }));
+    fireEvent.click(screen.getByRole('button', { name: /undo all approved \(1\)/i }));
+    expect(onBatchApprove).toHaveBeenCalledTimes(1);
+    expect(onUndoAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the mass buttons when there is nothing to act on', async () => {
+    panel([mockTransits[1]]);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /undo all approved \(0\)/i })).toBeDefined();
+    });
+    expect((screen.getByRole('button', { name: /undo all approved \(0\)/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /approve all pending \(1\)/i }) as HTMLButtonElement).disabled).toBe(false);
   });
 });

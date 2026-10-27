@@ -1,36 +1,28 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { 
-  approveTransit, 
-  batchApproveAllTransits, 
-  updateTransitContent, 
-  fetchTransits, 
-  toDbRow, 
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  approveTransit,
+  undoApproval,
+  undoAllApproved,
+  batchApproveAllTransits,
+  updateTransitContent,
+  toDbRow,
   fromDbRow,
   formatTransitBlogPostMarkdown,
   buildTransitBlogPostPayload,
   syncTransitToBlogPost
 } from '../services/transitService';
+import * as transitService from '../services/transitService';
 import { supabase } from '../lib/supabase';
 import { ZodiacSignTransit } from '../types';
 import { blogPostsClient, DRAFT_ARTICLE, APPROVED_ARTICLE, PUBLISHED_ARTICLE } from './blogPostsMock';
+import { transitsTable } from './transitsTableMock';
+import type { TransitWindow } from '../../supabase/functions/_shared/socialDue';
 
-vi.mock('../lib/supabase', () => {
-  const upsertMock = vi.fn();
-  const selectMock = vi.fn();
-  const orderMock = vi.fn();
-
-  return {
-    supabase: {
-      from: vi.fn(() => ({
-        upsert: upsertMock,
-        select: selectMock,
-      })),
-    },
-    upsertMock,
-    selectMock,
-    orderMock,
-  };
-});
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(),
+  },
+}));
 
 const mockTransits: ZodiacSignTransit[] = [
   {
@@ -64,92 +56,248 @@ const mockTransits: ZodiacSignTransit[] = [
     ritualTip: 'Drink warm matcha.',
     hashtags: ['#TaurusEnergy'],
     status: 'published',
-    publishedAt: '2026-09-26T00:00:00.000Z',
+    publishedAt: '2026-10-25T00:00:00.000Z',
     socialPostedAt: null,
   },
 ];
 
-describe('transitService - Database Column Mapping & Mutation Integrity', () => {
+// Aries starts Tue Oct 27 2026, 2:30 PM EDT (posts 2:00 PM ET). Taurus starts Fri Oct 30, 12:18 AM EDT (posts Thu 8:00 PM ET).
+const WINDOWS: TransitWindow[] = [
+  { sign: 'Aries', start_time: '2026-10-27T18:30:00Z', end_time: '2026-10-29T20:00:00Z' },
+  { sign: 'Taurus', start_time: '2026-10-30T04:18:00Z', end_time: '2026-11-01T10:00:00Z' },
+];
+const NOW = '2026-10-26T12:00:00Z';
+
+const withTransits = (table: ReturnType<typeof transitsTable>['table'], blogArticle: any = DRAFT_ARTICLE) => {
+  const blog = blogPostsClient(blogArticle);
+  vi.mocked(supabase.from).mockImplementation((name: string) =>
+    (name === 'transits' ? table : { select: blog.select, update: blog.update }) as any
+  );
+  return blog;
+};
+
+describe('transitService - approve, undo and the removed Make.com ping', () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+  const originalFetch = global.fetch;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co');
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date(NOW) });
+    fetchSpy = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    global.fetch = fetchSpy as any;
+    localStorage.setItem('moonday.makeWebhook', 'https://hook.us1.make.com/test-endpoint');
   });
 
-  it('approveTransit publishes a pending transit with exact database column names via upsert', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const blog = blogPostsClient(DRAFT_ARTICLE);
-    vi.mocked(supabase.from).mockImplementation((table: string) =>
-      (table === 'transits' ? { upsert: upsertMock } : { select: blog.select, update: blog.update }) as any
-    );
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+    global.fetch = originalFetch;
+    localStorage.removeItem('moonday.makeWebhook');
+  });
 
-    const result = await approveTransit('aries', mockTransits);
+  it('approve moves Pending to Approved with a targeted update (status, published_at, social_posted_at only)', async () => {
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] });
+    withTransits(t.table);
+
+    const result = await approveTransit('aries', mockTransits, WINDOWS);
 
     expect(result.success).toBe(true);
-    expect(result.updatedTransits.find((t) => t.id === 'aries')?.status).toBe('published');
-
-    if (import.meta.env.VITE_SUPABASE_URL) {
-      expect(supabase.from).toHaveBeenCalledWith('transits');
-      expect(upsertMock).toHaveBeenCalledTimes(1);
-      const payload = upsertMock.mock.calls[0][0];
-      expect(payload).toHaveProperty('id', 'aries');
-      expect(payload).toHaveProperty('status', 'published');
-      expect(payload).toHaveProperty('published_at');
-      expect(payload).toHaveProperty('updated_at');
-      expect(payload).toHaveProperty('sign', 'Aries');
-      expect(upsertMock.mock.calls[0][1]).toEqual({ onConflict: 'id' });
-    }
+    expect(result.action).toBe('approved');
+    const aries = result.updatedTransits.find((x) => x.id === 'aries')!;
+    expect(aries.status).toBe('published');
+    expect(aries.publishedAt).toBe(new Date(NOW).toISOString());
+    expect(t.update).toHaveBeenCalledTimes(1);
+    const payload = t.update.mock.calls[0][0];
+    expect(Object.keys(payload).sort()).toEqual(['published_at', 'social_posted_at', 'status', 'updated_at']);
+    expect(payload).toMatchObject({ status: 'published', social_posted_at: null });
+    expect(t.upsert).not.toHaveBeenCalled();
   });
 
-  it('approveTransit revokes a published transit back to pending', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const blog = blogPostsClient(APPROVED_ARTICLE);
-    vi.mocked(supabase.from).mockImplementation((table: string) =>
-      (table === 'transits' ? { upsert: upsertMock } : { select: blog.select, update: blog.update }) as any
-    );
+  it('approve shows the scheduled post time in the confirmation', async () => {
+    withTransits(transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] }).table);
+    const result = await approveTransit('aries', mockTransits, WINDOWS);
+    expect(result.feedbackType).toBe('success');
+    expect(result.feedbackMessage).toBe('Approved. Posts Tue 2:00 PM ET.');
+  });
 
-    const result = await approveTransit('taurus', mockTransits);
+  it('approve after the post time with the window running says it posts at the next hourly check', async () => {
+    vi.setSystemTime(new Date('2026-10-28T12:00:00Z'));
+    withTransits(transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] }).table);
+    const result = await approveTransit('aries', mockTransits, WINDOWS);
+    expect(result.feedbackMessage).toContain('posts at the next hourly check');
+  });
+
+  it('approve with no moon schedule loaded warns instead of promising a time', async () => {
+    withTransits(transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] }).table);
+    const result = await approveTransit('aries', mockTransits, []);
+    expect(result.feedbackType).toBe('warning');
+    expect(result.feedbackMessage).toContain('No moon schedule');
+  });
+
+  it('only Pending cards can be approved: an approved card is refused and nothing is written', async () => {
+    const t = transitsTable();
+    withTransits(t.table);
+    const result = await approveTransit('taurus', mockTransits, WINDOWS);
+    expect(result.success).toBe(false);
+    expect(t.update).not.toHaveBeenCalled();
+    expect(t.upsert).not.toHaveBeenCalled();
+  });
+
+  it('a card with no database row yet is inserted when approved', async () => {
+    const t = transitsTable({ updateResults: [{ data: [] }] });
+    withTransits(t.table);
+    const result = await approveTransit('aries', mockTransits, WINDOWS);
+    expect(result.success).toBe(true);
+    expect(t.upsert).toHaveBeenCalledTimes(1);
+    expect(t.upsert.mock.calls[0][0][0]).toMatchObject({ id: 'aries', status: 'published', social_posted_at: null });
+    expect(t.upsert.mock.calls[0][1]).toEqual({ onConflict: 'id' });
+  });
+
+  it('approve throws an error if Supabase fails', async () => {
+    withTransits(transitsTable({ updateResults: [{ error: { message: 'RLS policy violation' } }] }).table);
+    await expect(approveTransit('aries', mockTransits, WINDOWS)).rejects.toThrow('Failed to approve transit in Supabase: RLS policy violation');
+  });
+
+  it('approve warns when no journal article is queued for the sign', async () => {
+    withTransits(transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] }).table, null);
+    const result = await approveTransit('aries', mockTransits, WINDOWS);
+    expect(result.success).toBe(true);
+    expect(result.feedbackType).toBe('warning');
+    expect(result.feedbackMessage).toContain('Approved. Posts Tue 2:00 PM ET.');
+    expect(result.feedbackMessage).toContain('Journal article not queued: No upcoming journal article found for Aries');
+  });
+
+  it('the Make.com ping is gone: approving never calls fetch, and there is no webhook sender or notice', async () => {
+    withTransits(transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] }).table);
+    const result = await approveTransit('aries', mockTransits, WINDOWS);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect((transitService as Record<string, unknown>).sendMakeWebhook).toBeUndefined();
+    expect(result).not.toHaveProperty('webhookSuccess');
+    expect(result.feedbackMessage).not.toMatch(/make\.com|webhook/i);
+  });
+
+  it('undo returns an Approved card to Pending, only touching approved, unposted, not-sending rows', async () => {
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'taurus' }] }] });
+    withTransits(t.table, APPROVED_ARTICLE);
+
+    const result = await undoApproval('taurus', mockTransits, WINDOWS);
 
     expect(result.success).toBe(true);
-    const taurus = result.updatedTransits.find((t) => t.id === 'taurus');
-    expect(taurus?.status).toBe('pending');
-    expect(taurus?.publishedAt).toBeNull();
-
-    if (import.meta.env.VITE_SUPABASE_URL) {
-      const payload = upsertMock.mock.calls[0][0];
-      expect(payload).toHaveProperty('id', 'taurus');
-      expect(payload).toHaveProperty('status', 'pending');
-      expect(payload.published_at).toBeNull();
-    }
+    expect(result.action).toBe('undone');
+    const taurus = result.updatedTransits.find((x) => x.id === 'taurus')!;
+    expect(taurus.status).toBe('pending');
+    expect(taurus.publishedAt).toBeNull();
+    expect(t.update.mock.calls[0][0]).toMatchObject({ status: 'pending', published_at: null });
+    expect(t.filters[0]).toEqual(expect.arrayContaining(['in:id,taurus', 'eq:status,published', 'is:social_posted_at,null']));
+    expect(t.filters[0].some((f) => f.startsWith('or:social_sending_at.is.null'))).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('batchApproveAllTransits marks all transits as published with database timestamp via upsert', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const blog = blogPostsClient(DRAFT_ARTICLE);
-    vi.mocked(supabase.from).mockImplementation((table: string) =>
-      (table === 'transits' ? { upsert: upsertMock } : { select: blog.select, update: blog.update }) as any
-    );
+  it('undo is refused for a Posted card, with no database write', async () => {
+    const t = transitsTable();
+    withTransits(t.table);
+    const posted = mockTransits.map((x) => (x.id === 'taurus' ? { ...x, socialPostedAt: '2026-10-25T12:00:00Z' } : x));
+    const result = await undoApproval('taurus', posted, WINDOWS);
+    expect(result.success).toBe(false);
+    expect(result.feedbackMessage).toContain('already gone out');
+    expect(t.update).not.toHaveBeenCalled();
+  });
 
-    const result = await batchApproveAllTransits(mockTransits);
+  it('undo is refused when the database shows the post went out after this screen loaded', async () => {
+    const t = transitsTable({
+      updateResults: [{ data: [] }],
+      rows: [{ id: 'taurus', status: 'published', social_posted_at: '2026-10-26T11:59:00Z', social_sending_at: null }],
+    });
+    withTransits(t.table);
+    const result = await undoApproval('taurus', mockTransits, WINDOWS);
+    expect(result.success).toBe(false);
+    expect(result.feedbackMessage).toContain('already gone out');
+    expect(result.updatedTransits.find((x) => x.id === 'taurus')?.status).toBe('published');
+  });
 
+  it('undo is refused while the post is being sent', async () => {
+    const t = transitsTable({
+      updateResults: [{ data: [] }],
+      rows: [{ id: 'taurus', status: 'published', social_posted_at: null, social_sending_at: '2026-10-26T11:59:30Z' }],
+    });
+    withTransits(t.table);
+    const result = await undoApproval('taurus', mockTransits, WINDOWS);
+    expect(result.success).toBe(false);
+    expect(result.feedbackMessage).toContain('being sent right now');
+  });
+
+  it('undo still works before the sending column exists (that check is dropped, the rest stays)', async () => {
+    const t = transitsTable({ updateResults: [{ error: { message: 'column "social_sending_at" does not exist' } }, { data: [{ id: 'taurus' }] }] });
+    withTransits(t.table, APPROVED_ARTICLE);
+    const result = await undoApproval('taurus', mockTransits, WINDOWS);
     expect(result.success).toBe(true);
-    expect(result.updatedTransits.every((t) => t.status === 'published')).toBe(true);
-
-    if (import.meta.env.VITE_SUPABASE_URL) {
-      expect(supabase.from).toHaveBeenCalledWith('transits');
-      const rows = upsertMock.mock.calls[0][0];
-      expect(Array.isArray(rows)).toBe(true);
-      expect(rows.length).toBe(2);
-      expect(rows.every((r: any) => r.status === 'published')).toBe(true);
-      expect(rows.every((r: any) => r.published_at !== null)).toBe(true);
-      expect(upsertMock.mock.calls[0][1]).toEqual({ onConflict: 'id' });
-    }
+    expect(t.update).toHaveBeenCalledTimes(2);
+    expect(t.filters[1]).toContain('is:social_posted_at,null');
+    expect(t.filters[1].some((f) => f.startsWith('or:'))).toBe(false);
   });
 
-  it('updateTransitContent maps transitTitle, transitAspect, powerHour, ritualTip, hashtags to snake_case db columns', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: null });
+  it('only Approved cards can be undone: a Pending card is refused', async () => {
+    const t = transitsTable();
+    withTransits(t.table);
+    const result = await undoApproval('aries', mockTransits, WINDOWS);
+    expect(result.success).toBe(false);
+    expect(t.update).not.toHaveBeenCalled();
+  });
 
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-    } as unknown as ReturnType<typeof supabase.from>);
+  it('undo all returns every Approved card, leaves Pending and Posted alone, and counts refusals', async () => {
+    const t = transitsTable({
+      updateResults: [{ data: [{ id: 'taurus' }] }],
+      rows: [{ id: 'gemini', status: 'published', social_posted_at: null, social_sending_at: '2026-10-26T11:59:30Z' }],
+    });
+    withTransits(t.table, APPROVED_ARTICLE);
+    const all: ZodiacSignTransit[] = [
+      ...mockTransits,
+      { ...mockTransits[1], id: 'gemini', sign: 'Gemini', publishedAt: '2026-10-25T00:00:00.000Z' },
+      { ...mockTransits[1], id: 'leo', sign: 'Leo', socialPostedAt: '2026-10-25T12:00:00Z' },
+    ];
+    const windows = [
+      ...WINDOWS,
+      { sign: 'Gemini', start_time: '2026-11-01T12:00:00Z', end_time: '2026-11-03T12:00:00Z' },
+      { sign: 'Leo', start_time: '2026-10-25T12:00:00Z', end_time: '2026-10-28T12:00:00Z' },
+    ];
+
+    const result = await undoAllApproved(all, windows);
+
+    expect(result).toMatchObject({ undone: 1, refused: 1 });
+    expect(t.filters[0]).toContain('in:id,taurus,gemini');
+    expect(result.updatedTransits.find((x) => x.id === 'taurus')?.status).toBe('pending');
+    expect(result.updatedTransits.find((x) => x.id === 'gemini')?.status).toBe('published');
+    expect(result.updatedTransits.find((x) => x.id === 'aries')?.status).toBe('pending');
+    expect(result.updatedTransits.find((x) => x.id === 'leo')?.socialPostedAt).toBe('2026-10-25T12:00:00Z');
+  });
+
+  it('approve all approves only the Pending cards', async () => {
+    const t = transitsTable({ updateResults: [{ data: [{ id: 'aries' }] }] });
+    withTransits(t.table);
+
+    const result = await batchApproveAllTransits(mockTransits, WINDOWS);
+
+    expect(result.approved).toBe(1);
+    expect(t.filters[0]).toContain('in:id,aries');
+    expect(t.update.mock.calls[0][0]).toMatchObject({ status: 'published', social_posted_at: null });
+    expect(result.updatedTransits.find((x) => x.id === 'aries')?.status).toBe('published');
+    // taurus was already approved: its approval time is untouched
+    expect(result.updatedTransits.find((x) => x.id === 'taurus')?.publishedAt).toBe('2026-10-25T00:00:00.000Z');
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('approve all with nothing pending writes nothing', async () => {
+    const t = transitsTable();
+    withTransits(t.table);
+    const result = await batchApproveAllTransits([mockTransits[1]], WINDOWS);
+    expect(result.approved).toBe(0);
+    expect(t.update).not.toHaveBeenCalled();
+  });
+
+  it('updateTransitContent maps fields to snake_case but never writes status, published_at or social_posted_at', async () => {
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    vi.mocked(supabase.from).mockReturnValue({ upsert: upsertMock } as unknown as ReturnType<typeof supabase.from>);
 
     const updates = {
       copy: 'New updated copy',
@@ -160,96 +308,32 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
       hashtags: ['#TestTag'],
     };
 
-    const result = await updateTransitContent('aries', updates, mockTransits);
+    const result = await updateTransitContent('taurus', updates, mockTransits);
 
     expect(result.success).toBe(true);
-    const updated = result.updatedTransits.find((t) => t.id === 'aries');
-    expect(updated?.copy).toBe('New updated copy');
-
-    if (import.meta.env.VITE_SUPABASE_URL) {
-      expect(supabase.from).toHaveBeenCalledWith('transits');
-      const payload = upsertMock.mock.calls[0][0];
-      expect(payload).toEqual(
-        expect.objectContaining({
-          id: 'aries',
-          copy: 'New updated copy',
-          transit_title: 'New Title',
-          transit_aspect: 'New Aspect',
-          power_hour: '10:00 AM EST',
-          ritual_tip: 'New ritual tip',
-          hashtags: ['#TestTag'],
-        })
-      );
-      expect(upsertMock.mock.calls[0][1]).toEqual({ onConflict: 'id' });
-    }
+    expect(result.updatedTransits.find((t) => t.id === 'taurus')?.copy).toBe('New updated copy');
+    const payload = upsertMock.mock.calls[0][0];
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: 'taurus',
+        copy: 'New updated copy',
+        transit_title: 'New Title',
+        transit_aspect: 'New Aspect',
+        power_hour: '10:00 AM EST',
+        ritual_tip: 'New ritual tip',
+        hashtags: ['#TestTag'],
+      })
+    );
+    expect(payload).not.toHaveProperty('status');
+    expect(payload).not.toHaveProperty('published_at');
+    expect(payload).not.toHaveProperty('social_posted_at');
+    expect(upsertMock.mock.calls[0][1]).toEqual({ onConflict: 'id' });
   });
+});
 
-  it('approveTransit throws an error if Supabase upsert fails', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: { message: 'RLS policy violation' } });
-
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-    } as unknown as ReturnType<typeof supabase.from>);
-
-    if (import.meta.env.VITE_SUPABASE_URL) {
-      await expect(approveTransit('aries', mockTransits)).rejects.toThrow('Failed to approve transit in Supabase: RLS policy violation');
-    }
-  });
-
-  it('approveTransit returns success feedback when Make.com webhook responds 200', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const blog = blogPostsClient(DRAFT_ARTICLE);
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-      select: blog.select,
-      update: blog.update,
-    } as unknown as ReturnType<typeof supabase.from>);
-
-    const originalFetch = global.fetch;
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
-    localStorage.setItem('moonday.makeWebhook', 'https://hook.us1.make.com/test-endpoint');
-
-    try {
-      const result = await approveTransit('aries', mockTransits);
-      expect(result.success).toBe(true);
-      expect(result.webhookSuccess).toBe(true);
-      expect(result.feedbackMessage).toBe('Approved. Sent to Make.com for syndication.');
-      expect(result.feedbackType).toBe('success');
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://hook.us1.make.com/test-endpoint',
-        expect.objectContaining({
-          method: 'POST',
-        })
-      );
-    } finally {
-      global.fetch = originalFetch;
-      localStorage.removeItem('moonday.makeWebhook');
-    }
-  });
-
-  it('approveTransit returns warning feedback when Make.com webhook does not respond', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const blog = blogPostsClient(DRAFT_ARTICLE);
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-      select: blog.select,
-      update: blog.update,
-    } as unknown as ReturnType<typeof supabase.from>);
-
-    const originalFetch = global.fetch;
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network connection timeout'));
-    localStorage.setItem('moonday.makeWebhook', 'https://hook.us1.make.com/test-endpoint');
-
-    try {
-      const result = await approveTransit('aries', mockTransits);
-      expect(result.success).toBe(true);
-      expect(result.webhookSuccess).toBe(false);
-      expect(result.feedbackMessage).toBe('Approval saved but Make.com webhook did not respond. Check your automation.');
-      expect(result.feedbackType).toBe('warning');
-    } finally {
-      global.fetch = originalFetch;
-      localStorage.removeItem('moonday.makeWebhook');
-    }
+describe('transitService - Database Column Mapping', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
   it('toDbRow outputs all required columns matching PostgreSQL transits schema', () => {
@@ -338,34 +422,6 @@ describe('transitService - Database Column Mapping & Mutation Integrity', () => 
     expect(payload.published_at).not.toBeNull();
     expect(payload.zodiac_sign_tag).toBe('Aries');
     expect(payload.keywords).toContain('AriesSeason');
-  });
-
-  it('approveTransit warns when no journal article is queued for the sign', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ error: null });
-    const blog = blogPostsClient(null);
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-      select: blog.select,
-      update: blog.update,
-    } as unknown as ReturnType<typeof supabase.from>);
-
-    const originalFetch = global.fetch;
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
-    localStorage.setItem('moonday.makeWebhook', 'https://hook.us1.make.com/test-endpoint');
-
-    try {
-      const result = await approveTransit('aries', mockTransits);
-      expect(result.success).toBe(true);
-      expect(result.webhookSuccess).toBe(true);
-      if (import.meta.env.VITE_SUPABASE_URL) {
-        expect(result.feedbackType).toBe('warning');
-        expect(result.feedbackMessage).toContain('Approved. Sent to Make.com for syndication.');
-        expect(result.feedbackMessage).toContain('Journal article not queued: No upcoming journal article found for Aries');
-      }
-    } finally {
-      global.fetch = originalFetch;
-      localStorage.removeItem('moonday.makeWebhook');
-    }
   });
 
   describe('syncTransitToBlogPost - queues the real journal article', () => {

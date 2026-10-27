@@ -1,5 +1,16 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { dueRows, pushDue, type TransitRow, type TransitWindow } from '../_shared/socialDue.ts';
+import {
+  CLAIM_STALE_MINUTES,
+  dueItems,
+  earliestApproval,
+  pushDue,
+  transitTimesLine,
+  type DueItem,
+  type PushContext,
+  type TransitRow,
+  type TransitWindow,
+} from '../_shared/socialDue.ts';
+import { DEFAULT_ADMIN_EMAIL, sendAdminEmail, socialAlertEmail } from '../_shared/adminAlert.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +34,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 
-function toPayload(t: TransitRow & Record<string, any>) {
+function toPayload(t: TransitRow & Record<string, any>, ctx?: PushContext) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://ggrhuhwxbwrfbbcwcrmv.supabase.co';
   const signKey = (t.id || t.sign || 'aries').toLowerCase().trim();
   const imageUrl = t.image_url || `${supabaseUrl}/storage/v1/object/public/transit-images/${signKey}.png`;
@@ -36,6 +47,16 @@ function toPayload(t: TransitRow & Record<string, any>) {
     ritual_tip: sanitize(t.ritual_tip),
     transit_title: sanitize(t.transit_title),
     transit_aspect: sanitize(t.transit_aspect),
+    ...(ctx
+      ? {
+          // The moment the Moon enters the sign (UTC), and one ready-made line for the post text.
+          transit_start_utc: new Date(ctx.window.start_time).toISOString(),
+          transit_end_utc: new Date(ctx.window.end_time).toISOString(),
+          transit_times_line: transitTimesLine(Date.parse(ctx.window.start_time)),
+          scheduled_post_utc: new Date(ctx.postAt).toISOString(),
+          schedule_profile: 'primary',
+        }
+      : {}),
   };
 }
 
@@ -50,17 +71,24 @@ async function fetchCandidates() {
   return (data ?? []) as Array<TransitRow & Record<string, any>>;
 }
 
-/** Moon windows that have not ended yet (about the next 90 days of them is plenty). */
-async function fetchWindows(): Promise<TransitWindow[]> {
+/** Moon windows that had not ended at sinceMs (a missed card's window must still be known). */
+async function fetchWindows(sinceMs: number): Promise<TransitWindow[]> {
   const { data, error } = await supabase
     .from('moon_transitions')
     .select('sign, start_time, end_time')
-    .gt('end_time', new Date().toISOString())
+    .gt('end_time', new Date(sinceMs).toISOString())
     .order('start_time', { ascending: true })
-    .limit(200);
+    .limit(600);
   if (error) throw new Error(error.message);
   return (data ?? []).filter((w) => w.sign && w.start_time && w.end_time) as TransitWindow[];
 }
+
+const log = (step: string, details?: unknown) =>
+  console.log(`[MAKE-SOCIAL-BRIDGE] ${step}`, details ? JSON.stringify(details) : '');
+
+// The sending / failure / alert columns come from a migration that may not be applied yet. Every write to them
+// is allowed to fail quietly so posting itself never depends on it.
+const claimStale = () => new Date(Date.now() - CLAIM_STALE_MINUTES * 60000).toISOString();
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -112,14 +140,14 @@ Deno.serve(async (req) => {
       const result = await pushDue({
         fetchCandidates,
         fetchWindows,
-        postToWebhook: async (row) => {
+        postToWebhook: async (row, ctx) => {
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), 10000);
           try {
             const res = await fetch(webhookUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ event: 'transit.due', source: 'moonday-social-bridge', ...toPayload(row) }),
+              body: JSON.stringify({ event: 'transit.due', source: 'moonday-social-bridge', ...toPayload(row, ctx) }),
               signal: controller.signal,
             });
             await res.text().catch(() => undefined);
@@ -129,6 +157,13 @@ Deno.serve(async (req) => {
           }
         },
         markPosted: async (rowId, at) => {
+          const full = await supabase
+            .from('transits')
+            .update({ social_posted_at: at, social_sending_at: null, social_fail_count: 0, social_last_error: null })
+            .eq('id', rowId)
+            .is('social_posted_at', null);
+          if (!full.error) return;
+          // The extra columns may not exist yet: record the post itself.
           const { error } = await supabase
             .from('transits')
             .update({ social_posted_at: at })
@@ -136,8 +171,48 @@ Deno.serve(async (req) => {
             .is('social_posted_at', null);
           if (error) throw new Error(error.message);
         },
+        claim: async (rowId, nowMs) => {
+          const { data, error } = await supabase
+            .from('transits')
+            .update({ social_sending_at: new Date(nowMs).toISOString() })
+            .eq('id', rowId)
+            .is('social_posted_at', null)
+            .or(`social_sending_at.is.null,social_sending_at.lt.${claimStale()}`)
+            .select('id');
+          if (error) {
+            log('claim unavailable (migration not applied?), sending without it', { reason: error.message });
+            return true;
+          }
+          return (data ?? []).length > 0;
+        },
+        release: async (rowId) => {
+          await supabase.from('transits').update({ social_sending_at: null }).eq('id', rowId);
+        },
+        recordFailure: async (row: TransitRow & Record<string, any>, reason) => {
+          const sameApproval = row.social_fail_for === row.published_at;
+          const count = (sameApproval ? Number(row.social_fail_count) || 0 : 0) + 1;
+          const { error } = await supabase
+            .from('transits')
+            .update({ social_fail_count: count, social_fail_for: row.published_at ?? null, social_last_error: reason.slice(0, 300), social_sending_at: null })
+            .eq('id', row.id);
+          if (error) {
+            log('could not store the failure (migration not applied?)', { reason: error.message });
+            return 1;
+          }
+          return count;
+        },
+        notify: async (alert) =>
+          sendAdminEmail(socialAlertEmail(alert.kind, String(alert.row.sign ?? alert.row.id), alert.detail), {
+            apiKey: Deno.env.get('RESEND_API_KEY'),
+            to: Deno.env.get('ADMIN_ALERT_EMAIL') || DEFAULT_ADMIN_EMAIL,
+          }),
+        markAlerted: async (rowId, kind, windowKey) => {
+          const field = kind === 'failed' ? 'social_fail_alert_for' : 'social_missed_alert_for';
+          const { error } = await supabase.from('transits').update({ [field]: windowKey }).eq('id', rowId);
+          if (error) throw new Error(error.message);
+        },
         now: () => Date.now(),
-        log: (step, details) => console.log(`[MAKE-SOCIAL-BRIDGE] ${step}`, details ? JSON.stringify(details) : ''),
+        log,
       });
       return json({ mode: 'push', ...result });
     } catch (err) {
@@ -168,14 +243,14 @@ Deno.serve(async (req) => {
 
   // 2. Poller Query: Bodyless POST or GET requests return published items ready for Make.com to distribute
   if (targetTable === 'transits') {
-    // Only DUE records: published, unposted, post time (power hour on the first day of the transit, New York)
-    // has passed, and the transit is not over. Approving early no longer posts early.
+    // Only DUE records: approved, unposted, post time reached, transit not over (see _shared/socialDue.ts).
     try {
-      const [candidates, windows] = await Promise.all([fetchCandidates(), fetchWindows()]);
-      const due = dueRows(candidates, windows, Date.now())
-        .sort((x, y) => String(x.published_at ?? '').localeCompare(String(y.published_at ?? '')))
+      const candidates = await fetchCandidates();
+      const windows = await fetchWindows(earliestApproval(candidates, Date.now()));
+      const due = dueItems(candidates, windows, Date.now())
+        .sort((x: DueItem<TransitRow>, y: DueItem<TransitRow>) => x.postAt - y.postAt)
         .slice(0, 12)
-        .map(toPayload);
+        .map((i) => toPayload(i.row, { window: i.window, postAt: i.postAt }));
 
       return json({ table: 'transits', count: due.length, transits: due, posts: due });
     } catch (err) {
