@@ -129,7 +129,8 @@ describe("Pricing: billing terms line", () => {
     const line = screen.getByTestId("billing-terms");
     expect(line.textContent).toContain("$58.88 per year");
     expect(line.textContent).toContain("renews automatically");
-    expect(line.textContent).toContain("cancel in one click from your Account page");
+    expect(line.textContent).toContain("You can cancel anytime from your Account page.");
+    expect(line.textContent).not.toContain("one click");
     expect(line.querySelector('a[href="/terms"]')).toBeTruthy();
     expect(line.querySelector('a[href="/refund"]')).toBeTruthy();
     expect(line.className).toContain("text-left");

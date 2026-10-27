@@ -117,6 +117,9 @@ const Pricing = () => {
 
   const canceled = searchParams.get("canceled") === "true";
 
+  const { amount, interval } = PRICES[billingInterval];
+  const billingLine = `${amount} per ${interval}. Your membership renews automatically each ${interval} until you cancel. You can cancel anytime from your Account page.`;
+
   const handleCheckout = async () => {
     if (!user || !session) {
       navigate("/login");
@@ -362,10 +365,14 @@ const Pricing = () => {
                 if (!user) navigate("/signup");
               }}
               disabled={!!user}
-              className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-75 disabled:cursor-default"
+              className="w-full min-h-12 h-12 shrink-0 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-75 disabled:cursor-default"
             >
               {user ? "Your current plan" : "Start Free"}
             </button>
+            {/* Reserves the room the Luminary card's billing line takes, so both buttons share one row when the cards sit side by side. */}
+            <p aria-hidden="true" className="invisible hidden md:block font-serif text-sm leading-relaxed text-left mt-4 select-none">
+              {billingLine} See our Terms and Refund Policy.
+            </p>
           </GlassmorphismCard>
 
           {/* Luminary */}
@@ -417,14 +424,12 @@ const Pricing = () => {
             <button
               onClick={handleCheckout}
               disabled={loading}
-              className="w-full h-12 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full min-h-12 h-12 shrink-0 font-display text-xs tracking-[0.15em] uppercase border border-primary/60 bg-primary/10 rounded-full text-primary hover:bg-primary/20 transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {loading ? <MoonLoader size="sm" /> : "Unlock Luminary"}
             </button>
             <p className="font-serif text-sm text-cream-muted/80 leading-relaxed text-left mt-4" data-testid="billing-terms">
-              {PRICES[billingInterval].amount} per {PRICES[billingInterval].interval}. Your membership renews
-              automatically each {PRICES[billingInterval].interval} until you cancel. You can cancel in one click
-              from your Account page. See our{" "}
+              {billingLine} See our{" "}
               <Link to="/terms" className="underline underline-offset-4 text-primary/90">Terms</Link> and{" "}
               <Link to="/refund" className="underline underline-offset-4 text-primary/90">Refund Policy</Link>.
             </p>
