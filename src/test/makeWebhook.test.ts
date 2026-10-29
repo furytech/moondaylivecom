@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { makeWebhookHeaders, postToMake } from "../../supabase/functions/_shared/makeWebhook";
+import { makeWebhookHeaders, postToMake, sendTestSign } from "../../supabase/functions/_shared/makeWebhook";
 import { pushDue, type TransitRow } from "../../supabase/functions/_shared/socialDue";
 import { socialAlertEmail } from "../../supabase/functions/_shared/adminAlert";
 
@@ -26,6 +26,71 @@ describe("make webhook api key header", () => {
       expect(Object.keys(sentHeaders(f))).toEqual(["Content-Type"]);
     }
     expect(makeWebhookHeaders()).toEqual({ "Content-Type": "application/json" });
+  });
+});
+
+describe("test_sign test post", () => {
+  const row = { id: "cancer", sign: "Cancer", status: "published", social_posted_at: null };
+  const make = (over: Partial<Parameters<typeof sendTestSign<typeof row>>[1]> = {}) => {
+    const f = okFetch();
+    const loadRow = vi.fn(async (_s: string) => row as typeof row | null);
+    const deps = {
+      loadRow,
+      buildPayload: (r: typeof row) => ({ event: "transit.due", ...r }),
+      post: (p: unknown) => postToMake({ url: URL_SECRET, apiKey: KEY_SECRET }, p, f as unknown as typeof fetch),
+      ...over,
+    };
+    return { f, loadRow, deps };
+  };
+
+  it("posts the payload once with the api key and returns only the status", async () => {
+    const { f, loadRow, deps } = make();
+    const out = await sendTestSign(" Cancer ", deps);
+    expect(out).toEqual({ status: 200 });
+    expect(loadRow).toHaveBeenCalledTimes(1);
+    expect(loadRow).toHaveBeenCalledWith("cancer");
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(sentHeaders(f)["x-make-apikey"]).toBe(KEY_SECRET);
+    expect(JSON.parse((f.mock.calls[0][1] as RequestInit).body as string)).toMatchObject({ event: "transit.due", id: "cancer" });
+  });
+
+  it("reports a non-2xx status as the status, not as an error", async () => {
+    const f = vi.fn(async () => new Response("no", { status: 500 }));
+    const { deps } = make({ post: (p) => postToMake({ url: URL_SECRET }, p, f as unknown as typeof fetch) });
+    expect(await sendTestSign("cancer", deps)).toEqual({ status: 500 });
+  });
+
+  it("rejects a missing or malformed sign without reading or posting", async () => {
+    for (const bad of [undefined, null, 5, "", "../x", "cancer; drop", "a"]) {
+      const { f, loadRow, deps } = make();
+      expect(await sendTestSign(bad, deps)).toMatchObject({ httpStatus: 400 });
+      expect(loadRow).not.toHaveBeenCalled();
+      expect(f).not.toHaveBeenCalled();
+    }
+  });
+
+  it("an unknown sign posts nothing", async () => {
+    const { f, deps } = make({ loadRow: async () => null });
+    expect(await sendTestSign("ophiuchus", deps)).toMatchObject({ httpStatus: 404 });
+    expect(f).not.toHaveBeenCalled();
+  });
+
+  it("a network failure returns a plain error without the secrets", async () => {
+    const { deps } = make({ post: (p) => postToMake({ url: URL_SECRET, apiKey: KEY_SECRET }, p, (async () => { throw new TypeError(`failed ${URL_SECRET} ${KEY_SECRET}`); }) as unknown as typeof fetch) });
+    const out = await sendTestSign("cancer", deps);
+    expect(out).toEqual({ error: "network error", httpStatus: 502 });
+    expect(JSON.stringify(out)).not.toContain(KEY_SECRET);
+    expect(JSON.stringify(out)).not.toContain("example-make.com");
+  });
+
+  it("the handler wiring is read-only: index.ts test branch has no writes, alerts or due rule", async () => {
+    const fs = await import("node:fs");
+    const src = fs.readFileSync("supabase/functions/make-social-bridge/index.ts", "utf8");
+    const branch = src.slice(src.indexOf("body.test_sign !== undefined"), src.indexOf("const result = await pushDue"));
+    expect(branch).toContain("sendTestSign");
+    for (const forbidden of [".update(", ".insert(", ".upsert(", ".delete(", "sendAdminEmail", "pushDue", "markPosted", "claim"]) {
+      expect(branch).not.toContain(forbidden);
+    }
   });
 });
 

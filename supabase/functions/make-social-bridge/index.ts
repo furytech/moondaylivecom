@@ -1,7 +1,9 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   CLAIM_STALE_MINUTES,
+  currentWindow,
   dueItems,
+  postTimeFor,
   pushDue,
   transitTimesLine,
   windowsSince,
@@ -11,7 +13,7 @@ import {
   type TransitWindow,
 } from '../_shared/socialDue.ts';
 import { DEFAULT_ADMIN_EMAIL, sendAdminEmail, socialAlertEmail } from '../_shared/adminAlert.ts';
-import { postToMake } from '../_shared/makeWebhook.ts';
+import { postToMake, sendTestSign } from '../_shared/makeWebhook.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -142,13 +144,36 @@ Deno.serve(async (req) => {
     if (!expectedSecret) return json({ error: 'MAKE_SOCIAL_SECRET is not set; push mode needs it' }, 500);
     const webhookUrl = Deno.env.get('MAKE_SOCIAL_WEBHOOK_URL');
     if (!webhookUrl) return json({ error: 'MAKE_SOCIAL_WEBHOOK_URL is not set' }, 500);
+    const webhook = { url: webhookUrl, apiKey: Deno.env.get('MAKE_SOCIAL_WEBHOOK_KEY') };
+
+    // Test post for one sign: not the due rule, no database writes, no alerts. Returns only the HTTP status.
+    if (body.test_sign !== undefined) {
+      const out = await sendTestSign(body.test_sign, {
+        loadRow: async (sign) => {
+          const { data, error } = await supabase.from('transits').select('*').eq('id', sign).maybeSingle();
+          if (error) throw new Error('could not read the sign');
+          return (data ?? null) as (TransitRow & Record<string, any>) | null;
+        },
+        buildPayload: async (row) => {
+          // Same fields as a real push: add the sign's current moon window when one is loaded.
+          const windows = await fetchWindows(windowsSince(Date.now()));
+          const window = currentWindow(windows, String(row.sign ?? row.id), Date.now());
+          const ctx = window ? { window, postAt: postTimeFor(window) } : undefined;
+          return { event: 'transit.due', source: 'moonday-social-bridge', ...toPayload(row, ctx) };
+        },
+        post: (payload) => postToMake(webhook, payload),
+      }).catch(() => ({ error: 'test post failed', httpStatus: 500 }));
+      log('test post', 'status' in out ? { status: out.status } : { error: out.error });
+      return 'status' in out ? json({ mode: 'test', status: out.status }) : json({ error: out.error }, out.httpStatus);
+    }
+
     try {
       const result = await pushDue({
         fetchCandidates,
         fetchWindows,
         postToWebhook: (row, ctx) =>
           postToMake(
-            { url: webhookUrl, apiKey: Deno.env.get('MAKE_SOCIAL_WEBHOOK_KEY') },
+            webhook,
             { event: 'transit.due', source: 'moonday-social-bridge', ...toPayload(row, ctx) },
           ),
         markPosted: async (rowId, at, postAt) => {
