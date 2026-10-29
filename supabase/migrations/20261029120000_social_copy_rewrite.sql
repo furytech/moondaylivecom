@@ -22,7 +22,7 @@ update transits set copy = 'Moon in Cancer turns focus inward toward memory and 
 
 update transits set copy = 'Moon in Leo invites creative expression and visible presence. Notice where an idea is being held back, and let genuine enthusiasm carry it past the fear of exposure.' where id = 'leo';
 
-update transits set copy = 'Moon in Virgo rewards structural clarity and fine detail. Sorting a complex workflow, clearing an inbox, or organising a system offers a quiet sense of control.' where id = 'virgo';
+update transits set copy = 'Moon in Virgo rewards structural clarity and fine detail. Sorting a complex workflow, clearing an inbox, or organizing a system offers a quiet sense of control.' where id = 'virgo';
 
 update transits set copy = 'Moon in Libra highlights balance and fairness in relationships. Tension in collaboration can ease when you lead with poise. Look for where the two sides align.' where id = 'libra';
 
