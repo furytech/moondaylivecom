@@ -11,6 +11,7 @@ import {
   type TransitWindow,
 } from '../_shared/socialDue.ts';
 import { DEFAULT_ADMIN_EMAIL, sendAdminEmail, socialAlertEmail } from '../_shared/adminAlert.ts';
+import { postToMake } from '../_shared/makeWebhook.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -145,22 +146,11 @@ Deno.serve(async (req) => {
       const result = await pushDue({
         fetchCandidates,
         fetchWindows,
-        postToWebhook: async (row, ctx) => {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 10000);
-          try {
-            const res = await fetch(webhookUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ event: 'transit.due', source: 'moonday-social-bridge', ...toPayload(row, ctx) }),
-              signal: controller.signal,
-            });
-            await res.text().catch(() => undefined);
-            return res.status;
-          } finally {
-            clearTimeout(timer);
-          }
-        },
+        postToWebhook: (row, ctx) =>
+          postToMake(
+            { url: webhookUrl, apiKey: Deno.env.get('MAKE_SOCIAL_WEBHOOK_KEY') },
+            { event: 'transit.due', source: 'moonday-social-bridge', ...toPayload(row, ctx) },
+          ),
         markPosted: async (rowId, at, postAt) => {
           const unposted = unpostedFilter(postAt);
           const full = await supabase
