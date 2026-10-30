@@ -78,6 +78,10 @@ const Terms = () => {
               has the details, including what to do about a duplicate charge or
               a billing error.
             </p>
+            <p className="text-left">
+              Yearly members receive an email reminder about 15 days before
+              their membership renews.
+            </p>
 
             <h2 className="font-display text-xl text-foreground mt-8 mb-4">
               Changes to Terms
