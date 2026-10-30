@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { processStripeEvent, type StripeEventLike } from "../_shared/stripeWebhookCore.ts";
+import { sendCancellationEmail } from "../_shared/cancellationEmail.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -113,6 +114,7 @@ serve(async (req) => {
         const { error } = await supabaseClient.from("user_profiles").update(update).eq("email", email);
         return { error: error?.message };
       },
+      sendCancellationEmail: (to, endsAt) => sendCancellationEmail(to, endsAt, Deno.env.get("RESEND_API_KEY")),
       log: logStep,
     });
 

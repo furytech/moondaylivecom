@@ -10,7 +10,7 @@ import {
 export interface StripeEventLike {
   id: string;
   type: string;
-  data: { object: Record<string, any> };
+  data: { object: Record<string, any>; previous_attributes?: Record<string, any> };
 }
 
 export type ClaimResult = "claimed" | "duplicate" | "unavailable";
@@ -27,7 +27,30 @@ export interface WebhookDeps {
   findUserIdByEmail(email: string): Promise<string | null>;
   updateProfileByUserId(userId: string, update: Record<string, unknown>): Promise<{ error?: string }>;
   updateProfileByEmail(email: string, update: Record<string, unknown>): Promise<{ error?: string }>;
+  /** Email the member that their cancellation is confirmed. Throws when it could not be sent (logged, not retried). */
+  sendCancellationEmail?(to: string, endsAt: Date): Promise<void>;
   log(step: string, details?: unknown): void;
+}
+
+/** True when this "updated" event is the moment the subscription was set to end at period end: the flag is on now
+ *  and the event shows it was off before. Renewals, payment failures and later edits to an already-cancelling
+ *  subscription do not match. */
+export function justSetToCancel(subscription: Record<string, any>, previous: Record<string, any> | undefined): boolean {
+  if (!previous || subscription.status === "canceled") return false;
+  const nowCancelling = subscription.cancel_at_period_end === true || typeof subscription.cancel_at === "number";
+  if (!nowCancelling) return false;
+  const wasCancelling = "cancel_at_period_end" in previous || "cancel_at" in previous
+    ? previous.cancel_at_period_end === true || typeof previous.cancel_at === "number"
+    : true;
+  return !wasCancelling;
+}
+
+/** The day access stops: the scheduled cancel time, else the end of the current paid period. */
+export function accessEndsAt(subscription: Record<string, any>): Date | null {
+  const seconds = (typeof subscription.cancel_at === "number" ? subscription.cancel_at : null)
+    ?? subscription.current_period_end
+    ?? subscription.items?.data?.[0]?.current_period_end;
+  return typeof seconds === "number" ? new Date(seconds * 1000) : null;
 }
 
 export interface WebhookResult {
@@ -124,6 +147,29 @@ async function handle(event: StripeEventLike, deps: WebhookDeps): Promise<Webhoo
       return { status: 500, body: { error: "Failed to sync subscription" } };
     }
     log("Subscription synced", { email, status: fromEvent.status, decision });
+
+    // One confirmation email, only at the moment of cancelling. The event-ID claim above means a repeated
+    // webhook never reaches this point twice.
+    if (
+      event.type === "customer.subscription.updated" &&
+      deps.sendCancellationEmail &&
+      justSetToCancel(subscription, (event.data as { previous_attributes?: Record<string, any> }).previous_attributes)
+    ) {
+      const endsAt = accessEndsAt(subscription);
+      if (!endsAt) {
+        log("WARNING: cancellation without an end date, email not sent", { id: subscription.id });
+      } else {
+        try {
+          await deps.sendCancellationEmail(email, endsAt);
+          log("Cancellation email sent", { id: subscription.id });
+        } catch (err) {
+          // The access change is already saved. Do not fail the webhook over an email: repeated 5xx replies
+          // can get the whole endpoint disabled by Stripe, which would stop access updates for everyone.
+          log("ERROR sending cancellation email (not retried)", { reason: err instanceof Error ? err.message : String(err) });
+          return ok({ cancellation_email: "failed" });
+        }
+      }
+    }
     return ok();
   }
 

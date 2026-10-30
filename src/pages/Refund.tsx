@@ -13,7 +13,7 @@ const Refund = () => {
             Refund & Cancellation
           </h1>
           <p className="font-serif text-cream-muted text-xs uppercase tracking-[0.2em]">
-            Last updated: May 2026
+            Last updated: October 2026
           </p>
         </header>
 
@@ -21,7 +21,7 @@ const Refund = () => {
           <div className="font-serif text-cream-muted leading-relaxed space-y-6 text-sm md:text-base">
             <p>
               The Luminary Tier is a recurring subscription. By subscribing,
-              you authorise Moonday Live to charge your payment method on a
+              you authorize Moonday Live to charge your payment method on a
               recurring basis until you cancel.
             </p>
 
@@ -32,7 +32,10 @@ const Refund = () => {
               You may cancel your subscription at any time from the Account
               page. Cancellation takes effect at the end of your current
               billing period. You will retain Luminary Tier access until that
-              date — no further charges will be made.
+              date — no further charges will be made. When your Luminary
+              access ends, your account returns to the free Blueprint. We
+              email you a written confirmation with the end date as soon as you
+              cancel.
             </p>
 
             <h2 className="font-display text-lg md:text-xl text-foreground mt-6 mb-3">

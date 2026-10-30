@@ -3,8 +3,9 @@ import GlassmorphismCard from "@/components/GlassmorphismCard";
 import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "2026-07-22";
+const LAST_UPDATED = "2026-10-30";
 
 const Terms = () => {
   return (
@@ -50,6 +51,34 @@ const Terms = () => {
               and for all activities that occur under your account.
             </p>
             
+            <h2 className="font-display text-xl text-foreground mt-8 mb-4">
+              Cancel, Access, Refunds
+            </h2>
+            <p className="text-left">
+              Luminary is a subscription that renews automatically each month
+              or year until you cancel.
+            </p>
+            <p className="text-left">
+              <strong>How to cancel.</strong> Sign in, open your{" "}
+              <Link to="/account" className="text-primary hover:underline">Account</Link>{" "}
+              page and choose Manage or cancel membership. You do not need to
+              contact us, and you can do it at any time.
+            </p>
+            <p className="text-left">
+              <strong>When access ends.</strong> Cancelling stops future
+              charges. Your Luminary access continues until the end of the
+              period you have already paid for, and then your account returns
+              to the free Blueprint. We email you a confirmation with the end
+              date when you cancel.
+            </p>
+            <p className="text-left">
+              <strong>Refunds.</strong> Payments are non-refundable, and we do
+              not give partial refunds for unused time. The{" "}
+              <Link to="/refund" className="text-primary hover:underline">Refund &amp; Cancellation Policy</Link>{" "}
+              has the details, including what to do about a duplicate charge or
+              a billing error.
+            </p>
+
             <h2 className="font-display text-xl text-foreground mt-8 mb-4">
               Changes to Terms
             </h2>
