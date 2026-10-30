@@ -13,7 +13,7 @@ import {
   type TransitWindow,
 } from '../_shared/socialDue.ts';
 import { DEFAULT_ADMIN_EMAIL, sendAdminEmail, socialAlertEmail } from '../_shared/adminAlert.ts';
-import { postToMake, sendTestSign } from '../_shared/makeWebhook.ts';
+import { hashtagsLine, postToMake, sendTestSign } from '../_shared/makeWebhook.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,6 +50,7 @@ function toPayload(t: TransitRow & Record<string, any>, ctx?: PushContext) {
     ritual_tip: sanitize(t.ritual_tip),
     transit_title: sanitize(t.transit_title),
     transit_aspect: sanitize(t.transit_aspect),
+    hashtags_line: hashtagsLine(t.hashtags),
     ...(ctx
       ? {
           // The moment the Moon enters the sign (UTC), and one ready-made line for the post text.

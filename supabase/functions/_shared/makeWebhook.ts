@@ -15,6 +15,12 @@ export function makeWebhookHeaders(apiKey?: string | null): Record<string, strin
   return headers;
 }
 
+/** The hashtags array as one post-ready line, joined by single spaces ("" when there are none). */
+export function hashtagsLine(hashtags: unknown): string {
+  if (!Array.isArray(hashtags)) return "";
+  return hashtags.map((h) => String(h ?? "").trim()).filter(Boolean).join(" ");
+}
+
 export interface TestSendDeps<R> {
   /** Read one record by sign slug (read-only). null = no such record. */
   loadRow(sign: string): Promise<R | null>;

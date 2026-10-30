@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { makeWebhookHeaders, postToMake, sendTestSign } from "../../supabase/functions/_shared/makeWebhook";
+import { hashtagsLine, makeWebhookHeaders, postToMake, sendTestSign } from "../../supabase/functions/_shared/makeWebhook";
 import { pushDue, type TransitRow } from "../../supabase/functions/_shared/socialDue";
 import { socialAlertEmail } from "../../supabase/functions/_shared/adminAlert";
 
@@ -26,6 +26,31 @@ describe("make webhook api key header", () => {
       expect(Object.keys(sentHeaders(f))).toEqual(["Content-Type"]);
     }
     expect(makeWebhookHeaders()).toEqual({ "Content-Type": "application/json" });
+  });
+});
+
+describe("hashtags_line", () => {
+  it("joins the array with single spaces", () => {
+    expect(hashtagsLine(["#CancerZodiac", "#LunarSanctuary", "#IntuitiveFlow", "#MoondayLive"])).toBe(
+      "#CancerZodiac #LunarSanctuary #IntuitiveFlow #MoondayLive",
+    );
+  });
+  it("is an empty string for missing, empty or non-array values and skips blanks", () => {
+    expect(hashtagsLine(undefined)).toBe("");
+    expect(hashtagsLine(null)).toBe("");
+    expect(hashtagsLine([])).toBe("");
+    expect(hashtagsLine("#a #b")).toBe("");
+    expect(hashtagsLine(["#a", " ", null, " #b "])).toBe("#a #b");
+  });
+  it("is added to the shared payload builder next to the unchanged hashtags array, for push and test_sign", async () => {
+    const fs = await import("node:fs");
+    const src = fs.readFileSync("supabase/functions/make-social-bridge/index.ts", "utf8");
+    const builder = src.slice(src.indexOf("function toPayload"), src.indexOf("async function fetchCandidates"));
+    expect(builder).toContain("...t,");
+    expect(builder).toContain("hashtags_line: hashtagsLine(t.hashtags)");
+    expect(builder).not.toMatch(/\n\s*hashtags:/);
+    // Both the due push and the test_sign branch build their payload with toPayload.
+    expect(src.match(/\.\.\.toPayload\(row, (ctx|ctx)\)/g)?.length).toBe(2);
   });
 });
 
