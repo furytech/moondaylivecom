@@ -136,3 +136,25 @@ describe("Pricing: billing terms line", () => {
     expect(line.className).toContain("text-left");
   });
 });
+
+describe("Pricing: no popularity badge", () => {
+  it("renders no Most Popular, Best Deal or Best Value badge in the Yearly or Monthly view, and keeps the SAVE tag", () => {
+    render(
+      <HelmetProvider>
+        <MemoryRouter>
+          <Pricing />
+        </MemoryRouter>
+      </HelmetProvider>,
+    );
+    const noBadge = () => {
+      expect(screen.queryByText(/most popular|best deal|best value/i)).toBeNull();
+    };
+    noBadge();
+    expect(screen.getByTestId("save-tag").textContent).toBe("SAVE 29%");
+    fireEvent.click(screen.getByRole("button", { name: /^Monthly$/ }));
+    noBadge();
+    expect(screen.getByTestId("save-tag").textContent).toBe("SAVE 29%");
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
+    noBadge();
+  });
+});

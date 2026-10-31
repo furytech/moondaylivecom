@@ -314,7 +314,10 @@ const Pricing = () => {
               }`}
             >
               Yearly
-              <span className="px-2 py-0.5 bg-primary/90 text-primary-foreground text-[10px] font-display rounded-full tracking-wider">
+              <span
+                data-testid="save-tag"
+                className="px-2 py-0.5 bg-[#F5C451] text-[hsl(var(--navy-deep))] text-[10px] font-display font-bold rounded-full tracking-wider"
+              >
                 {PRICES.yearly.savings}
               </span>
             </button>
@@ -377,10 +380,6 @@ const Pricing = () => {
 
           {/* Luminary */}
           <GlassmorphismCard className="animate-fade-up stagger-2 flex flex-col relative border-primary/40">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-full px-4 py-1.5 bg-primary text-primary-foreground font-display text-[10px] tracking-[0.15em] uppercase rounded-full whitespace-nowrap z-20 shadow-lg">
-              Most Popular
-            </span>
-
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Crown className="w-5 h-5 text-primary" />
