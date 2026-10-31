@@ -5,6 +5,7 @@ import EducationButton from "@/components/EducationButton";
 import EducationModal from "@/components/EducationModal";
 import { INNER_CIRCLE } from "@/lib/innerCircleDictionary";
 import type { LunarIntelligence } from "@/lib/lunarEngine";
+import { placeholderFor } from "@/lib/lockedPlaceholder";
 
 interface LunarSignatureSectionProps {
   lunar: LunarIntelligence;
@@ -20,7 +21,16 @@ const PILLAR_ICONS = [
 
 const LunarSignatureSection = ({ lunar, isPro, onUpgradeClick }: LunarSignatureSectionProps) => {
   const [infoOpen, setInfoOpen] = useState(false);
-  const signature = INNER_CIRCLE[lunar.sign.name] || INNER_CIRCLE.Aries;
+  const realSignature = INNER_CIRCLE[lunar.sign.name] || INNER_CIRCLE.Aries;
+  // Not a Luminary member: filler of the same length, never the real guidance.
+  const signature = isPro
+    ? realSignature
+    : {
+        ...realSignature,
+        psychological: placeholderFor(realSignature.psychological),
+        spiritual: placeholderFor(realSignature.spiritual),
+        material: placeholderFor(realSignature.material),
+      };
 
   return (
     <>

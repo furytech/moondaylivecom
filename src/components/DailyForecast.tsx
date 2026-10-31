@@ -8,6 +8,7 @@ import GlassmorphismCard from "./GlassmorphismCard";
 import { Skeleton } from "./ui/skeleton";
 import LuminaryGate from "./LuminaryGate";
 import { stripBodyClaimsFromRecord } from "@/lib/dailyContentGuard";
+import { placeholderFor } from "@/lib/lockedPlaceholder";
 
 export function getBodyPreview(text?: string | null): { preview: string; blurredRemainder: string } {
   if (!text) return { preview: "", blurredRemainder: "" };
@@ -24,9 +25,10 @@ export function getBodyPreview(text?: string | null): { preview: string; blurred
     };
   }
 
+  // The rest of the text is locked: free members get filler of the same length, never the real sentences.
   return {
     preview: sentences.slice(0, 2).join(" "),
-    blurredRemainder: sentences.slice(2).join(" "),
+    blurredRemainder: placeholderFor(sentences.slice(2).join(" ")),
   };
 }
 

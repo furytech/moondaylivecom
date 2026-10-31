@@ -39,6 +39,9 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
         <Moon className="w-5 h-5 text-primary" />
       </div>
 
+      {/* The ritual itself is Luminary only: for anyone else it is not rendered at all (not hidden, not blurred). */}
+      {isPro && (
+      <>
       {/* Ritual Title & Element */}
       <div className="text-center mb-6">
         <h3 className="font-display text-2xl text-gold-gradient mb-2 text-center">{ritual.title}</h3>
@@ -93,6 +96,8 @@ const DailyRitual = ({ currentMoonSign, birthMoonSign, moonPhase, isPro, onUpgra
           </p>
         </div>
       </div>
+      </>
+      )}
 
       {/* === TIERED SECTION === */}
       {isPro && birthMoonSign ? (

@@ -5,6 +5,7 @@ import EducationButton from "@/components/EducationButton";
 import EducationModal from "@/components/EducationModal";
 import { PHASE_GUIDANCE } from "@/lib/innerCircleDictionary";
 import type { LunarIntelligence } from "@/lib/lunarEngine";
+import { placeholderFor } from "@/lib/lockedPlaceholder";
 
 interface GreatCycleSectionProps {
   lunar: LunarIntelligence;
@@ -23,7 +24,16 @@ const GreatCycleSection = ({ lunar, isSubscriber, onUpgradeClick }: GreatCycleSe
   const phaseKey = Object.keys(PHASE_GUIDANCE).find(
     (k) => lunar.phase.name.toLowerCase().includes(k.toLowerCase())
   ) || "New";
-  const guidance = PHASE_GUIDANCE[phaseKey];
+  const realGuidance = PHASE_GUIDANCE[phaseKey];
+  // Not a Luminary member: filler of the same length, never the real guidance.
+  const guidance = isSubscriber
+    ? realGuidance
+    : {
+        ...realGuidance,
+        psychological: placeholderFor(realGuidance.psychological),
+        spiritual: placeholderFor(realGuidance.spiritual),
+        material: placeholderFor(realGuidance.material),
+      };
 
   return (
     <>

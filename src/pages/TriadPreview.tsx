@@ -3,12 +3,13 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { seoProps } from "@/lib/seo";
+import { placeholderFor } from "@/lib/lockedPlaceholder";
 
 /* ────────────────────────────────────────────────────────────
    Triad Preview — public conversion page
    Linked from the Blueprint email's "Not yet" CTA.
    Shows the natal forces (Sun / Moon) with
-   blurred synthesis text and a gate CTA to /pricing.
+   blurred filler (the real text is not in the page) and a gate CTA to /pricing.
    ──────────────────────────────────────────────────────────── */
 
 const FORCES = [
@@ -17,24 +18,14 @@ const FORCES = [
     glyph: "☀",
     name: "The Luminary",
     role: "Your will · the light you generate",
-    synthesis:
-      "Your Sun sign is the engine of your identity — the quality of attention you bring to " +
-      "everything you choose. It describes not just who you are, but what you are compelled to " +
-      "master. Where your Luminary falls reveals the arena where your vitality finds fullest " +
-      "expression, and where its absence leaves you dimmed. This is the force that wants to be " +
-      "seen. It tolerates no long-term suppression.",
+    lockedChars: 391,
   },
   {
     ordinal: "The Second Force",
     glyph: "☽",
     name: "The Tide",
     role: "Your instinct · the current beneath you",
-    synthesis:
-      "Your Moon sign is the architecture of your inner life — the emotional logic running beneath " +
-      "every decision. It holds what you need when no one is watching, what you reach for under " +
-      "pressure, and what conditions allow you to truly rest. The Tide flows regardless of whether " +
-      "you acknowledge it. Understanding it changes what you ask of the people closest to you — " +
-      "and of yourself.",
+    lockedChars: 376,
   },
 ];
 
@@ -92,7 +83,7 @@ export default function TriadPreview() {
                 <div className="relative">
                   <p className="text-[15px] leading-relaxed text-[hsl(var(--sov-ivory)/0.72)]
                                 blur-sm select-none pointer-events-none">
-                    {force.synthesis}
+                    {placeholderFor("x".repeat(force.lockedChars))}
                   </p>
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2
                                   bg-gradient-to-b from-transparent via-black/50 to-black/80">
