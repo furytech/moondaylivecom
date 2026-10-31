@@ -30,7 +30,6 @@ export interface Subscriber {
   tier: 'Free' | 'Stargazer Pro' | 'Founding Patron';
   zodiacSign: string;
   referralSource: string;
-  smsAlerts: boolean;
   emailAlerts: boolean;
   status: 'Active' | 'Churned' | 'Paused';
   createdAt: string;

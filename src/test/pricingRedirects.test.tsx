@@ -137,6 +137,43 @@ describe("Pricing: billing terms line", () => {
   });
 });
 
+describe("Pricing: feature lists match what the app does", () => {
+  const renderIt = () =>
+    render(
+      <HelmetProvider>
+        <MemoryRouter>
+          <Pricing />
+        </MemoryRouter>
+      </HelmetProvider>,
+    );
+
+  it("climate gauge is struck through on Free and listed on Luminary; the Blueprint is on both cards", () => {
+    renderIt();
+    const gauge = screen.getAllByText("Daily lunar climate gauge");
+    expect(gauge).toHaveLength(2);
+    expect(gauge.filter((el) => el.className.includes("line-through"))).toHaveLength(1);
+    const blueprint = screen.getAllByText("Your Sun + Moon Blueprint (1 of 144)");
+    expect(blueprint).toHaveLength(2);
+    expect(blueprint.filter((el) => el.className.includes("line-through"))).toHaveLength(0);
+  });
+
+  it("has no Sacred practice library row, and the crystal row is renamed", () => {
+    renderIt();
+    expect(screen.queryByText(/sacred practice library/i)).toBeNull();
+    expect(screen.queryByText(/crystal & element/i)).toBeNull();
+    expect(screen.getAllByText("Daily crystal guidance")).toHaveLength(2);
+  });
+
+  it("promises email alerts only, no SMS and no natal chart synthesis, and the modal has no priority support", () => {
+    const src = readFileSync("src/pages/Pricing.tsx", "utf8");
+    expect(src).toContain("email moon-ingress alerts");
+    expect(src).not.toMatch(/SMS/);
+    expect(src).not.toContain("natal chart synthesis");
+    expect(readFileSync("src/components/PricingModal.tsx", "utf8")).not.toMatch(/priority support/i);
+    expect(readFileSync("src/types.ts", "utf8")).not.toContain("smsAlerts");
+  });
+});
+
 describe("Pricing: no popularity badge", () => {
   it("renders no Most Popular, Best Deal or Best Value badge in the Yearly or Monthly view, and keeps the SAVE tag", () => {
     render(

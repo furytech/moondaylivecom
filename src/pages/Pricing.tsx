@@ -34,15 +34,14 @@ const PRICES = {
 const COMPARISON: { label: string; free: boolean; Luminary: boolean }[] = [
   { label: "Current Moon sign & phase", free: true, Luminary: true },
   { label: "General earthwide moon meaning", free: true, Luminary: true },
-  { label: "Daily lunar climate gauge", free: true, Luminary: true },
+  { label: "Daily lunar climate gauge", free: false, Luminary: true },
   { label: "Lunar Library (zodiac archives)", free: true, Luminary: true },
-  { label: "Your Sun + Moon Blueprint (1 of 144)", free: true, Luminary: false },
+  { label: "Your Sun + Moon Blueprint (1 of 144)", free: true, Luminary: true },
   { label: "Personalized Birth Moon × Current Moon Forecast", free: false, Luminary: true },
   { label: "Mind, Soul & Body Lunar Pillars", free: false, Luminary: true },
   { label: "Daily Luminary Insight & ritual", free: false, Luminary: true },
-  { label: "Crystal & element guidance", free: false, Luminary: true },
+  { label: "Daily crystal guidance", free: false, Luminary: true },
   { label: "Moon transition alerts", free: false, Luminary: true },
-  { label: "Sacred practice library", free: false, Luminary: true },
   { label: "Honest Chart — no birth time required", free: true, Luminary: true },
 ];
 
@@ -155,7 +154,7 @@ const Pricing = () => {
           "@context": "https://schema.org",
           "@type": "Product",
           name: "Moonday Live Luminary Tier",
-          description: "Precise, personalized daily moon sign horoscope, full Lunar Library, SMS moon ingress alerts, and complete natal chart synthesis — no birth time required.",
+          description: "Precise, personalized daily moon sign horoscope, full Lunar Library, email moon-ingress alerts, and your Sun + Moon Blueprint — no birth time required.",
           brand: { "@type": "Brand", name: "Moonday Live" },
           url: "https://moondaylive.com/pricing",
           offers: [

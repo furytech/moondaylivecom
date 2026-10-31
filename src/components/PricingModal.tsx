@@ -19,7 +19,7 @@ const PLANS = [
     price: "$58.88",
     period: "/year",
     savings: "Save 29%",
-    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Luminary Insight", "Priority support"],
+    features: ["Mind, Soul & Body Lunar Pillars", "Personalized Birth Moon × Current Moon Forecast", "Daily Luminary Insight"],
   },
   {
     id: "monthly",
