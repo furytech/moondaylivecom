@@ -25,3 +25,12 @@ dist-ssr
 .env
 .env.local
 supabase/.temp/
+
+# Database backups hold user data: never commit them, even if someone points the backup script inside the repo
+backups/
+**/backups/
+moonday/
+[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9][0-9][0-9]/
+public.sql
+auth-data.sql
+cron-jobs.sql
